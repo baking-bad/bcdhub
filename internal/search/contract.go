@@ -89,17 +89,22 @@ func (c *Contract) Prepare(model models.Model) {
 		return
 	}
 
+	script := cont.Alpha
+	if cont.BabylonID > 0 {
+		script = cont.Babylon
+	}
+
 	c.Address = cont.Address
-	c.Annotations = cont.Annotations
+	c.Annotations = script.Annotations
 	c.Delegate = cont.Delegate.String()
-	c.Entrypoints = cont.Entrypoints
-	c.FailStrings = cont.FailStrings
-	c.Hardcoded = cont.Hardcoded
-	c.Hash = cont.Hash
+	c.Entrypoints = script.Entrypoints
+	c.FailStrings = script.FailStrings
+	c.Hardcoded = script.Hardcoded
+	c.Hash = script.Hash
 	c.Level = cont.Level
 	c.Manager = cont.Manager.String()
 	c.Network = cont.Network.String()
-	c.ProjectID = cont.ProjectID.String()
+	c.ProjectID = script.ProjectID.String()
 	c.Tags = cont.Tags.ToArray()
 	c.Timestamp = cont.Timestamp.UTC()
 }

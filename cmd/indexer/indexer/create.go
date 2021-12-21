@@ -20,21 +20,13 @@ func CreateIndexers(ctx context.Context, internalCtx *config.Context, cfg config
 	}
 
 	indexers := make([]Indexer, 0)
-	for network, options := range cfg.Indexer.Networks {
-		boostOptions := make([]BoostIndexerOption, 0)
-		if options.Boost != "" {
-			boostOptions = append(boostOptions, WithBoost(options.Boost, network, cfg))
-		}
-		if cfg.Indexer.SkipDelegatorBlocks {
-			boostOptions = append(boostOptions, WithSkipDelegatorBlocks())
-		}
-
+	for network := range cfg.Indexer.Networks {
 		rpc, ok := cfg.RPC[network]
 		if !ok {
 			return nil, errors.Errorf("Unknown network %s", network)
 		}
 
-		bi, err := NewBoostIndexer(ctx, *internalCtx, rpc, types.NewNetwork(network), boostOptions...)
+		bi, err := NewBoostIndexer(ctx, *internalCtx, rpc, types.NewNetwork(network))
 		if err != nil {
 			return nil, err
 		}

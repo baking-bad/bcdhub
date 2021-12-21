@@ -21,7 +21,7 @@ type TokenMetadataHandler struct {
 func NewTokenMetadataHandler(ctx *config.Context) *TokenMetadataHandler {
 	return &TokenMetadataHandler{
 		ctx,
-		handlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.TokenMetadata, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
+		handlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.TokenMetadata, ctx.Storage, ctx.RPC, ctx.Config.IPFSGateways),
 	}
 }
 

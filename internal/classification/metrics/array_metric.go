@@ -22,7 +22,7 @@ func NewArray(field string) *Array {
 }
 
 // Compute -
-func (m *Array) Compute(a, b contract.Contract) Feature {
+func (m *Array) Compute(a, b contract.Script) Feature {
 	f := Feature{
 		Name: strings.ToLower(m.Field),
 	}
@@ -66,7 +66,7 @@ func (m *Array) Compute(a, b contract.Contract) Feature {
 	return f
 }
 
-func (m *Array) getContractFieldArray(c contract.Contract) ([]interface{}, error) {
+func (m *Array) getContractFieldArray(c contract.Script) ([]interface{}, error) {
 	r := reflect.ValueOf(c)
 	f := reflect.Indirect(r).FieldByName(m.Field)
 

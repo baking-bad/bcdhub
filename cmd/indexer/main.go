@@ -33,7 +33,6 @@ func main() {
 		config.WithConfigCopy(cfg),
 		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle),
 		config.WithSearch(cfg.Storage),
-		config.WithShare(cfg.SharePath),
 	)
 	defer internalCtx.Close()
 

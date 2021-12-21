@@ -35,7 +35,6 @@ func main() {
 		config.WithStorage(cfg.Storage, cfg.Metrics.ProjectName, 0, cfg.Metrics.Connections.Open, cfg.Metrics.Connections.Idle),
 		config.WithRPC(cfg.RPC),
 		config.WithSearch(cfg.Storage),
-		config.WithShare(cfg.SharePath),
 		config.WithDomains(cfg.Domains),
 		config.WithConfigCopy(cfg),
 	)
@@ -73,6 +72,13 @@ func main() {
 			"operations",
 			ctx.Services,
 			services.NewOperationsHandler(ctx),
+			time.Second*15,
+			bulkSize,
+		),
+		services.NewStorageBased(
+			"contracts",
+			ctx.Services,
+			services.NewContractsHandler(ctx),
 			time.Second*15,
 			bulkSize,
 		),

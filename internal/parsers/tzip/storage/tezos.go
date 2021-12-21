@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
@@ -23,28 +24,28 @@ const (
 
 // TezosStorage -
 type TezosStorage struct {
-	bigMapRepo bigmapdiff.Repository
-	blockRepo  block.Repository
-	storage    models.GeneralRepository
+	bigMapRepo   bigmapdiff.Repository
+	blockRepo    block.Repository
+	contractRepo contract.Repository
+	storage      models.GeneralRepository
 
-	rpc       noderpc.INode
-	network   types.Network
-	address   string
-	ptr       int64
-	sharePath string
+	rpc     noderpc.INode
+	network types.Network
+	address string
+	ptr     int64
 }
 
 // NewTezosStorage -
-func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, address, sharePath string, network types.Network, ptr int64) TezosStorage {
+func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, contractRepo contract.Repository, storage models.GeneralRepository, rpc noderpc.INode, address string, network types.Network, ptr int64) TezosStorage {
 	return TezosStorage{
-		bigMapRepo: bigMapRepo,
-		blockRepo:  blockRepo,
-		storage:    storage,
-		rpc:        rpc,
-		address:    address,
-		network:    network,
-		ptr:        ptr,
-		sharePath:  sharePath,
+		bigMapRepo:   bigMapRepo,
+		blockRepo:    blockRepo,
+		contractRepo: contractRepo,
+		storage:      storage,
+		rpc:          rpc,
+		address:      address,
+		network:      network,
+		ptr:          ptr,
 	}
 }
 
@@ -99,7 +100,7 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 			return err
 		}
 
-		bmPtr, err := storage.GetBigMapPtr(s.rpc, s.network, s.address, metadataAnnot, block.Protocol.Hash, s.sharePath, block.Level)
+		bmPtr, err := storage.GetBigMapPtr(s.storage, s.contractRepo, s.rpc, s.network, s.address, metadataAnnot, block.Protocol.Hash, block.Level)
 		if err != nil {
 			return err
 		}

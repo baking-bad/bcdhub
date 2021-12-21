@@ -122,11 +122,6 @@ func testContract(tasks chan contract.Contract, stop chan struct{}, counter *int
 			if err := request(fmt.Sprintf("%s/entrypoints", prefix)); err != nil {
 				logger.Err(err)
 			}
-			for i := range contract.Entrypoints {
-				if err := request(fmt.Sprintf("%s/entrypoints/schema?entrypoint=%s", prefix, contract.Entrypoints[i])); err != nil {
-					logger.Err(err)
-				}
-			}
 			atomic.AddInt64(counter, 1)
 		}
 

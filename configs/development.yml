@@ -81,9 +81,8 @@ indexer:
   skip_delegator_blocks: true
   networks:
     mainnet:
-      boost: tzkt
     # granadanet:
-    # hangzhou2net:
+    hangzhou2net:
   connections:
     max: 5
     idle: 5

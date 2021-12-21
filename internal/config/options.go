@@ -64,13 +64,15 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 			pgCore.WithMaxConnections(maxConnCount),
 			// pgCore.WithQueryLogging(),
 		)
+
+		contractStorage := contract.NewStorage(pg)
 		ctx.StorageDB = pg
 		ctx.Storage = pg
 		ctx.BigMapActions = bigmapaction.NewStorage(pg)
 		ctx.Blocks = block.NewStorage(pg)
 		ctx.BigMapDiffs = bigmapdiff.NewStorage(pg)
 		ctx.DApps = dapp.NewStorage(pg)
-		ctx.Contracts = contract.NewStorage(pg)
+		ctx.Contracts = contractStorage
 		ctx.Migrations = migration.NewStorage(pg)
 		ctx.Operations = operation.NewStorage(pg)
 		ctx.Protocols = protocol.NewStorage(pg)
@@ -81,6 +83,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		ctx.GlobalConstants = global_constant.NewStorage(pg)
 		ctx.Domains = domains.NewStorage(pg)
 		ctx.Services = service.NewStorage(pg)
+		ctx.Scripts = contractStorage
 	}
 }
 
@@ -92,16 +95,6 @@ func WithSearch(cfg StorageConfig) ContextOption {
 		ctx.Statistics = searcher
 	}
 
-}
-
-// WithShare -
-func WithShare(path string) ContextOption {
-	return func(ctx *Context) {
-		if path == "" {
-			panic("Empty share path in config")
-		}
-		ctx.SharePath = path
-	}
 }
 
 // WithConfigCopy -

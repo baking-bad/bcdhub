@@ -12,7 +12,6 @@ import (
 	formattererror "github.com/baking-bad/bcdhub/internal/bcd/formatter/error"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -503,7 +502,7 @@ func (ctx *Context) getErrorLocation(operation operation.Operation, window int) 
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}
-	code, err := fetch.ContractBySymLink(operation.Network, operation.Destination, proto.SymLink, ctx.SharePath)
+	code, err := ctx.getScriptBytes(operation.Network, operation.Destination, proto.SymLink)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}

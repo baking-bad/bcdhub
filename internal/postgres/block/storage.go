@@ -33,7 +33,7 @@ func (storage *Storage) Last(network types.Network) (block block.Block, err erro
 		Where("block.network = ?", network).
 		Order("id desc").
 		Limit(1).
-		Relation("Protocol.id").
+		Relation("Protocol").
 		Select()
 	if storage.IsRecordNotFound(err) {
 		err = nil

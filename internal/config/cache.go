@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -121,7 +120,11 @@ func (ctx *Context) CachedScriptBytes(network types.Network, address, symLink st
 
 	key := ctx.Cache.ScriptBytesKey(network, address)
 	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		return fetch.ContractBySymLink(network, address, symLink, ctx.SharePath)
+		script, err := ctx.Contracts.Script(network, address, symLink)
+		if err != nil {
+			return nil, err
+		}
+		return script.Code, nil
 	})
 	if err != nil {
 		return nil, err
@@ -175,16 +178,4 @@ func (ctx *Context) CachedProtocolByID(network types.Network, id int64) (protoco
 		return protocol.Protocol{}, err
 	}
 	return item.Value().(protocol.Protocol), nil
-}
-
-// CachedProtocolByID -
-func (ctx *Context) CachedProjectIDByHash(hash string) (string, error) {
-	key := ctx.Cache.ProjectIDByHash(hash)
-	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		return ctx.Contracts.GetProjectIDByHash(hash)
-	})
-	if err != nil {
-		return "", err
-	}
-	return item.Value().(string), nil
 }

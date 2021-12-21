@@ -21,7 +21,7 @@ type ContractMetadataHandler struct {
 func NewContractMetadataHandler(ctx *config.Context) *ContractMetadataHandler {
 	return &ContractMetadataHandler{
 		ctx,
-		handlers.NewContractMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
+		handlers.NewContractMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.Config.IPFSGateways),
 	}
 }
 

@@ -9,23 +9,23 @@ import (
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
 )
 
-// SetContractProjectID -
-func SetContractProjectID(contracts contract.Repository, c *contract.Contract, chunk []*contract.Contract) error {
+// SetScriptProjectID -
+func SetScriptProjectID(scripts contract.ScriptRepository, c *contract.Script, chunk []contract.Script) error {
 	projectID := getContractProjectID(*c, chunk)
 	if projectID != "" {
 		c.ProjectID = types.NewNullString(&projectID)
 		return nil
 	}
 
-	var offset int64
-	size := int64(100)
+	var offset int
+	size := 100
 	var end bool
 	for !end {
-		buckets, err := contracts.GetProjectsLastContract(*c, size, offset)
+		buckets, err := scripts.GetScripts(size, offset)
 		if err != nil {
 			return err
 		}
-		end = len(buckets) < int(size)
+		end = len(buckets) < size
 
 		if !end {
 			projectID := getContractProjectID(*c, buckets)
@@ -43,14 +43,9 @@ func SetContractProjectID(contracts contract.Repository, c *contract.Contract, c
 	return nil
 }
 
-func getContractProjectID(c contract.Contract, buckets []*contract.Contract) string {
+func getContractProjectID(c contract.Script, buckets []contract.Script) string {
 	for i := len(buckets) - 1; i > -1; i-- {
-		if c.Hash == buckets[i].Hash && buckets[i].ProjectID.Valid {
-			return buckets[i].ProjectID.String()
-		}
-	}
-	for i := len(buckets) - 1; i > -1; i-- {
-		if buckets[i].ProjectID.Valid && compare(c, *buckets[i]) {
+		if buckets[i].ProjectID.Valid && compare(c, buckets[i]) {
 			return buckets[i].ProjectID.String()
 		}
 	}
@@ -59,7 +54,6 @@ func getContractProjectID(c contract.Contract, buckets []*contract.Contract) str
 }
 
 var precomputedMetrics = []clmetrics.Metric{
-	clmetrics.NewManager(),
 	clmetrics.NewBinMask("Tags"),
 	clmetrics.NewArray("FailStrings"),
 	clmetrics.NewArray("Annotations"),
@@ -75,7 +69,7 @@ var fingerprintMetrics = []clmetrics.Metric{
 	clmetrics.NewFingerprint("code"),
 }
 
-func compare(a, b contract.Contract) bool {
+func compare(a, b contract.Script) bool {
 	features := make([]float64, len(precomputedMetrics))
 
 	for i := range precomputedMetrics {

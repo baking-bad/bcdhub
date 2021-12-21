@@ -16,7 +16,6 @@ import (
 
 // Result -
 type Result struct {
-	// BigMapActions   []*bigmapaction.BigMapAction
 	BigMapState     []*bigmapdiff.BigMapState
 	Contracts       []*contract.Contract
 	Migrations      []*migration.Migration
@@ -28,7 +27,6 @@ type Result struct {
 // NewResult -
 func NewResult() *Result {
 	return &Result{
-		// BigMapActions:   make([]*bigmapaction.BigMapAction, 0),
 		BigMapState:     make([]*bigmapdiff.BigMapState, 0),
 		Contracts:       make([]*contract.Contract, 0),
 		Migrations:      make([]*migration.Migration, 0),
@@ -79,6 +77,24 @@ func (result *Result) Save(tx pg.DBI) error {
 		}
 	}
 	if len(result.Contracts) > 0 {
+		for i, contract := range result.Contracts {
+			if contract.Alpha.Code != nil {
+				if err := contract.Alpha.Save(tx); err != nil {
+					return err
+				}
+				result.Contracts[i].AlphaID = contract.Alpha.ID
+			}
+			if contract.Babylon.Code != nil {
+				if contract.Alpha.Hash != contract.Babylon.Hash {
+					if err := contract.Babylon.Save(tx); err != nil {
+						return err
+					}
+					result.Contracts[i].BabylonID = contract.Babylon.ID
+				} else {
+					result.Contracts[i].BabylonID = contract.Alpha.ID
+				}
+			}
+		}
 		if _, err := tx.Model(&result.Contracts).Returning("id").Insert(); err != nil {
 			return err
 		}

@@ -40,11 +40,13 @@ func (p *RichStorage) Parse(data noderpc.Operation, operation *operation.Operati
 		if err != nil {
 			return nil, err
 		}
-		storage, err := p.rpc.GetScriptStorageRaw(operation.Destination, operation.Level)
-		if err != nil {
-			return nil, err
+		if result != nil {
+			storage, err := p.rpc.GetScriptStorageRaw(operation.Destination, operation.Level)
+			if err != nil {
+				return nil, err
+			}
+			operation.DeffatedStorage = storage
 		}
-		operation.DeffatedStorage = storage
 		return result, nil
 	default:
 		return nil, nil

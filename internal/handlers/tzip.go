@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	tzipModel "github.com/baking-bad/bcdhub/internal/models/tzip"
@@ -21,12 +22,11 @@ type ContractMetadata struct {
 }
 
 // NewContractMetadata -
-func NewContractMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, repo tzipModel.Repository, rpcs map[types.Network]noderpc.INode, sharePath string, ipfs []string) *ContractMetadata {
+func NewContractMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, contractsRepo contract.Repository, storage models.GeneralRepository, repo tzipModel.Repository, rpcs map[types.Network]noderpc.INode, ipfs []string) *ContractMetadata {
 	parsers := make(map[types.Network]tzip.Parser)
 	for network, rpc := range rpcs {
-		parsers[network] = tzip.NewParser(bigMapRepo, blockRepo, storage, rpc, tzip.ParserConfig{
+		parsers[network] = tzip.NewParser(bigMapRepo, blockRepo, contractsRepo, storage, rpc, tzip.ParserConfig{
 			IPFSGateways: ipfs,
-			SharePath:    sharePath,
 		})
 	}
 	return &ContractMetadata{

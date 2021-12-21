@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	tzipStorage "github.com/baking-bad/bcdhub/internal/parsers/tzip/storage"
@@ -49,21 +50,23 @@ type ParseContext struct {
 
 // Parser -
 type Parser struct {
-	bigMapRepo bigmapdiff.Repository
-	blocksRepo block.Repository
-	storage    models.GeneralRepository
-	rpc        noderpc.INode
+	bigMapRepo   bigmapdiff.Repository
+	blocksRepo   block.Repository
+	contractRepo contract.Repository
+	storage      models.GeneralRepository
+	rpc          noderpc.INode
 
 	cfg ParserConfig
 }
 
 // NewParser -
-func NewParser(bigMapRepo bigmapdiff.Repository, blocksRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, cfg ParserConfig) Parser {
+func NewParser(bigMapRepo bigmapdiff.Repository, blocksRepo block.Repository, contractRepo contract.Repository, storage models.GeneralRepository, rpc noderpc.INode, cfg ParserConfig) Parser {
 	return Parser{
-		bigMapRepo: bigMapRepo,
-		blocksRepo: blocksRepo,
-		storage:    storage,
-		rpc:        rpc,
+		bigMapRepo:   bigMapRepo,
+		blocksRepo:   blocksRepo,
+		contractRepo: contractRepo,
+		storage:      storage,
+		rpc:          rpc,
 
 		cfg: cfg,
 	}
@@ -77,7 +80,7 @@ func (p *Parser) Parse(ctx ParseContext) (*tzip.TZIP, error) {
 	}
 
 	data := new(bufTzip)
-	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.storage, p.rpc, p.cfg.SharePath, p.cfg.IPFSGateways...)
+	s := tzipStorage.NewFull(p.bigMapRepo, p.contractRepo, p.blocksRepo, p.storage, p.rpc, p.cfg.IPFSGateways...)
 	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Contract, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
 		switch {
 		case errors.Is(err, tzipStorage.ErrHTTPRequest) || errors.Is(err, tzipStorage.ErrJSONDecoding) || errors.Is(err, tzipStorage.ErrUnknownStorageType):

@@ -1,11 +1,13 @@
 package tokens
 
 import (
+	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -75,7 +77,6 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		sharePath  string
 		network    types.Network
 		bmd        *domains.BigMapDiff
 		storageAST string
@@ -83,9 +84,8 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name:      "Token metadata in tezos storage",
-			sharePath: "./test",
-			network:   types.Granadanet,
+			name:    "Token metadata in tezos storage",
+			network: types.Granadanet,
 			bmd: &domains.BigMapDiff{
 				BigMapDiff: &bigmapdiff.BigMapDiff{
 					Ptr:         66051,
@@ -158,8 +158,18 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 				storage:    generalRepo,
 				rpc:        rpc,
 				network:    tt.network,
-				sharePath:  tt.sharePath,
 			}
+
+			generalRepo.
+				EXPECT().
+				GetByID(gomock.Any()).
+				DoAndReturn(func(output interface{}) error {
+					typ := output.(*contract.Script)
+					data, err := ioutil.ReadFile("./test/contracts/granadanet/KT1QaDvkDe1sLXGL9rqmDMtNCmvNyPfUTYWK_babylon.json")
+					typ.Code = data
+					return err
+				}).
+				AnyTimes()
 
 			storageAST, err := ast.NewTypedAstFromString(tt.storageAST)
 			if err != nil {

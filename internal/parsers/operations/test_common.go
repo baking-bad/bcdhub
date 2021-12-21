@@ -1,11 +1,14 @@
 package operations
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -14,6 +17,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,6 +31,40 @@ func readJSONFile(name string, response interface{}) error {
 		return err
 	}
 	return json.Unmarshal(bytes, response)
+}
+
+func readTestScript(network types.Network, address, symLink string) ([]byte, error) {
+	path := filepath.Join("./test/contracts", network.String(), fmt.Sprintf("%s_%s.json", address, symLink))
+	return ioutil.ReadFile(path)
+}
+
+func readTestScriptModel(network types.Network, address, symLink string) (contract.Script, error) {
+	data, err := readTestScript(network, address, bcd.SymLinkBabylon)
+	if err != nil {
+		return contract.Script{}, err
+	}
+	var buffer bytes.Buffer
+	buffer.WriteString(`{"code":`)
+	buffer.Write(data)
+	buffer.WriteString(`,"storage":{}}`)
+	script, err := astContract.NewParser(buffer.Bytes())
+	if err != nil {
+		return contract.Script{}, errors.Wrap(err, "astContract.NewParser")
+	}
+	if err := script.Parse(); err != nil {
+		return contract.Script{}, err
+	}
+	return contract.Script{
+		Code:                 data,
+		Hash:                 script.Hash,
+		FingerprintParameter: script.Fingerprint.Parameter,
+		FingerprintCode:      script.Fingerprint.Code,
+		FingerprintStorage:   script.Fingerprint.Storage,
+		FailStrings:          script.FailStrings.Values(),
+		Annotations:          script.Annotations.Values(),
+		Tags:                 types.NewTags(script.Tags.Values()),
+		Hardcoded:            script.HardcodedAddresses.Values(),
+	}, nil
 }
 
 func readTestContractModel(network types.Network, address string) (contract.Contract, error) {
@@ -65,7 +103,7 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 	}
 
 	for i := range got.Contracts {
-		if !compareContract(want.Contracts[i], got.Contracts[i]) {
+		if !compareContract(t, want.Contracts[i], got.Contracts[i]) {
 			return false
 		}
 	}
@@ -380,37 +418,65 @@ func compareBigMapAction(one, two *bigmapaction.BigMapAction) bool {
 	return true
 }
 
-func compareContract(one, two *contract.Contract) bool {
-	if one.Network != two.Network {
-		logger.Info().Msgf("Contract.Network: %s != %s", one.Network, two.Network)
+func compareContract(t *testing.T, one, two *contract.Contract) bool {
+	if !assert.Equal(t, one.Network, two.Network) {
 		return false
 	}
-	if one.Address != two.Address {
-		logger.Info().Msgf("Contract.Address: %s != %s", one.Address, two.Address)
+	if !assert.Equal(t, one.Address, two.Address) {
 		return false
 	}
-	if one.Hash != two.Hash {
-		logger.Info().Msgf("Contract.Hash: %s != %s", one.Hash, two.Hash)
+	if !assert.Equal(t, one.Manager, two.Manager) {
 		return false
 	}
-	if one.Manager != two.Manager {
-		logger.Info().Msgf("Contract.Manager: %s != %s", one.Manager, two.Manager)
+	if !assert.Equal(t, one.Level, two.Level) {
 		return false
 	}
-	if one.Level != two.Level {
-		logger.Info().Msgf("Contract.Level: %d != %d", one.Level, two.Level)
+	if !assert.Equal(t, one.Timestamp, two.Timestamp) {
 		return false
 	}
-	if one.Timestamp != two.Timestamp {
-		logger.Info().Msgf("Contract.Timestamp: %s != %s", one.Timestamp, two.Timestamp)
+	if !assert.Equal(t, one.Tags, two.Tags) {
 		return false
 	}
-	if one.Tags != two.Tags {
-		logger.Info().Msgf("Contract.Tags: %d != %d", one.Tags, two.Tags)
+	if !compareScript(t, one.Alpha, two.Alpha) {
+		logger.Info().Msgf("Contract.Alpha: %v != %v", one.Alpha, two.Alpha)
 		return false
 	}
-	if !compareStringArray(one.Entrypoints, two.Entrypoints) {
-		logger.Info().Msgf("Contract.Entrypoints: %v != %v", one.Entrypoints, two.Entrypoints)
+	if !compareScript(t, one.Babylon, two.Babylon) {
+		logger.Info().Msgf("Contract.Babylon: %v != %v", one.Babylon, two.Babylon)
+		return false
+	}
+	return true
+}
+
+func compareScript(t *testing.T, one, two contract.Script) bool {
+	if !assert.Equal(t, one.Hash, two.Hash) {
+		return false
+	}
+	if !assert.Equal(t, one.ProjectID, two.ProjectID) {
+		return false
+	}
+	if !assert.ElementsMatch(t, one.Entrypoints, two.Entrypoints) {
+		return false
+	}
+	if !assert.ElementsMatch(t, one.Annotations, two.Annotations) {
+		return false
+	}
+	if !assert.ElementsMatch(t, one.FailStrings, two.FailStrings) {
+		return false
+	}
+	if !assert.ElementsMatch(t, one.Hardcoded, two.Hardcoded) {
+		return false
+	}
+	if !assert.ElementsMatch(t, one.Code, two.Code) {
+		return false
+	}
+	if !assert.ElementsMatch(t, one.FingerprintParameter, two.FingerprintParameter) {
+		return false
+	}
+	if !assert.ElementsMatch(t, one.FingerprintCode, two.FingerprintCode) {
+		return false
+	}
+	if !assert.ElementsMatch(t, one.FingerprintStorage, two.FingerprintStorage) {
 		return false
 	}
 	return true
@@ -418,18 +484,4 @@ func compareContract(one, two *contract.Contract) bool {
 
 func compareInt64Ptr(one, two *int64) bool {
 	return (one != nil && two != nil && *one == *two) || (one == nil && two == nil)
-}
-
-func compareStringArray(one, two []string) bool {
-	if len(one) != len(two) {
-		return false
-	}
-
-	for i := range one {
-		if !helpers.StringInArray(one[i], two) {
-			return false
-		}
-	}
-
-	return true
 }

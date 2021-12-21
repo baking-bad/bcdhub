@@ -23,7 +23,7 @@ func NewBinMask(field string) *BinMask {
 }
 
 // Compute -
-func (m *BinMask) Compute(a, b contract.Contract) Feature {
+func (m *BinMask) Compute(a, b contract.Script) Feature {
 	f := Feature{
 		Name: strings.ToLower(m.Field),
 	}
@@ -49,7 +49,7 @@ func (m *BinMask) Compute(a, b contract.Contract) Feature {
 	return f
 }
 
-func (m *BinMask) getContractFieldBinMask(c contract.Contract) (int64, error) {
+func (m *BinMask) getContractFieldBinMask(c contract.Script) (int64, error) {
 	r := reflect.ValueOf(c)
 	f := reflect.Indirect(r).FieldByName(m.Field)
 

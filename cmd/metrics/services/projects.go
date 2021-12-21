@@ -26,41 +26,24 @@ func (p *ProjectsHandler) Handle(ctx context.Context, items []models.Model) erro
 	if len(items) == 0 {
 		return nil
 	}
-	contracts := make([]*contract.Contract, len(items))
+	scripts := make([]contract.Script, len(items))
 	for i := range items {
-		c, ok := items[i].(*contract.Contract)
+		c, ok := items[i].(*contract.Script)
 		if !ok {
-			return errors.Errorf("[Projects.Handle] invalid entity type: wait *contract.Contract got %T", items[i])
+			return errors.Errorf("[Projects.Handle] invalid entity type: wait *contract.Script got %T", items[i])
 		}
-		contracts[i] = c
+		scripts[i] = *c
 	}
-	updates := make([]models.Model, 0)
-	searchModels := make([]models.Model, 0)
 
-	for i := range contracts {
-		res, err := p.process(contracts[i], contracts[:i])
-		if err != nil {
+	for i := range scripts {
+		if err := p.process(&scripts[i], scripts[:i]); err != nil {
 			return errors.Errorf("[Projects.Handle] compute error message: %s", err)
 		}
-
-		if len(res) > 0 {
-			updates = append(updates, res...)
-			searchModels = append(searchModels, res...)
-		} else {
-			searchModels = append(searchModels, contracts[i])
-		}
-
 	}
 
-	if len(searchModels) > 0 {
-		if err := saveSearchModels(p.Context, searchModels); err != nil {
-			return err
-		}
-	}
-
-	if len(updates) > 0 {
-		logger.Info().Msgf("%2d contracts are processed", len(updates))
-		return p.Storage.Save(ctx, updates)
+	if len(scripts) > 0 {
+		logger.Info().Msgf("%3d scripts are processed", len(scripts))
+		return p.Scripts.UpdateProjectID(scripts)
 	}
 
 	return nil
@@ -68,26 +51,22 @@ func (p *ProjectsHandler) Handle(ctx context.Context, items []models.Model) erro
 
 // Chunk -
 func (p *ProjectsHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	contracts, err := getContracts(p.StorageDB.DB, lastID, size)
+	scripts, err := getScripts(p.StorageDB.DB, lastID, size)
 	if err != nil {
 		return nil, err
 	}
 
-	data := make([]models.Model, len(contracts))
-	for i := range contracts {
-		data[i] = &contracts[i]
+	data := make([]models.Model, len(scripts))
+	for i := range scripts {
+		data[i] = &scripts[i]
 	}
 	return data, nil
 }
 
-func (p *ProjectsHandler) process(contract *contract.Contract, chunk []*contract.Contract) ([]models.Model, error) {
-	if contract.ProjectID.Valid {
-		return nil, nil
+func (p *ProjectsHandler) process(script *contract.Script, chunk []contract.Script) error {
+	if script.ProjectID.Valid {
+		return nil
 	}
 
-	if err := metrics.SetContractProjectID(p.Contracts, contract, chunk); err != nil {
-		return nil, errors.Errorf("error during set contract projectID: %s", err)
-	}
-
-	return []models.Model{contract}, nil
+	return metrics.SetScriptProjectID(p.Scripts, script, chunk)
 }

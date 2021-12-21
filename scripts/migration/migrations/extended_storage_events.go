@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -73,14 +72,14 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					continue
 				}
 
-				script, err := fetch.ContractBySymLink(tzips[i].Network, tzips[i].Address, protocol.SymLink, ctx.SharePath)
+				script, err := ctx.Contracts.Script(tzips[i].Network, tzips[i].Address, protocol.SymLink)
 				if err != nil {
 					return err
 				}
 
 				for _, op := range operations {
-					op.Script = script
-					tree, err := ast.NewScriptWithoutCode(script)
+					op.Script = script.Code
+					tree, err := ast.NewScriptWithoutCode(script.Code)
 					if err != nil {
 						return err
 					}
@@ -92,7 +91,6 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					}
 
 					parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.TokenBalances,
-						ctx.SharePath,
 						transferParsers.WithNetwork(tzips[i].Network),
 						transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 						transferParsers.WithStackTrace(st),

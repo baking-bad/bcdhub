@@ -37,7 +37,6 @@ type Context struct {
 	StorageDB *core.Postgres
 
 	Config     Config
-	SharePath  string
 	TzipSchema string
 
 	TezosDomainsContracts map[types.Network]string
@@ -59,6 +58,7 @@ type Context struct {
 	TZIP            tzip.Repository
 	Domains         domains.Repository
 	Services        service.Repository
+	Scripts         contract.ScriptRepository
 
 	Searcher search.Searcher
 

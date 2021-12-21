@@ -98,7 +98,7 @@ func (content Content) needParse(item noderpc.Operation) bool {
 	}
 	prefixCondition := bcd.IsContract(item.Source) || bcd.IsContract(destination)
 	transactionCondition := item.Kind == consts.Transaction && prefixCondition
-	originationCondition := (item.Kind == consts.Origination || item.Kind == consts.OriginationNew) && item.Script != nil
+	originationCondition := (item.Kind == consts.Origination || item.Kind == consts.OriginationNew)
 	registerGlobalConstantCondition := item.Kind == consts.RegisterGlobalConstant
 	return originationCondition || transactionCondition || registerGlobalConstantCondition
 }

@@ -31,7 +31,6 @@ type Parser struct {
 	blocks        block.Repository
 
 	rpc        noderpc.INode
-	shareDir   string
 	stackTrace *stacktrace.StackTrace
 
 	network  modelTypes.Network
@@ -45,13 +44,12 @@ type Parser struct {
 var globalEvents *TokenEvents
 
 // NewParser -
-func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, tokenBalances tokenbalance.Repository, shareDir string, opts ...ParserOption) (*Parser, error) {
+func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, tokenBalances tokenbalance.Repository, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
 		rpc:           rpc,
 		tokenBalances: tokenBalances,
 		tzipRepo:      tzipRepo,
 		blocks:        blocks,
-		shareDir:      shareDir,
 	}
 
 	for i := range opts {

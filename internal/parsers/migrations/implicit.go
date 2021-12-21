@@ -78,7 +78,7 @@ func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, 
 	}
 	origination.Script = script
 
-	contractParser := contract.NewParser(p.ctx, contract.WithShareDir(p.ctx.SharePath))
+	contractParser := contract.NewParser(p.ctx)
 	contractResult, err := contractParser.Parse(&origination)
 	if err != nil {
 		return err

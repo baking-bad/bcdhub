@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
@@ -22,7 +21,11 @@ func (ctx *Context) getScriptBytes(network types.Network, address, symLink strin
 		}
 		symLink = state.Protocol.SymLink
 	}
-	return fetch.ContractBySymLink(network, address, symLink, ctx.SharePath)
+	script, err := ctx.Contracts.Script(network, address, symLink)
+	if err != nil {
+		return nil, err
+	}
+	return script.Code, nil
 }
 
 func (ctx *Context) getParameterType(network types.Network, address, symLink string) (*ast.TypedAst, error) {

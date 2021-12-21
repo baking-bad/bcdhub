@@ -18,7 +18,6 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize), cfg.API.Connections.Open, cfg.API.Connections.Idle),
 		config.WithRPC(cfg.RPC),
 		config.WithSearch(cfg.Storage),
-		config.WithShare(cfg.SharePath),
 		config.WithMempool(cfg.Services),
 		config.WithLoadErrorDescriptions(),
 		config.WithConfigCopy(cfg),

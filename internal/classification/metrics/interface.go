@@ -4,7 +4,7 @@ import "github.com/baking-bad/bcdhub/internal/models/contract"
 
 // Metric -
 type Metric interface {
-	Compute(a, b contract.Contract) Feature
+	Compute(a, b contract.Script) Feature
 }
 
 // Feature -

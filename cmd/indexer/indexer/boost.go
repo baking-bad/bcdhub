@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/index"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -34,7 +33,6 @@ type BoostIndexer struct {
 	*config.Context
 
 	rpc             noderpc.INode
-	externalIndexer index.Indexer
 	state           block.Block
 	currentProtocol protocol.Protocol
 
@@ -42,13 +40,10 @@ type BoostIndexer struct {
 	Network      types.Network
 
 	indicesInit sync.Once
-
-	boost               bool
-	skipDelegatorBlocks bool
 }
 
 // NewBoostIndexer -
-func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig config.RPCConfig, network types.Network, opts ...BoostIndexerOption) (*BoostIndexer, error) {
+func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig config.RPCConfig, network types.Network) (*BoostIndexer, error) {
 	logger.Info().Str("network", network.String()).Msg("Creating indexer object...")
 
 	rpc := noderpc.NewWaitNodeRPC(
@@ -62,10 +57,6 @@ func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig 
 		rpc:     rpc,
 	}
 
-	for _, opt := range opts {
-		opt(bi)
-	}
-
 	if err := bi.init(ctx, bi.Context.StorageDB); err != nil {
 		return nil, err
 	}
@@ -74,12 +65,6 @@ func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig 
 }
 
 func (bi *BoostIndexer) init(ctx context.Context, db *core.Postgres) error {
-	if bi.boost {
-		if err := bi.fetchExternalProtocols(ctx); err != nil {
-			return err
-		}
-	}
-
 	currentState, err := bi.Blocks.Last(bi.Network)
 	if err != nil {
 		return err
@@ -174,13 +159,8 @@ func (bi *BoostIndexer) setUpdateTicker(seconds int) {
 }
 
 // Index -
-func (bi *BoostIndexer) Index(ctx context.Context, levels []int64) error {
-	if len(levels) == 0 {
-		return nil
-	}
-	helpers.SetTagSentry("network", bi.Network.String())
-
-	for _, level := range levels {
+func (bi *BoostIndexer) Index(ctx context.Context, head noderpc.Header) error {
+	for level := bi.state.Level + 1; level <= head.Level; level++ {
 		helpers.SetTagSentry("block", fmt.Sprintf("%d", level))
 
 		select {
@@ -194,7 +174,7 @@ func (bi *BoostIndexer) Index(ctx context.Context, levels []int64) error {
 			return err
 		}
 
-		if bi.state.Level > 0 && head.Predecessor != bi.state.Hash && !bi.boost {
+		if bi.state.Level > 0 && head.Predecessor != bi.state.Hash {
 			return errRollback
 		}
 
@@ -215,7 +195,7 @@ func (bi *BoostIndexer) handleBlock(ctx context.Context, head noderpc.Header) er
 		func(tx *pg.Tx) error {
 			logger.Info().Str("network", bi.Network.String()).Msgf("indexing %d block", head.Level)
 
-			if head.Protocol != bi.currentProtocol.Hash {
+			if head.Protocol != bi.currentProtocol.Hash || (bi.Network == types.Mainnet && head.Level == 1) {
 				logger.Info().Str("network", bi.Network.String()).Msgf("New protocol detected: %s -> %s", bi.currentProtocol.Hash, head.Protocol)
 
 				if err := bi.migrate(head, tx); err != nil {
@@ -292,28 +272,6 @@ func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
 	return lastLevel, nil
 }
 
-func (bi *BoostIndexer) getBoostBlocks(head noderpc.Header) ([]int64, error) {
-	levels, err := bi.externalIndexer.GetContractOperationBlocks(bi.state.Level, head.Level, bi.skipDelegatorBlocks)
-	if err != nil {
-		return nil, err
-	}
-
-	protocols, err := bi.externalIndexer.GetProtocols()
-	if err != nil {
-		return nil, err
-	}
-
-	protocolLevels := make([]int64, 0)
-	for i := range protocols {
-		if protocols[i].StartLevel > bi.state.Level && protocols[i].StartLevel > 0 {
-			protocolLevels = append(protocolLevels, protocols[i].StartLevel)
-		}
-	}
-
-	result := helpers.Merge2ArraysInt64(levels, protocolLevels)
-	return result, err
-}
-
 func (bi *BoostIndexer) process(ctx context.Context) error {
 	head, err := bi.rpc.GetHead()
 	if err != nil {
@@ -328,21 +286,7 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %d", bi.state.Level)
 
 	if head.Level > bi.state.Level {
-		levels := make([]int64, 0)
-		if bi.boost {
-			levels, err = bi.getBoostBlocks(head)
-			if err != nil {
-				return err
-			}
-		} else {
-			for i := bi.state.Level + 1; i <= head.Level; i++ {
-				levels = append(levels, i)
-			}
-		}
-
-		logger.Info().Str("network", bi.Network.String()).Msgf("Found %d new levels", len(levels))
-
-		if err := bi.Index(ctx, levels); err != nil {
+		if err := bi.Index(ctx, head); err != nil {
 			if errors.Is(err, errBcdQuit) {
 				return nil
 			}
@@ -357,9 +301,6 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 			return err
 		}
 
-		if bi.boost {
-			bi.boost = false
-		}
 		logger.Info().Str("network", bi.Network.String()).Msg("Synced")
 		return nil
 	} else if head.Level < bi.state.Level {
@@ -370,7 +311,6 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 
 	return errSameLevel
 }
-
 func (bi *BoostIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
 	proto, err := bi.CachedProtocolByHash(bi.Network, head.Protocol)
 	if err != nil {
@@ -501,7 +441,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 	}
 	logger.Info().Str("network", bi.Network.String()).Msgf("Now %d contracts are indexed", len(contracts))
 
-	migrationParser := migrations.NewMigrationParser(bi.Storage, bi.BigMapDiffs, bi.Config.SharePath)
+	migrationParser := migrations.NewMigrationParser(bi.Storage, bi.BigMapDiffs)
 
 	for i := range contracts {
 		logger.Info().Str("network", bi.Network.String()).Msgf("Migrate %s...", contracts[i].Address)
@@ -524,7 +464,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx pg.DBI) error {
 		return err
 	}
 
-	p := migrations.NewVestingParser(bi.Context, bi.Config.SharePath)
+	p := migrations.NewVestingParser(bi.Context)
 
 	for _, address := range addresses {
 		if !bcd.IsContract(address) {

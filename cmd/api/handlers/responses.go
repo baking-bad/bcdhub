@@ -161,8 +161,6 @@ type Contract struct {
 func (c *Contract) FromModel(contract contract.Contract) {
 	c.Address = contract.Address
 	c.Delegate = contract.Delegate.String()
-	c.Entrypoints = contract.Entrypoints
-	c.Hash = contract.Hash
 	c.TxCount = contract.TxCount
 	c.LastAction = contract.LastAction
 
@@ -170,11 +168,19 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Manager = contract.Manager.String()
 	c.MigrationsCount = contract.MigrationsCount
 	c.Network = contract.Network.String()
-	c.ProjectID = contract.ProjectID.String()
 	c.Tags = contract.Tags.ToArray()
 	c.Timestamp = contract.Timestamp
-	c.FailStrings = contract.FailStrings
-	c.Annotations = contract.Annotations
+
+	script := contract.Alpha
+	if contract.BabylonID > 0 {
+		script = contract.Babylon
+	}
+
+	c.Hash = script.Hash
+	c.FailStrings = script.FailStrings
+	c.Annotations = script.Annotations
+	c.Entrypoints = script.Entrypoints
+	c.ProjectID = script.ProjectID.String()
 	c.ID = contract.ID
 }
 
