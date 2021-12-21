@@ -77,15 +77,6 @@
                     }
                 }
             },
-            "language": {
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 16
-                    }
-                }
-            },
             "level": {
                 "type": "long"
             },

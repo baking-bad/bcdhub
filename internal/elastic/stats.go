@@ -47,6 +47,51 @@ func (e *Elastic) NetworkCountStats(network types.Network) (map[string]int64, er
 	return e.GetCountAgg([]string{models.DocContracts, models.DocOperations}, query)
 }
 
+type getContractStatsResponse struct {
+	Agg struct {
+		TxCount    IntValue  `json:"tx_count"`
+		LastAction TimeValue `json:"last_action"`
+	} `json:"aggregations"`
+}
+
+// ContractStats -
+func (e *Elastic) ContractStats(network types.Network, address string) (models.ContractStats, error) {
+	query := NewQuery().Query(
+		Bool(
+			Filter(
+				Match("network", network),
+				Bool(
+					Should(
+						MatchPhrase("source", address),
+						MatchPhrase("destination", address),
+					),
+					MinimumShouldMatch(1),
+				),
+			),
+		),
+	).Add(
+		Aggs(
+			AggItem{
+				"last_action", Max("timestamp"),
+			},
+			AggItem{
+				"tx_count", ValueCount("timestamp"),
+			},
+		),
+	).Zero()
+
+	var response getContractStatsResponse
+	if err := e.query([]string{models.DocOperations}, query, &response); err != nil {
+		return models.ContractStats{}, err
+	}
+
+	stats := models.ContractStats{
+		LastAction: response.Agg.LastAction.Time,
+		Count:      response.Agg.TxCount.Value,
+	}
+	return stats, nil
+}
+
 type getContractStatsByNetworkStats struct {
 	Agg struct {
 		Network struct {
@@ -130,29 +175,6 @@ func (e *Elastic) NetworkStats(network types.Network) (map[string]*models.Networ
 	}
 
 	return counts, nil
-}
-
-// LanguageByNetwork -
-func (e *Elastic) LanguageByNetwork(network types.Network) (map[string]int64, error) {
-	query := NewQuery().Query(
-		Bool(
-			Filter(
-				Match("network", network.String()),
-			),
-		),
-	).Add(
-		Aggs(
-			AggItem{
-				"body", Item{
-					"terms": Item{
-						"field": "language.keyword",
-					},
-				},
-			},
-		),
-	).Zero()
-
-	return e.GetCountAgg([]string{models.DocContracts}, query)
 }
 
 func (e *Elastic) getFACountByNetwork(network types.Network) (map[string]int64, error) {

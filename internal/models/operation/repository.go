@@ -5,7 +5,6 @@ import "github.com/baking-bad/bcdhub/internal/models/types"
 // Repository -
 type Repository interface {
 	GetByContract(network types.Network, address string, size uint64, filters map[string]interface{}) (Pageable, error)
-	GetStats(network types.Network, address string) (Stats, error)
 	// Last - returns last operation. TODO: change network and address.
 	Last(network types.Network, address string, indexedTime int64) (Operation, error)
 

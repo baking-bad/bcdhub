@@ -49,21 +49,6 @@ func (mr *MockRepositoryMockRecorder) GetByContract(network, address, size, filt
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByContract", reflect.TypeOf((*MockRepository)(nil).GetByContract), network, address, size, filters)
 }
 
-// GetStats mocks base method
-func (m *MockRepository) GetStats(network types.Network, address string) (operationModel.Stats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetStats", network, address)
-	ret0, _ := ret[0].(operationModel.Stats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetStats indicates an expected call of GetStats
-func (mr *MockRepositoryMockRecorder) GetStats(network, address interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStats", reflect.TypeOf((*MockRepository)(nil).GetStats), network, address)
-}
-
 // Last mocks base method
 func (m *MockRepository) Last(network types.Network, address string, indexedTime int64) (operationModel.Operation, error) {
 	m.ctrl.T.Helper()

@@ -14,7 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	contractParser "github.com/baking-bad/bcdhub/internal/parsers/contract"
-	"gorm.io/gorm"
+	"github.com/go-pg/pg/v10"
 )
 
 // MigrationParser -
@@ -34,7 +34,7 @@ func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Rep
 }
 
 // Parse -
-func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx *gorm.DB) error {
+func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx pg.DBI) error {
 	if previous.SymLink == bcd.SymLinkAlpha {
 		if err := p.getUpdates(script, old, tx); err != nil {
 			return err
@@ -77,7 +77,7 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 	return m.Save(tx)
 }
 
-func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContract.Contract, tx *gorm.DB) error {
+func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContract.Contract, tx pg.DBI) error {
 	storage, err := script.GetSettledStorage()
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContr
 	}
 
 	for i := range keys {
-		if err := tx.Delete(&keys[i]).Error; err != nil {
+		if _, err := tx.Model(&keys[i]).WherePK().Delete(); err != nil {
 			return err
 		}
 

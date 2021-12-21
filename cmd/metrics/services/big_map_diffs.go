@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -17,7 +19,7 @@ func NewBigMapDiffHandler(ctx *config.Context) *BigMapDiffHandler {
 }
 
 // Handle -
-func (oh *BigMapDiffHandler) Handle(items []models.Model) error {
+func (oh *BigMapDiffHandler) Handle(ctx context.Context, items []models.Model) error {
 	if len(items) == 0 {
 		return nil
 	}

@@ -4,19 +4,20 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"gorm.io/datatypes"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"github.com/go-pg/pg/v10"
 )
 
 // GlobalConstant -
 type GlobalConstant struct {
-	ID        int64          `json:"-"`
-	Network   types.Network  `json:"network" gorm:"type:SMALLINT"`
-	Timestamp time.Time      `json:"timestamp"`
-	Level     int64          `json:"level"`
-	Address   string         `json:"address" gorm:"index:idx_global_constant_address"`
-	Value     datatypes.JSON `json:"value,omitempty"`
+	// nolint
+	tableName struct{} `pg:"global_constants"`
+
+	ID        int64         `json:"-"`
+	Network   types.Network `json:"network" pg:",type:SMALLINT"`
+	Timestamp time.Time     `json:"timestamp"`
+	Level     int64         `json:"level"`
+	Address   string        `json:"address"`
+	Value     []byte        `json:"value,omitempty"`
 }
 
 // GetID -
@@ -30,10 +31,9 @@ func (m *GlobalConstant) GetIndex() string {
 }
 
 // Save -
-func (m *GlobalConstant) Save(tx *gorm.DB) error {
-	return tx.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Save(m).Error
+func (m *GlobalConstant) Save(tx pg.DBI) error {
+	_, err := tx.Model(m).Returning("id").Insert()
+	return err
 }
 
 // LogFields -

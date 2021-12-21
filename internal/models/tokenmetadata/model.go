@@ -4,34 +4,36 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/go-pg/pg/v10"
 	"github.com/lib/pq"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // TokenMetadata -
 type TokenMetadata struct {
-	ID                 int64          `json:"-" gorm:"autoIncrement:true;not null;"`
-	Network            types.Network  `json:"network" gorm:"type:SMALLINT;primaryKey;default:0;index:idx_token_metadata_level_network"`
-	Contract           string         `json:"contract" gorm:"primaryKey"`
-	TokenID            uint64         `json:"token_id" gorm:"type:numeric(50,0);primaryKey"`
-	Level              int64          `json:"level" gorm:"index:idx_token_metadata_level_network"`
-	Timestamp          time.Time      `json:"timestamp"`
-	Symbol             string         `json:"symbol"`
-	Name               string         `json:"name"`
-	Decimals           *int64         `json:"decimals,omitempty"`
-	Description        string         `json:"description,omitempty"`
-	ArtifactURI        string         `json:"artifact_uri,omitempty"`
-	DisplayURI         string         `json:"display_uri,omitempty"`
-	ThumbnailURI       string         `json:"thumbnail_uri,omitempty"`
-	ExternalURI        string         `json:"external_uri,omitempty"`
-	IsTransferable     bool           `json:"is_transferable" gorm:"default:true"`
-	IsBooleanAmount    bool           `json:"is_boolean_amount"`
-	ShouldPreferSymbol bool           `json:"should_prefer_symbol"`
-	Tags               pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
-	Creators           pq.StringArray `json:"creators,omitempty" gorm:"type:text[]"`
-	Formats            types.Bytes    `json:"formats,omitempty" gorm:"type:bytes"`
-	Extras             types.JSONB    `json:"extras" gorm:"type:jsonb"`
+	// nolint
+	tableName struct{} `pg:"token_metadata"`
+
+	ID                 int64                  `pg:",notnull" json:"-"`
+	Network            types.Network          `pg:",type:SMALLINT,unique:token_metadata,use_zero" json:"network"`
+	Contract           string                 `pg:",unique:token_metadata" json:"contract"`
+	TokenID            uint64                 `pg:",type:numeric(50,0),unique:token_metadata,use_zero" json:"token_id"`
+	Level              int64                  `pg:",use_zero" json:"level"`
+	Timestamp          time.Time              `json:"timestamp"`
+	Symbol             string                 `json:"symbol"`
+	Name               string                 `json:"name"`
+	Decimals           *int64                 `json:"decimals,omitempty"`
+	Description        string                 `json:"description,omitempty"`
+	ArtifactURI        string                 `json:"artifact_uri,omitempty"`
+	DisplayURI         string                 `json:"display_uri,omitempty"`
+	ThumbnailURI       string                 `json:"thumbnail_uri,omitempty"`
+	ExternalURI        string                 `json:"external_uri,omitempty"`
+	IsTransferable     bool                   `pg:",default:true" json:"is_transferable"`
+	IsBooleanAmount    bool                   `pg:",use_zero" json:"is_boolean_amount"`
+	ShouldPreferSymbol bool                   `pg:",use_zero" json:"should_prefer_symbol"`
+	Tags               pq.StringArray         `pg:",type:text[]" json:"tags,omitempty"`
+	Creators           pq.StringArray         `pg:",type:text[]" json:"creators,omitempty"`
+	Formats            types.Bytes            `pg:",type:bytea" json:"formats,omitempty"`
+	Extras             map[string]interface{} `pg:",type:jsonb" json:"extras,omitempty"`
 }
 
 // ByName - TokenMetadata sorting filter by Name field
@@ -67,18 +69,27 @@ func (t *TokenMetadata) GetIndex() string {
 }
 
 // Save -
-func (t *TokenMetadata) Save(tx *gorm.DB) error {
-	return tx.Clauses(clause.OnConflict{
-		Columns: []clause.Column{
-			{Name: "network"},
-			{Name: "contract"},
-			{Name: "token_id"},
-		},
-		DoUpdates: clause.AssignmentColumns([]string{
-			"symbol", "name", "decimals", "description", "artifact_uri", "display_uri", "thumbnail_uri", "external_uri",
-			"is_transferable", "is_boolean_amount", "should_prefer_symbol", "tags", "creators", "formats", "extras",
-		}),
-	}).Save(t).Error
+func (t *TokenMetadata) Save(tx pg.DBI) error {
+	_, err := tx.Model(t).
+		OnConflict("(network, contract, token_id) DO UPDATE").
+		Set(`
+			symbol               = excluded.symbol,
+			name                 = excluded.name,
+			decimals             = excluded.decimals,
+			description          = excluded.description,
+			artifact_uri         = excluded.artifact_uri,
+			display_uri          = excluded.display_uri,
+			thumbnail_uri        = excluded.thumbnail_uri,
+			external_uri         = excluded.external_uri,
+			is_transferable      = excluded.is_transferable,
+			is_boolean_amount    = excluded.is_boolean_amount,
+			should_prefer_symbol = excluded.should_prefer_symbol,
+			tags                 = excluded.tags,
+			creators             = excluded.creators,
+			formats              = excluded.formats,
+			extras               = excluded.extras
+	`).Returning("id").Insert()
+	return err
 }
 
 // LogFields -

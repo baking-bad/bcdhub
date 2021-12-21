@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/aws"
@@ -18,7 +17,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/operation"
 	"github.com/baking-bad/bcdhub/internal/postgres/protocol"
 	"github.com/baking-bad/bcdhub/internal/postgres/service"
-	"github.com/baking-bad/bcdhub/internal/postgres/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/postgres/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/postgres/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/postgres/transfer"
@@ -30,7 +28,6 @@ import (
 	pgCore "github.com/baking-bad/bcdhub/internal/postgres/core"
 
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/pinata"
 )
 
 // ContextOption -
@@ -65,6 +62,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 			pgCore.WithPageSize(maxPageSize),
 			pgCore.WithIdleConnections(idleConnCount),
 			pgCore.WithMaxConnections(maxConnCount),
+			// pgCore.WithQueryLogging(),
 		)
 		ctx.StorageDB = pg
 		ctx.Storage = pg
@@ -76,7 +74,6 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		ctx.Migrations = migration.NewStorage(pg)
 		ctx.Operations = operation.NewStorage(pg)
 		ctx.Protocols = protocol.NewStorage(pg)
-		ctx.TezosDomains = tezosdomain.NewStorage(pg)
 		ctx.TokenBalances = tokenbalance.NewStorage(pg)
 		ctx.TokenMetadata = tokenmetadata.NewStorage(pg)
 		ctx.Transfers = transfer.NewStorage(pg)
@@ -159,24 +156,5 @@ func WithDomains(cfg TezosDomainsConfig) ContextOption {
 		for network, address := range cfg {
 			ctx.TezosDomainsContracts[types.NewNetwork(network)] = address
 		}
-	}
-}
-
-// WithPinata -
-func WithPinata(cfg PinataConfig) ContextOption {
-	return func(ctx *Context) {
-		ctx.Pinata = pinata.New(cfg.Key, cfg.SecretKey, time.Second*time.Duration(cfg.TimeoutSeconds))
-	}
-}
-
-// WithTzipSchema -
-func WithTzipSchema(filePath string) ContextOption {
-	return func(ctx *Context) {
-		data, err := ioutil.ReadFile(filePath)
-		if err != nil {
-			panic(err)
-		}
-
-		ctx.TzipSchema = string(data)
 	}
 }

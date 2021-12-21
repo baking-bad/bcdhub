@@ -1,45 +1,89 @@
 package core
 
 import (
-	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	bcdLogger "github.com/baking-bad/bcdhub/internal/logger"
-	"gorm.io/driver/postgres"
-
-	"gorm.io/gorm"
+	"github.com/baking-bad/bcdhub/internal/models"
+	pg "github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
+	"github.com/pkg/errors"
 )
 
 // Postgres -
 type Postgres struct {
-	DB *gorm.DB
+	DB *pg.DB
 
 	PageSize int64
 }
 
+func parseConncetionString(connection string) (*pg.Options, error) {
+	if len(connection) == 0 {
+		return nil, errors.New("invalid connection string")
+	}
+
+	items := strings.Split(connection, " ")
+	if len(items) == 0 {
+		return nil, errors.Errorf("invalid connection string: %s", connection)
+	}
+
+	opts := new(pg.Options)
+	var host string
+	var port string
+	for i := range items {
+		values := strings.Split(items[i], "=")
+		if len(values) != 2 {
+			return nil, errors.Errorf("invalid connection string: %s", connection)
+		}
+
+		switch values[0] {
+		case "host":
+			host = values[1]
+		case "user":
+			opts.User = values[1]
+		case "password":
+			opts.Password = values[1]
+		case "port":
+			port = values[1]
+		case "dbname":
+			opts.Database = values[1]
+		case "sslmode":
+			// if values[1] != "disable" {
+			// 	// TODO: init ssl mode
+			// }
+		}
+	}
+
+	opts.Addr = fmt.Sprintf("%s:%s", host, port)
+
+	return opts, nil
+}
+
 // New -
 func New(connection, appName string, opts ...PostgresOption) (*Postgres, error) {
-	pg := Postgres{}
+	postgres := Postgres{}
 	if appName != "" {
 		connection = fmt.Sprintf("%s application_name=%s", connection, appName)
 	}
 
-	db, err := gorm.Open(postgres.Open(connection), &gorm.Config{
-		Logger:                                   newLogger(),
-		DisableForeignKeyConstraintWhenMigrating: true,
-	})
+	opt, err := parseConncetionString(connection)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	pg.DB = db
+	postgres.DB = pg.Connect(opt)
 
 	for _, opt := range opts {
-		opt(&pg)
+		opt(&postgres)
 	}
 
-	return &pg, nil
+	for _, model := range models.ManyToMany() {
+		orm.RegisterTable(model)
+	}
+
+	return &postgres, nil
 }
 
 const (
@@ -68,20 +112,16 @@ func WaitNew(connectionString, appName string, timeout int, opts ...PostgresOpti
 
 // Close -
 func (p *Postgres) Close() error {
-	db, err := p.DB.DB()
-	if err != nil {
-		return err
-	}
-	return db.Close()
+	return p.DB.Close()
 }
 
 // IsRecordNotFound -
 func (p *Postgres) IsRecordNotFound(err error) bool {
-	return err != nil && errors.Is(err, gorm.ErrRecordNotFound)
+	return err != nil && errors.Is(err, pg.ErrNoRows)
 }
 
 // OrStringArray
-func OrStringArray(db *gorm.DB, arr []string, fieldName string) *gorm.DB {
+func OrStringArray(db *orm.Query, arr []string, fieldName string) *orm.Query {
 	if len(arr) == 0 {
 		return nil
 	}
@@ -89,12 +129,13 @@ func OrStringArray(db *gorm.DB, arr []string, fieldName string) *gorm.DB {
 	str := fmt.Sprintf("%s = ?", fieldName)
 	subQuery := db.Where(str, arr[0])
 	for i := 1; i < len(arr); i++ {
-		subQuery.Or(str, arr[i])
+		subQuery.WhereOr(str, arr[i])
 	}
 	return subQuery
 }
 
 // Execute -
 func (p *Postgres) Execute(rawSQL string) error {
-	return p.DB.Exec(rawSQL).Error
+	_, err := p.DB.Exec(rawSQL)
+	return err
 }

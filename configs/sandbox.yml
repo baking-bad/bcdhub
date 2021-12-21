@@ -56,10 +56,6 @@ api:
         network: "sandboxnet"
   networks:
     - sandboxnet
-  pinata:
-    key: ${PINATA_KEY}
-    secret_key: ${PINATA_SECRET_KEY}
-    timeout_seconds: 10
 
 indexer:
   project_name: indexer

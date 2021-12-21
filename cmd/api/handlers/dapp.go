@@ -111,13 +111,26 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 					return result, err
 				}
 
-				var initiators, entrypoints []string
+				initiators := make(map[string]struct{})
+				entrypoints := make(map[string]struct{})
 				for _, c := range dapp.Contracts {
-					initiators = append(initiators, c.Address)
-					entrypoints = append(entrypoints, c.Entrypoint...)
+					initiators[c.Address] = struct{}{}
+					for i := range c.Entrypoint {
+						initiators[c.Entrypoint[i]] = struct{}{}
+					}
 				}
 
-				vol, err := ctx.Transfers.GetToken24HoursVolume(types.Mainnet, token.Contract, initiators, entrypoints, token.TokenID)
+				initiatorsArr := make([]string, 0, len(initiators))
+				for address := range initiators {
+					initiatorsArr = append(initiatorsArr, address)
+				}
+
+				entrypointsArr := make([]string, 0, len(entrypoints))
+				for entrypoint := range entrypoints {
+					entrypointsArr = append(entrypointsArr, entrypoint)
+				}
+
+				vol, err := ctx.Transfers.GetToken24HoursVolume(types.Mainnet, token.Contract, initiatorsArr, entrypointsArr, token.TokenID)
 				if err != nil {
 					if ctx.Storage.IsRecordNotFound(err) {
 						continue

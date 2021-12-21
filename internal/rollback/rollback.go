@@ -1,6 +1,7 @@
 package rollback
 
 import (
+	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -19,8 +20,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/search"
+	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // Manager -
@@ -28,26 +29,34 @@ type Manager struct {
 	searcher      search.Searcher
 	storage       models.GeneralRepository
 	transfersRepo transfer.Repository
+	blockRepo     block.Repository
 	bmdRepo       bigmapdiff.Repository
 }
 
 // NewManager -
-func NewManager(searcher search.Searcher, storage models.GeneralRepository, bmdRepo bigmapdiff.Repository, transfersRepo transfer.Repository) Manager {
+func NewManager(searcher search.Searcher, storage models.GeneralRepository, blockRepo block.Repository, bmdRepo bigmapdiff.Repository, transfersRepo transfer.Repository) Manager {
 	return Manager{
-		searcher, storage, transfersRepo, bmdRepo,
+		searcher, storage, transfersRepo, blockRepo, bmdRepo,
 	}
 }
 
 // Rollback - rollback indexer state to level
-func (rm Manager) Rollback(db *gorm.DB, fromState block.Block, toLevel int64) error {
+func (rm Manager) Rollback(ctx context.Context, db pg.DBI, fromState block.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
 		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
 
 	for level := fromState.Level; level > toLevel; level-- {
 		logger.Info().Msgf("Rollback to %d block", level)
-		err := db.Transaction(func(tx *gorm.DB) error {
 
+		if _, err := rm.blockRepo.Get(fromState.Network, level); err != nil {
+			if rm.storage.IsRecordNotFound(err) {
+				continue
+			}
+			return err
+		}
+
+		err := db.RunInTransaction(ctx, func(tx *pg.Tx) error {
 			if err := rm.rollbackTokenBalances(tx, fromState.Network, level); err != nil {
 				return err
 			}
@@ -70,7 +79,7 @@ func (rm Manager) Rollback(db *gorm.DB, fromState block.Block, toLevel int64) er
 	return nil
 }
 
-func (rm Manager) rollbackTokenBalances(tx *gorm.DB, network types.Network, level int64) error {
+func (rm Manager) rollbackTokenBalances(tx pg.DBI, network types.Network, level int64) error {
 	transfers, err := rm.transfersRepo.GetAll(network, level)
 	if err != nil {
 		return err
@@ -109,18 +118,17 @@ func (rm Manager) rollbackTokenBalances(tx *gorm.DB, network types.Network, leve
 	return nil
 }
 
-func (rm Manager) rollbackAll(tx *gorm.DB, network types.Network, level int64) error {
+func (rm Manager) rollbackAll(tx pg.DBI, network types.Network, level int64) error {
 	for _, index := range []models.Model{
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
 		&bigmapaction.BigMapAction{}, &tzip.TZIP{}, &migration.Migration{},
 		&transfer.Transfer{}, &tokenmetadata.TokenMetadata{},
 		&global_constant.GlobalConstant{},
 	} {
-		if err := tx.Unscoped().
+		if _, err := tx.Model(index).
 			Where("network = ?", network).
 			Where("level = ?", level).
-			Delete(index).
-			Error; err != nil {
+			Delete(index); err != nil {
 			return err
 		}
 
@@ -132,7 +140,7 @@ func (rm Manager) rollbackAll(tx *gorm.DB, network types.Network, level int64) e
 	return nil
 }
 
-func (rm Manager) rollbackBigMapState(tx *gorm.DB, network types.Network, level int64) error {
+func (rm Manager) rollbackBigMapState(tx pg.DBI, network types.Network, level int64) error {
 	states, err := rm.bmdRepo.StatesChangedAfter(network, level)
 	if err != nil {
 		return err
@@ -142,7 +150,7 @@ func (rm Manager) rollbackBigMapState(tx *gorm.DB, network types.Network, level 
 		diff, err := rm.bmdRepo.LastDiff(state.Network, state.Ptr, state.KeyHash, false)
 		if err != nil {
 			if rm.storage.IsRecordNotFound(err) {
-				if err := tx.Delete(&states[i]).Error; err != nil {
+				if _, err := tx.Model(&states[i]).Delete(); err != nil {
 					return err
 				}
 				continue
@@ -174,17 +182,20 @@ func (rm Manager) rollbackBigMapState(tx *gorm.DB, network types.Network, level 
 }
 
 type lastAction struct {
-	Address string    `gorm:"address"`
-	Time    time.Time `gorm:"time"`
+	Address string    `pg:"address"`
+	Time    time.Time `pg:"time"`
 }
 
-func (rm Manager) rollbackOperations(tx *gorm.DB, network types.Network, level int64) error {
+func (rm Manager) rollbackOperations(tx pg.DBI, network types.Network, level int64) error {
 	var ops []operation.Operation
 	if err := tx.Model(&operation.Operation{}).
 		Where("network = ?", network).
 		Where("level = ?", level).
-		Find(&ops).Error; err != nil {
+		Select(&ops); err != nil {
 		return err
+	}
+	if len(ops) == 0 {
+		return nil
 	}
 
 	ids := make([]int64, len(ops))
@@ -192,10 +203,9 @@ func (rm Manager) rollbackOperations(tx *gorm.DB, network types.Network, level i
 		ids[i] = ops[i].ID
 	}
 
-	if err := tx.Unscoped().
-		Where("id in ?", ids).
-		Delete(&operation.Operation{}).
-		Error; err != nil {
+	if _, err := tx.Model(&operation.Operation{}).
+		WhereIn("id IN (?)", ids).
+		Delete(); err != nil {
 		return err
 	}
 
@@ -225,20 +235,17 @@ func (rm Manager) rollbackOperations(tx *gorm.DB, network types.Network, level i
 		for address := range contracts {
 			addresses = append(addresses, address)
 		}
+		length := len(addresses) * 10
 
 		var actions []lastAction
 
-		if err := tx.Raw(`select max(foo.ts) as time, foo.address from (
-			(select "timestamp" as ts, source as address from operations where (network = @network and source in @contracts) order by id desc limit @length)
+		if _, err := tx.Query(&actions, `select max(foo.ts) as time, foo.address from (
+			(select "timestamp" as ts, source as address from operations where (network = ? and source in (?)) order by id desc limit ?)
 			union all
-			(select "timestamp" as ts, destination as address from operations where (network = @network and destination in @contracts) order by id desc limit @length)
+			(select "timestamp" as ts, destination as address from operations where (network = ? and destination in (?)) order by id desc limit ?)
 		) as foo
 		group by address
-		`, map[string]interface{}{
-			"network":   network,
-			"contracts": addresses,
-			"length":    len(addresses) * 10,
-		}).Scan(&actions).Error; err != nil {
+		`, network, addresses, length, network, addresses, length); err != nil {
 			return err
 		}
 
@@ -247,7 +254,7 @@ func (rm Manager) rollbackOperations(tx *gorm.DB, network types.Network, level i
 			if !ok {
 				count = 1
 			}
-			if err := tx.Exec(`update contracts set tx_count = tx_count - ?, last_action = ? where address = ?;`, count, actions[i].Time.UTC(), actions[i].Address).Error; err != nil {
+			if _, err := tx.Exec(`update contracts set tx_count = tx_count - ?, last_action = ? where address = ?;`, count, actions[i].Time.UTC(), actions[i].Address); err != nil {
 				return err
 			}
 		}

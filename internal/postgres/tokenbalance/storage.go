@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/go-pg/pg/v10"
 	"github.com/shopspring/decimal"
 )
 
@@ -19,10 +20,10 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 func (storage *Storage) Get(network types.Network, contract, address string, tokenID uint64) (t tokenbalance.TokenBalance, err error) {
-	err = storage.DB.Table(models.DocTokenBalances).
-		Scopes(core.Token(network, contract, tokenID)).
-		Where("address = ?", address).
-		First(&t).Error
+	query := storage.DB.Model(&t).Where("address = ?", address)
+	core.Token(network, contract, tokenID)(query)
+
+	err = query.First()
 
 	if storage.IsRecordNotFound(err) {
 		t.Network = network
@@ -39,10 +40,10 @@ func (storage *Storage) Get(network types.Network, contract, address string, tok
 // GetHolders -
 func (storage *Storage) GetHolders(network types.Network, contract string, tokenID uint64) ([]tokenbalance.TokenBalance, error) {
 	var balances []tokenbalance.TokenBalance
-	err := storage.DB.Table(models.DocTokenBalances).
-		Scopes(core.Token(network, contract, tokenID)).
-		Where("balance != 0").
-		Find(&balances).Error
+	query := storage.DB.Model().Table(models.DocTokenBalances).Where("balance != 0")
+
+	core.Token(network, contract, tokenID)(query)
+	err := query.Select(&balances)
 	return balances, err
 }
 
@@ -50,17 +51,10 @@ func (storage *Storage) GetHolders(network types.Network, contract string, token
 func (storage *Storage) Batch(network types.Network, addresses []string) (map[string][]tokenbalance.TokenBalance, error) {
 	var balances []tokenbalance.TokenBalance
 
-	query := storage.DB.Table(models.DocTokenBalances).Scopes(core.Network(network))
+	query := storage.DB.Model().Table(models.DocTokenBalances).Where("address IN (?)", pg.In(addresses))
+	core.Network(network)(query)
 
-	for i := range addresses {
-		if i == 0 {
-			query.Where("address = ?", addresses[i])
-		} else {
-			query.Or("address = ?", addresses[i])
-		}
-	}
-
-	if err := query.Find(&balances).Error; err != nil {
+	if err := query.Select(&balances); err != nil {
 		return nil, err
 	}
 
@@ -84,20 +78,16 @@ type tokensByContract struct {
 // CountByContract -
 func (storage *Storage) CountByContract(network types.Network, address string, hideEmpty bool) (map[string]int64, error) {
 	var resp []tokensByContract
-	query := storage.DB.Table(models.DocTokenBalances).
-		Select("contract, count(*) as tokens_count").
-		Scopes(core.NetworkAndAddress(network, address))
+	query := storage.DB.Model().Table(models.DocTokenBalances).
+		ColumnExpr("contract, count(*) as tokens_count")
+	core.NetworkAndAddress(network, address)(query)
 
 	if hideEmpty {
 		query.Where("balance != 0")
 	}
 
-	query.
-		Group("contract").
-		Scan(&resp)
-
-	if query.Error != nil {
-		return nil, query.Error
+	if err := query.Group("contract").Select(&resp); err != nil {
+		return nil, err
 	}
 
 	result := make(map[string]int64)
@@ -109,11 +99,10 @@ func (storage *Storage) CountByContract(network types.Network, address string, h
 
 // TokenSupply -
 func (storage *Storage) TokenSupply(network types.Network, contract string, tokenID uint64) (supply string, err error) {
-	query := storage.DB.Table(models.DocTokenBalances).
-		Select("coalesce(sum(balance), 0)::text as supply").
-		Scopes(core.Token(network, contract, tokenID)).
-		Scan(&supply)
+	query := storage.DB.Model().Table(models.DocTokenBalances).
+		ColumnExpr("coalesce(sum(balance), 0)::text as supply")
+	core.Token(network, contract, tokenID)(query)
 
-	err = query.Error
+	err = query.Limit(1).Select(&supply)
 	return
 }

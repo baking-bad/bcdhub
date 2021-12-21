@@ -4,21 +4,23 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"github.com/go-pg/pg/v10"
 )
 
 // BigMapAction -
 type BigMapAction struct {
-	ID             int64              `json:"-"`
-	Action         types.BigMapAction `json:"action" gorm:"type:SMALLINT"`
-	SourcePtr      *int64             `json:"source_ptr,omitempty"`
-	DestinationPtr *int64             `json:"destination_ptr,omitempty"`
-	OperationID    int64              `json:"operation_id"`
-	Level          int64              `json:"level" gorm:"index:idx_bma_level_network"`
-	Address        string             `json:"address"`
-	Network        types.Network      `json:"network" gorm:"type:SMALLINT;index:idx_bma_level_network"`
-	Timestamp      time.Time          `json:"timestamp"`
+	// nolint
+	tableName struct{} `pg:"big_map_actions"`
+
+	ID             int64
+	Action         types.BigMapAction `pg:",type:SMALLINT"`
+	SourcePtr      *int64
+	DestinationPtr *int64
+	OperationID    int64
+	Level          int64
+	Address        string
+	Network        types.Network `pg:",type:SMALLINT"`
+	Timestamp      time.Time
 }
 
 // GetID -
@@ -32,8 +34,17 @@ func (b *BigMapAction) GetIndex() string {
 }
 
 // Save -
-func (b *BigMapAction) Save(tx *gorm.DB) error {
-	return tx.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Save(b).Error
+func (b *BigMapAction) Save(tx pg.DBI) error {
+	_, err := tx.Model(b).OnConflict("(id) DO UPDATE").
+		Set(`
+		action = excluded.action, 
+		source_ptr = excluded.source_ptr, 
+		destination_ptr = excluded.destination_ptr,
+		operation_id = excluded.operation_id,
+		level = excluded.level,
+		address = excluded.address,
+		network = excluded.network,
+		timestamp = excluded.timestamp`).
+		Returning("id").Insert()
+	return err
 }

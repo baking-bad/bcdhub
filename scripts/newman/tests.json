@@ -89,14 +89,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/opg/oovLj4iHWwW3Sffq8dBB9caFw4SW7UNgeiJ7ZaNfXGn5MZueKkK",
+							"raw": "{{baseURL}}/v1/opg/ooRAfDhmSNiwEdGQi2M5qt27EVtBdh3WD7LX3Rpoet3BTUssKTT",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"v1",
 								"opg",
-								"oovLj4iHWwW3Sffq8dBB9caFw4SW7UNgeiJ7ZaNfXGn5MZueKkK"
+								"ooRAfDhmSNiwEdGQi2M5qt27EVtBdh3WD7LX3Rpoet3BTUssKTT"
 							]
 						}
 					},
@@ -134,14 +134,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/opg/ooZcoRrKQMfeZh6poP2mG3C7bvHiFuyjzuzfkSRKPiDxsoFHPAS",
+							"raw": "{{baseURL}}/v1/opg/op61Xu9HTbDsjWtYUpq29ZQ2NdmDgMzaxeBBmiuxJjfZA78VvsE",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"v1",
 								"opg",
-								"ooZcoRrKQMfeZh6poP2mG3C7bvHiFuyjzuzfkSRKPiDxsoFHPAS"
+								"op61Xu9HTbDsjWtYUpq29ZQ2NdmDgMzaxeBBmiuxJjfZA78VvsE"
 							]
 						}
 					},
@@ -299,7 +299,6 @@
 									"",
 									"    pm.expect(stats).to.have.property('contracts_count');",
 									"    pm.expect(stats).to.have.property('operations_count');",
-									"    pm.expect(stats).to.have.property('languages');",
 									"",
 									"    pm.expect(stats.protocols).to.not.eql(0);",
 									"",
@@ -542,6 +541,50 @@
 									"key": "name",
 									"value": "consumed_gas"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "head",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const head = pm.response.json();",
+									"",
+									"    pm.expect(head.length).to.not.eql(0);",
+									"",
+									"    for (const one of head) {",
+									"        pm.expect(one).to.have.property('network');",
+									"        pm.expect(one).to.have.property('level');",
+									"        pm.expect(one).to.have.property('time');",
+									"        pm.expect(one).to.have.property('protocol');",
+									"        pm.expect(one).to.have.property('total');",
+									"        pm.expect(one).to.have.property('contract_calls');",
+									"        pm.expect(one).to.have.property('unique_contracts');",
+									"        pm.expect(one).to.have.property('fa_count');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/head",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"head"
 							]
 						}
 					},
@@ -860,7 +903,7 @@
 									"pm.test(\"The response has all properties\", () => {",
 									"    const response = pm.response.json();",
 									"",
-									"    pm.expect(response.key_hash).to.be.eql('expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg');",
+									"    pm.expect(response.key_hash).to.be.eql('exprtu6vJPJCkTXVHfqSY4e3WUVnRgozHnAZoFRrEyCE8XfHRi9LZm');",
 									"    pm.expect(response.total).to.be.greaterThan(0);",
 									"",
 									"    pm.expect(response).to.have.property('key');",
@@ -881,7 +924,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/bigmap/mainnet/31/keys/expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/31/keys/exprtu6vJPJCkTXVHfqSY4e3WUVnRgozHnAZoFRrEyCE8XfHRi9LZm",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -891,7 +934,7 @@
 								"mainnet",
 								"31",
 								"keys",
-								"expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg"
+								"exprtu6vJPJCkTXVHfqSY4e3WUVnRgozHnAZoFRrEyCE8XfHRi9LZm"
 							]
 						}
 					},
@@ -1089,7 +1132,7 @@
 									"pm.test(\"The response has all properties\", () => {",
 									"    const response = pm.response.json();",
 									"",
-									"    pm.expect(response.key_hash).to.be.eql('expruwxH85ahw97FKmWVLvKY3ahRjQDZvEcqeBi8aygbNobaFkAybe');",
+									"    pm.expect(response.key_hash).to.be.eql('exprtoACaZ4Ppm1h5vW3BHEbCaqSJaNyKWCHrteHqHJc4PpGQzaZUM');",
 									"    pm.expect(response.total).to.be.greaterThan(0);",
 									"",
 									"    pm.expect(response).to.have.property('key');",
@@ -1110,7 +1153,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/bigmap/mainnet/32/keys/expruwxH85ahw97FKmWVLvKY3ahRjQDZvEcqeBi8aygbNobaFkAybe",
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/32/keys/exprtoACaZ4Ppm1h5vW3BHEbCaqSJaNyKWCHrteHqHJc4PpGQzaZUM",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -1120,7 +1163,7 @@
 								"mainnet",
 								"32",
 								"keys",
-								"expruwxH85ahw97FKmWVLvKY3ahRjQDZvEcqeBi8aygbNobaFkAybe"
+								"exprtoACaZ4Ppm1h5vW3BHEbCaqSJaNyKWCHrteHqHJc4PpGQzaZUM"
 							]
 						}
 					},
@@ -1700,55 +1743,6 @@
 			]
 		},
 		{
-			"name": "domains",
-			"item": [
-				{
-					"name": "domains/mainnet",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const response = pm.response.json();",
-									"",
-									"    pm.expect(response).to.have.property('total');",
-									"",
-									"    if (response.domains !== null && response.domains.lenght > 0) {",
-									"        for (const domain of response.domains) {",
-									"            pm.expect(domain.network).to.eql('mainnet');",
-									"            pm.expect(domain).to.have.property('address');",
-									"            pm.expect(domain).to.have.property('expiration');",
-									"            pm.expect(domain).to.have.property('name');",
-									"            pm.expect(domain).to.have.property('timestamp');",
-									"        }",
-									"    }",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/domains/mainnet",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"domains",
-								"mainnet"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
 			"name": "account",
 			"item": [
 				{
@@ -1918,6 +1912,134 @@
 								"mainnet",
 								"KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
 								"metadata"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "account/mainnet/address/count",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const balances = pm.response.json();",
+									"",
+									"    pm.expect(balances).to.have.property('KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn');",
+									"    pm.expect(balances['KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn']).to.eql(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/account/mainnet/tz1SbC5uEwQ2114PhHooPhLr8T5NLEghbToz/count",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"account",
+								"mainnet",
+								"tz1SbC5uEwQ2114PhHooPhLr8T5NLEghbToz",
+								"count"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "account/mainnet/tzbtc/metadata",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const metadata = pm.response.json();",
+									"",
+									"    pm.expect(metadata.address).to.eql(\"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn\");",
+									"    pm.expect(metadata.network).to.eql(\"mainnet\");",
+									"    pm.expect(metadata.name).to.eql(\"tzBTC\");",
+									"    pm.expect(metadata.description).to.eql(\"Wrapped Bitcon\");",
+									"    pm.expect(metadata.version).to.eql(\"0.1.0\");",
+									"    pm.expect(metadata).to.have.property('license');",
+									"    pm.expect(metadata.license).to.have.property('details');",
+									"    pm.expect(metadata.license).to.have.property('name');",
+									"    pm.expect(metadata.license.details).to.eql(\"MIT License\");",
+									"    pm.expect(metadata.license.name).to.eql(\"MIT\");",
+									"    pm.expect(metadata.interfaces).to.eql([",
+									"        \"TZIP-7\",",
+									"        \"TZIP-16\",",
+									"        \"TZIP-20\"",
+									"    ]);",
+									"    pm.expect(metadata).to.have.property('events');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/account/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/metadata",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"account",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"metadata"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "account/mainnet/tzbtc/token_balances",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response).to.have.property('balances');",
+									"    pm.expect(response).to.have.property('total');",
+									"",
+									"    pm.expect(response.total).to.eql(1);",
+									"    pm.expect(response.balances).to.length(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/account/mainnet/tz1ZAwyfujwED4yUhQAtc1eqm4gW5u2Xiw77/token_balances",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"account",
+								"mainnet",
+								"tz1ZAwyfujwED4yUhQAtc1eqm4gW5u2Xiw77",
+								"token_balances"
 							]
 						}
 					},
@@ -2311,7 +2433,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn&period=month&token_id=0&slug=dexter",
+							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn&period=month&token_id=0&slug=quipuswap",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -2336,7 +2458,7 @@
 								},
 								{
 									"key": "slug",
-									"value": "dexter"
+									"value": "quipuswap"
 								}
 							]
 						}
@@ -2367,7 +2489,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9&period=month&token_id=0&slug=dexter",
+							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9&period=month&token_id=0&slug=quipuswap",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -2392,7 +2514,7 @@
 								},
 								{
 									"key": "slug",
-									"value": "dexter"
+									"value": "quipuswap"
 								}
 							]
 						}
@@ -2423,7 +2545,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT19at7rQUvyjxnZ2fBv7D9zc8rkyG7gAoU8&period=month&token_id=0&slug=dexter",
+							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT19at7rQUvyjxnZ2fBv7D9zc8rkyG7gAoU8&period=month&token_id=0&slug=quipuswap",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -2448,63 +2570,7 @@
 								},
 								{
 									"key": "slug",
-									"value": "dexter"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "tokens/mainnet/series/wxtz?period=month",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const series = pm.response.json();",
-									"",
-									"    pm.expect(series.length).to.be.greaterThan(0);",
-									"    for (const part of series) {",
-									"        pm.expect(part.length).to.eql(2);",
-									"    }",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH&period=month&token_id=0&slug=dexter",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"tokens",
-								"mainnet",
-								"series"
-							],
-							"query": [
-								{
-									"key": "contract",
-									"value": "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH"
-								},
-								{
-									"key": "period",
-									"value": "month"
-								},
-								{
-									"key": "token_id",
-									"value": "0"
-								},
-								{
-									"key": "slug",
-									"value": "dexter"
+									"value": "quipuswap"
 								}
 							]
 						}
@@ -2517,7 +2583,7 @@
 			"name": "dapps",
 			"item": [
 				{
-					"name": "dapps/trianon",
+					"name": "dapps/kolibri",
 					"event": [
 						{
 							"listen": "test",
@@ -2526,113 +2592,70 @@
 									"pm.test(\"The response has all properties\", () => {",
 									"    const dapp = pm.response.json();",
 									"",
-									"    pm.expect(dapp.name).to.eql(\"Trianon Royal\");",
-									"    pm.expect(dapp.short_description).to.eql(\"The Music Pavilion of Versailles, tokenized\");",
-									"    pm.expect(dapp.full_description).to.eql(\"The Music Pavilion of Versailles was built in 1784 for the Countess of Provence, sister-in-law of Louis XVI and Marie-Antoinette, by the first architect of Monsieur, the King’s brother, Jean-François Chalgrin (1739-1811). The building is in neoclassical style, directly inspired by the Villa Rotonda in Veneto, built by the architect Andrea Palladio between 1566 and 1571.\");",
-									"    pm.expect(dapp.website).to.eql(\"https://trianonroyal.com/\");",
-									"    pm.expect(dapp.slug).to.eql(\"trianon\");",
-									"    pm.expect(dapp.authors).to.eql([ \"Equisafe Inc\"]);",
+									"    pm.expect(dapp.name).to.eql(\"Kolibri\");",
+									"    pm.expect(dapp.short_description).to.eql(\"Algorithmic stablecoin\");",
+									"    pm.expect(dapp.full_description).to.eql(\"Kolibri is an Tezos based stablecoin built on Collateralized Debt Positions (CDPs) known as Ovens. Kolibri uses CDPs to collateralize a soft pegged USD-stable value asset, kUSD. Data is provided via the Harbinger Price Feed via the Oracle contract\");",
+									"    pm.expect(dapp.website).to.eql(\"https://kolibri.finance/\");",
+									"    pm.expect(dapp.slug).to.eql(\"kolibri\");",
+									"    pm.expect(dapp.authors).to.eql([ \"Hover Labs\"]);",
 									"    pm.expect(dapp.social_links).to.eql([",
-									"            \"https://www.youtube.com/channel/UCxTV7vZs0ZmNVNXAnhiL5Zg\",",
-									"            \"https://www.instagram.com/equisafe_io/\",",
-									"            \"https://medium.com/@Equisafe\",",
-									"            \"https://twitter.com/Equisafe_io\",",
-									"            \"https://www.linkedin.com/company/13045333\",",
-									"            \"https://gitlab.com/equisafe\"",
-									"    ]);",
-									"    pm.expect(dapp.interfaces).to.eql([\"NYX\"]);",
-									"    pm.expect(dapp.categories).to.eql([\"Token\", \"STO\"]);",
-									"    pm.expect(dapp.soon).to.eql(false);",
-									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/trianon/trianon_logo.jpg\");",
-									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/trianon/trianon_cover.png\");",
-									"    pm.expect(dapp.contracts).to.eql([",
-									"       {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1XHAmdRKugP1Q38CxDmpcRSxq143KpEiYx\",",
-									"            \"alias\": \"Trianon security token\",",
-									"            \"release_date\": \"2020-03-03T21:16:22Z\"",
-									"            }",
-									"    ]);",
-									"",
-									"    pm.expect(dapp.tokens.length).to.eql(1);",
-									"    for (const token of dapp.tokens) {",
-									"        pm.expect(token).to.have.property('contract');",
-									"        pm.expect(token).to.have.property('network');",
-									"        pm.expect(token).to.have.property('token_id');",
-									"        pm.expect(token).to.have.property('supply');",
-									"        pm.expect(token).to.have.property('transfered');",
-									"",
-									"        pm.expect(token.supply).to.gte(0);",
-									"        pm.expect(token.transfered).to.gte(0);",
-									"    }",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/dapps/trianon",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"dapps",
-								"trianon"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "dapps/aspencoin",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const dapp = pm.response.json();",
-									"",
-									"    pm.expect(dapp.name).to.eql(\"Aspen Coin\");",
-									"    pm.expect(dapp.short_description).to.eql(\"St. Regis Aspen Resort Luxury Real-estate STO\");",
-									"    pm.expect(dapp.full_description).to.eql(\"Aspen Digital Token, an asset backed coin, distributed to investors through a private Reg D 506 (c) offering, that is compliant with the laws of the jurisdictions in which it is sold.\");",
-									"    pm.expect(dapp.website).to.eql(\"https://www.aspencoin.io/\");",
-									"    pm.expect(dapp.slug).to.eql(\"aspencoin\");",
-									"    pm.expect(dapp.authors).to.eql([\"Elevated Returns LLC\"]);",
-									"    pm.expect(dapp.social_links).to.eql([",
-									"        \"https://twitter.com/aspen_digital\",",
-									"        \"https://www.instagram.com/aspencoin/\"",
+									"        \"https://twitter.com/HoverEng\",",
+									"        \"https://hover.engineering/\"",
 									"    ]);",
 									"    pm.expect(dapp.interfaces).to.eql([\"FA1.2\"]);",
-									"    pm.expect(dapp.categories).to.eql([\"Token\", \"STO\"]);",
+									"    pm.expect(dapp.categories).to.eql([\"Token\", \"Stable\"]);",
 									"    pm.expect(dapp.soon).to.eql(false);",
-									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/aspencoin/aspen_logo.jpg\");",
-									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/aspencoin/aspen_cover.png\");",
-									"    pm.expect(dapp.contracts).to.eql([",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM\",",
-									"            \"alias\": \"Aspen Digital\",",
-									"            \"release_date\": \"2020-08-03T20:49:40Z\"",
-									"        }",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/kolibri/kolibri_logo.png\");",
+									"    pm.expect(dapp.cover).to.eql( \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/kolibri/kolibri_cover.png\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/kolibri",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"kolibri"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/tzwrap",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp.name).to.eql(\"WRAP Protocol\");",
+									"    pm.expect(dapp.short_description).to.eql(\"Decentralized bridge between Ethereum and Tezos\");",
+									"    pm.expect(dapp.full_description).to.eql(\"Through Wrap, users issue wTokens (wrapped tokens) which are representations of ERC20 and ERC721 tokens on the Tezos blockchain. wTokens can then be used on the Tezos blockchain, and their value is pegged to the original tokens. Wrap is a decentralized protocol, relying on a strong federation (the Signers Quorum) that guarantees the stability of the protocol, and a community of WRAP governance token holders.\");",
+									"    pm.expect(dapp.website).to.eql(\"https://www.benderlabs.io/wrap\");",
+									"    pm.expect(dapp.slug).to.eql(\"tzwrap\");",
+									"    pm.expect(dapp.authors).to.eql([\"Bender Labs\"]);",
+									"    pm.expect(dapp.social_links).to.eql([",
+									"        \"https://twitter.com/BenderLabs\",",
+									"        \"https://t.me/benderlabs\",",
+									"        \"https://github.com/bender-labs\"",
 									"    ]);",
-									"",
-									"    pm.expect(dapp.tokens.length).to.eql(1);",
-									"    for (const token of dapp.tokens) {",
-									"        pm.expect(token).to.have.property('contract');",
-									"        pm.expect(token).to.have.property('network');",
-									"        pm.expect(token).to.have.property('token_id');",
-									"        pm.expect(token).to.have.property('supply');",
-									"        pm.expect(token).to.have.property('transfered');",
-									"",
-									"        pm.expect(token.supply).to.gt(0);",
-									"        pm.expect(token.transfered).to.gt(0);",
-									"    }",
+									"    pm.expect(dapp.interfaces).to.eql([\"FA2\"]);",
+									"    pm.expect(dapp.categories).to.eql([\"Token\", \"Wrapped\"]);",
+									"    pm.expect(dapp.soon).to.eql(false);",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tzwrap/tzwrap_logo.png\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tzwrap/tzwrap_cover.png\");",
 									"});"
 								],
 								"type": "text/javascript"
@@ -2643,21 +2666,21 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/dapps/aspencoin",
+							"raw": "{{baseURL}}/v1/dapps/tzwrap",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"v1",
 								"dapps",
-								"aspencoin"
+								"tzwrap"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "dapps/equisafe",
+					"name": "dapps/objkt",
 					"event": [
 						{
 							"listen": "test",
@@ -2667,278 +2690,28 @@
 									"    const dapp = pm.response.json();",
 									"",
 									"    pm.expect(dapp).to.eql({",
-									"    \"name\": \"Equisafe\",",
-									"    \"short_description\": \"Digital Securities Platform\",",
-									"    \"full_description\": \"Equisafe helps you to fully digitise your corporate processes, free yourself from paper and enhance the way you interact with your shareholders, future investors and any professionals you are used to working with.\",",
-									"    \"website\": \"https://www.equisafe.io/\",",
-									"    \"slug\": \"equisafe\",",
-									"    \"authors\": [",
-									"    \"Equisafe Inc\"",
-									"    ],",
-									"    \"social_links\": [",
-									"    \"https://www.youtube.com/channel/UCxTV7vZs0ZmNVNXAnhiL5Zg\",",
-									"    \"https://www.instagram.com/equisafe_io/\",",
-									"    \"https://medium.com/@Equisafe\",",
-									"    \"https://twitter.com/Equisafe_io\",",
-									"    \"https://www.linkedin.com/company/13045333\",",
-									"    \"https://gitlab.com/equisafe\"",
-									"    ],",
-									"    \"interfaces\": null,",
-									"    \"categories\": [",
-									"    \"Platform\",",
-									"    \"STO\"",
-									"    ],",
-									"    \"soon\": false,",
-									"    \"logo\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/equisafe/equisafe_logo.jpg\",",
-									"    \"cover\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/equisafe/equisafe_cover.jpg\",",
-									"    \"contracts\": [",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1RM4Nzwe9kgyiF3WpqPdUezJ2SS7ixUdHX\",",
-									"        \"alias\": \"Trianon STO issuer\",",
-									"        \"release_date\": \"2020-03-03T21:06:22Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1LedJHptp1wzu1GCbsu5RttCEBkk7pw7vu\",",
-									"        \"release_date\": \"2020-03-03T20:18:22Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1EoSo36L6bARcGaCMLU95wE9sm7Puy51zz\",",
-									"        \"release_date\": \"2020-10-07T08:58:18Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1XHAmdRKugP1Q38CxDmpcRSxq143KpEiYx\",",
-									"        \"alias\": \"Trianon security token\",",
-									"        \"release_date\": \"2020-03-03T21:16:22Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT19t1Ac1Ja815tY7WU2GKVqm4r8keva1MBt\",",
-									"        \"release_date\": \"2020-09-15T15:26:58Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1RWeADMyow5Z3sMCkGCQHaB9MpP7z6PRUd\",",
-									"        \"release_date\": \"2020-10-07T09:33:58Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1RJpnMc83ybukSC8E9MKxKzH2wyxabMGnj\",",
-									"        \"release_date\": \"2020-10-16T12:17:23Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1BaPPNgqNBv5PkN4sWWiKAP7afzGAv3Exj\",",
-									"        \"release_date\": \"2020-03-03T20:25:22Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1PeP7xW8GWNRXHMgqfXjYniXp6RJjrmmtc\",",
-									"        \"release_date\": \"2020-09-22T08:12:42Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1W35uQXpgoVxNejn7FYL7Em9kktrSAk3yM\",",
-									"        \"release_date\": \"2020-09-01T14:38:22Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1Xp1vSWarB9hB5UvFWyAqyxk867dvTFxQ1\",",
-									"        \"release_date\": \"2020-09-16T10:03:18Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1ANCsYr8Gv9Amjx92LiFFFskNRVQN2Tg4C\",",
-									"        \"release_date\": \"2020-09-17T07:44:18Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT18hbep6w7ynhk6FiXkqVyCqTXSL6gCJv8s\",",
-									"        \"release_date\": \"2020-09-15T10:33:58Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1JRWc6ZUVHNr5m3EEyPP4yxmHuipRv1zAv\",",
-									"        \"release_date\": \"2020-09-16T08:54:38Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1MKX3GiQJ4opk7ZQ5ScPSauBcgh5KgjC8J\",",
-									"        \"release_date\": \"2020-10-01T08:15:13Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1TzD3LQUa9XdWWFFveXBbXV5mm13GK8GJd\",",
-									"        \"release_date\": \"2020-12-03T15:12:02Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1ACMUWqzNdxFxkwNsovSnTyXXJfntg4AQy\",",
-									"        \"release_date\": \"2020-09-16T08:51:38Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1LBA8th4NXfjethYCPmSw9xse4B1gcr3dB\",",
-									"        \"release_date\": \"2020-10-07T09:30:58Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1Qgx4xsqe8cWxurGiVbjBJczQcQoZqq5oy\",",
-									"        \"release_date\": \"2020-09-16T09:56:18Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1BVmgRzpCpJsN42t4XHBK4p6AkR8Jh998b\",",
-									"        \"release_date\": \"2020-09-22T08:09:42Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1ReP1tXdKMwMDvpB8bmfnCaXyKf3jFcYhR\",",
-									"        \"release_date\": \"2020-10-16T11:03:43Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1KcHS5JMTjdadyD1zqzKWYnkfHLemGgzZR\",",
-									"        \"release_date\": \"2020-12-03T09:01:02Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1EA1qz2KDXqMz58CUCgH2R1PwmB4PUiWh1\",",
-									"        \"release_date\": \"2020-12-03T15:10:02Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1AurqozW6oGfSXfddGVFcDi3PQYLSomymB\",",
-									"        \"release_date\": \"2020-09-01T14:59:22Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1AibwutnrWe5zWkbbbrCoxfUkZgfpi2Tgs\",",
-									"        \"release_date\": \"2020-09-01T14:35:22Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1S4zXjWPvXZv7eufEJxZMuYrxFyzdiPobP\",",
-									"        \"release_date\": \"2020-03-03T20:15:22Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT19J3jUH1pUk9bNkvxRXWaW5FjNfqRi6XvM\",",
-									"        \"release_date\": \"2020-10-01T08:18:21Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1NYqJMeLbUKuNaRrXyePrCZ4Uth2HU3173\",",
-									"        \"release_date\": \"2020-10-16T11:00:43Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1LixcSiiBN8gCLshb24P8m9TqDXthwWJPy\",",
-									"        \"release_date\": \"2020-09-17T07:47:18Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1GXte9UNEuzVAi5EajXxuQt1iornm46yo8\",",
-									"        \"release_date\": \"2020-10-07T08:55:18Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1SE5x7QrXTma3MHjsuNWtfmf6Asnxo9fqV\",",
-									"        \"release_date\": \"2020-09-15T10:30:58Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1QfQkoxR1JL9d79DxQ3AqNLt1kwSmJgrRz\",",
-									"        \"release_date\": \"2020-09-16T10:06:18Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1U1JZaXoG4u1EPnhHL4R4otzkWc1L34q3c\",",
-									"        \"alias\": \"Equisafe KYC registrar\",",
-									"        \"release_date\": \"2020-03-03T21:08:22Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1KHu4DASppcFVjrLyFHamu9X7ENdVdmev7\",",
-									"        \"release_date\": \"2020-12-03T15:16:42Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1MaD47dCPTQS6Q3JdJfTHZx4w3gstUvvfD\",",
-									"        \"release_date\": \"2020-09-16T10:39:58Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1WXF1XU9UQADDU1f2yqEbCxi89hW9JeSHd\",",
-									"        \"release_date\": \"2020-12-03T16:42:47Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1DD8xRayF66USRxJdi7YkfavmiC5Ggx3Ki\",",
-									"        \"release_date\": \"2020-12-13T10:45:53Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1UMWs4LbBSgdCv1f7kAmmYkjbea43ruhit\",",
-									"        \"release_date\": \"2020-12-13T10:49:53Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1JnU6thJd5A1hW5mGaCa2sWBuSkriTKbqq\",",
-									"        \"release_date\": \"2020-12-13T15:37:19Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1Mq9mPHSgrotWmoWnyMw11cRmAsvNn1yXf\",",
-									"        \"release_date\": \"2020-12-13T10:48:53Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1GzcnQ7cSbSGiDexB4DUEPMSXL293wkgV6\",",
-									"        \"release_date\": \"2020-12-13T15:36:19Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1XCkUbuKiRdwqcdpTh4N6UbQaN6sLmsH2Q\",",
-									"        \"release_date\": \"2020-12-13T10:47:53Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1XPTwSXDbnPZ5RJwrsKCFia9DYczWELVzq\",",
-									"        \"release_date\": \"2020-12-13T15:35:19Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1Mayi4QR51NBEM9avRp2e3L58dkY1PEz36\",",
-									"        \"release_date\": \"2020-12-14T09:17:19Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT18uXch4CaGX4ZyQPwPmoVCZNq7HRWqPV4m\",",
-									"        \"release_date\": \"2020-12-14T09:37:39Z\"",
-									"    },",
-									"    {",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT19E6SEB26EYgSqft6PfcP86yUReqdE8fNu\",",
-									"        \"release_date\": \"2020-12-14T09:14:19Z\"",
+									"        \"name\": \"objkt.com\",",
+									"        \"short_description\": \"The largest NFT marketplace on Tezos.\",",
+									"        \"full_description\": \"objkt.com is the first FA2 marketplace that aggregates tokens across contracts and provides a cohesive user interface to interact with and trade multimedia NFTs.\",",
+									"        \"website\": \"https://objkt.com\",",
+									"        \"slug\": \"objkt\",",
+									"        \"authors\": [",
+									"            \"objkt.com\"",
+									"        ],",
+									"        \"social_links\": [",
+									"            \"https://twitter.com/objktcom\"",
+									"        ],",
+									"        \"interfaces\": null,",
+									"        \"categories\": [",
+									"            \"NFT\",",
+									"            \"Marketplace\"",
+									"        ],",
+									"        \"soon\": false,",
+									"        \"logo\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_logo.png\",",
+									"        \"cover\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_cover.png\",",
+									"        \"screenshots\": [{ \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_screen_1.png\", \"type\": \"desktop\" }, { \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_screen_2.png\", \"type\": \"desktop\" }, { \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_screen_3.png\", \"type\": \"desktop\" }]",
 									"    }",
-									"    ],",
-									"    \"tokens\": [",
-									"    {",
-									"        \"contract\": \"KT1XHAmdRKugP1Q38CxDmpcRSxq143KpEiYx\",",
-									"        \"network\": \"mainnet\",",
-									"        \"token_id\": 0,",
-									"        \"symbol\": \"TRIANON\",",
-									"        \"name\": \"Trianon Royal\",",
-									"        \"decimals\": 8,",
-									"        \"supply\": 0,",
-									"        \"transfered\": 0",
-									"    }",
-									"    ]",
-									"    });",
+									"    );",
 									"});"
 								],
 								"type": "text/javascript"
@@ -2958,100 +2731,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/dapps/equisafe",
+							"raw": "{{baseURL}}/v1/dapps/objkt",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"v1",
 								"dapps",
-								"equisafe"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "dapps/tzero",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const dapp = pm.response.json();",
-									"",
-									"    pm.expect(dapp).to.eql({",
-									"  \"name\": \"tZERO\",",
-									"  \"short_description\": \"Crypto wallet and exchange service\",",
-									"  \"full_description\": \"Digital securities are traditional types of securities such as equities or bonds, enhanced using the benefits of blockchain and smart contract technology without compromising traditional regulatory compliance and investor protections. The alternative trading system, operated by tZERO ATS, is the premier market for trading these digital securities.\",",
-									"  \"website\": \"https://www.tzero.com/\",",
-									"  \"slug\": \"tzero\",",
-									"  \"authors\": [",
-									"    \"tZERO Crypto Inc\"",
-									"  ],",
-									"  \"social_links\": [",
-									"    \"https://twitter.com/tZERO\",",
-									"    \"https://www.facebook.com/tZEROblockchain/\",",
-									"    \"https://www.instagram.com/tzeroblockchain\"",
-									"  ],",
-									"  \"interfaces\": null,",
-									"  \"categories\": [",
-									"    \"Platform\",",
-									"    \"STO\"",
-									"  ],",
-									"  \"soon\": false,",
-									"  \"logo\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzero/tzero_logo.jpg\",",
-									"  \"cover\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzero/tzero_cover.png\",",
-									"  \"screenshots\": [",
-									"    {",
-									"      \"type\": \"desktop\",",
-									"      \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzero/tzero_screen_1.png\"",
-									"    }",
-									"  ],",
-									"  \"contracts\": [",
-									"    {",
-									"      \"network\": \"mainnet\",",
-									"      \"address\": \"KT1KemKUx79keZgFW756jQrqKcZJ21y4SPdS\",",
-									"      \"alias\": \"tZERO Compliance\",",
-									"      \"release_date\": \"2020-08-03T20:46:40Z\"",
-									"    },",
-									"    {",
-									"      \"network\": \"mainnet\",",
-									"      \"address\": \"KT19nHqEWZxFFbbDL1b7Y86escgEN7qUShGo\",",
-									"      \"alias\": \"tZERO Registry\",",
-									"      \"release_date\": \"2020-08-03T20:44:40Z\"",
-									"    }",
-									"  ]",
-									"}",
-									");",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/dapps/tzero",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"dapps",
-								"tzero"
+								"objkt"
 							]
 						}
 					},
@@ -3090,16 +2777,16 @@
 									"    \"Social\"",
 									"  ],",
 									"  \"soon\": false,",
-									"  \"logo\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbutton/tzbutton_logo.png\",",
-									"  \"cover\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbutton/tzbutton_cover.png\",",
+									"  \"logo\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tzbutton/tzbutton_logo.png\",",
+									"  \"cover\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tzbutton/tzbutton_cover.png\",",
 									"  \"screenshots\": [",
 									"    {",
 									"      \"type\": \"desktop\",",
-									"      \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbutton/tzbutton_screen_1.png\"",
+									"      \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tzbutton/tzbutton_screen_1.png\"",
 									"    },",
 									"    {",
 									"      \"type\": \"desktop\",",
-									"      \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbutton/tzbutton_screen_2.png\"",
+									"      \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tzbutton/tzbutton_screen_2.png\"",
 									"    }",
 									"  ],",
 									"  \"contracts\": [",
@@ -3175,12 +2862,12 @@
 									"    \"Token\"",
 									"  ],",
 									"  \"soon\": false,",
-									"  \"logo\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/stakerdao/stakerdao_logo.jpg\",",
-									"  \"cover\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/stakerdao/stakerdao_cover.png\",",
+									"  \"logo\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/stakerdao/stakerdao_logo.jpg\",",
+									"  \"cover\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/stakerdao/stakerdao_cover.png\",",
 									"  \"screenshots\": [",
 									"    {",
 									"      \"type\": \"desktop\",",
-									"      \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/stakerdao/stakerdao_screen_1.png\"",
+									"      \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/stakerdao/stakerdao_screen_1.png\"",
 									"    }",
 									"  ],",
 									"  \"contracts\": [",
@@ -3249,8 +2936,8 @@
 									"    pm.expect(dapp.interfaces).to.eql([\"FA1.2\"]);",
 									"    pm.expect(dapp.categories).to.eql([\"Token\", \"Stable\"]);",
 									"    pm.expect(dapp.soon).to.eql(false);",
-									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/ethtz/ethtz_logo.png\");",
-									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/ethtz/ethtz_cover.png\");",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/ethtz/ethtz_logo.png\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/ethtz/ethtz_cover.png\");",
 									"    pm.expect(dapp.contracts).to.eql([",
 									"        {",
 									"        \"network\": \"mainnet\",",
@@ -3310,7 +2997,7 @@
 									"pm.test(\"The response has all properties\", () => {",
 									"    const dapp = pm.response.json();",
 									"",
-									"    pm.expect(dapp.name).to.eql(\"USDtz\");",
+									"    pm.expect(dapp.name).to.eql(\"USDtez\");",
 									"    pm.expect(dapp.short_description).to.eql(\"Hard-backed USD stablecoin\");",
 									"    pm.expect(dapp.full_description).to.eql(\"USDtez (USDtz) is the first USD stablecoin on Tezos. USDtez is fully-backed 1-1 by FIAT,  and built to the Tezos FA token standard, providing a solvent, scalable, and financial DApp programmable source of liquidity for low-fee Tezos-based asset trading. The USDtez Reserve is regularly audited but also viewable in real time by users. Its collateral is diversified amongst multiple and strictly regulated FIAT-backed assets, further strengthening its 1-1 parity with the United States Dollar (USD).\");",
 									"    pm.expect(dapp.website).to.eql(\"https://usdtz.com/\");",
@@ -3325,8 +3012,8 @@
 									"    pm.expect(dapp.interfaces).to.eql([\"FA1.2\"]);",
 									"    pm.expect(dapp.categories).to.eql([\"Token\", \"Stable\"]);",
 									"    pm.expect(dapp.soon).to.eql(false);",
-									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/usdtz/usdtz_logo.jpg\");",
-									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/usdtz/usdtz_cover.png\");",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/usdtz/usdtz_logo.jpg\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/usdtz/usdtz_cover.png\");",
 									"    pm.expect(dapp.contracts).to.eql([",
 									"        {",
 									"        \"network\": \"mainnet\",",
@@ -3399,8 +3086,8 @@
 									"    pm.expect(dapp.interfaces).to.eql([\"FA1.2\"]);",
 									"    pm.expect(dapp.categories).to.eql([\"Token\", \"Wrapped\"]);",
 									"    pm.expect(dapp.soon).to.eql(false);",
-									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbtc/tzbtc_logo.jpg\");",
-									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbtc/tzbtc_cover.jpg\");",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tzbtc/tzbtc_logo.jpg\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tzbtc/tzbtc_cover.jpg\");",
 									"    pm.expect(dapp.contracts).to.eql([",
 									"        {",
 									"        \"network\": \"mainnet\",",
@@ -3475,44 +3162,44 @@
 									"    pm.expect(dapp.interfaces).to.eql(null);",
 									"    pm.expect(dapp.categories).to.eql([\"DEX\", \"Cross-chain\"]);",
 									"    pm.expect(dapp.soon).to.eql(false);",
-									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_logo.jpg\");",
-									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_cover.jpg\");",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_logo.jpg\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_cover.jpg\");",
 									"    pm.expect(dapp.screenshots).to.eql([",
 									"        {",
 									"            \"type\": \"desktop\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_screen_1.png\"",
+									"            \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_screen_1.png\"",
 									"        },",
 									"        {",
 									"            \"type\": \"desktop\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_screen_2.png\"",
+									"            \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_screen_2.png\"",
 									"        },",
 									"        {",
 									"            \"type\": \"desktop\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_screen_3.png\"",
+									"            \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_screen_3.png\"",
 									"        },",
 									"        {",
 									"            \"type\": \"mobile\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_1.jpg\"",
+									"            \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_mobile_1.jpg\"",
 									"        },",
 									"        {",
 									"            \"type\": \"mobile\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_2.jpg\"",
+									"            \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_mobile_2.jpg\"",
 									"        },",
 									"        {",
 									"            \"type\": \"mobile\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_3.jpg\"",
+									"            \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_mobile_3.jpg\"",
 									"        },",
 									"        {",
 									"            \"type\": \"mobile\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_4.jpg\"",
+									"            \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_mobile_4.jpg\"",
 									"        },",
 									"        {",
 									"            \"type\": \"mobile\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_5.jpg\"",
+									"            \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_mobile_5.jpg\"",
 									"        },",
 									"        {",
 									"            \"type\": \"mobile\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_6.jpg\"",
+									"            \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/atomex/atomex_mobile_6.jpg\"",
 									"        }",
 									"    ]);",
 									"    pm.expect(dapp.contracts).to.eql([",
@@ -3525,18 +3212,12 @@
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr\",",
-									"            \"alias\": \"Atomex FA1.2\",",
+									"             \"alias\": \"Atomex tzBTC\",",
 									"            \"release_date\": \"2020-04-08T11:37:32Z\"",
-									"        },",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL\",",
-									"            \"alias\": \"Atomex FA1.2 New\",",
-									"            \"release_date\": \"2021-02-24T16:28:18Z\"",
 									"        }",
 									"    ]);",
 									"",
-									"    pm.expect(dapp.dex_tokens.length).to.eql(4);",
+									"    pm.expect(dapp.dex_tokens.length).to.eql(2);",
 									"    for (const token of dapp.dex_tokens) {",
 									"        pm.expect(token).to.have.property('contract');",
 									"        pm.expect(token).to.have.property('network');",
@@ -3575,7 +3256,7 @@
 					"response": []
 				},
 				{
-					"name": "dapps/dex/dexter",
+					"name": "dapps/dex/tezex",
 					"event": [
 						{
 							"listen": "test",
@@ -3584,93 +3265,24 @@
 									"pm.test(\"The response has all properties\", () => {",
 									"    const dapp = pm.response.json();",
 									"",
-									"    pm.expect(dapp.name).to.eql(\"Dexter\");",
-									"    pm.expect(dapp.short_description).to.eql(\"A decentralized exchange for Tezos\");",
-									"    pm.expect(dapp.full_description).to.eql(\"Dexter is a decentralized, non-custodial exchange on the Tezos blockchain that enables users to exchange their XTZ - the native currency of Tezos - with other tokens built on the Tezos FA1.2 token standard. Dexter also allows anyone to trade directly between two types of FA1.2 tokens. Any holder of XTZ and FA1.2 tokens can also be a liquidity provider. Such participation helps power the Dexter Exchange and also provides those users with a proportional share of exchange fees (0.3%). Liquidity providers can easily remove liquidity they’ve provided at any time.\");",
-									"    pm.expect(dapp.website).to.eql(\"https://dexter.exchange/\");",
-									"    pm.expect(dapp.slug).to.eql(\"dexter\");",
-									"    pm.expect(dapp.authors).to.eql([\"CamlCase\"]);",
+									"    pm.expect(dapp.name).to.eql(\"TEZEX Bridge\");",
+									"    pm.expect(dapp.short_description).to.eql(\"Inter-chain token swaps\");",
+									"    pm.expect(dapp.full_description).to.eql(\"TEZEX is a Tezos liquidity exchange expanding liquidity flow via inter-chain and intra-chain token trading. TEZEX Bridge enables cross-chain token swaps between Tezos tokens and tokens of other blockchains like Ethereum — that is, Ethereum ERC-standard tokens (e.g. ERC-20) can be swapped for Tezos FA-standard tokens (e.g. FA-1.2, FA-2.0).\");",
+									"    pm.expect(dapp.website).to.eql(\"https://tezex.io/\");",
+									"    pm.expect(dapp.slug).to.eql(\"tezex\");",
+									"    pm.expect(dapp.authors).to.eql([\"Tezos Stable Technologies Ltd\"]);",
 									"    pm.expect(dapp.social_links).to.eql([",
-									"        \"https://gitlab.com/camlcase-dev\",",
-									"        \"https://twitter.com/camlCaseTech\"",
+									"        \"https://t.me/tezexofficial\",",
+									"        \"https://github.com/StableTechnologies/TEZEX\",",
+									"        \"https://www.reddit.com/r/tezosexchange/\"",
 									"    ]);",
-									"    pm.expect(dapp.interfaces).to.eql(null);",
-									"    pm.expect(dapp.categories).to.eql([\"DEX\"]);",
+									"    pm.expect(dapp.interfaces).to.eql([]);",
+									"    pm.expect(dapp.categories).to.eql([\"DEX\", \"Cross-chain\"]);",
 									"    pm.expect(dapp.soon).to.eql(false);",
-									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/dexter/dexter_logo.jpg\");",
-									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/dexter/dexter_cover.png\");",
-									"    pm.expect(dapp.screenshots).to.eql([",
-									"        {",
-									"            \"type\": \"desktop\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/dexter/dexter_screen_1.png\"",
-									"        },",
-									"        {",
-									"            \"type\": \"desktop\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/dexter/dexter_screen_2.png\"",
-									"        },",
-									"        {",
-									"            \"type\": \"desktop\",",
-									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/dexter/dexter_screen_3.png\"",
-									"        }",
-									"    ]);",
-									"    pm.expect(dapp.contracts).to.eql([",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1BGQR7t4izzKZ7eRodKWTodAsM23P38v7N\",",
-									"            \"alias\": \"Dexter tzBTC/XTZ\",",
-									"            \"release_date\": \"2021-03-01T09:15:07Z\"",
-									"        },",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1PDrBE59Zmxnb8vXRgRAG1XmvTMTs5EDHU\",",
-									"            \"alias\": \"Dexter ETHtz/XTZ\",",
-									"            \"release_date\": \"2021-03-01T09:23:07Z\"",
-									"        },",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1Tr2eG3eVmPRbymrbU2UppUmKjFPXomGG9\",",
-									"            \"alias\": \"Dexter USDtz/XTZ\",",
-									"            \"release_date\": \"2021-03-01T09:25:07Z\"",
-									"        },",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1D56HQfMmwdopmFLTwNHFJSs6Dsg2didFo\",",
-									"            \"alias\": \"Dexter wXTZ/XTZ\",",
-									"            \"release_date\": \"2021-03-01T09:30:07Z\"",
-									"        },",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1AbYeDbjjcAnV1QK7EZUUdqku77CdkTuv6\",",
-									"            \"alias\": \"Dexter kUSD/XTZ\",",
-									"            \"release_date\": \"2021-03-01T08:58:11Z\"",
-									"        },",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1DrJV8vhkdLEj76h1H9Q4irZDqAkMPo1Qf\",",
-									"            \"alias\": \"Dexter tzBTC/XTZ Old\",",
-									"            \"release_date\": \"2020-09-29T16:12:45Z\"",
-									"        },",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1Puc9St8wdNoGtLiD2WXaHbWU7styaxYhD\",",
-									"            \"alias\": \"Dexter USDtz/XTZ Old\",",
-									"            \"release_date\": \"2020-09-29T16:18:45Z\"",
-									"        },",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT19c8n5mWrqpxMcR3J687yssHxotj88nGhZ\",",
-									"            \"alias\": \"Dexter ETHtz/XTZ Old\",",
-									"            \"release_date\": \"2021-01-05T10:44:09Z\"",
-									"        },",
-									"        {",
-									"            \"network\": \"mainnet\",",
-									"            \"address\": \"KT1XTXBsEauzcv3uPvVXW92mVqrx99UGsb9T\",",
-									"            \"alias\": \"Dexter wXTZ/XTZ Old\",",
-									"            \"release_date\": \"2020-12-23T19:00:13Z\"",
-									"        }",
-									"    ]);",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tezex/tezex_logo.png\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tezex/tezex_cover.png\");",
 									"",
-									"    pm.expect(dapp.dex_tokens.length).to.eql(7);",
+									"    pm.expect(dapp.dex_tokens.length).to.eql(2);",
 									"    for (const token of dapp.dex_tokens) {",
 									"        pm.expect(token).to.have.property('contract');",
 									"        pm.expect(token).to.have.property('network');",
@@ -3695,14 +3307,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/dapps/dexter",
+							"raw": "{{baseURL}}/v1/dapps/tezex",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"v1",
 								"dapps",
-								"dexter"
+								"tezex"
 							]
 						}
 					},

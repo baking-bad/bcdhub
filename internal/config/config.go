@@ -161,7 +161,6 @@ type APIConfig struct {
 	Frontend      FrontendConfig `yaml:"frontend"`
 	Seed          SeedConfig     `yaml:"seed"`
 	Networks      []string       `yaml:"networks"`
-	Pinata        PinataConfig   `yaml:"pinata"`
 	PageSize      uint64         `yaml:"page_size"`
 	Connections   Connections    `yaml:"connections"`
 }
@@ -176,13 +175,6 @@ type SentryConfig struct {
 
 // TezosDomainsConfig -
 type TezosDomainsConfig map[string]string
-
-// PinataConfig -
-type PinataConfig struct {
-	Key            string `yaml:"key"`
-	SecretKey      string `yaml:"secret_key"`
-	TimeoutSeconds int    `yaml:"timeout_seconds"`
-}
 
 // Connections -
 type Connections struct {

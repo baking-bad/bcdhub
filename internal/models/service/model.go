@@ -1,34 +1,36 @@
 package service
 
 import (
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"github.com/go-pg/pg/v10"
 )
 
 // State -
 type State struct {
-	Name   string `gorm:"index:service_name_idx;unique;"`
+	// nolint
+	tableName struct{} `pg:"states"`
+
+	ID     int64
+	Name   string `pg:",unique"`
 	LastID int64
 }
 
 // GetID -
 func (s *State) GetID() int64 {
-	return 0
+	return s.ID
 }
 
 // GetIndex -
 func (s *State) GetIndex() string {
-	return "service_states"
+	return "states"
 }
 
 // Save -
-func (s *State) Save(tx *gorm.DB) error {
-	return tx.Clauses(clause.OnConflict{
-		Columns: []clause.Column{
-			{Name: "name"},
-		},
-		DoUpdates: clause.Assignments(map[string]interface{}{
-			"last_id": s.LastID,
-		}),
-	}).Create(s).Error
+func (s *State) Save(tx pg.DBI) error {
+	_, err := tx.Model(s).
+		OnConflict("(name) DO UPDATE").
+		Set("last_id = EXCLUDED.last_id").
+		Returning("id").
+		Insert()
+
+	return err
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"gorm.io/datatypes"
 )
 
 // GlobalConstant -
@@ -21,10 +20,9 @@ func (p GlobalConstant) Parse(data noderpc.Operation, operation operation.Operat
 		Network:   operation.Network,
 		Timestamp: operation.Timestamp,
 		Level:     operation.Level,
+		Value:     data.Value,
 	}
-	if data.Value != nil {
-		gc.Value = datatypes.JSON(data.Value)
-	}
+
 	if data.Metadata != nil && data.Metadata.OperationResult != nil {
 		gc.Address = data.Metadata.OperationResult.GlobalAddress
 	}

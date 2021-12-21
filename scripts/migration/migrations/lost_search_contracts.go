@@ -8,7 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/search"
-	"gorm.io/gorm"
+	"github.com/go-pg/pg/v10"
 )
 
 // FixLostSearchContracts -
@@ -44,12 +44,12 @@ func (m *FixLostSearchContracts) Do(ctx *config.Context) error {
 	return nil
 }
 
-func (m *FixLostSearchContracts) getContracts(db *gorm.DB) (resp []contract.Contract, err error) {
-	query := db.Table(models.DocContracts).Order("id asc")
+func (m *FixLostSearchContracts) getContracts(db *pg.DB) (resp []contract.Contract, err error) {
+	query := db.Model().Table(models.DocContracts).Order("id asc")
 	if m.lastID > 0 {
 		query.Where("id > ?", m.lastID)
 	}
-	err = query.Limit(1000).Find(&resp).Error
+	err = query.Limit(1000).Select(&resp)
 	return
 }
 

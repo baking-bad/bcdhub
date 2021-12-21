@@ -91,8 +91,8 @@ func (e *Elastic) query(indices []string, query map[string]interface{}, response
 		return
 	}
 
-	logger.InterfaceToJSON(query)
-	logger.InterfaceToJSON(indices)
+	// logger.InterfaceToJSON(query)
+	// logger.InterfaceToJSON(indices)
 
 	var resp *esapi.Response
 	options := []func(*esapi.SearchRequest){

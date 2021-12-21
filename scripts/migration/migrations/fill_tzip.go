@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"context"
 	"errors"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -48,7 +49,7 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		return err
 	}
 
-	if err := ctx.Storage.CreateIndexes(); err != nil {
+	if err := ctx.Storage.CreateTables(); err != nil {
 		return err
 	}
 
@@ -85,11 +86,11 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 	}
 
 	logger.Info().Int("new", len(inserts)).Int("updates", len(updates)).Msg("Saving metadata...")
-	if err := ctx.StorageDB.Save(inserts); err != nil {
+	if err := ctx.StorageDB.Save(context.Background(), inserts); err != nil {
 		return err
 	}
 
-	return ctx.StorageDB.Save(updates)
+	return ctx.StorageDB.Save(context.Background(), updates)
 }
 
 func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates *[]models.Model) error {

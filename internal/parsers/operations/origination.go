@@ -108,9 +108,11 @@ func (p Origination) appliedHandler(item noderpc.Operation, origination *operati
 		result.TokenBalances = append(result.TokenBalances, ledgerResult.TokenBalances...)
 	}
 
-	if err := p.executeInitialStorageEvent(item.Script, origination, result); err != nil {
-		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
-			logger.Err(err)
+	if origination.Network == types.Mainnet {
+		if err := p.executeInitialStorageEvent(item.Script, origination, result); err != nil {
+			if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
+				logger.Err(err)
+			}
 		}
 	}
 

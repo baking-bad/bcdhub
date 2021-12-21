@@ -22,8 +22,6 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithMempool(cfg.Services),
 		config.WithLoadErrorDescriptions(),
 		config.WithConfigCopy(cfg),
-		config.WithPinata(cfg.API.Pinata),
-		config.WithTzipSchema("data/tzip-16-schema.json"),
 	)
 
 	return &Context{

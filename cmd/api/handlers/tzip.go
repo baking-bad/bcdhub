@@ -36,10 +36,6 @@ func (ctx *Context) GetMetadata(c *gin.Context) {
 		return
 	}
 
-	if tzip.License.IsEmpty() {
-		tzip.License = nil
-	}
-
 	var t TZIPResponse
 	t.FromModel(tzip, true)
 	c.SecureJSON(http.StatusOK, t)

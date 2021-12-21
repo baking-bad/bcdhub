@@ -18,7 +18,9 @@ require (
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
+	github.com/go-pg/pg/v10 v10.10.6
 	github.com/go-playground/validator/v10 v10.9.0
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -46,7 +48,6 @@ require (
 	github.com/tidwall/gjson v1.9.3
 	github.com/ugorji/go v1.2.6 // indirect
 	github.com/wsxiaoys/terminal v0.0.0-20160513160801-0940f3fc43a0 // indirect
-	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	golang.org/x/net v0.0.0-20210928044308-7d9f5e0b762b // indirect
@@ -55,7 +56,4 @@ require (
 	golang.org/x/tools v0.1.6 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
-	gorm.io/datatypes v1.0.2
-	gorm.io/driver/postgres v1.1.0
-	gorm.io/gorm v1.21.15
 )

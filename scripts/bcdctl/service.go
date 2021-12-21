@@ -24,7 +24,7 @@ func (x *listServicesCommand) Execute(_ []string) error {
 		}
 
 		var lastID int64
-		query := ctx.StorageDB.DB.Select("max(id)")
+		query := ctx.StorageDB.DB.Model()
 		switch s.Name {
 		case "projects":
 			if id, ok := ids[models.DocContracts]; ok {
@@ -47,7 +47,7 @@ func (x *listServicesCommand) Execute(_ []string) error {
 		}
 
 		if lastID == 0 {
-			if err := query.Scan(&lastID).Error; err != nil {
+			if err := query.ColumnExpr("max(id)").Select(&lastID); err != nil {
 				return err
 			}
 		}

@@ -43,6 +43,6 @@ type TransfersResponse struct {
 type BigMapDiff struct {
 	*bigmapdiff.BigMapDiff
 
-	Operation *operation.Operation
-	Protocol  *protocol.Protocol
+	Operation *operation.Operation `pg:"rel:has-one"`
+	Protocol  *protocol.Protocol   `pg:"rel:has-one"`
 }

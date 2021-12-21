@@ -1,7 +1,5 @@
 package types
 
-import "database/sql/driver"
-
 // OperationStatus -
 type OperationStatus int
 
@@ -36,15 +34,6 @@ func (status OperationStatus) String() string {
 		return ""
 	}
 }
-
-// Scan -
-func (status *OperationStatus) Scan(value interface{}) error {
-	*status = OperationStatus(value.(int64))
-	return nil
-}
-
-// Value -
-func (status OperationStatus) Value() (driver.Value, error) { return int(status), nil }
 
 const (
 	OperationStatusApplied OperationStatus = iota + 1

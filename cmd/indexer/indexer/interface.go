@@ -1,13 +1,13 @@
 package indexer
 
 import (
+	"context"
 	"sync"
 )
 
 // Indexer -
 type Indexer interface {
-	Sync(wg *sync.WaitGroup)
-	Stop()
-	Index(levels []int64) error
-	Rollback() error
+	Sync(ctx context.Context, wg *sync.WaitGroup)
+	Index(ctx context.Context, levels []int64) error
+	Rollback(ctx context.Context) error
 }

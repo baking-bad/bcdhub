@@ -1391,6 +1391,7 @@ func TestTypedAst_FromJSONSchema(t *testing.T) {
 			}
 			if err := a.FromJSONSchema(m); (err != nil) != tt.wantErr {
 				t.Errorf("TypedAst.FromJSONSchema() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 			b, err := a.ToParameters("")
 			if err != nil {

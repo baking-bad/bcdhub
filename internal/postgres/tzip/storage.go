@@ -19,41 +19,33 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get -
 func (storage *Storage) Get(network types.Network, address string) (*tzip.TZIP, error) {
-	var t tzip.TZIP
-	err := storage.DB.
-		Table(models.DocTZIP).
-		Scopes(core.NetworkAndAddress(network, address)).
-		Order("id desc").
-		First(&t).
-		Error
-	return &t, err
+	t := new(tzip.TZIP)
+	query := storage.DB.Model(t)
+	core.NetworkAndAddress(network, address)(query)
+	err := query.Order("id desc").Limit(1).Select()
+	return t, err
 }
 
 // GetBySlug -
 func (storage *Storage) GetBySlug(slug string) (*tzip.TZIP, error) {
-	var t tzip.TZIP
-	err := storage.DB.
-		Table(models.DocTZIP).
-		Where("slug = ?", slug).
-		First(&t).
-		Error
-	return &t, err
+	t := new(tzip.TZIP)
+	err := storage.DB.Model(t).Where("slug = ?", slug).First()
+	return t, err
 }
 
 // GetAliases -
 func (storage *Storage) GetAliases(network types.Network) (t []tzip.TZIP, err error) {
-	err = storage.DB.
-		Table(models.DocTZIP).
+	err = storage.DB.Model(&t).
 		Where("network = ?", network).
 		Where("name IS NOT NULL").
-		Find(&t).Error
+		Select(&t)
 
 	return
 }
 
 // GetWithEvents -
 func (storage *Storage) GetWithEvents(updatedAt uint64) ([]tzip.TZIP, error) {
-	query := storage.DB.
+	query := storage.DB.Model().
 		Table(models.DocTZIP).
 		Where("events is not null AND jsonb_array_length(events) > 0")
 
@@ -62,7 +54,7 @@ func (storage *Storage) GetWithEvents(updatedAt uint64) ([]tzip.TZIP, error) {
 	}
 
 	t := make([]tzip.TZIP, 0)
-	if err := query.Order("updated_at asc").Find(&t).Error; err != nil && !storage.IsRecordNotFound(err) {
+	if err := query.Order("updated_at asc").Select(&t); err != nil && !storage.IsRecordNotFound(err) {
 		return nil, err
 	}
 	return t, nil

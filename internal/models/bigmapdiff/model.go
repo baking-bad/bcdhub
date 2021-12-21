@@ -4,27 +4,29 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/go-pg/pg/v10"
 	"github.com/lib/pq"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // BigMapDiff -
 type BigMapDiff struct {
-	ID          int64         `json:"-"`
-	Ptr         int64         `json:"ptr" gorm:"index:bmd_idx;index:big_map_diffs_key_hash_idx"`
-	Key         types.Bytes   `json:"key" gorm:"type:bytes;not null"`
-	KeyHash     string        `json:"key_hash" gorm:"index:big_map_diffs_key_hash_idx"`
-	Value       types.Bytes   `json:"value,omitempty" gorm:"type:bytes"`
-	Level       int64         `json:"level" gorm:"index:idx_bmd_level_network"`
-	Contract    string        `json:"contract" gorm:"index:bmd_idx"`
-	Network     types.Network `json:"network" gorm:"type:SMALLINT;index:idx_bmd_level_network;index:bmd_idx;index:big_map_diffs_key_hash_idx"`
-	Timestamp   time.Time     `json:"timestamp"`
-	ProtocolID  int64         `json:"protocol" gorm:"type:SMALLINT"`
-	OperationID int64         `json:"-" gorm:"index:big_map_diffs_operation_id_idx"`
+	// nolint
+	tableName struct{} `pg:"big_map_diffs"`
 
-	KeyStrings   pq.StringArray `json:"key_strings,omitempty" gorm:"type:text[]"`
-	ValueStrings pq.StringArray `json:"value_strings,omitempty" gorm:"type:text[]"`
+	ID          int64
+	Ptr         int64       `pg:",use_zero"`
+	Key         types.Bytes `pg:",notnull,type:bytea"`
+	KeyHash     string
+	Value       types.Bytes `pg:",type:bytea"`
+	Level       int64
+	Contract    string
+	Network     types.Network `pg:",type:SMALLINT"`
+	Timestamp   time.Time
+	ProtocolID  int64 `pg:",type:SMALLINT"`
+	OperationID int64
+
+	KeyStrings   pq.StringArray `pg:",type:text[]"`
+	ValueStrings pq.StringArray ` pg:",type:text[]"`
 }
 
 // GetID -
@@ -38,10 +40,25 @@ func (b *BigMapDiff) GetIndex() string {
 }
 
 // Save -
-func (b *BigMapDiff) Save(tx *gorm.DB) error {
-	return tx.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Save(b).Error
+func (b *BigMapDiff) Save(tx pg.DBI) error {
+	_, err := tx.Model(b).
+		OnConflict("(id) DO UPDATE").
+		Set(`
+			ptr = excluded.ptr, 
+			key = excluded.key, 
+			key_hash = excluded.key_hash, 
+			value = excluded.value, 
+			level = excluded.level, 
+			contract = excluded.contract,
+			network = excluded.network, 
+			timestamp = excluded.timestamp, 
+			protocol_id = excluded.protocol_id, 
+			operation_id = excluded.operation_id, 
+			key_strings = excluded.key_strings, 
+			value_strings = excluded.value_strings`).
+		Returning("id").
+		Insert()
+	return err
 }
 
 // LogFields -

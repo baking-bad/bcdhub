@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -91,7 +93,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		result = append(result, balanceUpdates[i])
 	}
 
-	return ctx.Storage.Save(result)
+	return ctx.Storage.Save(context.Background(), result)
 }
 
 func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {

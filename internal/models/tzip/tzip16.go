@@ -17,16 +17,16 @@ type TZIP16 struct {
 	Name        string         `json:"name,omitempty"`
 	Description string         `json:"description,omitempty"`
 	Version     string         `json:"version,omitempty"`
-	License     *License       `json:"license,omitempty" gorm:"type:jsonb"`
+	License     License        `json:"license,omitempty" pg:",type:jsonb"`
 	Homepage    string         `json:"homepage,omitempty"`
-	Authors     pq.StringArray `json:"authors,omitempty" gorm:"type:text[]"`
-	Interfaces  pq.StringArray `json:"interfaces,omitempty" gorm:"type:text[]"`
-	Views       Views          `json:"views,omitempty" gorm:"type:jsonb"`
+	Authors     pq.StringArray `json:"authors,omitempty" pg:",type:text[]"`
+	Interfaces  pq.StringArray `json:"interfaces,omitempty" pg:",type:text[]"`
+	Views       Views          `json:"views,omitempty" pg:",type:jsonb"`
 }
 
 // License -
 type License struct {
-	Name    string `json:"name"`
+	Name    string `json:"name,omitempty"`
 	Details string `json:"details,omitempty"`
 }
 
@@ -79,24 +79,6 @@ func (license *License) Value() (driver.Value, error) {
 
 // Views -
 type Views []View
-
-// Scan scan value into Jsonb, implements sql.Scanner interface
-func (views *Views) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
-	}
-
-	return json.Unmarshal(bytes, views)
-}
-
-// Value return json value, implement driver.Valuer interface
-func (views Views) Value() (driver.Value, error) {
-	if views == nil {
-		return []byte(`[]`), nil
-	}
-	return json.Marshal(views)
-}
 
 // View -
 type View struct {

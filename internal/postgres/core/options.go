@@ -3,7 +3,6 @@ package core
 import (
 	"time"
 
-	bcdLogger "github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 )
 
@@ -26,13 +25,10 @@ func WithMaxConnections(count int) PostgresOption {
 		if count == 0 {
 			count = consts.DefaultSize
 		}
-		sql, err := pg.DB.DB()
-		if err != nil {
-			bcdLogger.Err(err)
-			return
+		if opts := pg.DB.Options(); opts != nil {
+			opts.PoolSize = count
+			opts.MaxConnAge = time.Hour
 		}
-		sql.SetMaxOpenConns(count)
-		sql.SetConnMaxLifetime(time.Hour)
 	}
 }
 
@@ -42,12 +38,19 @@ func WithIdleConnections(count int) PostgresOption {
 		if count == 0 {
 			count = consts.DefaultSize
 		}
-		sql, err := pg.DB.DB()
-		if err != nil {
-			bcdLogger.Err(err)
+		if opts := pg.DB.Options(); opts != nil {
+			opts.IdleTimeout = time.Minute * 30
+			opts.MinIdleConns = count
+		}
+	}
+}
+
+// WithQueryLogging -
+func WithQueryLogging() PostgresOption {
+	return func(pg *Postgres) {
+		if pg.DB == nil {
 			return
 		}
-		sql.SetMaxIdleConns(count)
-		sql.SetConnMaxIdleTime(time.Minute * 30)
+		pg.DB.AddQueryHook(&logQueryHook{})
 	}
 }

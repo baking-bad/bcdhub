@@ -38,8 +38,7 @@ type Parser struct {
 
 	Fingerprint Fingerprint
 
-	Hash     string
-	Language string
+	Hash string
 
 	CodeRaw []byte
 }
@@ -85,7 +84,6 @@ func NewParser(data []byte) (*Parser, error) {
 		HardcodedAddresses: make(types.Set),
 		Tags:               tags,
 		Hash:               hash,
-		Language:           consts.LangUnknown,
 		Fingerprint:        Fingerprint{},
 		CodeRaw:            cd.Code,
 	}, nil

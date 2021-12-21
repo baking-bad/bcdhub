@@ -1,16 +1,15 @@
 package dapp
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-
+	"github.com/go-pg/pg/v10"
 	"github.com/lib/pq"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // DApp -
 type DApp struct {
+	// nolint
+	tableName struct{} `pg:"dapps"`
+
 	ID                int64          `json:"-"`
 	Name              string         `json:"name"`
 	ShortDescription  string         `json:"short_description"`
@@ -19,16 +18,16 @@ type DApp struct {
 	Slug              string         `json:"slug,omitempty"`
 	AgoraReviewPostID int64          `json:"agora_review_post_id,omitempty"`
 	AgoraQAPostID     int64          `json:"agora_qa_post_id,omitempty"`
-	Authors           pq.StringArray `json:"authors" gorm:"type:text[]"`
-	SocialLinks       pq.StringArray `json:"social_links" gorm:"type:text[]"`
-	Interfaces        pq.StringArray `json:"interfaces" gorm:"type:text[]"`
-	Categories        pq.StringArray `json:"categories" gorm:"type:text[]"`
-	Contracts         DAppContracts  `json:"contracts" sql:"type:jsonb"`
+	Authors           pq.StringArray `json:"authors" pg:",type:text[]"`
+	SocialLinks       pq.StringArray `json:"social_links" pg:",type:text[]"`
+	Interfaces        pq.StringArray `json:"interfaces" pg:",type:text[]"`
+	Categories        pq.StringArray `json:"categories" pg:",type:text[]"`
+	Contracts         DAppContracts  `json:"contracts" pg:",type:jsonb"`
 	Order             int64          `json:"order"`
-	Soon              bool           `json:"soon"`
+	Soon              bool           `json:"soon" pg:",use_zero"`
 
-	Pictures  Pictures  `json:"pictures,omitempty" sql:"type:jsonb"`
-	DexTokens DexTokens `json:"dex_tokens,omitempty" sql:"type:jsonb"`
+	Pictures  Pictures  `json:"pictures,omitempty" pg:",type:jsonb"`
+	DexTokens DexTokens `json:"dex_tokens,omitempty" pg:",type:jsonb"`
 }
 
 // GetID -
@@ -42,10 +41,29 @@ func (d *DApp) GetIndex() string {
 }
 
 // Save -
-func (d *DApp) Save(tx *gorm.DB) error {
-	return tx.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Save(d).Error
+func (d *DApp) Save(tx pg.DBI) error {
+	_, err := tx.Model(d).
+		OnConflict("(id) DO UPDATE").
+		Set(`
+		"name" = excluded.name,
+		"short_description" = excluded.short_description,
+		"full_description" = excluded.full_description,
+		"web_site" = excluded.web_site,
+		"slug" = excluded.slug,
+		"agora_review_post_id" = excluded.agora_review_post_id,
+		"agora_qa_post_id" = excluded.agora_qa_post_id,
+		"authors" = excluded.authors,
+		"social_links" = excluded.social_links,
+		"interfaces" = excluded.interfaces,
+		"categories" = excluded.categories,
+		"contracts" = excluded.contracts,
+		"order" = excluded.order,
+		"soon" = excluded.soon,
+		"pictures" = excluded.pictures,
+		"dex_tokens" = excluded.dex_tokens
+	`).
+		Returning("id").Insert()
+	return err
 }
 
 // LogFields -
@@ -64,19 +82,6 @@ type Picture struct {
 // Pictures -
 type Pictures []Picture
 
-// Value -
-func (j Pictures) Value() (driver.Value, error) {
-	if len(j) == 0 {
-		return []byte(`[]`), nil
-	}
-	return json.Marshal(j)
-}
-
-// Scan -
-func (j *Pictures) Scan(value interface{}) error {
-	return json.Unmarshal(value.([]byte), j)
-}
-
 // DexToken -
 type DexToken struct {
 	TokenID  uint64 `json:"token_id"`
@@ -85,19 +90,6 @@ type DexToken struct {
 
 // DexTokens -
 type DexTokens []DexToken
-
-// Value -
-func (j DexTokens) Value() (driver.Value, error) {
-	if len(j) == 0 {
-		return []byte(`[]`), nil
-	}
-	return json.Marshal(j)
-}
-
-// Scan -
-func (j *DexTokens) Scan(value interface{}) error {
-	return json.Unmarshal(value.([]byte), j)
-}
 
 // DAppContract -
 type DAppContract struct {
@@ -108,21 +100,3 @@ type DAppContract struct {
 
 // DAppContracts -
 type DAppContracts []DAppContract
-
-// Value -
-func (j DAppContracts) Value() (driver.Value, error) {
-	if len(j) == 0 {
-		return []byte(`[]`), nil
-	}
-	return json.Marshal(j)
-}
-
-// Scan -
-func (j *DAppContracts) Scan(value interface{}) error {
-	return json.Unmarshal(value.([]byte), j)
-}
-
-// TableName -
-func (d *DApp) TableName() string {
-	return "dapps"
-}

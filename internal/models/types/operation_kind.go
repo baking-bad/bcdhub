@@ -1,7 +1,5 @@
 package types
 
-import "database/sql/driver"
-
 // OperationKind -
 type OperationKind int
 
@@ -40,15 +38,6 @@ func (kind OperationKind) String() string {
 		return ""
 	}
 }
-
-// Scan -
-func (kind *OperationKind) Scan(value interface{}) error {
-	*kind = OperationKind(value.(int64))
-	return nil
-}
-
-// Value -
-func (kind OperationKind) Value() (driver.Value, error) { return int(kind), nil }
 
 const (
 	OperationKindTransaction OperationKind = iota + 1

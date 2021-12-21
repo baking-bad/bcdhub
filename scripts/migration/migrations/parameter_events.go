@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"context"
 	"errors"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -138,7 +139,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 				}
 
 				logger.Info().Msgf("Delete %d transfers", len(deleted))
-				if err := ctx.Storage.BulkDelete(deleted); err != nil {
+				if err := ctx.Storage.BulkDelete(context.Background(), deleted); err != nil {
 					return err
 				}
 
@@ -148,7 +149,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					inserted = append(inserted, bu[i])
 				}
 
-				if err := ctx.Storage.Save(inserted); err != nil {
+				if err := ctx.Storage.Save(context.Background(), inserted); err != nil {
 					return err
 				}
 			}

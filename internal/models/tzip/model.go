@@ -1,28 +1,43 @@
 package tzip
 
 import (
+	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"github.com/go-pg/pg/v10"
 )
 
 // TZIP -
 type TZIP struct {
-	ID         int64         `json:"-"`
-	UpdatedAt  uint64        `gorm:"autoUpdateTime"`
-	Level      int64         `json:"level,omitempty" gorm:"index:idx_tzip_level_network"`
-	Timestamp  time.Time     `json:"timestamp,omitempty"`
-	Address    string        `json:"address" gorm:"index:tzips_contract_idx"`
-	Network    types.Network `json:"network" gorm:"type:SMALLINT;index:tzips_contract_idx;index:idx_tzip_level_network"`
-	Slug       string        `json:"slug,omitempty"`
-	DomainName string        `json:"domain_name,omitempty"`
-	OffChain   bool          `json:"offchain,omitempty" gorm:",default:false"`
-	Extras     types.JSONB   `json:"extras,omitempty" sql:"type:jsonb"`
+	// nolint
+	tableName struct{} `pg:"tzips"`
+
+	ID         int64
+	UpdatedAt  uint64 `pg:",use_zero"`
+	Level      int64  `pg:",use_zero"`
+	Timestamp  time.Time
+	Address    string
+	Network    types.Network `pg:",type:SMALLINT"`
+	Slug       string
+	DomainName string
+	OffChain   bool                   `pg:",use_zero"`
+	Extras     map[string]interface{} `pg:",type:jsonb"`
 
 	TZIP16
 	TZIP20
+}
+
+// BeforeInsert -
+func (t *TZIP) BeforeInsert(ctx context.Context) error {
+	t.UpdatedAt = uint64(time.Now().Unix())
+	return nil
+}
+
+// BeforeUpdate -
+func (t *TZIP) BeforeUpdate(ctx context.Context) (context.Context, error) {
+	t.UpdatedAt = uint64(time.Now().Unix())
+	return ctx, nil
 }
 
 // GetID -
@@ -36,10 +51,24 @@ func (t *TZIP) GetIndex() string {
 }
 
 // Save -
-func (t *TZIP) Save(tx *gorm.DB) error {
-	return tx.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Save(t).Error
+func (t *TZIP) Save(tx pg.DBI) error {
+	_, err := tx.Model(t).OnConflict("(id) DO UPDATE").
+		Set(`
+		updated_at = excluded.updated_at,
+		level = excluded.level,
+		timestamp = excluded.timestamp,
+		extras = excluded.extras,
+		events = excluded.events,
+		name = excluded.name,
+		description = excluded.description,
+		version = excluded.version,
+		license = excluded.license,
+		homepage = excluded.homepage,
+		authors = excluded.authors,
+		interfaces = excluded.interfaces,
+		views = excluded.views`).
+		Returning("id").Insert()
+	return err
 }
 
 // LogFields -
@@ -49,9 +78,4 @@ func (t *TZIP) LogFields() map[string]interface{} {
 		"address": t.Address,
 		"level":   t.Level,
 	}
-}
-
-// TableName -
-func (t *TZIP) TableName() string {
-	return "tzips"
 }

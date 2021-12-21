@@ -1,21 +1,22 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"gorm.io/gorm"
+	"github.com/go-pg/pg/v10"
 )
 
 // View -
 type View struct {
 	*TimeBased
-	db   *gorm.DB
+	db   pg.DBI
 	name string
 }
 
 // NewViews -
-func NewView(db *gorm.DB, name string, period time.Duration) *View {
+func NewView(db pg.DBI, name string, period time.Duration) *View {
 	v := &View{
 		name: name,
 		db:   db,
@@ -24,9 +25,10 @@ func NewView(db *gorm.DB, name string, period time.Duration) *View {
 	return v
 }
 
-func (v *View) refresh() error {
-	return v.db.Transaction(func(tx *gorm.DB) error {
+func (v *View) refresh(ctx context.Context) error {
+	return v.db.RunInTransaction(ctx, func(tx *pg.Tx) error {
 		sql := fmt.Sprintf("REFRESH MATERIALIZED VIEW CONCURRENTLY %s;", v.name)
-		return tx.Exec(sql).Error
+		_, err := tx.Exec(sql)
+		return err
 	})
 }

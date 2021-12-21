@@ -45,9 +45,6 @@ func readStorage(address string, level int64) ([]byte, error) {
 }
 
 func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
-	if !assert.Len(t, got.BigMapActions, len(want.BigMapActions)) {
-		return false
-	}
 	if !assert.Len(t, got.BigMapState, len(want.BigMapState)) {
 		return false
 	}
@@ -67,11 +64,6 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 		return false
 	}
 
-	for i := range got.BigMapActions {
-		if !compareBigMapAction(want.BigMapActions[i], got.BigMapActions[i]) {
-			return false
-		}
-	}
 	for i := range got.Contracts {
 		if !compareContract(want.Contracts[i], got.Contracts[i]) {
 			return false
@@ -286,6 +278,17 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		}
 	}
 
+	if !assert.Len(t, one.BigMapActions, len(two.BigMapActions)) {
+		return false
+	}
+	if one.BigMapActions != nil && two.BigMapActions != nil {
+		for i := range one.BigMapActions {
+			if !compareBigMapAction(one.BigMapActions[i], two.BigMapActions[i]) {
+				return false
+			}
+		}
+	}
+
 	return true
 }
 
@@ -384,10 +387,6 @@ func compareContract(one, two *contract.Contract) bool {
 	}
 	if one.Address != two.Address {
 		logger.Info().Msgf("Contract.Address: %s != %s", one.Address, two.Address)
-		return false
-	}
-	if one.Language != two.Language {
-		logger.Info().Msgf("Contract.Language: %s != %s", one.Language, two.Language)
 		return false
 	}
 	if one.Hash != two.Hash {

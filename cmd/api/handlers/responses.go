@@ -13,7 +13,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
@@ -130,7 +129,6 @@ type Contract struct {
 	Network   string    `json:"network"`
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
-	Language  string    `json:"language,omitempty" extensions:"x-nullable"`
 
 	Hash        string   `json:"hash"`
 	Tags        []string `json:"tags,omitempty" extensions:"x-nullable"`
@@ -165,7 +163,6 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Delegate = contract.Delegate.String()
 	c.Entrypoints = contract.Entrypoints
 	c.Hash = contract.Hash
-	c.Language = contract.Language
 	c.TxCount = contract.TxCount
 	c.LastAction = contract.LastAction
 
@@ -173,7 +170,7 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Manager = contract.Manager.String()
 	c.MigrationsCount = contract.MigrationsCount
 	c.Network = contract.Network.String()
-	c.ProjectID = contract.ProjectID
+	c.ProjectID = contract.ProjectID.String()
 	c.Tags = contract.Tags.ToArray()
 	c.Timestamp = contract.Timestamp
 	c.FailStrings = contract.FailStrings
@@ -323,13 +320,12 @@ type CodeDiffResponse struct {
 
 // NetworkStats -
 type NetworkStats struct {
-	ContractsCount  int64            `json:"contracts_count" example:"10"`
-	OperationsCount int64            `json:"operations_count" example:"100"`
-	ContractCalls   uint64           `json:"contract_calls" example:"100"`
-	UniqueContracts uint64           `json:"unique_contracts" example:"100"`
-	FACount         uint64           `json:"fa_count" example:"100"`
-	Protocols       []Protocol       `json:"protocols"`
-	Languages       map[string]int64 `json:"languages"`
+	ContractsCount  int64      `json:"contracts_count" example:"10"`
+	OperationsCount int64      `json:"operations_count" example:"100"`
+	ContractCalls   uint64     `json:"contract_calls" example:"100"`
+	UniqueContracts uint64     `json:"unique_contracts" example:"100"`
+	FACount         uint64     `json:"fa_count" example:"100"`
+	Protocols       []Protocol `json:"protocols"`
 }
 
 // SearchBigMapDiff -
@@ -415,20 +411,6 @@ func (b *Block) FromModel(block block.Block) {
 	b.Predecessor = block.Predecessor
 	b.ChainID = block.ChainID
 	b.Timestamp = block.Timestamp
-}
-
-// LightContract -
-type LightContract struct {
-	Address  string    `json:"address"`
-	Network  string    `json:"network"`
-	Deployed time.Time `json:"deploy_time"`
-}
-
-// FromModel -
-func (c *LightContract) FromModel(light contract.Light) {
-	c.Address = light.Address
-	c.Network = light.Network.String()
-	c.Deployed = light.Deployed
 }
 
 // SimilarContractsResponse -
@@ -693,34 +675,6 @@ func (tm TokenMetadata) Empty() bool {
 		tm.ExternalURI == "" && len(tm.Creators) == 0 && len(tm.Tags) == 0 && len(tm.Formats) == 0
 }
 
-// DomainsResponse -
-type DomainsResponse struct {
-	Domains []TezosDomain `json:"domains"`
-	Total   int64         `json:"total"`
-}
-
-// TezosDomain -
-type TezosDomain struct {
-	Name       string                 `json:"name"`
-	Expiration time.Time              `json:"expiration"`
-	Network    string                 `json:"network"`
-	Address    string                 `json:"address"`
-	Level      int64                  `json:"level"`
-	Timestamp  time.Time              `json:"timestamp"`
-	Data       map[string]interface{} `json:"data,omitempty"`
-}
-
-// FromModel -
-func (td *TezosDomain) FromModel(domain tezosdomain.TezosDomain) {
-	td.Name = domain.Name
-	td.Expiration = domain.Expiration.UTC()
-	td.Network = domain.Network.String()
-	td.Address = domain.Address
-	td.Level = domain.Level
-	td.Timestamp = domain.Timestamp.UTC()
-	td.Data = domain.Data
-}
-
 // CountResponse -
 type CountResponse struct {
 	Count int64 `json:"count"`
@@ -777,8 +731,8 @@ func (t *TZIPResponse) FromModel(model *tzip.TZIP, withViewsAndEvents bool) {
 	t.Authors = model.Authors
 	t.Interfaces = model.Interfaces
 
-	if model.License != nil && !model.License.IsEmpty() {
-		t.License = model.License
+	if !model.License.IsEmpty() {
+		t.License = &model.License
 	}
 
 	if withViewsAndEvents {

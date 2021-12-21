@@ -9,8 +9,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // Storage -
@@ -25,58 +26,57 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get -
 func (storage *Storage) Get(network types.Network, address string) (response contract.Contract, err error) {
-	err = storage.DB.Scopes(core.NetworkAndAddress(network, address)).First(&response).Error
+	query := storage.DB.Model(&response)
+	core.NetworkAndAddress(network, address)(query)
+	err = query.First()
 	return
 }
 
 // GetMany -
 func (storage *Storage) GetMany(by map[string]interface{}) (response []contract.Contract, err error) {
-	query := storage.DB.Table(models.DocContracts)
-	query.Where(by)
-	err = query.Find(&response).Error
+	query := storage.DB.Model().Table(models.DocContracts)
+	for column, value := range by {
+		query.Where("? = ?", pg.Ident(column), value)
+	}
+	err = query.Select(&response)
 	return
 }
 
 // GetRandom -
 func (storage *Storage) GetRandom(network types.Network) (response contract.Contract, err error) {
-	queryCount := storage.DB.Table(models.DocContracts).Where("tx_count > 2")
+	queryCount := storage.DB.Model(&response).Where("tx_count > 2")
 	if network != types.Empty {
 		queryCount.Where("network = ?", network)
 	}
-	var count int64
-	if err = queryCount.Count(&count).Error; err != nil {
+	count, err := queryCount.Count()
+	if err != nil {
 		return
 	}
 
 	if count == 0 {
-		return response, gorm.ErrRecordNotFound
+		return response, pg.ErrNoRows
 	}
 
-	query := storage.DB.Table(models.DocContracts).Where("tx_count > 2")
+	query := storage.DB.Model(&response).Where("tx_count > 2")
 	if network != types.Empty {
 		query.Where("network = ?", network)
 	}
-	err = query.Limit(1).Offset(rand.Intn(int(count))).First(&response).Error
+	err = query.Offset(rand.Intn(count)).First()
 	return
 }
 
 // GetByAddresses -
 func (storage *Storage) GetByAddresses(addresses []contract.Address) (response []contract.Contract, err error) {
-	query := storage.DB.Table(models.DocContracts)
+	query := storage.DB.Model().Table(models.DocContracts)
 
-	if len(addresses) > 0 {
-		subQuery := storage.DB.Where(
-			storage.DB.Scopes(core.NetworkAndAddress(addresses[0].Network, addresses[0].Address)),
-		)
-		for i := 1; i < len(addresses); i++ {
-			subQuery.Or(
-				storage.DB.Scopes(core.NetworkAndAddress(addresses[i].Network, addresses[i].Address)),
-			)
-		}
-		query.Where(subQuery)
+	for i := range addresses {
+		query.WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
+			core.NetworkAndAddress(addresses[i].Network, addresses[i].Address)(q)
+			return q, nil
+		})
 	}
 
-	err = query.Find(&response).Error
+	err = query.Select(&response)
 	return
 }
 
@@ -90,30 +90,25 @@ func (storage *Storage) GetProjectsLastContract(c contract.Contract, size, offse
 	params := hex.EncodeToString(c.FingerprintParameter)
 	s := hex.EncodeToString(c.FingerprintStorage)
 
-	subQuery := storage.DB.Table(models.DocContracts).Where(
-		storage.DB.Where("encode(fingerprint_code, 'hex') = ?", code).
-			Where("encode(fingerprint_parameter, 'hex') = ?", params).
-			Where("encode(fingerprint_storage, 'hex') = ?", s),
-	)
-	if c.Manager.Valid {
-		subQuery.Or("manager = ?", c.Manager.String())
-	}
-	if c.Language != "unknown" {
-		subQuery.Or("language = ?", c.Language)
-	}
-
 	limit := storage.GetPageSize(size)
 
-	query := storage.DB.Table(models.DocContracts).
-		Select("MAX(id) as id").
-		Where("project_id != ''").
-		Where(subQuery).
-		Group("project_id").
+	query := storage.DB.Model().Table(models.DocContracts).
+		ColumnExpr("MAX(id) as id").
+		Where("project_id is not null").
+		Where("encode(fingerprint_code, 'hex') = ?", code).
+		Where("encode(fingerprint_parameter, 'hex') = ?", params).
+		Where("encode(fingerprint_storage, 'hex') = ?", s)
+
+	if c.Manager.Valid {
+		query.WhereOr("manager = ?", c.Manager.String())
+	}
+
+	query.Group("project_id").
 		Limit(limit).
 		Offset(int(offset)).
 		Order("id desc")
 
-	err = storage.DB.Table(models.DocContracts).Where("id IN (?)", query).Find(&response).Error
+	err = storage.DB.Model().Table(models.DocContracts).Where("id IN (?)", query).Select(&response)
 	return
 }
 
@@ -125,56 +120,66 @@ func (storage *Storage) GetSameContracts(c contract.Contract, manager string, si
 
 	limit := storage.GetPageSize(size)
 
-	query := storage.DB.Table(models.DocContracts).Where("hash = ?", c.Hash).Where("address != ?", c.Address)
+	query := storage.DB.Model().Table(models.DocContracts).Where("hash = ?", c.Hash).Where("address != ?", c.Address)
 	if manager != "" {
 		query.Where("manager = ?", manager)
 	}
 	query.Order("last_action desc").Limit(limit).Offset(int(offset))
-	if err = query.Find(&pcr.Contracts).Error; err != nil {
+	if err = query.Select(&pcr.Contracts); err != nil {
 		return
 	}
 
-	countQuery := storage.DB.Table(models.DocContracts).Where("hash = ?", c.Hash).Where("address != ?", c.Address)
+	countQuery := storage.DB.Model().Table(models.DocContracts).Where("hash = ?", c.Hash).Where("address != ?", c.Address)
 	if manager != "" {
 		countQuery.Where("manager = ?", manager)
 	}
-	err = countQuery.Order("last_action desc").Count(&pcr.Count).Error
+	count, err := countQuery.Order("last_action desc").Count()
+	if err != nil {
+		return
+	}
+	pcr.Count = int64(count)
 	return
 }
 
 // GetSimilarContracts -
 func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset int64) ([]contract.Similar, int, error) {
-	if c.FingerprintCode == nil || c.FingerprintParameter == nil || c.FingerprintStorage == nil {
-		return nil, 0, errors.Wrap(consts.ErrInvalidFingerprint, c.Address)
+	if !c.ProjectID.Valid {
+		return nil, 0, nil
 	}
 
 	limit := storage.GetPageSize(size)
 
-	subQuery := storage.DB.Table(models.DocContracts).
-		Select("MAX(id) as id").
+	subQuery := storage.DB.Model((*contract.Contract)(nil)).
+		ColumnExpr("MAX(id) as id").
 		Where("project_id = ?", c.ProjectID).
 		Where("hash != ?", c.Hash).
 		Group("hash")
 
-	var pcr []contract.Similar
-	if err := storage.DB.Table(models.DocContracts).
+	var contracts []contract.Contract
+	if err := storage.DB.Model((*contract.Contract)(nil)).
 		Where("id IN (?)", subQuery).
 		Order("last_action desc").
 		Limit(limit).
 		Offset(int(offset)).
-		Find(&pcr).Error; err != nil {
+		Select(&contracts); err != nil {
 		return nil, 0, err
 	}
 
-	var count int64
-	err := storage.DB.Table(models.DocContracts).
+	var count int
+	if err := storage.DB.Model((*contract.Contract)(nil)).
+		ColumnExpr("count(distinct hash)").
 		Where("project_id = ?", c.ProjectID).
 		Where("hash != ?", c.Hash).
 		Group("hash").
-		Count(&count).
-		Error
+		Select(&count); err != nil {
+		return nil, 0, err
+	}
 
-	return pcr, int(count), err
+	pcr := make([]contract.Similar, len(contracts))
+	for i := range contracts {
+		pcr[i].Contract = &contracts[i]
+	}
+	return pcr, count, nil
 }
 
 // GetTokens -
@@ -185,52 +190,54 @@ func (storage *Storage) GetTokens(network types.Network, tokenInterface string, 
 	}
 
 	var contracts []contract.Contract
-	err := storage.DB.Table(models.DocContracts).
-		Scopes(core.Network(network)).
-		Where("(tags & ?) > 0", tags).
+	query := storage.DB.Model((*contract.Contract)(nil))
+	core.Network(network)(query)
+
+	err := query.Where("(tags & ?) > 0", tags).
 		Order("id desc").
 		Limit(storage.GetPageSize(size)).
 		Offset(int(offset)).
-		Find(&contracts).
-		Error
+		Select(&contracts)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	var count int64
-	err = storage.DB.Table(models.DocContracts).
-		Scopes(core.Network(network)).
-		Where("(tags & ?) > 0", tags).
-		Count(&count).
-		Error
-
-	return contracts, count, err
+	countQuery := storage.DB.Model().Table(models.DocContracts).Where("(tags & ?) > 0", tags)
+	core.Network(network)(countQuery)
+	count, err := countQuery.Count()
+	return contracts, int64(count), err
 }
 
 // Stats -
 func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err error) {
-	err = storage.DB.Table(models.DocContracts).
+	if !c.ProjectID.Valid {
+		return
+	}
+	sameCount, err := storage.DB.Model().Table(models.DocContracts).
 		Where("hash = ?", c.Hash).
 		Where("address != ?", c.Address).
-		Count(&stats.SameCount).
-		Error
+		Count()
 	if err != nil {
 		return
 	}
+	stats.SameCount = int64(sameCount)
 
-	err = storage.DB.Table(models.DocContracts).
+	if err = storage.DB.Model((*contract.Contract)(nil)).
+		ColumnExpr("count(distinct hash)").
 		Where("project_id = ?", c.ProjectID).
 		Where("hash != ?", c.Hash).
 		Group("hash").
-		Count(&stats.SimilarCount).
-		Error
+		Select(&stats.SimilarCount); err != nil {
+		return
+	}
+
 	return
 }
 
 // GetProjectIDByHash -
 func (storage *Storage) GetProjectIDByHash(hash string) (result string, err error) {
-	err = storage.DB.Table(models.DocContracts).Select("project_id").Where("hash = ?", hash).Where("project_id != ''").Limit(1).Scan(&result).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	err = storage.DB.Model().Table(models.DocContracts).Column("project_id").Where("hash = ?", hash).Where("project_id is not null").Limit(1).Select(&result)
+	if errors.Is(err, pg.ErrNoRows) {
 		return "", nil
 	}
 	return

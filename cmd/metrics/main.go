@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -46,7 +47,6 @@ func main() {
 	}
 
 	workers := []services.Service{
-		// services.NewView(ctx.StorageDB.DB, "head_stats", time.Hour),
 		services.NewUnknown(ctx, time.Minute*30, time.Second*2, -time.Hour*24),
 		services.NewStorageBased(
 			"projects",
@@ -69,13 +69,6 @@ func main() {
 			time.Second*15,
 			bulkSize,
 		),
-		// services.NewStorageBased(
-		// 	"tezos_domains",
-		// 	ctx.Services,
-		// 	services.NewTezosDomainHandler(ctx),
-		// 	time.Second*15,
-		// 	bulkSize,
-		// ),
 		services.NewStorageBased(
 			"operations",
 			ctx.Services,
@@ -95,6 +88,8 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
+	cancelledContext, cancel := context.WithCancel(context.Background())
+
 	for i := range workers {
 		if err := workers[i].Init(); err != nil {
 			if err := stop(workers, i-1, signals); err != nil {
@@ -103,10 +98,11 @@ func main() {
 			logger.Err(err)
 			return
 		}
-		workers[i].Start()
+		workers[i].Start(cancelledContext)
 	}
 
 	<-signals
+	cancel()
 
 	if err := stop(workers, len(workers), signals); err != nil {
 		logger.Err(err)

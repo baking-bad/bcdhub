@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -17,8 +18,7 @@ type StorageBased struct {
 	state        service.State
 	bulkSize     int64
 
-	stop chan struct{}
-	wg   sync.WaitGroup
+	wg sync.WaitGroup
 }
 
 // NewStorageBased -
@@ -38,7 +38,6 @@ func NewStorageBased(
 		handler:      handler,
 		updatePeriod: updatePeriod,
 		bulkSize:     bulkSize,
-		stop:         make(chan struct{}, 1),
 	}
 }
 
@@ -54,27 +53,24 @@ func (s *StorageBased) Init() error {
 }
 
 // Start -
-func (s *StorageBased) Start() {
+func (s *StorageBased) Start(ctx context.Context) {
 	s.wg.Add(1)
-	go s.work()
+	go s.work(ctx)
 }
 
 // Close -
 func (s *StorageBased) Close() error {
-	s.stop <- struct{}{}
 	s.wg.Wait()
-
-	close(s.stop)
 	return nil
 }
 
-func (s *StorageBased) work() {
+func (s *StorageBased) work(ctx context.Context) {
 	defer s.wg.Done()
 
 	ticker := time.NewTicker(s.updatePeriod)
 	defer ticker.Stop()
 
-	isFull, err := s.do()
+	isFull, err := s.do(ctx)
 	if err != nil {
 		logger.Err(err)
 	}
@@ -82,11 +78,11 @@ func (s *StorageBased) work() {
 	for {
 		select {
 
-		case <-s.stop:
+		case <-ctx.Done():
 			return
 
 		case <-ticker.C:
-			isFull, err = s.do()
+			isFull, err = s.do(ctx)
 			if err != nil {
 				logger.Err(err)
 				continue
@@ -94,7 +90,7 @@ func (s *StorageBased) work() {
 
 		default:
 			if isFull {
-				isFull, err = s.do()
+				isFull, err = s.do(ctx)
 				if err != nil {
 					logger.Err(err)
 					continue
@@ -106,13 +102,13 @@ func (s *StorageBased) work() {
 	}
 }
 
-func (s *StorageBased) do() (bool, error) {
+func (s *StorageBased) do(ctx context.Context) (bool, error) {
 	items, err := s.handler.Chunk(s.state.LastID, s.bulkSize)
 	if err != nil {
 		return false, err
 	}
 
-	if err := s.handler.Handle(items); err != nil {
+	if err := s.handler.Handle(ctx, items); err != nil {
 		return false, err
 	}
 

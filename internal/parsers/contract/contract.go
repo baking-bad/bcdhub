@@ -103,7 +103,6 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 	operation.Script = script.CodeRaw
 	operation.AST = script.Code
 
-	c.Language = script.Language
 	c.Hash = script.Hash
 	c.FailStrings = script.FailStrings.Values()
 	c.Annotations = script.Annotations.Values()
@@ -123,10 +122,11 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 		c.Tags.Set(types.UpgradableTag)
 	}
 
-	c.ProjectID, err = p.ctx.CachedProjectIDByHash(c.Hash)
+	projectID, err := p.ctx.CachedProjectIDByHash(c.Hash)
 	if err != nil {
 		return err
 	}
+	c.ProjectID = types.NewNullString(&projectID)
 
 	proto, err := p.ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
 	if err != nil {

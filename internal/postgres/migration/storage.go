@@ -20,11 +20,9 @@ func NewStorage(pg *core.Postgres) *Storage {
 // Get -
 func (storage *Storage) Get(network types.Network, address string) ([]migration.Migration, error) {
 	var migrations []migration.Migration
-	err := storage.DB.Table(models.DocMigrations).
-		Scopes(
-			core.NetworkAndAddress(network, address),
-			core.OrderByLevelDesc,
-		).
-		Find(&migrations).Error
+	query := storage.DB.Model().Table(models.DocMigrations)
+	core.NetworkAndAddress(network, address)(query)
+	core.OrderByLevelDesc(query)
+	err := query.Select(&migrations)
 	return migrations, err
 }

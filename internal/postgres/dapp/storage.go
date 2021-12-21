@@ -18,12 +18,12 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get -
 func (storage *Storage) Get(slug string) (d dapp.DApp, err error) {
-	err = storage.DB.Table(models.DocDApps).Where("slug = ?", slug).First(&d).Error
+	err = storage.DB.Model(&d).Where("slug = ?", slug).First()
 	return
 }
 
 // Get -
 func (storage *Storage) All() (d []dapp.DApp, err error) {
-	err = storage.DB.Table(models.DocDApps).Order("dapps.order asc").Find(&d).Error
+	err = storage.DB.Model().Table(models.DocDApps).Order("dapps.order asc").Select(&d)
 	return
 }

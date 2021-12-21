@@ -25,20 +25,8 @@ var migrationsList = []migrations.Migration{
 	&migrations.NFTMetadata{},
 	&migrations.TokenMetadataUnknown{},
 	&migrations.DefaultEntrypoint{},
-	&migrations.TZIPUpdatedAt{},
-	&migrations.ProtocolField{},
-	&migrations.MigrationKind{},
-	&migrations.DropAmountStringColumns{},
-	&migrations.FixZeroID{},
-	&migrations.EnumToSmallInt{},
-	&migrations.OperationKindToEnum{},
-	&migrations.BigMapActionToEnum{},
-	&migrations.TagsToInt{},
-	&migrations.DropAliasesColumns{},
 	&migrations.FixLostSearchContracts{},
-	&migrations.DropStringsColumns{},
-	migrations.NewNullableFields(1000),
-	&migrations.DropViews{},
+	&migrations.NullableProjectID{},
 }
 
 func main() {

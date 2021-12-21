@@ -1,7 +1,6 @@
 package types
 
 import (
-	"database/sql/driver"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -52,15 +51,6 @@ var namesToNetwork = map[string]Network{
 func (network Network) String() string {
 	return networkNames[network]
 }
-
-// Scan -
-func (network *Network) Scan(value interface{}) error {
-	*network = Network(value.(int64))
-	return nil
-}
-
-// Value -
-func (network Network) Value() (driver.Value, error) { return uint64(network), nil }
 
 // UnmarshalJSON -
 func (network *Network) UnmarshalJSON(data []byte) error {

@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
@@ -20,7 +22,7 @@ func NewProjectsHandler(ctx *config.Context) *ProjectsHandler {
 }
 
 // Handle -
-func (p *ProjectsHandler) Handle(items []models.Model) error {
+func (p *ProjectsHandler) Handle(ctx context.Context, items []models.Model) error {
 	if len(items) == 0 {
 		return nil
 	}
@@ -58,7 +60,7 @@ func (p *ProjectsHandler) Handle(items []models.Model) error {
 
 	if len(updates) > 0 {
 		logger.Info().Msgf("%2d contracts are processed", len(updates))
-		return p.Storage.Save(updates)
+		return p.Storage.Save(ctx, updates)
 	}
 
 	return nil
@@ -79,7 +81,7 @@ func (p *ProjectsHandler) Chunk(lastID, size int64) ([]models.Model, error) {
 }
 
 func (p *ProjectsHandler) process(contract *contract.Contract, chunk []*contract.Contract) ([]models.Model, error) {
-	if contract.ProjectID != "" {
+	if contract.ProjectID.Valid {
 		return nil, nil
 	}
 
