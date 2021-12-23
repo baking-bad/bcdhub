@@ -5,7 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
@@ -19,6 +21,7 @@ import (
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
+	mock_contract "github.com/baking-bad/bcdhub/internal/models/mock/contract"
 	mock_token_metadata "github.com/baking-bad/bcdhub/internal/models/mock/tokenmetadata"
 	"github.com/golang/mock/gomock"
 )
@@ -41,6 +44,10 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 	ctrlBlockRepo := gomock.NewController(t)
 	defer ctrlBlockRepo.Finish()
 	blocksRepo := mock_block.NewMockRepository(ctrlBlockRepo)
+
+	ctrlContractRepo := gomock.NewController(t)
+	defer ctrlContractRepo.Finish()
+	contractsRepo := mock_contract.NewMockRepository(ctrlContractRepo)
 
 	ctrlTokenMetadataRepo := gomock.NewController(t)
 	defer ctrlTokenMetadataRepo.Finish()
@@ -74,6 +81,15 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 		Network:         types.Granadanet,
 		LastUpdateTime:  timestamp,
 	}, nil).AnyTimes()
+
+	contractsRepo.EXPECT().ScriptPart(
+		types.Granadanet,
+		"KT1QaDvkDe1sLXGL9rqmDMtNCmvNyPfUTYWK",
+		bcd.SymLinkBabylon,
+		consts.STORAGE,
+	).Return(
+		[]byte(`[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%MAX_SUPPLY"]},{"prim":"mutez","annots":["%PURCHASE_PRICE_MUTEZ"]}]},{"prim":"pair","args":[{"prim":"address","annots":["%administrator"]},{"prim":"pair","args":[{"prim":"nat","annots":["%all_tokens"]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}],"annots":["%ledger"]}]}]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]},{"prim":"nat","annots":["%next_id"]}]},{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"unit"}],"annots":["%operators"]},{"prim":"pair","args":[{"prim":"bool","annots":["%paused"]},{"prim":"big_map","args":[{"prim":"nat"},{"prim":"pair","args":[{"prim":"nat","annots":["%token_id"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%token_info"]}]}],"annots":["%token_metadata"]}]}]}]}]}]`), nil,
+	).AnyTimes()
 
 	tests := []struct {
 		name       string
@@ -152,12 +168,13 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			parser := Parser{
-				bmdRepo:    bmdRepo,
-				blocksRepo: blocksRepo,
-				tmRepo:     tmRepo,
-				storage:    generalRepo,
-				rpc:        rpc,
-				network:    tt.network,
+				bmdRepo:       bmdRepo,
+				blocksRepo:    blocksRepo,
+				tmRepo:        tmRepo,
+				contractsRepo: contractsRepo,
+				storage:       generalRepo,
+				rpc:           rpc,
+				network:       tt.network,
 			}
 
 			generalRepo.

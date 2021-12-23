@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -54,8 +55,14 @@ func readTestScriptModel(network types.Network, address, symLink string) (contra
 	if err := script.Parse(); err != nil {
 		return contract.Script{}, err
 	}
+	var s bcd.RawScript
+	if err := json.Unmarshal(data, &s); err != nil {
+		return contract.Script{}, err
+	}
 	return contract.Script{
-		Code:                 data,
+		Code:                 s.Code,
+		Parameter:            s.Parameter,
+		Storage:              s.Storage,
 		Hash:                 script.Hash,
 		FingerprintParameter: script.Fingerprint.Parameter,
 		FingerprintCode:      script.Fingerprint.Code,
@@ -65,6 +72,28 @@ func readTestScriptModel(network types.Network, address, symLink string) (contra
 		Tags:                 types.NewTags(script.Tags.Values()),
 		Hardcoded:            script.HardcodedAddresses.Values(),
 	}, nil
+}
+
+//nolint
+func readTestScriptPart(network types.Network, address, symLink, part string) ([]byte, error) {
+	data, err := readTestScript(network, address, bcd.SymLinkBabylon)
+	if err != nil {
+		return nil, err
+	}
+	var s bcd.RawScript
+	if err := json.Unmarshal(data, &s); err != nil {
+		return nil, err
+	}
+
+	switch part {
+	case consts.CODE:
+		return s.Code, nil
+	case consts.PARAMETER:
+		return s.Parameter, nil
+	case consts.STORAGE:
+		return s.Storage, nil
+	}
+	return nil, nil
 }
 
 func readTestContractModel(network types.Network, address string) (contract.Contract, error) {

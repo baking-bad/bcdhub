@@ -69,7 +69,6 @@ type Context struct {
 // NewContext -
 func NewContext(opts ...ContextOption) *Context {
 	ctx := &Context{
-		Cache:     cache.NewCache(),
 		Sanitizer: bluemonday.UGCPolicy(),
 	}
 	ctx.Sanitizer.AllowAttrs("em")
@@ -77,6 +76,10 @@ func NewContext(opts ...ContextOption) *Context {
 	for _, opt := range opts {
 		opt(ctx)
 	}
+
+	ctx.Cache = cache.NewCache(
+		ctx.RPC, ctx.Blocks, ctx.Contracts, ctx.Protocols, ctx.TZIP, ctx.Sanitizer,
+	)
 	return ctx
 }
 

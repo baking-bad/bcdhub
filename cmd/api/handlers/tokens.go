@@ -198,8 +198,8 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network type
 			Address:       contracts[i].Address,
 			Manager:       contracts[i].Manager.String(),
 			Delegate:      contracts[i].Delegate.String(),
-			Alias:         ctx.CachedAlias(contracts[i].Network, contracts[i].Address),
-			DelegateAlias: ctx.CachedAlias(contracts[i].Network, contracts[i].Delegate.String()),
+			Alias:         ctx.Cache.Alias(contracts[i].Network, contracts[i].Address),
+			DelegateAlias: ctx.Cache.Alias(contracts[i].Network, contracts[i].Delegate.String()),
 			LastAction:    contracts[i].LastAction,
 			TxCount:       contracts[i].TxCount,
 		}

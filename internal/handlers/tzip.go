@@ -53,7 +53,7 @@ func (t *ContractMetadata) handle(bmd *domains.BigMapDiff) ([]models.Model, erro
 		BigMapDiff: *bmd.BigMapDiff,
 	})
 	if err != nil {
-		logger.Warning().Fields(bmd.LogFields()).Err(err).Msg("")
+		logger.Warning().Fields(bmd.LogFields()).Err(err).Msg("ContractMetadata.handle")
 		return nil, nil
 	}
 	if model == nil {

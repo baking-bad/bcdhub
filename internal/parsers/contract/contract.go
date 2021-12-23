@@ -2,6 +2,7 @@ package contract
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -64,30 +65,36 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 		if !p.ctx.Storage.IsRecordNotFound(err) {
 			return err
 		}
-		contractScript = contract.Script{
-			Hash: script.Hash,
-			Code: script.CodeRaw,
-		}
-	}
-
-	constants, err := script.FindConstants()
-	if err != nil {
-		return errors.Wrap(err, "script.FindConstants")
-	}
-
-	if len(constants) > 0 {
-		globalConstants, err := p.ctx.GlobalConstants.All(c.Network, constants...)
-		if err != nil {
+		var s bcd.RawScript
+		if err := json.Unmarshal(script.CodeRaw, &s); err != nil {
 			return err
 		}
-		contractScript.Constants = globalConstants
-		p.replaceConstants(&contractScript, operation)
-
-		script, err = astContract.NewParser(operation.Script)
-		if err != nil {
-			return errors.Wrap(err, "astContract.NewParser")
+		contractScript = contract.Script{
+			Hash:      script.Hash,
+			Code:      s.Code,
+			Parameter: s.Parameter,
+			Storage:   s.Storage,
+			Views:     s.Views,
 		}
 
+		constants, err := script.FindConstants()
+		if err != nil {
+			return errors.Wrap(err, "script.FindConstants")
+		}
+
+		if len(constants) > 0 {
+			globalConstants, err := p.ctx.GlobalConstants.All(c.Network, constants...)
+			if err != nil {
+				return err
+			}
+			contractScript.Constants = globalConstants
+			p.replaceConstants(&contractScript, operation)
+
+			script, err = astContract.NewParser(operation.Script)
+			if err != nil {
+				return errors.Wrap(err, "astContract.NewParser")
+			}
+		}
 	}
 
 	if err := script.Parse(); err != nil {
@@ -114,24 +121,26 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 		contractScript.Tags.Set(types.UpgradableTag)
 	}
 
-	proto, err := p.ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
+	proto, err := p.ctx.Cache.ProtocolByID(operation.Network, operation.ProtocolID)
 	if err != nil {
 		return err
 	}
 
 	if contractScript.ID > 0 {
-		c.AlphaID = contractScript.ID
 		switch proto.SymLink {
 		case bcd.SymLinkAlpha:
+			c.AlphaID = contractScript.ID
+			c.Alpha = contractScript
 		case bcd.SymLinkBabylon:
-			c.BabylonID = c.AlphaID
+			c.BabylonID = contractScript.ID
+			c.Babylon = contractScript
 		}
 	} else {
-		c.Alpha = contractScript
 		switch proto.SymLink {
 		case bcd.SymLinkAlpha:
+			c.Alpha = contractScript
 		case bcd.SymLinkBabylon:
-			c.Babylon = c.Alpha
+			c.Babylon = contractScript
 		}
 	}
 

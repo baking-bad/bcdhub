@@ -39,11 +39,11 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 	network := types.NewNetwork(req.Network)
 
 	if req.Protocol == "" {
-		state, err := ctx.CachedCurrentBlock(network)
+		state, err := ctx.Cache.CurrentBlock(network)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		proto, err := ctx.CachedProtocolByID(state.Network, state.ProtocolID)
+		proto, err := ctx.Cache.ProtocolByID(state.Network, state.ProtocolID)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -94,7 +94,7 @@ func (ctx *Context) getContractCodeJSON(network types.Network, address string, p
 	if err != nil {
 		return res, err
 	}
-	script, err := ctx.CachedScriptBytes(network, address, symLink)
+	script, err := ctx.Cache.ScriptBytes(network, address, symLink)
 	if err != nil {
 		return res, err
 	}
@@ -114,11 +114,11 @@ func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffRe
 		if leg.Protocol == "" {
 			protocol, ok := currentProtocols[leg.Network]
 			if !ok {
-				state, err := ctx.CachedCurrentBlock(leg.Network)
+				state, err := ctx.Cache.CurrentBlock(leg.Network)
 				if err != nil {
 					return res, err
 				}
-				proto, err := ctx.CachedProtocolByID(state.Network, state.ProtocolID)
+				proto, err := ctx.Cache.ProtocolByID(state.Network, state.ProtocolID)
 				if err != nil {
 					return res, err
 				}

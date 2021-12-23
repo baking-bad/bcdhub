@@ -89,8 +89,8 @@ func (ctx *Context) prepareMempoolTransaction(network modelTypes.Network, tx mem
 		Hash:             tx.Hash,
 		Network:          network.String(),
 		Timestamp:        time.Unix(tx.UpdatedAt, 0).UTC(),
-		SourceAlias:      ctx.CachedAlias(network, tx.Source),
-		DestinationAlias: ctx.CachedAlias(network, tx.Destination),
+		SourceAlias:      ctx.Cache.Alias(network, tx.Source),
+		DestinationAlias: ctx.Cache.Alias(network, tx.Destination),
 		Kind:             tx.Kind,
 		Source:           tx.Source,
 		Fee:              tx.Fee,
@@ -135,7 +135,7 @@ func (ctx *Context) prepareMempoolOrigination(network modelTypes.Network, origin
 		Hash:         origination.Hash,
 		Network:      network.String(),
 		Timestamp:    time.Unix(origination.UpdatedAt, 0).UTC(),
-		SourceAlias:  ctx.CachedAlias(network, origination.Source),
+		SourceAlias:  ctx.Cache.Alias(network, origination.Source),
 		Kind:         origination.Kind,
 		Source:       origination.Source,
 		Fee:          origination.Fee,
@@ -158,7 +158,7 @@ func (ctx *Context) prepareMempoolOrigination(network modelTypes.Network, origin
 
 func (ctx *Context) buildMempoolOperationParameters(data []byte, op *Operation) error {
 	network := modelTypes.NewNetwork(op.Network)
-	proto, err := ctx.CachedProtocolByHash(network, op.Protocol)
+	proto, err := ctx.Cache.ProtocolByHash(network, op.Protocol)
 	if err != nil {
 		return err
 	}

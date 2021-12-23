@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -22,7 +23,7 @@ func NewProjectsHandler(ctx *config.Context) *ProjectsHandler {
 }
 
 // Handle -
-func (p *ProjectsHandler) Handle(ctx context.Context, items []models.Model) error {
+func (p *ProjectsHandler) Handle(ctx context.Context, items []models.Model, wg *sync.WaitGroup) error {
 	if len(items) == 0 {
 		return nil
 	}

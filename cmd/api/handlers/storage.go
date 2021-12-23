@@ -45,7 +45,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 
 	var protocol string
 	if sReq.Level == 0 {
-		block, err := ctx.CachedCurrentBlock(network)
+		block, err := ctx.Cache.CurrentBlock(network)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -64,7 +64,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
-	proto, err := ctx.CachedProtocolByHash(network, protocol)
+	proto, err := ctx.Cache.ProtocolByHash(network, protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -214,7 +214,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		return
 	}
 
-	proto, err := ctx.CachedProtocolByID(ops[0].Network, ops[0].ProtocolID)
+	proto, err := ctx.Cache.ProtocolByID(ops[0].Network, ops[0].ProtocolID)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -78,12 +79,14 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				}
 
 				for _, op := range operations {
-					op.Script = script.Code
-					tree, err := ast.NewScriptWithoutCode(script.Code)
+					op.Script, err = script.Full()
 					if err != nil {
 						return err
 					}
-					op.AST = tree
+					op.AST, err = ast.NewScriptWithoutCode(op.Script)
+					if err != nil {
+						return err
+					}
 
 					st := stacktrace.New()
 					if err := st.Fill(ctx.Operations, op); err != nil {
@@ -105,11 +108,17 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 							return err
 						}
 					}
-					proto, err := ctx.CachedProtocolByID(operations[i].Network, operations[i].ProtocolID)
+					proto, err := ctx.Cache.ProtocolByID(operations[i].Network, operations[i].ProtocolID)
 					if err != nil {
 						return err
 					}
-					if err := parser.Parse(bmd, proto.Hash, &op); err != nil {
+
+					ptrsBmd := make([]*bigmapdiff.BigMapDiff, len(bmd))
+					for i := range bmd {
+						ptrsBmd[i] = &bmd[i]
+					}
+
+					if err := parser.Parse(ptrsBmd, proto.Hash, &op); err != nil {
 						if errors.Is(err, noderpc.InvalidNodeResponse{}) {
 							logger.Err(err)
 							continue

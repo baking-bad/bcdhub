@@ -28,12 +28,10 @@ func NewOrigination(params *ParseParams) Origination {
 var delegatorContract = []byte(`{"code":[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%do"]},{"prim":"unit","annots":["%default"]}]}]},{"prim":"storage","args":[{"prim":"key_hash"}]},{"prim":"code","args":[[[[{"prim":"DUP"},{"prim":"CAR"},{"prim":"DIP","args":[[{"prim":"CDR"}]]}]],{"prim":"IF_LEFT","args":[[{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},{"prim":"AMOUNT"},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}],{"prim":"IMPLICIT_ACCOUNT"},{"prim":"ADDRESS"},{"prim":"SENDER"},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"UNIT"},{"prim":"EXEC"},{"prim":"PAIR"}],[{"prim":"DROP"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]]}],"storage":{"bytes":"0079943a60100e0394ac1c8f6ccfaeee71ec9c2d94"}}`)
 
 // Parse -
-func (p Origination) Parse(data noderpc.Operation) (*parsers.Result, error) {
-	result := parsers.NewResult()
-
-	proto, err := p.ctx.CachedProtocolByHash(p.network, p.head.Protocol)
+func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error {
+	proto, err := p.ctx.Cache.ProtocolByHash(p.network, p.head.Protocol)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	origination := operation.Operation{
@@ -71,13 +69,13 @@ func (p Origination) Parse(data noderpc.Operation) (*parsers.Result, error) {
 
 	if origination.IsApplied() {
 		if err := p.appliedHandler(data, &origination, result); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	result.Operations = append(result.Operations, &origination)
 
-	return result, nil
+	return nil
 }
 
 func (p Origination) appliedHandler(item noderpc.Operation, origination *operation.Operation, result *parsers.Result) error {
@@ -142,25 +140,26 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 	if origination == nil || result == nil || origination.Tags.Has(types.LedgerTag) {
 		return nil
 	}
-	tzip, err := p.ctx.CachedContractMetadata(origination.Network, origination.Destination)
+
+	contractEvents, err := p.ctx.Cache.Events(origination.Network, origination.Destination)
 	if err != nil {
 		if p.ctx.Storage.IsRecordNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if tzip == nil || len(tzip.Events) == 0 {
+	if len(contractEvents) == 0 {
 		return nil
 	}
 
-	for i := range tzip.Events {
-		for j := range tzip.Events[i].Implementations {
-			impl := tzip.Events[i].Implementations[j]
+	for i := range contractEvents {
+		for j := range contractEvents[i].Implementations {
+			impl := contractEvents[i].Implementations[j]
 			if impl.MichelsonInitialStorageEvent == nil || impl.MichelsonInitialStorageEvent.Empty() {
 				continue
 			}
 
-			event, err := events.NewMichelsonInitialStorage(impl, tzip.Events[i].Name)
+			event, err := events.NewMichelsonInitialStorage(impl, contractEvents[i].Name)
 			if err != nil {
 				return err
 			}
@@ -203,10 +202,10 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 
 			for i := range balances {
 				result.TokenBalances = append(result.TokenBalances, &tbModel.TokenBalance{
-					Network:  tzip.Network,
+					Network:  origination.Network,
 					Address:  balances[i].Address,
 					TokenID:  balances[i].TokenID,
-					Contract: tzip.Address,
+					Contract: origination.Destination,
 					Balance:  balances[i].Value,
 				})
 

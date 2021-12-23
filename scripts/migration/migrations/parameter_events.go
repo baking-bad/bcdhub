@@ -84,12 +84,14 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					if err := bar.Add(1); err != nil {
 						return err
 					}
-					op.Script = script.Code
-					tree, err := ast.NewScriptWithoutCode(script.Code)
+					op.Script, err = script.Full()
 					if err != nil {
 						return err
 					}
-					op.AST = tree
+					op.AST, err = ast.NewScriptWithoutCode(op.Script)
+					if err != nil {
+						return err
+					}
 
 					st := stacktrace.New()
 					if err := st.Fill(ctx.Operations, op); err != nil {
@@ -105,7 +107,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					proto, err := ctx.CachedProtocolByID(operations[i].Network, operations[i].ProtocolID)
+					proto, err := ctx.Cache.ProtocolByID(operations[i].Network, operations[i].ProtocolID)
 					if err != nil {
 						return err
 					}

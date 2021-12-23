@@ -65,12 +65,12 @@ func saveSearchModels(ctx *config.Context, items []models.Model) error {
 	for i := range data {
 		switch typ := data[i].(type) {
 		case *search.Contract:
-			typ.Alias = ctx.CachedAlias(types.NewNetwork(typ.Network), typ.Address)
-			typ.DelegateAlias = ctx.CachedAlias(types.NewNetwork(typ.Network), typ.Delegate)
+			typ.Alias = ctx.Cache.Alias(types.NewNetwork(typ.Network), typ.Address)
+			typ.DelegateAlias = ctx.Cache.Alias(types.NewNetwork(typ.Network), typ.Delegate)
 		case *search.Operation:
-			typ.SourceAlias = ctx.CachedAlias(types.NewNetwork(typ.Network), typ.Source)
-			typ.DestinationAlias = ctx.CachedAlias(types.NewNetwork(typ.Network), typ.Destination)
-			typ.DelegateAlias = ctx.CachedAlias(types.NewNetwork(typ.Network), typ.Delegate)
+			typ.SourceAlias = ctx.Cache.Alias(types.NewNetwork(typ.Network), typ.Source)
+			typ.DestinationAlias = ctx.Cache.Alias(types.NewNetwork(typ.Network), typ.Destination)
+			typ.DelegateAlias = ctx.Cache.Alias(types.NewNetwork(typ.Network), typ.Delegate)
 		}
 	}
 

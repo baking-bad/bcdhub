@@ -2352,129 +2352,6 @@ var doc = `{
                 }
             }
         },
-        "/v1/domains/{network}": {
-            "get": {
-                "description": "Show all tezos domains for network",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "domains"
-                ],
-                "summary": "Show all tezos domains for network",
-                "operationId": "list-domains",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "maximum": 10,
-                        "type": "integer",
-                        "description": "Transfers count",
-                        "name": "size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Offset",
-                        "name": "offset",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.DomainsResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/domains/{network}/resolve": {
-            "get": {
-                "description": "Resolve domain by address and vice versa",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "domains"
-                ],
-                "summary": "Resolve domain",
-                "operationId": "resolve-domain",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Domain name",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "type": "string",
-                        "description": "Address",
-                        "name": "address",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.TezosDomain"
-                        }
-                    },
-                    "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/v1/global_constants/{network}/{address}": {
             "get": {
                 "description": "Get global constant",
@@ -2565,7 +2442,7 @@ var doc = `{
                 }
             }
         },
-        "/v1/operation/{hash}/{index}/storage_diff": {
+        "/v1/operation/{id}/diff": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -2576,22 +2453,13 @@ var doc = `{
                 "tags": [
                     "operations"
                 ],
-                "summary": "Get code line where operation failed",
-                "operationId": "get-operation-storage-diff",
+                "summary": "Get operation storage diff",
+                "operationId": "get-operation-diff",
                 "parameters": [
                     {
-                        "maxLength": 51,
-                        "minLength": 51,
-                        "type": "string",
-                        "description": "Operation group hash",
-                        "name": "hash",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
                         "type": "integer",
-                        "description": "Content index",
-                        "name": "index",
+                        "description": "Internal BCD operation ID",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -2600,7 +2468,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.GetErrorLocationResponse"
+                            "$ref": "#/definitions/ast.MiguelNode"
                         }
                     },
                     "400": {
@@ -2620,6 +2488,7 @@ var doc = `{
         },
         "/v1/operation/{id}/error_location": {
             "get": {
+                "description": "Get code line where operation failed",
                 "consumes": [
                     "application/json"
                 ],
@@ -2834,12 +2703,6 @@ var doc = `{
                         "type": "string",
                         "description": "Comma-separated list of indices for searching. Values: contract, operation, bigmapdiff",
                         "name": "i",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson",
-                        "name": "l",
                         "in": "query"
                     }
                 ],
@@ -3350,6 +3213,13 @@ var doc = `{
                         "type": "integer",
                         "description": "Token ID",
                         "name": "token_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "DApp slug",
+                        "name": "slug",
                         "in": "query",
                         "required": true
                     }
@@ -4032,10 +3902,6 @@ var doc = `{
                 "id": {
                     "type": "integer"
                 },
-                "language": {
-                    "type": "string",
-                    "x-nullable": true
-                },
                 "last_action": {
                     "type": "string",
                     "x-nullable": true
@@ -4095,20 +3961,6 @@ var doc = `{
             "type": "object",
             "properties": {
                 "count": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.DomainsResponse": {
-            "type": "object",
-            "properties": {
-                "domains": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.TezosDomain"
-                    }
-                },
-                "total": {
                     "type": "integer"
                 }
             }
@@ -4285,12 +4137,6 @@ var doc = `{
                     "type": "integer",
                     "example": 100
                 },
-                "languages": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "integer"
-                    }
-                },
                 "operations_count": {
                     "type": "integer",
                     "example": 100
@@ -4434,8 +4280,8 @@ var doc = `{
                     "type": "string"
                 },
                 "storage_diff": {
-                    "type": "object",
-                    "x-nullable": true
+                    "x-nullable": true,
+                    "$ref": "#/definitions/ast.MiguelNode"
                 },
                 "storage_limit": {
                     "type": "integer",
@@ -4582,10 +4428,6 @@ var doc = `{
                 },
                 "id": {
                     "type": "integer"
-                },
-                "language": {
-                    "type": "string",
-                    "x-nullable": true
                 },
                 "last_action": {
                     "type": "string",
@@ -4760,33 +4602,6 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/tzip.View"
                     }
-                }
-            }
-        },
-        "handlers.TezosDomain": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "data": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "expiration": {
-                    "type": "string"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "network": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
                 }
             }
         },

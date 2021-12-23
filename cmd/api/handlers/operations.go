@@ -133,65 +133,6 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	c.SecureJSON(http.StatusOK, resp)
 }
 
-// GetContentDiff godoc
-// @Summary Get storage diff for content in OPG
-// @Description Get storage diff for content in OPG
-// @Tags operations
-// @ID get-operation-storage-diff
-// @Param hash path string true "Operation group hash"  minlength(51) maxlength(51)
-// @Param index path integer true "Content index" mininum(0)
-// @Accept  json
-// @Produce  json
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} Error
-// @Failure 500 {object} Error
-// @Router /v1/operation/{hash}/{index}/storage_diff [get]
-func (ctx *Context) GetContentDiff(c *gin.Context) {
-	var req getContent
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	operations, err := ctx.Operations.Get(map[string]interface{}{
-		"hash":          req.Hash,
-		"content_index": req.ContentIndex,
-	}, 1, false)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	if len(operations) == 0 {
-		ctx.handleError(c, errors.Errorf("unknown operation content: %s %d", req.Hash, req.ContentIndex), http.StatusNotFound)
-		return
-	}
-	operation := operations[0]
-
-	data, err := ctx.BigMapDiffs.GetForOperations(operation.ID)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
-		protocol, err := ctx.Protocols.GetByID(operation.ProtocolID)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-
-		script, err := ctx.getScript(operation.Network, operation.Destination, protocol.SymLink)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		var op Operation
-		op.FromModel(operation)
-
-		if err := ctx.setStorageDiff(operation.Destination, operation.DeffatedStorage, &op, data, script); ctx.handleError(c, err, 0) {
-			return
-		}
-		c.SecureJSON(http.StatusOK, op.StorageDiff)
-		return
-	}
-	c.SecureJSON(http.StatusOK, nil)
-}
-
 // GetOperationErrorLocation godoc
 // @Summary Get code line where operation failed
 // @Description Get code line where operation failed
@@ -224,6 +165,60 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 		return
 	}
 	c.SecureJSON(http.StatusOK, response)
+}
+
+// GetOperationDiff godoc
+// @Summary Get operation storage diff
+// @DescriptionGet Get operation storage diff
+// @Tags operations
+// @ID get-operation-diff
+// @Param id path integer true "Internal BCD operation ID"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} ast.MiguelNode
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/operation/{id}/diff [get]
+func (ctx *Context) GetOperationDiff(c *gin.Context) {
+	var req getOperationByIDRequest
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	operation := operation.Operation{ID: req.ID}
+	if err := ctx.Storage.GetByID(&operation); ctx.handleError(c, err, 0) {
+		return
+	}
+
+	var result Operation
+	result.FromModel(operation)
+
+	if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
+		proto, err := ctx.Cache.ProtocolByID(operation.Network, operation.ProtocolID)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		result.Protocol = proto.Hash
+
+		storageBytes, err := ctx.Contracts.ScriptPart(operation.Network, operation.Destination, proto.SymLink, consts.STORAGE)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+
+		storageType, err := ast.NewTypedAstFromBytes(storageBytes)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+
+		bmd, err := ctx.BigMapDiffs.GetForOperation(operation.ID)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+
+		if err := ctx.setStorageDiff(operation.Destination, operation.DeffatedStorage, &result, bmd, storageType); ctx.handleError(c, err, 0) {
+			return
+		}
+	}
+	c.SecureJSON(http.StatusOK, result.StorageDiff)
 }
 
 func (ctx *Context) getOperationFromMempool(hash string) *Operation {
@@ -317,10 +312,10 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 	var op Operation
 	op.FromModel(operation)
 
-	op.SourceAlias = ctx.CachedAlias(operation.Network, operation.Source)
-	op.DestinationAlias = ctx.CachedAlias(operation.Network, operation.Destination)
+	op.SourceAlias = ctx.Cache.Alias(operation.Network, operation.Source)
+	op.DestinationAlias = ctx.Cache.Alias(operation.Network, operation.Destination)
 
-	proto, err := ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
+	proto, err := ctx.Cache.ProtocolByID(operation.Network, operation.ProtocolID)
 	if err != nil {
 		return op, err
 	}
@@ -336,8 +331,12 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 	}
 
 	if withStorageDiff {
+		storageType, err := script.StorageType()
+		if err != nil {
+			return op, err
+		}
 		if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
-			if err := ctx.setStorageDiff(op.Destination, operation.DeffatedStorage, &op, bmd, script); err != nil {
+			if err := ctx.setStorageDiff(op.Destination, operation.DeffatedStorage, &op, bmd, storageType); err != nil {
 				return op, err
 			}
 		}
@@ -428,11 +427,7 @@ func setParatemetersWithType(params *types.Parameters, script *ast.Script, op *O
 	return nil
 }
 
-func (ctx *Context) setStorageDiff(address string, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, script *ast.Script) error {
-	storageType, err := script.StorageType()
-	if err != nil {
-		return err
-	}
+func (ctx *Context) setStorageDiff(address string, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, storageType *ast.TypedAst) error {
 	storageDiff, err := ctx.getStorageDiff(bmd, address, storage, storageType, op)
 	if err != nil {
 		return err
@@ -441,7 +436,7 @@ func (ctx *Context) setStorageDiff(address string, storage []byte, op *Operation
 	return nil
 }
 
-func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address string, storage []byte, storageType *ast.TypedAst, op *Operation) (interface{}, error) {
+func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address string, storage []byte, storageType *ast.TypedAst, op *Operation) (*ast.MiguelNode, error) {
 	currentStorage := &ast.TypedAst{
 		Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
 	}
@@ -498,7 +493,7 @@ func getEnrichStorage(storageType *ast.TypedAst, bmd []bigmapdiff.BigMapDiff) er
 }
 
 func (ctx *Context) getErrorLocation(operation operation.Operation, window int) (GetErrorLocationResponse, error) {
-	proto, err := ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
+	proto, err := ctx.Cache.ProtocolByID(operation.Network, operation.ProtocolID)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}

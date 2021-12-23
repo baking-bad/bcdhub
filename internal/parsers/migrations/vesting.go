@@ -24,7 +24,7 @@ func NewVestingParser(ctx *config.Context) *VestingParser {
 
 // Parse -
 func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network types.Network, address string) (*parsers.Result, error) {
-	proto, err := p.ctx.CachedProtocolByHash(network, head.Protocol)
+	proto, err := p.ctx.Cache.ProtocolByHash(network, head.Protocol)
 	if err != nil {
 		return nil, err
 	}

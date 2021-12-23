@@ -193,7 +193,7 @@ func (bi *BoostIndexer) handleBlock(ctx context.Context, head noderpc.Header) er
 	result := parsers.NewResult()
 	err := bi.StorageDB.DB.RunInTransaction(ctx,
 		func(tx *pg.Tx) error {
-			logger.Info().Str("network", bi.Network.String()).Msgf("indexing %d block", head.Level)
+			logger.Info().Str("network", bi.Network.String()).Msgf("indexing %7d block", head.Level)
 
 			if head.Protocol != bi.currentProtocol.Hash || (bi.Network == types.Mainnet && head.Level == 1) {
 				logger.Info().Str("network", bi.Network.String()).Msgf("New protocol detected: %s -> %s", bi.currentProtocol.Hash, head.Protocol)
@@ -224,7 +224,7 @@ func (bi *BoostIndexer) handleBlock(ctx context.Context, head noderpc.Header) er
 
 // Rollback -
 func (bi *BoostIndexer) Rollback(ctx context.Context) error {
-	logger.Warning().Str("network", bi.Network.String()).Msgf("Rollback from %d", bi.state.Level)
+	logger.Warning().Str("network", bi.Network.String()).Msgf("Rollback from %7d", bi.state.Level)
 
 	lastLevel, err := bi.getLastRollbackBlock()
 	if err != nil {
@@ -236,14 +236,14 @@ func (bi *BoostIndexer) Rollback(ctx context.Context) error {
 		return err
 	}
 
-	helpers.CatchErrorSentry(errors.Errorf("[%s] Rollback from %d to %d", bi.Network, bi.state.Level, lastLevel))
+	helpers.CatchErrorSentry(errors.Errorf("[%s] Rollback from %7d to %7d", bi.Network, bi.state.Level, lastLevel))
 
 	newState, err := bi.Blocks.Last(bi.Network)
 	if err != nil {
 		return err
 	}
 	bi.state = newState
-	logger.Info().Str("network", bi.Network.String()).Msgf("New indexer state: %d", bi.state.Level)
+	logger.Info().Str("network", bi.Network.String()).Msgf("New indexer state: %7d", bi.state.Level)
 	logger.Info().Str("network", bi.Network.String()).Msg("Rollback finished")
 	return nil
 }
@@ -264,7 +264,7 @@ func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
 		}
 
 		if block.Predecessor == headAtLevel.Predecessor {
-			logger.Warning().Str("network", bi.Network.String()).Msgf("Found equal predecessors at level: %d", block.Level)
+			logger.Warning().Str("network", bi.Network.String()).Msgf("Found equal predecessors at level: %7d", block.Level)
 			end = true
 			lastLevel = block.Level - 1
 		}
@@ -282,8 +282,8 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.ChainID, head.ChainID)
 	}
 
-	logger.Info().Str("network", bi.Network.String()).Msgf("Current node state: %d", head.Level)
-	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %d", bi.state.Level)
+	logger.Info().Str("network", bi.Network.String()).Msgf("Current node state: %7d", head.Level)
+	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %7d", bi.state.Level)
 
 	if head.Level > bi.state.Level {
 		if err := bi.Index(ctx, head); err != nil {
@@ -312,7 +312,7 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 	return errSameLevel
 }
 func (bi *BoostIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
-	proto, err := bi.CachedProtocolByHash(bi.Network, head.Protocol)
+	proto, err := bi.Cache.ProtocolByHash(bi.Network, head.Protocol)
 	if err != nil {
 		return err
 	}
@@ -338,7 +338,7 @@ func (bi *BoostIndexer) getDataFromBlock(head noderpc.Header) (*parsers.Result, 
 	if head.Level <= 1 {
 		return result, nil
 	}
-	opg, err := bi.rpc.GetOPG(head.Level)
+	opg, err := bi.rpc.GetLightOPG(head.Level)
 	if err != nil {
 		return nil, err
 	}
@@ -439,7 +439,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 	if err != nil {
 		return err
 	}
-	logger.Info().Str("network", bi.Network.String()).Msgf("Now %d contracts are indexed", len(contracts))
+	logger.Info().Str("network", bi.Network.String()).Msgf("Now %2d contracts are indexed", len(contracts))
 
 	migrationParser := migrations.NewMigrationParser(bi.Storage, bi.BigMapDiffs)
 

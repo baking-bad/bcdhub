@@ -319,9 +319,6 @@ definitions:
         type: string
       id:
         type: integer
-      language:
-        type: string
-        x-nullable: true
       last_action:
         type: string
         x-nullable: true
@@ -364,15 +361,6 @@ definitions:
   handlers.CountResponse:
     properties:
       count:
-        type: integer
-    type: object
-  handlers.DomainsResponse:
-    properties:
-      domains:
-        items:
-          $ref: '#/definitions/handlers.TezosDomain'
-        type: array
-      total:
         type: integer
     type: object
   handlers.EntrypointSchema:
@@ -490,10 +478,6 @@ definitions:
       fa_count:
         example: 100
         type: integer
-      languages:
-        additionalProperties:
-          type: integer
-        type: object
       operations_count:
         example: 100
         type: integer
@@ -599,7 +583,7 @@ definitions:
       status:
         type: string
       storage_diff:
-        type: object
+        $ref: '#/definitions/ast.MiguelNode'
         x-nullable: true
       storage_limit:
         type: integer
@@ -703,9 +687,6 @@ definitions:
         type: string
       id:
         type: integer
-      language:
-        type: string
-        x-nullable: true
       last_action:
         type: string
         x-nullable: true
@@ -825,24 +806,6 @@ definitions:
         items:
           $ref: '#/definitions/tzip.View'
         type: array
-    type: object
-  handlers.TezosDomain:
-    properties:
-      address:
-        type: string
-      data:
-        additionalProperties: true
-        type: object
-      expiration:
-        type: string
-      level:
-        type: integer
-      name:
-        type: string
-      network:
-        type: string
-      timestamp:
-        type: string
     type: object
   handlers.Token:
     properties:
@@ -3063,89 +3026,6 @@ paths:
       summary: Get diff between two contracts
       tags:
       - contract
-  /v1/domains/{network}:
-    get:
-      consumes:
-      - application/json
-      description: Show all tezos domains for network
-      operationId: list-domains
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      - description: Transfers count
-        in: query
-        maximum: 10
-        name: size
-        type: integer
-      - description: Offset
-        in: query
-        name: offset
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.DomainsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Show all tezos domains for network
-      tags:
-      - domains
-  /v1/domains/{network}/resolve:
-    get:
-      consumes:
-      - application/json
-      description: Resolve domain by address and vice versa
-      operationId: resolve-domain
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      - description: Domain name
-        in: query
-        name: name
-        type: string
-      - description: Address
-        in: query
-        maxLength: 36
-        minLength: 36
-        name: address
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.TezosDomain'
-        "204":
-          description: No Content
-          schema:
-            $ref: '#/definitions/gin.H'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Resolve domain
-      tags:
-      - domains
   /v1/global_constants/{network}/{address}:
     get:
       consumes:
@@ -3207,22 +3087,15 @@ paths:
       summary: Show indexer head
       tags:
       - head
-  /v1/operation/{hash}/{index}/storage_diff:
+  /v1/operation/{id}/diff:
     get:
       consumes:
       - application/json
-      operationId: get-operation-storage-diff
+      operationId: get-operation-diff
       parameters:
-      - description: Operation group hash
+      - description: Internal BCD operation ID
         in: path
-        maxLength: 51
-        minLength: 51
-        name: hash
-        required: true
-        type: string
-      - description: Content index
-        in: path
-        name: index
+        name: id
         required: true
         type: integer
       produces:
@@ -3231,7 +3104,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.GetErrorLocationResponse'
+            $ref: '#/definitions/ast.MiguelNode'
         "400":
           description: Bad Request
           schema:
@@ -3240,13 +3113,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.Error'
-      summary: Get code line where operation failed
+      summary: Get operation storage diff
       tags:
       - operations
   /v1/operation/{id}/error_location:
     get:
       consumes:
       - application/json
+      description: Get code line where operation failed
       operationId: get-operation-error-location
       parameters:
       - description: Internal BCD operation ID
@@ -3387,11 +3261,6 @@ paths:
           operation, bigmapdiff'
         in: query
         name: i
-        type: string
-      - description: 'Comma-separated list of languages for searching. Values: smartpy,
-          liquidity, ligo, lorentz, michelson'
-        in: query
-        name: l
         type: string
       produces:
       - application/json
@@ -3745,6 +3614,11 @@ paths:
         name: token_id
         required: true
         type: integer
+      - description: DApp slug
+        in: query
+        name: slug
+        required: true
+        type: string
       produces:
       - application/json
       responses:

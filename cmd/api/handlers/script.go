@@ -10,12 +10,12 @@ func (ctx *Context) getScript(network types.Network, address, symLink string) (*
 	if err != nil {
 		return nil, err
 	}
-	return ast.NewScript(data)
+	return ast.NewScriptWithoutCode(data)
 }
 
 func (ctx *Context) getScriptBytes(network types.Network, address, symLink string) ([]byte, error) {
 	if symLink == "" {
-		state, err := ctx.CachedCurrentBlock(network)
+		state, err := ctx.Cache.CurrentBlock(network)
 		if err != nil {
 			return nil, err
 		}
@@ -25,7 +25,7 @@ func (ctx *Context) getScriptBytes(network types.Network, address, symLink strin
 	if err != nil {
 		return nil, err
 	}
-	return script.Code, nil
+	return script.Full()
 }
 
 func (ctx *Context) getParameterType(network types.Network, address, symLink string) (*ast.TypedAst, error) {

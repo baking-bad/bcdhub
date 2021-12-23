@@ -25,9 +25,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get -
 func (storage *Storage) Get(network types.Network, address string) (response contract.Contract, err error) {
-	query := storage.DB.Model(&response)
-	core.NetworkAndAddress(network, address)(query)
-	err = query.First()
+	err = storage.DB.Model(&response).Where("network = ?", network).Where("address = ?", address).Limit(1).Select()
 	return
 }
 
@@ -251,4 +249,62 @@ func (storage *Storage) GetScripts(limit, offset int) (scripts []contract.Script
 func (storage *Storage) UpdateProjectID(scripts []contract.Script) error {
 	_, err := storage.DB.Model(&scripts).Set("project_id = _data.project_id").WherePK().Update()
 	return err
+}
+
+// Code -
+func (storage *Storage) Code(id int64) ([]byte, error) {
+	var data []byte
+	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("code").Select(&data)
+	return data, err
+}
+
+// Parameter -
+func (storage *Storage) Parameter(id int64) ([]byte, error) {
+	var data []byte
+	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("parameter").Select(&data)
+	return data, err
+}
+
+// Storage -
+func (storage *Storage) Storage(id int64) ([]byte, error) {
+	var data []byte
+	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("storage").Select(&data)
+	return data, err
+}
+
+// ScriptPart -
+func (storage *Storage) ScriptPart(network types.Network, address string, symLink, part string) ([]byte, error) {
+	query := storage.DB.Model((*contract.Contract)(nil)).
+		Where("network = ?", network).
+		Where("address = ?", address)
+
+	switch symLink {
+	case "alpha":
+		switch part {
+		case "parameter":
+			query.Column("_").Relation("Alpha.parameter")
+		case "code":
+			query.Column("_").Relation("Alpha.code")
+		case "storage":
+			query.Column("_").Relation("Alpha.storage")
+		default:
+			return nil, errors.Errorf("unknown script part name: %s", part)
+		}
+	case "babylon":
+		switch part {
+		case "parameter":
+			query.Column("_").Relation("Babylon.parameter")
+		case "code":
+			query.Column("_").Relation("Babylon.code")
+		case "storage":
+			query.Column("_").Relation("Babylon.storage")
+		default:
+			return nil, errors.Errorf("unknown script part name: %s", part)
+		}
+	default:
+		return nil, errors.Errorf("unknown protocol symbolic link: %s", symLink)
+	}
+	var data []byte
+	err := query.Select(pg.Scan(&data))
+	return data, err
 }

@@ -30,7 +30,7 @@ func (p *ImplicitParser) Parse(metadata noderpc.Metadata, head noderpc.Header) (
 		return nil, nil
 	}
 
-	protocol, err := p.ctx.CachedProtocolByHash(p.network, head.Protocol)
+	protocol, err := p.ctx.Cache.ProtocolByHash(p.network, head.Protocol)
 	if err != nil {
 		return nil, err
 	}

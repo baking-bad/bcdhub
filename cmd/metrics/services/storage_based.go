@@ -70,7 +70,7 @@ func (s *StorageBased) work(ctx context.Context) {
 	ticker := time.NewTicker(s.updatePeriod)
 	defer ticker.Stop()
 
-	isFull, err := s.do(ctx)
+	isFull, err := s.do(ctx, &s.wg)
 	if err != nil {
 		logger.Err(err)
 	}
@@ -82,7 +82,7 @@ func (s *StorageBased) work(ctx context.Context) {
 			return
 
 		case <-ticker.C:
-			isFull, err = s.do(ctx)
+			isFull, err = s.do(ctx, &s.wg)
 			if err != nil {
 				logger.Err(err)
 				continue
@@ -90,7 +90,7 @@ func (s *StorageBased) work(ctx context.Context) {
 
 		default:
 			if isFull {
-				isFull, err = s.do(ctx)
+				isFull, err = s.do(ctx, &s.wg)
 				if err != nil {
 					logger.Err(err)
 					continue
@@ -102,13 +102,13 @@ func (s *StorageBased) work(ctx context.Context) {
 	}
 }
 
-func (s *StorageBased) do(ctx context.Context) (bool, error) {
+func (s *StorageBased) do(ctx context.Context, wg *sync.WaitGroup) (bool, error) {
 	items, err := s.handler.Chunk(s.state.LastID, s.bulkSize)
 	if err != nil {
 		return false, err
 	}
 
-	if err := s.handler.Handle(ctx, items); err != nil {
+	if err := s.handler.Handle(ctx, items, wg); err != nil {
 		return false, err
 	}
 

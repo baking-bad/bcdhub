@@ -3,6 +3,7 @@ package storage
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -21,15 +22,11 @@ func GetBigMapPtr(repo models.GeneralRepository, contracts contract.Repository, 
 	if err != nil {
 		return 0, err
 	}
-	contractScript, err := contracts.Script(network, address, symLink)
+	storageTypeByte, err := contracts.ScriptPart(network, address, symLink, consts.STORAGE)
 	if err != nil {
 		return 0, err
 	}
-	script, err := ast.NewScript(contractScript.Code)
-	if err != nil {
-		return 0, err
-	}
-	storage, err := script.StorageType()
+	storage, err := ast.NewTypedAstFromBytes(storageTypeByte)
 	if err != nil {
 		return 0, err
 	}
@@ -64,26 +61,18 @@ func FindByName(repo models.GeneralRepository, contracts contract.Repository, ne
 	if err != nil {
 		return nil
 	}
-	contractScript, err := contracts.Script(network, address, symLink)
+	storageTypeByte, err := contracts.ScriptPart(network, address, symLink, consts.STORAGE)
 	if err != nil {
 		return nil
 	}
-
-	script, err := ast.NewScript(contractScript.Code)
+	storage, err := ast.NewTypedAstFromBytes(storageTypeByte)
 	if err != nil {
 		return nil
 	}
-
-	storage, err := script.StorageType()
-	if err != nil {
-		return nil
-	}
-
 	node := storage.FindByName(key, false)
 	if node == nil {
 		return nil
 	}
-
 	if bm, ok := node.(*ast.BigMap); ok {
 		return bm
 	}

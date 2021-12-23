@@ -42,7 +42,7 @@ type Operation struct {
 	PaidStorageSizeDiff                int64              `json:"paid_storage_size_diff,omitempty" extensions:"x-nullable" example:"300"`
 	Errors                             []*tezerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
 	Parameters                         interface{}        `json:"parameters,omitempty" extensions:"x-nullable"`
-	StorageDiff                        interface{}        `json:"storage_diff,omitempty" extensions:"x-nullable"`
+	StorageDiff                        *ast.MiguelNode    `json:"storage_diff,omitempty" extensions:"x-nullable"`
 	RawMempool                         interface{}        `json:"rawMempool,omitempty" extensions:"x-nullable"`
 	Timestamp                          time.Time          `json:"timestamp"`
 	Protocol                           string             `json:"protocol"`
@@ -458,8 +458,8 @@ func (c *SameContractsResponse) FromModel(same contract.SameResponse, ctx *Conte
 	for i := range same.Contracts {
 		var contract Contract
 		contract.FromModel(same.Contracts[i])
-		contract.Alias = ctx.CachedAlias(same.Contracts[i].Network, same.Contracts[i].Address)
-		contract.DelegateAlias = ctx.CachedAlias(same.Contracts[i].Network, same.Contracts[i].Delegate.String())
+		contract.Alias = ctx.Cache.Alias(same.Contracts[i].Network, same.Contracts[i].Address)
+		contract.DelegateAlias = ctx.Cache.Alias(same.Contracts[i].Network, same.Contracts[i].Delegate.String())
 		c.Contracts[i] = contract
 	}
 }

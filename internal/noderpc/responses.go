@@ -112,6 +112,31 @@ func (op Operation) GetResult() *OperationResult {
 	}
 }
 
+// LightOperationGroup -
+type LightOperationGroup struct {
+	Protocol  string           `json:"protocol"`
+	ChainID   string           `json:"chain_id"`
+	Hash      string           `json:"hash"`
+	Branch    string           `json:"branch"`
+	Signature string           `json:"signature"`
+	Contents  []LightOperation `json:"contents"`
+}
+
+// LightOperation -
+type LightOperation struct {
+	Raw         stdJSON.RawMessage `json:"-"`
+	Kind        string             `json:"kind"`
+	Source      string             `json:"source"`
+	Destination *string            `json:"destination,omitempty"`
+}
+
+// UnmarshalJSON -
+func (op *LightOperation) UnmarshalJSON(data []byte) error {
+	op.Raw = data
+	type buf LightOperation
+	return json.Unmarshal(data, (*buf)(op))
+}
+
 // Script -
 type Script struct {
 	Code    *ast.Script        `json:"code"`

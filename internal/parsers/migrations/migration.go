@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"bytes"
 	"encoding/json"
 	"time"
 
@@ -44,14 +45,27 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 		return err
 	}
 
-	newHash, err := contract.ComputeHash(codeBytes)
+	var buf bytes.Buffer
+	if err := json.Compact(&buf, codeBytes); err != nil {
+		return err
+	}
+
+	newHash, err := contract.ComputeHash(buf.Bytes())
 	if err != nil {
 		return err
 	}
 
+	var s bcd.RawScript
+	if err := json.Unmarshal(buf.Bytes(), &s); err != nil {
+		return err
+	}
+
 	contractScript := modelsContract.Script{
-		Hash: newHash,
-		Code: codeBytes,
+		Hash:      newHash,
+		Code:      s.Code,
+		Storage:   s.Storage,
+		Parameter: s.Parameter,
+		Views:     s.Views,
 	}
 
 	if err := contractScript.Save(tx); err != nil {
@@ -60,11 +74,8 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 
 	switch next.SymLink {
 	case bcd.SymLinkAlpha:
-		if contractScript.ID == old.AlphaID {
-			return nil
-		}
 	case bcd.SymLinkBabylon:
-		if contractScript.ID == old.BabylonID {
+		if contractScript.ID == old.AlphaID {
 			return nil
 		}
 	default:

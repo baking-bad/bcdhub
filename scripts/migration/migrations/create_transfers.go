@@ -67,7 +67,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		proto, err := ctx.CachedProtocolByID(operations[i].Network, operations[i].ProtocolID)
+		proto, err := ctx.Cache.ProtocolByID(operations[i].Network, operations[i].ProtocolID)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,10 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		operations[i].Script = script.Code
+		operations[i].Script, err = script.Full()
+		if err != nil {
+			return err
+		}
 
 		if err := parser.Parse(nil, proto.Hash, &operations[i]); err != nil {
 			return err

@@ -1,7 +1,6 @@
 package tzip
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -45,8 +44,7 @@ func (storage *Storage) GetAliases(network types.Network) (t []tzip.TZIP, err er
 
 // GetWithEvents -
 func (storage *Storage) GetWithEvents(updatedAt uint64) ([]tzip.TZIP, error) {
-	query := storage.DB.Model().
-		Table(models.DocTZIP).
+	query := storage.DB.Model((*tzip.TZIP)(nil)).
 		Where("events is not null AND jsonb_array_length(events) > 0")
 
 	if updatedAt > 0 {
@@ -58,4 +56,12 @@ func (storage *Storage) GetWithEvents(updatedAt uint64) ([]tzip.TZIP, error) {
 		return nil, err
 	}
 	return t, nil
+}
+
+// Events -
+func (storage *Storage) Events(network types.Network, address string) (events tzip.Events, err error) {
+	err = storage.DB.Model((*tzip.TZIP)(nil)).Column("events").
+		Where("network = ?", network).Where("address = ?", address).
+		Limit(1).Select(&events)
+	return
 }
