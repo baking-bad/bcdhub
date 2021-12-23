@@ -1,13 +1,12 @@
 package contract
 
 import (
-	"encoding/hex"
 	"math/rand"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -26,9 +25,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get -
 func (storage *Storage) Get(network types.Network, address string) (response contract.Contract, err error) {
-	query := storage.DB.Model(&response)
-	core.NetworkAndAddress(network, address)(query)
-	err = query.First()
+	err = storage.DB.Model(&response).Where("network = ?", network).Where("address = ?", address).Limit(1).Select()
 	return
 }
 
@@ -80,47 +77,14 @@ func (storage *Storage) GetByAddresses(addresses []contract.Address) (response [
 	return
 }
 
-// GetProjectsLastContract -
-func (storage *Storage) GetProjectsLastContract(c contract.Contract, size, offset int64) (response []*contract.Contract, err error) {
-	if c.FingerprintCode == nil || c.FingerprintParameter == nil || c.FingerprintStorage == nil {
-		return nil, nil
-	}
-
-	code := hex.EncodeToString(c.FingerprintCode)
-	params := hex.EncodeToString(c.FingerprintParameter)
-	s := hex.EncodeToString(c.FingerprintStorage)
-
+// GetSameContracts -
+func (storage *Storage) GetSameContracts(c contract.Contract, manager string, size, offset int64) (pcr contract.SameResponse, err error) {
 	limit := storage.GetPageSize(size)
 
 	query := storage.DB.Model().Table(models.DocContracts).
-		ColumnExpr("MAX(id) as id").
-		Where("project_id is not null").
-		Where("encode(fingerprint_code, 'hex') = ?", code).
-		Where("encode(fingerprint_parameter, 'hex') = ?", params).
-		Where("encode(fingerprint_storage, 'hex') = ?", s)
-
-	if c.Manager.Valid {
-		query.WhereOr("manager = ?", c.Manager.String())
-	}
-
-	query.Group("project_id").
-		Limit(limit).
-		Offset(int(offset)).
-		Order("id desc")
-
-	err = storage.DB.Model().Table(models.DocContracts).Where("id IN (?)", query).Select(&response)
-	return
-}
-
-// GetSameContracts -
-func (storage *Storage) GetSameContracts(c contract.Contract, manager string, size, offset int64) (pcr contract.SameResponse, err error) {
-	if c.FingerprintCode == nil || c.FingerprintParameter == nil || c.FingerprintStorage == nil {
-		return pcr, errors.Wrap(consts.ErrInvalidFingerprint, c.Address)
-	}
-
-	limit := storage.GetPageSize(size)
-
-	query := storage.DB.Model().Table(models.DocContracts).Where("hash = ?", c.Hash).Where("address != ?", c.Address)
+		Where("alpha_id = ?", c.AlphaID).
+		Where("babylon_id = ?", c.BabylonID).
+		Where("address != ?", c.Address)
 	if manager != "" {
 		query.Where("manager = ?", manager)
 	}
@@ -129,7 +93,10 @@ func (storage *Storage) GetSameContracts(c contract.Contract, manager string, si
 		return
 	}
 
-	countQuery := storage.DB.Model().Table(models.DocContracts).Where("hash = ?", c.Hash).Where("address != ?", c.Address)
+	countQuery := storage.DB.Model().Table(models.DocContracts).
+		Where("alpha_id = ?", c.AlphaID).
+		Where("babylon_id = ?", c.BabylonID).
+		Where("address != ?", c.Address)
 	if manager != "" {
 		countQuery.Where("manager = ?", manager)
 	}
@@ -143,35 +110,33 @@ func (storage *Storage) GetSameContracts(c contract.Contract, manager string, si
 
 // GetSimilarContracts -
 func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset int64) ([]contract.Similar, int, error) {
-	if !c.ProjectID.Valid {
-		return nil, 0, nil
+	scriptID := c.AlphaID
+	if c.BabylonID > 0 {
+		scriptID = c.BabylonID
 	}
+
+	scriptsQuery := storage.DB.Model().
+		Table(models.DocScripts).Column("id").
+		Where("project_id = ?",
+			storage.DB.Model().Table(models.DocScripts).Column("project_id").Where("id = ?", scriptID).Limit(1),
+		)
 
 	limit := storage.GetPageSize(size)
 
-	subQuery := storage.DB.Model((*contract.Contract)(nil)).
-		ColumnExpr("MAX(id) as id").
-		Where("project_id = ?", c.ProjectID).
-		Where("hash != ?", c.Hash).
-		Group("hash")
-
 	var contracts []contract.Contract
-	if err := storage.DB.Model((*contract.Contract)(nil)).
-		Where("id IN (?)", subQuery).
+	if err := storage.DB.Model(&contracts).
+		Where("(alpha_id IN (?0)) OR (babylon_id IN (?0))", scriptsQuery).
 		Order("last_action desc").
 		Limit(limit).
 		Offset(int(offset)).
-		Select(&contracts); err != nil {
+		Select(); err != nil {
 		return nil, 0, err
 	}
 
-	var count int
-	if err := storage.DB.Model((*contract.Contract)(nil)).
-		ColumnExpr("count(distinct hash)").
-		Where("project_id = ?", c.ProjectID).
-		Where("hash != ?", c.Hash).
-		Group("hash").
-		Select(&count); err != nil {
+	count, err := storage.DB.Model((*contract.Contract)(nil)).
+		Where("(alpha_id IN (?0)) OR (babylon_id IN (?0))", scriptsQuery).
+		Count()
+	if err != nil {
 		return nil, 0, err
 	}
 
@@ -210,11 +175,11 @@ func (storage *Storage) GetTokens(network types.Network, tokenInterface string, 
 
 // Stats -
 func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err error) {
-	if !c.ProjectID.Valid {
-		return
-	}
 	sameCount, err := storage.DB.Model().Table(models.DocContracts).
-		Where("hash = ?", c.Hash).
+		WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
+			q.WhereOr("alpha_id = ?", c.AlphaID).WhereOr("babylon_id = ?", c.BabylonID)
+			return q, err
+		}).
 		Where("address != ?", c.Address).
 		Count()
 	if err != nil {
@@ -222,23 +187,124 @@ func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err er
 	}
 	stats.SameCount = int64(sameCount)
 
-	if err = storage.DB.Model((*contract.Contract)(nil)).
-		ColumnExpr("count(distinct hash)").
-		Where("project_id = ?", c.ProjectID).
-		Where("hash != ?", c.Hash).
-		Group("hash").
-		Select(&stats.SimilarCount); err != nil {
+	scriptID := c.AlphaID
+	if c.BabylonID > 0 {
+		scriptID = c.BabylonID
+	}
+	scriptsQuery := storage.DB.Model().
+		Table(models.DocScripts).Column("id").
+		Where("project_id = ?",
+			storage.DB.Model().Table(models.DocScripts).Column("project_id").Where("id = ?", scriptID).Limit(1),
+		)
+
+	similarCount, err := storage.DB.Model((*contract.Contract)(nil)).
+		Where("(alpha_id IN (?0)) OR (babylon_id IN (?0))", scriptsQuery).
+		Count()
+	if err != nil {
 		return
 	}
-
+	stats.SimilarCount = int64(similarCount)
 	return
 }
 
 // GetProjectIDByHash -
 func (storage *Storage) GetProjectIDByHash(hash string) (result string, err error) {
-	err = storage.DB.Model().Table(models.DocContracts).Column("project_id").Where("hash = ?", hash).Where("project_id is not null").Limit(1).Select(&result)
+	err = storage.DB.Model(&contract.Contract{}).Relation("Alpha.id").Relation("Babylon.id").Column("project_id").Where("babylon.hash = ?0 OR alpha.hash = ?0", hash).Where("project_id is not null").Limit(1).Select(&result)
 	if errors.Is(err, pg.ErrNoRows) {
 		return "", nil
 	}
 	return
+}
+
+// ByHash -
+func (storage *Storage) ByHash(hash string) (result contract.Script, err error) {
+	err = storage.DB.Model(&result).Where("hash = ?", hash).First()
+	return
+}
+
+// Script -
+func (storage *Storage) Script(network types.Network, address string, symLink string) (contract.Script, error) {
+	var c contract.Contract
+	query := storage.DB.Model(&c).
+		Where("network = ?", network).
+		Where("address = ?", address)
+	switch symLink {
+	case bcd.SymLinkAlpha:
+		err := query.Relation("Alpha").Select()
+		return c.Alpha, err
+	case bcd.SymLinkBabylon:
+		err := query.Relation("Babylon").Select()
+		return c.Babylon, err
+	}
+	return c.Alpha, errors.Errorf("unknown protocol symbolic link: %s", symLink)
+}
+
+// GetScripts -
+func (storage *Storage) GetScripts(limit, offset int) (scripts []contract.Script, err error) {
+	err = storage.DB.Model(&scripts).Limit(limit).Offset(offset).Order("id asc").Select()
+	return
+}
+
+// UpdateProjectID -
+func (storage *Storage) UpdateProjectID(scripts []contract.Script) error {
+	_, err := storage.DB.Model(&scripts).Set("project_id = _data.project_id").WherePK().Update()
+	return err
+}
+
+// Code -
+func (storage *Storage) Code(id int64) ([]byte, error) {
+	var data []byte
+	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("code").Select(&data)
+	return data, err
+}
+
+// Parameter -
+func (storage *Storage) Parameter(id int64) ([]byte, error) {
+	var data []byte
+	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("parameter").Select(&data)
+	return data, err
+}
+
+// Storage -
+func (storage *Storage) Storage(id int64) ([]byte, error) {
+	var data []byte
+	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("storage").Select(&data)
+	return data, err
+}
+
+// ScriptPart -
+func (storage *Storage) ScriptPart(network types.Network, address string, symLink, part string) ([]byte, error) {
+	query := storage.DB.Model((*contract.Contract)(nil)).
+		Where("network = ?", network).
+		Where("address = ?", address)
+
+	switch symLink {
+	case "alpha":
+		switch part {
+		case "parameter":
+			query.Column("_").Relation("Alpha.parameter")
+		case "code":
+			query.Column("_").Relation("Alpha.code")
+		case "storage":
+			query.Column("_").Relation("Alpha.storage")
+		default:
+			return nil, errors.Errorf("unknown script part name: %s", part)
+		}
+	case "babylon":
+		switch part {
+		case "parameter":
+			query.Column("_").Relation("Babylon.parameter")
+		case "code":
+			query.Column("_").Relation("Babylon.code")
+		case "storage":
+			query.Column("_").Relation("Babylon.storage")
+		default:
+			return nil, errors.Errorf("unknown script part name: %s", part)
+		}
+	default:
+		return nil, errors.Errorf("unknown protocol symbolic link: %s", symLink)
+	}
+	var data []byte
+	err := query.Select(pg.Scan(&data))
+	return data, err
 }

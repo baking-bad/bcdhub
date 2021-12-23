@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"runtime"
 	"sync"
 	"syscall"
 
@@ -33,7 +32,6 @@ func main() {
 		config.WithConfigCopy(cfg),
 		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle),
 		config.WithSearch(cfg.Storage),
-		config.WithShare(cfg.SharePath),
 	)
 	defer internalCtx.Close()
 
@@ -44,13 +42,6 @@ func main() {
 		helpers.CatchErrorSentry(err)
 		return
 	}
-
-	countCPU := runtime.NumCPU()
-	if countCPU > len(indexers)+1 {
-		countCPU = len(indexers) + 1
-	}
-	logger.Warning().Msgf("Indexer started on %d CPU cores", countCPU)
-	runtime.GOMAXPROCS(countCPU)
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)

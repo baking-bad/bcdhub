@@ -2,8 +2,10 @@ package contract
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -15,31 +17,12 @@ import (
 
 // Parser -
 type Parser struct {
-	scriptSaver ScriptSaver
-	ctx         *config.Context
+	ctx *config.Context
 }
 
 // NewParser -
-func NewParser(ctx *config.Context, opts ...ParserOption) *Parser {
-	parser := &Parser{ctx: ctx}
-	for i := range opts {
-		opts[i](parser)
-	}
-
-	return parser
-}
-
-// ParserOption -
-type ParserOption func(p *Parser)
-
-// WithShareDir -
-func WithShareDir(dir string) ParserOption {
-	return func(p *Parser) {
-		if dir == "" {
-			return
-		}
-		p.scriptSaver = NewFileScriptSaver(dir)
-	}
+func NewParser(ctx *config.Context) *Parser {
+	return &Parser{ctx: ctx}
 }
 
 // Parse -
@@ -77,24 +60,41 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 		return errors.Wrap(err, "astContract.NewParser")
 	}
 
-	constants, err := script.FindConstants()
+	contractScript, err := p.ctx.Scripts.ByHash(script.Hash)
 	if err != nil {
-		return errors.Wrap(err, "script.FindConstants")
-	}
-
-	if len(constants) > 0 {
-		globalConstants, err := p.ctx.GlobalConstants.All(c.Network, constants...)
-		if err != nil {
+		if !p.ctx.Storage.IsRecordNotFound(err) {
 			return err
 		}
-		c.Constants = globalConstants
-		p.replaceConstants(c, operation)
-
-		script, err = astContract.NewParser(operation.Script)
-		if err != nil {
-			return errors.Wrap(err, "astContract.NewParser")
+		var s bcd.RawScript
+		if err := json.Unmarshal(script.CodeRaw, &s); err != nil {
+			return err
+		}
+		contractScript = contract.Script{
+			Hash:      script.Hash,
+			Code:      s.Code,
+			Parameter: s.Parameter,
+			Storage:   s.Storage,
+			Views:     s.Views,
 		}
 
+		constants, err := script.FindConstants()
+		if err != nil {
+			return errors.Wrap(err, "script.FindConstants")
+		}
+
+		if len(constants) > 0 {
+			globalConstants, err := p.ctx.GlobalConstants.All(c.Network, constants...)
+			if err != nil {
+				return err
+			}
+			contractScript.Constants = globalConstants
+			p.replaceConstants(&contractScript, operation)
+
+			script, err = astContract.NewParser(operation.Script)
+			if err != nil {
+				return errors.Wrap(err, "astContract.NewParser")
+			}
+		}
 	}
 
 	if err := script.Parse(); err != nil {
@@ -103,48 +103,53 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 	operation.Script = script.CodeRaw
 	operation.AST = script.Code
 
-	c.Hash = script.Hash
-	c.FailStrings = script.FailStrings.Values()
-	c.Annotations = script.Annotations.Values()
-	c.Tags = types.NewTags(script.Tags.Values())
-	c.Hardcoded = script.HardcodedAddresses.Values()
-	c.FingerprintCode = script.Fingerprint.Code
-	c.FingerprintParameter = script.Fingerprint.Parameter
-	c.FingerprintStorage = script.Fingerprint.Storage
+	contractScript.FingerprintParameter = script.Fingerprint.Parameter
+	contractScript.FingerprintCode = script.Fingerprint.Code
+	contractScript.FingerprintStorage = script.Fingerprint.Storage
+	contractScript.FailStrings = script.FailStrings.Values()
+	contractScript.Annotations = script.Annotations.Values()
+	contractScript.Tags = types.NewTags(script.Tags.Values())
+	contractScript.Hardcoded = script.HardcodedAddresses.Values()
 
 	params, err := script.Code.Parameter.ToTypedAST()
 	if err != nil {
 		return err
 	}
-	c.Entrypoints = params.GetEntrypoints()
+	contractScript.Entrypoints = params.GetEntrypoints()
 
 	if script.IsUpgradable() {
-		c.Tags.Set(types.UpgradableTag)
+		contractScript.Tags.Set(types.UpgradableTag)
 	}
 
-	projectID, err := p.ctx.CachedProjectIDByHash(c.Hash)
-	if err != nil {
-		return err
-	}
-	c.ProjectID = types.NewNullString(&projectID)
-
-	proto, err := p.ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
+	proto, err := p.ctx.Cache.ProtocolByID(operation.Network, operation.ProtocolID)
 	if err != nil {
 		return err
 	}
 
-	if p.scriptSaver != nil {
-		return p.scriptSaver.Save(operation.Script, ScriptSaveContext{
-			Network: c.Network.String(),
-			Address: c.Address,
-			Hash:    c.Hash,
-			SymLink: proto.SymLink,
-		})
+	if contractScript.ID > 0 {
+		switch proto.SymLink {
+		case bcd.SymLinkAlpha:
+			c.AlphaID = contractScript.ID
+			c.Alpha = contractScript
+		case bcd.SymLinkBabylon:
+			c.BabylonID = contractScript.ID
+			c.Babylon = contractScript
+		}
+	} else {
+		switch proto.SymLink {
+		case bcd.SymLinkAlpha:
+			c.Alpha = contractScript
+		case bcd.SymLinkBabylon:
+			c.Babylon = contractScript
+		}
 	}
+
+	c.Tags = contractScript.Tags
+
 	return nil
 }
 
-func (p *Parser) replaceConstants(c *contract.Contract, operation *operation.Operation) {
+func (p *Parser) replaceConstants(c *contract.Script, operation *operation.Operation) {
 	pattern := `{"prim":"constant","args":[{"string":"%s"}]}`
 	for i := range c.Constants {
 		operation.Script = bytes.ReplaceAll(

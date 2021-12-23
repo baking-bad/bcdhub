@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"bytes"
 	"encoding/json"
 	"time"
 
@@ -13,23 +14,21 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	contractParser "github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/go-pg/pg/v10"
+	"github.com/pkg/errors"
 )
 
 // MigrationParser -
 type MigrationParser struct {
-	storage     models.GeneralRepository
-	bmdRepo     bigmapdiff.Repository
-	scriptSaver contractParser.ScriptSaver
+	storage models.GeneralRepository
+	bmdRepo bigmapdiff.Repository
 }
 
 // NewMigrationParser -
-func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Repository, filesDirectory string) *MigrationParser {
+func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Repository) *MigrationParser {
 	return &MigrationParser{
-		storage:     storage,
-		bmdRepo:     bmdRepo,
-		scriptSaver: contractParser.NewFileScriptSaver(filesDirectory),
+		storage: storage,
+		bmdRepo: bmdRepo,
 	}
 }
 
@@ -46,22 +45,41 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 		return err
 	}
 
-	newHash, err := contract.ComputeHash(codeBytes)
+	var buf bytes.Buffer
+	if err := json.Compact(&buf, codeBytes); err != nil {
+		return err
+	}
+
+	newHash, err := contract.ComputeHash(buf.Bytes())
 	if err != nil {
 		return err
 	}
 
-	if err := p.scriptSaver.Save(codeBytes, contractParser.ScriptSaveContext{
-		Hash:    newHash,
-		Address: old.Address,
-		Network: old.Network.String(),
-		SymLink: next.SymLink,
-	}); err != nil {
+	var s bcd.RawScript
+	if err := json.Unmarshal(buf.Bytes(), &s); err != nil {
 		return err
 	}
 
-	if newHash == old.Hash {
-		return nil
+	contractScript := modelsContract.Script{
+		Hash:      newHash,
+		Code:      s.Code,
+		Storage:   s.Storage,
+		Parameter: s.Parameter,
+		Views:     s.Views,
+	}
+
+	if err := contractScript.Save(tx); err != nil {
+		return err
+	}
+
+	switch next.SymLink {
+	case bcd.SymLinkAlpha:
+	case bcd.SymLinkBabylon:
+		if contractScript.ID == old.AlphaID {
+			return nil
+		}
+	default:
+		return errors.Errorf("unknown protocol symbolic link: %s", next.SymLink)
 	}
 
 	m := &migration.Migration{

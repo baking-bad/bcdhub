@@ -30,7 +30,7 @@ func (p *ImplicitParser) Parse(metadata noderpc.Metadata, head noderpc.Header) (
 		return nil, nil
 	}
 
-	protocol, err := p.ctx.CachedProtocolByHash(p.network, head.Protocol)
+	protocol, err := p.ctx.Cache.ProtocolByHash(p.network, head.Protocol)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, 
 	}
 	origination.Script = script
 
-	contractParser := contract.NewParser(p.ctx, contract.WithShareDir(p.ctx.SharePath))
+	contractParser := contract.NewParser(p.ctx)
 	contractResult, err := contractParser.Parse(&origination)
 	if err != nil {
 		return err

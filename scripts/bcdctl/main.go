@@ -34,7 +34,6 @@ func main() {
 		config.WithStorage(cfg.Storage, "bcdctl", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle),
 		config.WithConfigCopy(cfg),
 		config.WithRPC(cfg.RPC),
-		config.WithShare(cfg.SharePath),
 		config.WithSearch(cfg.Storage),
 	)
 	defer ctx.Close()

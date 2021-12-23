@@ -37,7 +37,6 @@ type Context struct {
 	StorageDB *core.Postgres
 
 	Config     Config
-	SharePath  string
 	TzipSchema string
 
 	TezosDomainsContracts map[types.Network]string
@@ -59,6 +58,7 @@ type Context struct {
 	TZIP            tzip.Repository
 	Domains         domains.Repository
 	Services        service.Repository
+	Scripts         contract.ScriptRepository
 
 	Searcher search.Searcher
 
@@ -69,7 +69,6 @@ type Context struct {
 // NewContext -
 func NewContext(opts ...ContextOption) *Context {
 	ctx := &Context{
-		Cache:     cache.NewCache(),
 		Sanitizer: bluemonday.UGCPolicy(),
 	}
 	ctx.Sanitizer.AllowAttrs("em")
@@ -77,6 +76,10 @@ func NewContext(opts ...ContextOption) *Context {
 	for _, opt := range opts {
 		opt(ctx)
 	}
+
+	ctx.Cache = cache.NewCache(
+		ctx.RPC, ctx.Blocks, ctx.Contracts, ctx.Protocols, ctx.TZIP, ctx.Sanitizer,
+	)
 	return ctx
 }
 

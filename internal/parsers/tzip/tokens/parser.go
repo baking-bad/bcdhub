@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -21,22 +22,23 @@ import (
 
 // Parser -
 type Parser struct {
-	bmdRepo    bigmapdiff.Repository
-	blocksRepo block.Repository
-	tmRepo     tokenmetadata.Repository
-	storage    models.GeneralRepository
+	bmdRepo       bigmapdiff.Repository
+	blocksRepo    block.Repository
+	contractsRepo contract.Repository
+	tmRepo        tokenmetadata.Repository
+	storage       models.GeneralRepository
 
-	rpc       noderpc.INode
-	sharePath string
-	network   types.Network
-	ipfs      []string
+	rpc     noderpc.INode
+	network types.Network
+	ipfs    []string
 }
 
 // NewParser -
-func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
+func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, contractsRepo contract.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, network types.Network, ipfs ...string) Parser {
 	return Parser{
 		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage,
-		rpc: rpc, sharePath: sharePath, network: network, ipfs: ipfs, tmRepo: tmRepo,
+		rpc: rpc, network: network, ipfs: ipfs, tmRepo: tmRepo,
+		contractsRepo: contractsRepo,
 	}
 }
 
@@ -79,14 +81,14 @@ func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storageAST *ast.TypedAs
 				}
 			}
 		case strings.HasPrefix(m.Link, "tezos-storage:"):
-			bmPtr, err := storage.GetBigMapPtr(t.rpc, t.network, bmd.Contract, "metadata", bmd.Protocol.Hash, t.sharePath, bmd.Level)
+			bmPtr, err := storage.GetBigMapPtr(t.storage, t.contractsRepo, t.rpc, t.network, bmd.Contract, "metadata", bmd.Protocol.Hash, bmd.Level)
 			if err != nil {
 				return nil, err
 			}
 			ptr = bmPtr
 		}
 
-		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
+		s := tzipStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
 
 		remoteMetadata := new(TokenMetadata)
 		if err := s.Get(t.network, bmd.Contract, m.Link, ptr, remoteMetadata); err != nil {
@@ -108,7 +110,7 @@ func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storageAST *ast.TypedAs
 }
 
 func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
-	ptr, err := storage.GetBigMapPtr(t.rpc, state.Network, address, TokenMetadataStorageKey, state.Protocol.Hash, t.sharePath, state.Level)
+	ptr, err := storage.GetBigMapPtr(t.storage, t.contractsRepo, t.rpc, state.Network, address, TokenMetadataStorageKey, state.Protocol.Hash, state.Level)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +144,7 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 	result := make([]tokenmetadata.TokenMetadata, 0)
 	for _, m := range metadata {
 		if m.Link != "" {
-			s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
+			s := tzipStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
 
 			remoteMetadata := &TokenMetadata{}
 			if err := s.Get(t.network, address, m.Link, ptr, remoteMetadata); err != nil {

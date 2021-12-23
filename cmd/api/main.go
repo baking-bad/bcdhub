@@ -89,7 +89,6 @@ func (api *app) makeRouter() {
 
 		v1.GET("head", cache.CachePage(store, time.Second*10, api.Context.GetHead))
 		v1.GET("opg/:hash", api.Context.GetOperation)
-		v1.GET("opg/:hash/:content/storage_diff", api.Context.GetContentDiff)
 		v1.GET("operation/:id/error_location", api.Context.GetOperationErrorLocation)
 		v1.GET("pick_random", api.Context.GetRandomContract)
 		v1.GET("search", api.Context.Search)
@@ -97,6 +96,12 @@ func (api *app) makeRouter() {
 		v1.GET("config", api.Context.GetConfig)
 
 		v1.POST("diff", api.Context.GetDiff)
+
+		operation := v1.Group("operation/:id")
+		{
+			operation.GET("error_location", api.Context.GetOperationErrorLocation)
+			operation.GET("diff", api.Context.GetOperationDiff)
+		}
 
 		stats := v1.Group("stats")
 		{

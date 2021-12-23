@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/handlers"
@@ -21,15 +22,17 @@ type ContractMetadataHandler struct {
 func NewContractMetadataHandler(ctx *config.Context) *ContractMetadataHandler {
 	return &ContractMetadataHandler{
 		ctx,
-		handlers.NewContractMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
+		handlers.NewContractMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.Config.IPFSGateways),
 	}
 }
 
 // Handle -
-func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Model) error {
+func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Model, wg *sync.WaitGroup) error {
 	if len(items) == 0 {
 		return nil
 	}
+
+	var localWg sync.WaitGroup
 
 	updates := make([]models.Model, 0)
 	for i := range items {
@@ -38,24 +41,34 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Mo
 			return errors.Errorf("[ContractMetadata.Handle] invalid type: expected *bigmapdiff.BigMapDiff got %T", items[i])
 		}
 
-		storageType, err := cm.CachedStorageType(bmd.Network, bmd.Contract, bmd.Protocol.SymLink)
+		storageType, err := cm.Cache.StorageType(bmd.Network, bmd.Contract, bmd.Protocol.SymLink)
 		if err != nil {
 			return errors.Errorf("[ContractMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
 		}
 
-		res, err := cm.handler.Do(bmd, storageType)
-		if err != nil {
-			return errors.Errorf("[ContractMetadata.Handle] compute error message: %s", err)
-		}
-
-		updates = append(updates, res...)
+		wg.Add(1)
+		localWg.Add(1)
+		func() {
+			defer func() {
+				wg.Done()
+				localWg.Done()
+			}()
+			res, err := cm.handler.Do(bmd, storageType)
+			if err != nil {
+				logger.Warning().Err(err).Msgf("ContractMetadata.Handle")
+				return
+			}
+			updates = append(updates, res...)
+		}()
 	}
+
+	localWg.Wait()
 
 	if len(updates) == 0 {
 		return nil
 	}
 
-	logger.Info().Msgf("%2d contract metadata are processed", len(updates))
+	logger.Info().Msgf("%3d contract metadata are processed", len(updates))
 
 	if err := saveSearchModels(cm.Context, updates); err != nil {
 		return err

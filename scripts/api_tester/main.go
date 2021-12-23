@@ -24,7 +24,6 @@ func main() {
 	ctx := config.NewContext(
 		config.WithStorage(cfg.Storage, "api_tester", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle),
 		config.WithRPC(cfg.RPC),
-		config.WithShare(cfg.SharePath),
 		config.WithSearch(cfg.Storage),
 		config.WithLoadErrorDescriptions(),
 		config.WithConfigCopy(cfg),

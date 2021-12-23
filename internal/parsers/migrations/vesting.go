@@ -12,21 +12,19 @@ import (
 
 // VestingParser -
 type VestingParser struct {
-	ctx            *config.Context
-	filesDirectory string
+	ctx *config.Context
 }
 
 // NewVestingParser -
-func NewVestingParser(ctx *config.Context, filesDirectory string) *VestingParser {
+func NewVestingParser(ctx *config.Context) *VestingParser {
 	return &VestingParser{
-		ctx:            ctx,
-		filesDirectory: filesDirectory,
+		ctx: ctx,
 	}
 }
 
 // Parse -
 func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network types.Network, address string) (*parsers.Result, error) {
-	proto, err := p.ctx.CachedProtocolByHash(network, head.Protocol)
+	proto, err := p.ctx.Cache.ProtocolByHash(network, head.Protocol)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +38,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Kind:       types.MigrationKindBootstrap,
 	}
 
-	parser := contract.NewParser(p.ctx, contract.WithShareDir(p.filesDirectory))
+	parser := contract.NewParser(p.ctx)
 	contractModels, err := parser.Parse(&operation.Operation{
 		Network:     network,
 		ProtocolID:  proto.ID,

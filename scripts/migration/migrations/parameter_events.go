@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -71,7 +70,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					continue
 				}
 
-				script, err := fetch.ContractBySymLink(tzips[i].Network, tzips[i].Address, protocol.SymLink, ctx.SharePath)
+				script, err := ctx.Contracts.Script(tzips[i].Network, tzips[i].Address, protocol.SymLink)
 				if err != nil {
 					return err
 				}
@@ -85,12 +84,14 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					if err := bar.Add(1); err != nil {
 						return err
 					}
-					op.Script = script
-					tree, err := ast.NewScriptWithoutCode(script)
+					op.Script, err = script.Full()
 					if err != nil {
 						return err
 					}
-					op.AST = tree
+					op.AST, err = ast.NewScriptWithoutCode(op.Script)
+					if err != nil {
+						return err
+					}
 
 					st := stacktrace.New()
 					if err := st.Fill(ctx.Operations, op); err != nil {
@@ -98,7 +99,6 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					}
 
 					parser, err := transferParser.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.TokenBalances,
-						ctx.SharePath,
 						transferParser.WithNetwork(tzips[i].Network),
 						transferParser.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 						transferParser.WithStackTrace(st),
@@ -107,7 +107,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					proto, err := ctx.CachedProtocolByID(operations[i].Network, operations[i].ProtocolID)
+					proto, err := ctx.Cache.ProtocolByID(operations[i].Network, operations[i].ProtocolID)
 					if err != nil {
 						return err
 					}

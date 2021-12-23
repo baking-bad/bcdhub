@@ -30,6 +30,7 @@ const (
 	DocOperations      = "operations"
 	DocProtocol        = "protocols"
 	DocServices        = "states"
+	DocScripts         = "scripts"
 	DocTokenBalances   = "token_balances"
 	DocTokenMetadata   = "token_metadata"
 	DocTransfers       = "transfers"
@@ -50,6 +51,7 @@ func AllDocuments() []string {
 		DocMigrations,
 		DocOperations,
 		DocProtocol,
+		DocScripts,
 		DocTokenBalances,
 		DocTokenMetadata,
 		DocTransfers,
@@ -69,7 +71,8 @@ func AllModels() []Model {
 		&transfer.Transfer{},
 		&operation.Operation{},
 		&global_constant.GlobalConstant{},
-		&contract.ContractConstants{},
+		&contract.Script{},
+		&contract.ScriptConstants{},
 		&contract.Contract{},
 		&migration.Migration{},
 		&tokenbalance.TokenBalance{},
@@ -82,6 +85,6 @@ func AllModels() []Model {
 // ManyToMany -
 func ManyToMany() []interface{} {
 	return []interface{}{
-		&contract.ContractConstants{},
+		&contract.ScriptConstants{},
 	}
 }

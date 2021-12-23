@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/pkg/errors"
 )
 
@@ -138,15 +137,6 @@ func (p Pool) GetLevel() (int64, error) {
 	return data.Int(), nil
 }
 
-// GetLevelTime - get level time
-func (p Pool) GetLevelTime(level int) (time.Time, error) {
-	data, err := p.call("GetLevelTime", level)
-	if err != nil {
-		return time.Now(), err
-	}
-	return data.Interface().(time.Time), nil
-}
-
 // GetScriptJSON -
 func (p Pool) GetScriptJSON(address string, level int64) (Script, error) {
 	data, err := p.call("GetScriptJSON", address, level)
@@ -192,6 +182,15 @@ func (p Pool) GetOPG(block int64) ([]OperationGroup, error) {
 	return data.Interface().([]OperationGroup), nil
 }
 
+// GetLightOPG -
+func (p Pool) GetLightOPG(block int64) ([]LightOperationGroup, error) {
+	data, err := p.call("GetLightOPG", block)
+	if err != nil {
+		return nil, err
+	}
+	return data.Interface().([]LightOperationGroup), nil
+}
+
 // GetContractsByBlock -
 func (p Pool) GetContractsByBlock(block int64) ([]string, error) {
 	data, err := p.call("GetContractsByBlock", block)
@@ -228,6 +227,15 @@ func (p Pool) RunOperation(chainID, branch, source, destination string, fee, gas
 	return data.Interface().(OperationGroup), nil
 }
 
+// RunOperationLight -
+func (p Pool) RunOperationLight(chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters []byte) (LightOperationGroup, error) {
+	data, err := p.call("RunOperationLight", chainID, branch, source, destination, fee, gasLimit, storageLimit, counter, amount, parameters)
+	if err != nil {
+		return LightOperationGroup{}, err
+	}
+	return data.Interface().(LightOperationGroup), nil
+}
+
 // GetCounter -
 func (p Pool) GetCounter(address string) (int64, error) {
 	data, err := p.call("GetCounter", address)
@@ -235,15 +243,6 @@ func (p Pool) GetCounter(address string) (int64, error) {
 		return 0, err
 	}
 	return data.Int(), nil
-}
-
-// GetCode -
-func (p Pool) GetCode(address string, level int64) (*ast.Script, error) {
-	data, err := p.call("GetCode", address, level)
-	if err != nil {
-		return nil, err
-	}
-	return data.Interface().(*ast.Script), nil
 }
 
 // GetBigMapType -

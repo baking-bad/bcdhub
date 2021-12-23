@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -19,12 +20,12 @@ func NewBigMapDiffHandler(ctx *config.Context) *BigMapDiffHandler {
 }
 
 // Handle -
-func (oh *BigMapDiffHandler) Handle(ctx context.Context, items []models.Model) error {
+func (oh *BigMapDiffHandler) Handle(ctx context.Context, items []models.Model, wg *sync.WaitGroup) error {
 	if len(items) == 0 {
 		return nil
 	}
 
-	logger.Info().Msgf("%2d big map diffs are processed", len(items))
+	logger.Info().Msgf("%3d big map diffs are processed", len(items))
 
 	return saveSearchModels(oh.Context, items)
 }

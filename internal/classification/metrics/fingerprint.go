@@ -21,10 +21,11 @@ func NewFingerprint(section string) *Fingerprint {
 }
 
 // Compute -
-func (m *Fingerprint) Compute(a, b contract.Contract) Feature {
+func (m *Fingerprint) Compute(a, b contract.Script) Feature {
 	f := Feature{
 		Name: fmt.Sprintf("fingerprint_%s", m.Section),
 	}
+
 	var x, y []byte
 	switch m.Section {
 	case consts.PARAMETER:
@@ -129,7 +130,7 @@ func NewFingerprintLength(section string) *FingerprintLength {
 }
 
 // Compute -
-func (m *FingerprintLength) Compute(a, b contract.Contract) Feature {
+func (m *FingerprintLength) Compute(a, b contract.Script) Feature {
 	f := Feature{
 		Name: fmt.Sprintf("fingerprint_length_%s", m.Section),
 	}

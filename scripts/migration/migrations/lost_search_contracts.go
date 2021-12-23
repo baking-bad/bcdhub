@@ -65,8 +65,8 @@ func (m *FixLostSearchContracts) saveSearchModels(ctx *config.Context, contracts
 
 	for i := range data {
 		if typ, ok := data[i].(*search.Contract); ok {
-			typ.Alias = ctx.CachedAlias(types.NewNetwork(typ.Network), typ.Address)
-			typ.DelegateAlias = ctx.CachedAlias(types.NewNetwork(typ.Network), typ.Delegate)
+			typ.Alias = ctx.Cache.Alias(types.NewNetwork(typ.Network), typ.Address)
+			typ.DelegateAlias = ctx.Cache.Alias(types.NewNetwork(typ.Network), typ.Delegate)
 		}
 	}
 

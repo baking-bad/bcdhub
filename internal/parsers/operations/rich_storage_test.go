@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
@@ -240,15 +240,21 @@ func TestRichStorage_Parse(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
 			}
-
 			proto, ok := protocols[tt.operation.ProtocolID]
 			if !ok {
 				t.Errorf(`unknown protocol ID: %d`, tt.operation.ProtocolID)
 				return
 			}
-			script, err := fetch.Contract(tt.operation.Network, tt.operation.Destination, proto, "./test")
+
+			symLink, err := bcd.GetProtoSymLink(proto)
 			if err != nil {
-				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
+				t.Error(err)
+				return
+			}
+
+			script, err := readTestScript(tt.operation.Network, tt.operation.Destination, symLink)
+			if err != nil {
+				t.Errorf(`readTestScript= error %v`, err)
 				return
 			}
 			tt.operation.Script = script

@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	jsoniter "github.com/json-iterator/go"
@@ -195,17 +194,6 @@ func (rpc *NodeRPC) GetHeader(level int64) (header Header, err error) {
 	return
 }
 
-// GetLevelTime - get level time
-func (rpc *NodeRPC) GetLevelTime(level int) (time.Time, error) {
-	var head struct {
-		Timestamp time.Time `json:"timestamp"`
-	}
-	if err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/header", getBlockString(int64(level))), &head); err != nil {
-		return time.Now(), err
-	}
-	return head.Timestamp.UTC(), nil
-}
-
 // GetScriptJSON -
 func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (script Script, err error) {
 	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), &script)
@@ -244,6 +232,12 @@ func (rpc *NodeRPC) GetContractData(address string, level int64) (ContractData, 
 
 // GetOPG -
 func (rpc *NodeRPC) GetOPG(block int64) (group []OperationGroup, err error) {
+	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/operations/3", getBlockString(block)), &group)
+	return
+}
+
+// GetLightOPG -
+func (rpc *NodeRPC) GetLightOPG(block int64) (group []LightOperationGroup, err error) {
 	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/operations/3", getBlockString(block)), &group)
 	return
 }
@@ -323,6 +317,33 @@ func (rpc *NodeRPC) RunOperation(chainID, branch, source, destination string, fe
 	return
 }
 
+// RunOperationLight -
+func (rpc *NodeRPC) RunOperationLight(chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters []byte) (group LightOperationGroup, err error) {
+	request := runOperationRequest{
+		ChainID: chainID,
+		Operation: runOperationItem{
+			Branch:    branch,
+			Signature: "sigUHx32f9wesZ1n2BWpixXz4AQaZggEtchaQNHYGRCoWNAXx45WGW2ua3apUUUAGMLPwAU41QoaFCzVSL61VaessLg4YbbP", // base58_encode(b'0' * 64, b'sig').decode()
+			Contents: []runOperationItemContent{
+				{
+					Kind:         "transaction",
+					Fee:          fee,
+					Counter:      counter,
+					GasLimit:     gasLimit,
+					StorageLimit: storageLimit,
+					Source:       source,
+					Destination:  destination,
+					Amount:       amount,
+					Parameters:   parameters,
+				},
+			},
+		},
+	}
+
+	err = rpc.post("chains/main/blocks/head/helpers/scripts/run_operation", request, true, &group)
+	return
+}
+
 // GetCounter -
 func (rpc *NodeRPC) GetCounter(address string) (int64, error) {
 	var counter string
@@ -330,16 +351,6 @@ func (rpc *NodeRPC) GetCounter(address string) (int64, error) {
 		return 0, err
 	}
 	return strconv.ParseInt(counter, 10, 64)
-}
-
-// GetCode -
-func (rpc *NodeRPC) GetCode(address string, level int64) (*ast.Script, error) {
-	contract, err := rpc.GetScriptJSON(address, level)
-	if err != nil {
-		return nil, err
-	}
-
-	return contract.Code, nil
 }
 
 // GetBigMapType -

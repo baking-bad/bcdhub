@@ -43,11 +43,11 @@ func (ctx *Context) GetContractMigrations(c *gin.Context) {
 func prepareMigrations(ctx *Context, data []migration.Migration) ([]Migration, error) {
 	result := make([]Migration, len(data))
 	for i := range data {
-		proto, err := ctx.CachedProtocolByID(data[i].Network, data[i].ProtocolID)
+		proto, err := ctx.Cache.ProtocolByID(data[i].Network, data[i].ProtocolID)
 		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}
-		prevProto, err := ctx.CachedProtocolByID(data[i].Network, data[i].PrevProtocolID)
+		prevProto, err := ctx.Cache.ProtocolByID(data[i].Network, data[i].PrevProtocolID)
 		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}

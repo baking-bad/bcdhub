@@ -30,8 +30,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
-	"github.com/baking-bad/bcdhub/internal/parsers/contract"
+	"github.com/go-pg/pg/v10"
 	"github.com/golang/mock/gomock"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/shopspring/decimal"
 )
 
@@ -62,6 +63,10 @@ func TestGroup_Parse(t *testing.T) {
 	defer ctrlContractRepo.Finish()
 	contractRepo := mock_contract.NewMockRepository(ctrlContractRepo)
 
+	ctrlScriptRepo := gomock.NewController(t)
+	defer ctrlScriptRepo.Finish()
+	scriptRepo := mock_contract.NewMockScriptRepository(ctrlScriptRepo)
+
 	ctrlTokenBalanceRepo := gomock.NewController(t)
 	defer ctrlTokenBalanceRepo.Finish()
 	tbRepo := mock_token_balance.NewMockRepository(ctrlTokenBalanceRepo)
@@ -70,19 +75,16 @@ func TestGroup_Parse(t *testing.T) {
 	defer ctrlRPC.Finish()
 	rpc := noderpc.NewMockINode(ctrlRPC)
 
-	ctrlScriptSaver := gomock.NewController(t)
-	defer ctrlScriptSaver.Finish()
-	scriptSaver := contract.NewMockScriptSaver(ctrlScriptSaver)
-
-	scriptSaver.
-		EXPECT().
-		Save(gomock.Any(), gomock.Any()).
-		Return(nil).AnyTimes()
-
 	tzipRepo.
 		EXPECT().
 		GetWithEvents(gomock.Any()).
 		Return(make([]tzip.TZIP, 0), nil).
+		AnyTimes()
+
+	tzipRepo.
+		EXPECT().
+		Events(gomock.Any(), gomock.Any()).
+		Return(make(tzip.Events, 0), nil).
 		AnyTimes()
 
 	tzipRepo.
@@ -99,8 +101,20 @@ func TestGroup_Parse(t *testing.T) {
 
 	contractRepo.
 		EXPECT().
-		GetProjectIDByHash(gomock.Any()).
-		Return("", nil).
+		Script(gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(readTestScriptModel).
+		AnyTimes()
+
+	contractRepo.
+		EXPECT().
+		ScriptPart(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(readTestScriptPart).
+		AnyTimes()
+
+	scriptRepo.
+		EXPECT().
+		ByHash(gomock.Any()).
+		Return(modelContract.Script{}, pg.ErrNoRows).
 		AnyTimes()
 
 	generalRepo.
@@ -203,7 +217,7 @@ func TestGroup_Parse(t *testing.T) {
 		Return(protocol.Protocol{
 			Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
 			Network: types.Mainnet,
-			SymLink: bcd.SymLinkBabylon,
+			SymLink: bcd.SymLinkAlpha,
 			ID:      2,
 		}, nil).
 		AnyTimes()
@@ -277,7 +291,7 @@ func TestGroup_Parse(t *testing.T) {
 		Return(protocol.Protocol{
 			Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
 			Network: types.Mainnet,
-			SymLink: bcd.SymLinkBabylon,
+			SymLink: bcd.SymLinkAlpha,
 			ID:      2,
 		}, nil).
 		AnyTimes()
@@ -336,7 +350,12 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
-				Cache:         cache.NewCache(),
+				Scripts:       scriptRepo,
+				Cache: cache.NewCache(
+					map[types.Network]noderpc.INode{
+						types.Mainnet: rpc,
+					}, blockRepo, contractRepo, protoRepo, tzipRepo, bluemonday.UGCPolicy(),
+				),
 			},
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
@@ -360,8 +379,12 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
-				Cache:         cache.NewCache(),
-				SharePath:     "./test",
+				Scripts:       scriptRepo,
+				Cache: cache.NewCache(
+					map[types.Network]noderpc.INode{
+						types.Mainnet: rpc,
+					}, blockRepo, contractRepo, protoRepo, tzipRepo, bluemonday.UGCPolicy(),
+				),
 			},
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
@@ -538,8 +561,12 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
-				Cache:         cache.NewCache(),
-				SharePath:     "./test",
+				Scripts:       scriptRepo,
+				Cache: cache.NewCache(
+					map[types.Network]noderpc.INode{
+						types.Mainnet: rpc,
+					}, blockRepo, contractRepo, protoRepo, tzipRepo, bluemonday.UGCPolicy(),
+				),
 			},
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
@@ -740,8 +767,12 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
-				Cache:         cache.NewCache(),
-				SharePath:     "./test",
+				Scripts:       scriptRepo,
+				Cache: cache.NewCache(
+					map[types.Network]noderpc.INode{
+						types.Delphinet: rpc,
+					}, blockRepo, contractRepo, protoRepo, tzipRepo, bluemonday.UGCPolicy(),
+				),
 			},
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
@@ -789,15 +820,24 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				Contracts: []*modelContract.Contract{
 					{
-						Network:     types.Delphinet,
-						Level:       86142,
-						Timestamp:   timestamp,
-						Hash:        "97a40c7ff3bad5edb92c8e1dcfd4bfc778da8166a7632c1bcecbf8d8f9e4490b",
-						Entrypoints: []string{"decrement", "increment"},
-						Address:     "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
+						Network:   types.Delphinet,
+						Level:     86142,
+						Timestamp: timestamp,
+						Address:   "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
 						Manager: types.NullString{
 							Str:   "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
 							Valid: true,
+						},
+						Babylon: modelContract.Script{
+							Entrypoints:          []string{"decrement", "increment"},
+							Annotations:          []string{"%decrement", "%increment"},
+							Hash:                 "97a40c7ff3bad5edb92c8e1dcfd4bfc778da8166a7632c1bcecbf8d8f9e4490b",
+							Code:                 []byte(`[[{"prim":"DUP"},{"prim":"CDR"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"IF_LEFT","args":[[{"prim":"SWAP"},{"prim":"SUB"}],[{"prim":"ADD"}]]},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]`),
+							Parameter:            []byte(`[{"prim":"or","args":[{"prim":"int","annots":["%decrement"]},{"prim":"int","annots":["%increment"]}]}]`),
+							Storage:              []byte(`[{"prim":"int"}]`),
+							FingerprintCode:      []byte{33, 23, 76, 22, 46, 76, 75, 18, 61, 109, 66},
+							FingerprintParameter: []byte{91, 91},
+							FingerprintStorage:   []byte{91},
 						},
 					},
 				},
@@ -813,8 +853,12 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
-				Cache:         cache.NewCache(),
-				SharePath:     "./test",
+				Scripts:       scriptRepo,
+				Cache: cache.NewCache(
+					map[types.Network]noderpc.INode{
+						types.Mainnet: rpc,
+					}, blockRepo, contractRepo, protoRepo, tzipRepo, bluemonday.UGCPolicy(),
+				),
 			},
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
@@ -859,16 +903,23 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				Contracts: []*modelContract.Contract{
 					{
-						Network:     types.Mainnet,
-						Level:       301436,
-						Timestamp:   timestamp,
-						Hash:        "8fe2bee899e8700c88f620d06b4623fc6facddfce7157d56c1548108fefca7ca",
-						Tags:        types.Tags(0),
-						Entrypoints: []string{"default"},
-						Address:     "KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4",
+						Network:   types.Mainnet,
+						Level:     301436,
+						Timestamp: timestamp,
+						Address:   "KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4",
 						Manager: types.NullString{
 							Str:   "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
 							Valid: true,
+						},
+						Alpha: modelContract.Script{
+							Hash:        "c4915a55dbe0a3dfc8feb77e46f3e32828f80730a506fab277d8d6c0d5e2f1ec",
+							Tags:        types.Tags(0),
+							Entrypoints: []string{"default"},
+							Code:        []byte(`[[[[{"prim":"DUP"},{"prim":"CAR"},{"prim":"DIP","args":[[{"prim":"CDR"}]]}]],{"prim":"CONS"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]`),
+							Parameter:   []byte(`[{"prim":"pair","args":[{"prim":"string"},{"prim":"nat"}]}]`),
+							Storage:     []byte(`[{"prim":"list","args":[{"prim":"pair","args":[{"prim":"string"},{"prim":"nat"}]}]}]`), FingerprintCode: []byte{33, 22, 31, 23, 27, 61, 109, 66},
+							FingerprintParameter: []byte{104, 98},
+							FingerprintStorage:   []byte{95, 104, 98},
 						},
 					},
 				},
@@ -884,8 +935,12 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
-				Cache:         cache.NewCache(),
-				SharePath:     "./test",
+				Scripts:       scriptRepo,
+				Cache: cache.NewCache(
+					map[types.Network]noderpc.INode{
+						types.Edo2net: rpc,
+					}, blockRepo, contractRepo, protoRepo, tzipRepo, bluemonday.UGCPolicy(),
+				),
 			},
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
@@ -1018,19 +1073,28 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				Contracts: []*modelContract.Contract{
 					{
-						Network:     types.Edo2net,
-						Level:       72207,
-						Timestamp:   timestamp,
-						Hash:        "b82a20d0647f5ec74ef2daf404cd365a894f6868da0cd623ed07c6b85977b8db",
-						Tags:        types.LedgerTag | types.FA2Tag,
-						FailStrings: []string{"FA2_INSUFFICIENT_BALANCE"},
-						Annotations: []string{"%token_address", "%drop_proposal", "%transfer_contract_tokens", "%permits_counter", "%remove_operator", "%mint", "%ledger", "%voters", "%owner", "%balance", "%transfer", "%from_", "%max_voting_period", "%not_in_migration", "%start_date", "%custom_entrypoints", "%proposal_check", "%accept_ownership", "%migrate", "%set_quorum_threshold", "%amount", "%proposals", "%min_voting_period", "%rejected_proposal_return_value", "%burn", "%flush", "%max_quorum_threshold", "%migratingTo", "%operators", "%proposer", "%call_FA2", "%argument", "%params", "%transfer_ownership", "%voting_period", "%request", "%confirm_migration", "%frozen_token", "%param", "%admin", "%migration_status", "%proposal_key_list_sort_by_date", "%requests", "%update_operators", "%add_operator", "%getVotePermitCounter", "%propose", "%vote", "%vote_amount", "%proposer_frozen_token", "%callCustom", "%txs", "%operator", "%quorum_threshold", "%to_", "%set_voting_period", "%callback", "%contract_address", "%downvotes", "%max_votes", "%balance_of", "%proposal_key", "%vote_type", "%signature", "%decision_lambda", "%token_id", "%permit", "%key", "%extra", "%pending_owner", "%upvotes", "%max_proposals", "%min_quorum_threshold", "%proposal_metadata", "%metadata", "%migratedTo"},
-						Entrypoints: []string{"callCustom", "accept_ownership", "burn", "balance_of", "transfer", "update_operators", "confirm_migration", "drop_proposal", "flush", "getVotePermitCounter", "migrate", "mint", "propose", "set_quorum_threshold", "set_voting_period", "transfer_ownership", "vote", "transfer_contract_tokens"},
-						Address:     "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+						Network:   types.Edo2net,
+						Level:     72207,
+						Timestamp: timestamp,
+						Address:   "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 						Manager: types.NullString{
 							Str:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 							Valid: true,
 						},
+						Babylon: modelContract.Script{
+							Hash:                 "b82a20d0647f5ec74ef2daf404cd365a894f6868da0cd623ed07c6b85977b8db",
+							Tags:                 types.LedgerTag | types.FA2Tag,
+							FailStrings:          []string{"FA2_INSUFFICIENT_BALANCE"},
+							Annotations:          []string{"%token_address", "%drop_proposal", "%transfer_contract_tokens", "%permits_counter", "%remove_operator", "%mint", "%ledger", "%voters", "%owner", "%balance", "%transfer", "%from_", "%max_voting_period", "%not_in_migration", "%start_date", "%custom_entrypoints", "%proposal_check", "%accept_ownership", "%migrate", "%set_quorum_threshold", "%amount", "%proposals", "%min_voting_period", "%rejected_proposal_return_value", "%burn", "%flush", "%max_quorum_threshold", "%migratingTo", "%operators", "%proposer", "%call_FA2", "%argument", "%params", "%transfer_ownership", "%voting_period", "%request", "%confirm_migration", "%frozen_token", "%param", "%admin", "%migration_status", "%proposal_key_list_sort_by_date", "%requests", "%update_operators", "%add_operator", "%getVotePermitCounter", "%propose", "%vote", "%vote_amount", "%proposer_frozen_token", "%callCustom", "%txs", "%operator", "%quorum_threshold", "%to_", "%set_voting_period", "%callback", "%contract_address", "%downvotes", "%max_votes", "%balance_of", "%proposal_key", "%vote_type", "%signature", "%decision_lambda", "%token_id", "%permit", "%key", "%extra", "%pending_owner", "%upvotes", "%max_proposals", "%min_quorum_threshold", "%proposal_metadata", "%metadata", "%migratedTo"},
+							Entrypoints:          []string{"callCustom", "accept_ownership", "burn", "balance_of", "transfer", "update_operators", "confirm_migration", "drop_proposal", "flush", "getVotePermitCounter", "migrate", "mint", "propose", "set_quorum_threshold", "set_voting_period", "transfer_ownership", "vote", "transfer_contract_tokens"},
+							Code:                 []byte(`[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"FA2_INSUFFICIENT_BALANCE"}]},{"prim":"FAILWITH"}]]`),
+							Parameter:            []byte(`[{"prim":"or","args":[{"prim":"or","args":[{"prim":"pair","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%callCustom"]},{"prim":"or","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"unit","annots":["%accept_ownership"]},{"prim":"pair","args":[{"prim":"address","annots":["%from_"]},{"prim":"nat","annots":["%token_id"]},{"prim":"nat","annots":["%amount"]}],"annots":["%burn"]}]},{"prim":"or","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"pair","args":[{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"nat","annots":["%token_id"]}]}],"annots":["%requests"]},{"prim":"contract","args":[{"prim":"list","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"nat","annots":["%token_id"]}],"annots":["%request"]},{"prim":"nat","annots":["%balance"]}]}]}],"annots":["%callback"]}],"annots":["%balance_of"]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address","annots":["%from_"]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address","annots":["%to_"]},{"prim":"nat","annots":["%token_id"]},{"prim":"nat","annots":["%amount"]}]}],"annots":["%txs"]}]}],"annots":["%transfer"]}]},{"prim":"list","args":[{"prim":"or","args":[{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"address","annots":["%operator"]},{"prim":"nat","annots":["%token_id"]}],"annots":["%add_operator"]},{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"address","annots":["%operator"]},{"prim":"nat","annots":["%token_id"]}],"annots":["%remove_operator"]}]}],"annots":["%update_operators"]}],"annots":["%call_FA2"]},{"prim":"unit","annots":["%confirm_migration"]}]}]},{"prim":"or","args":[{"prim":"or","args":[{"prim":"bytes","annots":["%drop_proposal"]},{"prim":"nat","annots":["%flush"]}]},{"prim":"or","args":[{"prim":"pair","args":[{"prim":"unit","annots":["%param"]},{"prim":"contract","args":[{"prim":"nat"}],"annots":["%callback"]}],"annots":["%getVotePermitCounter"]},{"prim":"address","annots":["%migrate"]}]}]}]},{"prim":"or","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"pair","args":[{"prim":"address","annots":["%to_"]},{"prim":"nat","annots":["%token_id"]},{"prim":"nat","annots":["%amount"]}],"annots":["%mint"]},{"prim":"pair","args":[{"prim":"nat","annots":["%frozen_token"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%proposal_metadata"]}],"annots":["%propose"]}]},{"prim":"or","args":[{"prim":"nat","annots":["%set_quorum_threshold"]},{"prim":"nat","annots":["%set_voting_period"]}]}]},{"prim":"or","args":[{"prim":"address","annots":["%transfer_ownership"]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"bytes","annots":["%proposal_key"]},{"prim":"bool","annots":["%vote_type"]},{"prim":"nat","annots":["%vote_amount"]}],"annots":["%argument"]},{"prim":"option","args":[{"prim":"pair","args":[{"prim":"key","annots":["%key"]},{"prim":"signature","annots":["%signature"]}]}],"annots":["%permit"]}]}],"annots":["%vote"]}]}]}]}]},{"prim":"pair","args":[{"prim":"address","annots":["%contract_address"]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address","annots":["%from_"]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address","annots":["%to_"]},{"prim":"nat","annots":["%token_id"]},{"prim":"nat","annots":["%amount"]}]}],"annots":["%txs"]}]}],"annots":["%params"]}],"annots":["%transfer_contract_tokens"]}]}]}]`),
+							Storage:              []byte(`[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%admin"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%extra"]}]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}],"annots":["%ledger"]},{"prim":"big_map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"pair","args":[{"prim":"or","args":[{"prim":"unit","annots":["%not_in_migration"]},{"prim":"or","args":[{"prim":"address","annots":["%migratingTo"]},{"prim":"address","annots":["%migratedTo"]}]}],"annots":["%migration_status"]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"address","annots":["%operator"]}]},{"prim":"unit"}],"annots":["%operators"]}]},{"prim":"address","annots":["%pending_owner"]},{"prim":"nat","annots":["%permits_counter"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"set","args":[{"prim":"pair","args":[{"prim":"timestamp"},{"prim":"bytes"}]}],"annots":["%proposal_key_list_sort_by_date"]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%downvotes"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"address","annots":["%proposer"]},{"prim":"nat","annots":["%proposer_frozen_token"]}]},{"prim":"pair","args":[{"prim":"timestamp","annots":["%start_date"]},{"prim":"nat","annots":["%upvotes"]}]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]}],"annots":["%voters"]}]}],"annots":["%proposals"]}]},{"prim":"nat","annots":["%quorum_threshold"]},{"prim":"address","annots":["%token_address"]}]},{"prim":"nat","annots":["%voting_period"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%custom_entrypoints"]},{"prim":"lambda","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%downvotes"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"address","annots":["%proposer"]},{"prim":"nat","annots":["%proposer_frozen_token"]}]},{"prim":"pair","args":[{"prim":"timestamp","annots":["%start_date"]},{"prim":"nat","annots":["%upvotes"]}]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]}],"annots":["%voters"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%admin"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%extra"]}]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}],"annots":["%ledger"]},{"prim":"big_map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"pair","args":[{"prim":"or","args":[{"prim":"unit","annots":["%not_in_migration"]},{"prim":"or","args":[{"prim":"address","annots":["%migratingTo"]},{"prim":"address","annots":["%migratedTo"]}]}],"annots":["%migration_status"]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"address","annots":["%operator"]}]},{"prim":"unit"}],"annots":["%operators"]}]},{"prim":"address","annots":["%pending_owner"]},{"prim":"nat","annots":["%permits_counter"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"set","args":[{"prim":"pair","args":[{"prim":"timestamp"},{"prim":"bytes"}]}],"annots":["%proposal_key_list_sort_by_date"]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%downvotes"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"address","annots":["%proposer"]},{"prim":"nat","annots":["%proposer_frozen_token"]}]},{"prim":"pair","args":[{"prim":"timestamp","annots":["%start_date"]},{"prim":"nat","annots":["%upvotes"]}]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]}],"annots":["%voters"]}]}],"annots":["%proposals"]}]},{"prim":"nat","annots":["%quorum_threshold"]},{"prim":"address","annots":["%token_address"]}]},{"prim":"nat","annots":["%voting_period"]}]},{"prim":"pair","args":[{"prim":"list","args":[{"prim":"operation"}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%admin"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%extra"]}]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}],"annots":["%ledger"]},{"prim":"big_map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"pair","args":[{"prim":"or","args":[{"prim":"unit","annots":["%not_in_migration"]},{"prim":"or","args":[{"prim":"address","annots":["%migratingTo"]},{"prim":"address","annots":["%migratedTo"]}]}],"annots":["%migration_status"]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"address","annots":["%operator"]}]},{"prim":"unit"}],"annots":["%operators"]}]},{"prim":"address","annots":["%pending_owner"]},{"prim":"nat","annots":["%permits_counter"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"set","args":[{"prim":"pair","args":[{"prim":"timestamp"},{"prim":"bytes"}]}],"annots":["%proposal_key_list_sort_by_date"]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%downvotes"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"address","annots":["%proposer"]},{"prim":"nat","annots":["%proposer_frozen_token"]}]},{"prim":"pair","args":[{"prim":"timestamp","annots":["%start_date"]},{"prim":"nat","annots":["%upvotes"]}]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]}],"annots":["%voters"]}]}],"annots":["%proposals"]}]},{"prim":"nat","annots":["%quorum_threshold"]},{"prim":"address","annots":["%token_address"]}]},{"prim":"nat","annots":["%voting_period"]}]}],"annots":["%decision_lambda"]}]},{"prim":"nat","annots":["%max_proposals"]},{"prim":"nat","annots":["%max_quorum_threshold"]}]},{"prim":"pair","args":[{"prim":"nat","annots":["%max_votes"]},{"prim":"nat","annots":["%max_voting_period"]}]},{"prim":"nat","annots":["%min_quorum_threshold"]},{"prim":"nat","annots":["%min_voting_period"]}]},{"prim":"lambda","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%frozen_token"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%proposal_metadata"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%admin"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%extra"]}]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}],"annots":["%ledger"]},{"prim":"big_map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"pair","args":[{"prim":"or","args":[{"prim":"unit","annots":["%not_in_migration"]},{"prim":"or","args":[{"prim":"address","annots":["%migratingTo"]},{"prim":"address","annots":["%migratedTo"]}]}],"annots":["%migration_status"]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"address","annots":["%operator"]}]},{"prim":"unit"}],"annots":["%operators"]}]},{"prim":"address","annots":["%pending_owner"]},{"prim":"nat","annots":["%permits_counter"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"set","args":[{"prim":"pair","args":[{"prim":"timestamp"},{"prim":"bytes"}]}],"annots":["%proposal_key_list_sort_by_date"]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%downvotes"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"address","annots":["%proposer"]},{"prim":"nat","annots":["%proposer_frozen_token"]}]},{"prim":"pair","args":[{"prim":"timestamp","annots":["%start_date"]},{"prim":"nat","annots":["%upvotes"]}]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]}],"annots":["%voters"]}]}],"annots":["%proposals"]}]},{"prim":"nat","annots":["%quorum_threshold"]},{"prim":"address","annots":["%token_address"]}]},{"prim":"nat","annots":["%voting_period"]}]},{"prim":"bool"}],"annots":["%proposal_check"]},{"prim":"lambda","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%downvotes"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"address","annots":["%proposer"]},{"prim":"nat","annots":["%proposer_frozen_token"]}]},{"prim":"pair","args":[{"prim":"timestamp","annots":["%start_date"]},{"prim":"nat","annots":["%upvotes"]}]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]}],"annots":["%voters"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%admin"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%extra"]}]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}],"annots":["%ledger"]},{"prim":"big_map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"pair","args":[{"prim":"or","args":[{"prim":"unit","annots":["%not_in_migration"]},{"prim":"or","args":[{"prim":"address","annots":["%migratingTo"]},{"prim":"address","annots":["%migratedTo"]}]}],"annots":["%migration_status"]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"address","annots":["%operator"]}]},{"prim":"unit"}],"annots":["%operators"]}]},{"prim":"address","annots":["%pending_owner"]},{"prim":"nat","annots":["%permits_counter"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"set","args":[{"prim":"pair","args":[{"prim":"timestamp"},{"prim":"bytes"}]}],"annots":["%proposal_key_list_sort_by_date"]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%downvotes"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]}]},{"prim":"address","annots":["%proposer"]},{"prim":"nat","annots":["%proposer_frozen_token"]}]},{"prim":"pair","args":[{"prim":"timestamp","annots":["%start_date"]},{"prim":"nat","annots":["%upvotes"]}]},{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]}],"annots":["%voters"]}]}],"annots":["%proposals"]}]},{"prim":"nat","annots":["%quorum_threshold"]},{"prim":"address","annots":["%token_address"]}]},{"prim":"nat","annots":["%voting_period"]}]},{"prim":"nat"}],"annots":["%rejected_proposal_return_value"]}]}]}]`),
+							FingerprintCode:      []byte{67, 104, 104, 39},
+							FingerprintParameter: []byte{104, 105, 108, 110, 98, 98, 95, 110, 98, 90, 95, 110, 98, 98, 95, 110, 95, 110, 98, 98, 95, 110, 110, 98, 110, 110, 98, 108, 105, 98, 108, 90, 98, 110, 110, 98, 98, 98, 96, 104, 105, 98, 98, 110, 95, 105, 89, 98, 99, 92, 103, 110, 95, 110, 95, 110, 98, 98},
+							FingerprintStorage:   []byte{110, 96, 104, 105, 97, 110, 98, 98, 97, 104, 105, 108, 110, 110, 97, 110, 110, 108, 110, 98, 102, 107, 105, 97, 105, 98, 96, 104, 105, 110, 98, 107, 98, 95, 110, 98, 98, 110, 98, 96, 104, 105, 94, 98, 96, 104, 105, 110, 98, 107, 98, 95, 110, 98, 110, 96, 104, 105, 97, 110, 98, 98, 97, 104, 105, 108, 110, 110, 97, 110, 110, 108, 110, 98, 102, 107, 105, 97, 105, 98, 96, 104, 105, 110, 98, 107, 98, 95, 110, 98, 98, 110, 98, 95, 109, 110, 96, 104, 105, 97, 110, 98, 98, 97, 104, 105, 108, 110, 110, 97, 110, 110, 108, 110, 98, 102, 107, 105, 97, 105, 98, 96, 104, 105, 110, 98, 107, 98, 95, 110, 98, 98, 110, 98, 98, 98, 98, 98, 98, 98, 94, 98, 96, 104, 105, 110, 96, 104, 105, 97, 110, 98, 98, 97, 104, 105, 108, 110, 110, 97, 110, 110, 108, 110, 98, 102, 107, 105, 97, 105, 98, 96, 104, 105, 110, 98, 107, 98, 95, 110, 98, 98, 110, 98, 89, 94, 98, 96, 104, 105, 110, 98, 107, 98, 95, 110, 98, 110, 96, 104, 105, 97, 110, 98, 98, 97, 104, 105, 108, 110, 110, 97, 110, 110, 108, 110, 98, 102, 107, 105, 97, 105, 98, 96, 104, 105, 110, 98, 107, 98, 95, 110, 98, 98, 110, 98, 98},
+						},
+						Tags: types.LedgerTag | types.FA2Tag,
 					},
 				},
 			},
@@ -1045,8 +1109,12 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
-				Cache:         cache.NewCache(),
-				SharePath:     "./test",
+				Scripts:       scriptRepo,
+				Cache: cache.NewCache(
+					map[types.Network]noderpc.INode{
+						types.Mainnet: rpc,
+					}, blockRepo, contractRepo, protoRepo, tzipRepo, bluemonday.UGCPolicy(),
+				),
 			},
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
@@ -1159,8 +1227,12 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
-				Cache:         cache.NewCache(),
-				SharePath:     "./test",
+				Scripts:       scriptRepo,
+				Cache: cache.NewCache(
+					map[types.Network]noderpc.INode{
+						types.Mainnet: rpc,
+					}, blockRepo, contractRepo, protoRepo, tzipRepo, bluemonday.UGCPolicy(),
+				),
 			},
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
@@ -1266,8 +1338,12 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
-				Cache:         cache.NewCache(),
-				SharePath:     "./test",
+				Scripts:       scriptRepo,
+				Cache: cache.NewCache(
+					map[types.Network]noderpc.INode{
+						types.Hangzhounet: rpc,
+					}, blockRepo, contractRepo, protoRepo, tzipRepo, bluemonday.UGCPolicy(),
+				),
 			},
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
@@ -1311,6 +1387,7 @@ func TestGroup_Parse(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for address, level := range tt.storage {
@@ -1326,7 +1403,7 @@ func TestGroup_Parse(t *testing.T) {
 					AnyTimes()
 			}
 
-			var op noderpc.OperationGroup
+			var op noderpc.LightOperationGroup
 			if err := readJSONFile(tt.filename, &op); err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return

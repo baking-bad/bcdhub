@@ -1,8 +1,11 @@
 package storage
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/fetch"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
@@ -14,16 +17,16 @@ var (
 )
 
 // GetBigMapPtr -
-func GetBigMapPtr(rpc noderpc.INode, network types.Network, address, key, protocol, sharePath string, level int64) (int64, error) {
-	data, err := fetch.Contract(network, address, protocol, sharePath)
+func GetBigMapPtr(repo models.GeneralRepository, contracts contract.Repository, rpc noderpc.INode, network types.Network, address, key, protocol string, level int64) (int64, error) {
+	symLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return 0, err
 	}
-	script, err := ast.NewScript(data)
+	storageTypeByte, err := contracts.ScriptPart(network, address, symLink, consts.STORAGE)
 	if err != nil {
 		return 0, err
 	}
-	storage, err := script.StorageType()
+	storage, err := ast.NewTypedAstFromBytes(storageTypeByte)
 	if err != nil {
 		return 0, err
 	}
@@ -53,27 +56,23 @@ func GetBigMapPtr(rpc noderpc.INode, network types.Network, address, key, protoc
 }
 
 // FindByName -
-func FindByName(network types.Network, address, key, protocol, sharePath string) *ast.BigMap {
-	data, err := fetch.Contract(network, address, protocol, sharePath)
+func FindByName(repo models.GeneralRepository, contracts contract.Repository, network types.Network, address, key, protocol string) *ast.BigMap {
+	symLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return nil
 	}
-
-	script, err := ast.NewScript(data)
+	storageTypeByte, err := contracts.ScriptPart(network, address, symLink, consts.STORAGE)
 	if err != nil {
 		return nil
 	}
-
-	storage, err := script.StorageType()
+	storage, err := ast.NewTypedAstFromBytes(storageTypeByte)
 	if err != nil {
 		return nil
 	}
-
 	node := storage.FindByName(key, false)
 	if node == nil {
 		return nil
 	}
-
 	if bm, ok := node.(*ast.BigMap); ok {
 		return bm
 	}

@@ -8,4 +8,5 @@ type Repository interface {
 	GetWithEvents(updatedAt uint64) ([]TZIP, error)
 	GetBySlug(slug string) (*TZIP, error)
 	GetAliases(network types.Network) ([]TZIP, error)
+	Events(network types.Network, address string) (Events, error)
 }

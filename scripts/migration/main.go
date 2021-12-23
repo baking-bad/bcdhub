@@ -26,7 +26,6 @@ var migrationsList = []migrations.Migration{
 	&migrations.TokenMetadataUnknown{},
 	&migrations.DefaultEntrypoint{},
 	&migrations.FixLostSearchContracts{},
-	&migrations.NullableProjectID{},
 }
 
 func main() {
@@ -45,7 +44,6 @@ func main() {
 	start := time.Now()
 
 	ctx := config.NewContext(
-		config.WithShare(cfg.SharePath),
 		config.WithStorage(cfg.Storage, "migrations", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),

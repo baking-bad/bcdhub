@@ -33,13 +33,10 @@ type Config struct {
 	API APIConfig `yaml:"api"`
 
 	Indexer struct {
-		Networks map[string]struct {
-			Boost string `yaml:"boost"`
-		} `yaml:"networks"`
-		ProjectName         string      `yaml:"project_name"`
-		SentryEnabled       bool        `yaml:"sentry_enabled"`
-		SkipDelegatorBlocks bool        `yaml:"skip_delegator_blocks"`
-		Connections         Connections `yaml:"connections"`
+		Networks      map[string]struct{} `yaml:"networks"`
+		ProjectName   string              `yaml:"project_name"`
+		SentryEnabled bool                `yaml:"sentry_enabled"`
+		Connections   Connections         `yaml:"connections"`
 	} `yaml:"indexer"`
 
 	Metrics struct {
@@ -64,6 +61,7 @@ type Config struct {
 type RPCConfig struct {
 	URI     string `yaml:"uri"`
 	Timeout int    `yaml:"timeout"`
+	Cache   string `yaml:"cache"`
 }
 
 // TzKTConfig -

@@ -8,8 +8,8 @@ import (
 
 func TestBinMask_Compute(t *testing.T) {
 	type args struct {
-		a contract.Contract
-		b contract.Contract
+		a contract.Script
+		b contract.Script
 	}
 	tests := []struct {
 		name string
@@ -19,22 +19,22 @@ func TestBinMask_Compute(t *testing.T) {
 		{
 			name: "test 1",
 			args: args{
-				a: contract.Contract{Tags: 192},
-				b: contract.Contract{Tags: 192},
+				a: contract.Script{Tags: 192},
+				b: contract.Script{Tags: 192},
 			},
 			want: 1,
 		}, {
 			name: "test 2",
 			args: args{
-				a: contract.Contract{Tags: 3},
-				b: contract.Contract{Tags: 0},
+				a: contract.Script{Tags: 3},
+				b: contract.Script{Tags: 0},
 			},
 			want: 0.133333,
 		}, {
 			name: "test 3",
 			args: args{
-				a: contract.Contract{Tags: 7},
-				b: contract.Contract{Tags: 3},
+				a: contract.Script{Tags: 7},
+				b: contract.Script{Tags: 3},
 			},
 			want: 0.066666,
 		},

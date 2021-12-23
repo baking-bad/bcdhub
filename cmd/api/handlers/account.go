@@ -39,12 +39,12 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	block, err := ctx.CachedCurrentBlock(req.NetworkID())
+	block, err := ctx.Cache.CurrentBlock(req.NetworkID())
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	balance, err := ctx.CachedTezosBalance(req.NetworkID(), req.Address, block.Level)
+	balance, err := ctx.Cache.TezosBalance(req.NetworkID(), req.Address, block.Level)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -258,7 +258,7 @@ func (ctx *Context) GetAccountTokensCountByContractWithMetadata(c *gin.Context) 
 
 	response := make(map[string]TokensCountWithMetadata)
 	for address, count := range res {
-		metadata, err := ctx.CachedContractMetadata(req.NetworkID(), address)
+		metadata, err := ctx.Cache.ContractMetadata(req.NetworkID(), address)
 		if err != nil {
 			if !ctx.Storage.IsRecordNotFound(err) && ctx.handleError(c, err, 0) {
 				return
@@ -269,7 +269,7 @@ func (ctx *Context) GetAccountTokensCountByContractWithMetadata(c *gin.Context) 
 				}
 			}
 		}
-		contract, err := ctx.CachedContract(metadata.Network, metadata.Address)
+		contract, err := ctx.Cache.Contract(metadata.Network, metadata.Address)
 		if ctx.handleError(c, err, 0) {
 			return
 		}

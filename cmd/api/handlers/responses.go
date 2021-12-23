@@ -42,7 +42,7 @@ type Operation struct {
 	PaidStorageSizeDiff                int64              `json:"paid_storage_size_diff,omitempty" extensions:"x-nullable" example:"300"`
 	Errors                             []*tezerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
 	Parameters                         interface{}        `json:"parameters,omitempty" extensions:"x-nullable"`
-	StorageDiff                        interface{}        `json:"storage_diff,omitempty" extensions:"x-nullable"`
+	StorageDiff                        *ast.MiguelNode    `json:"storage_diff,omitempty" extensions:"x-nullable"`
 	RawMempool                         interface{}        `json:"rawMempool,omitempty" extensions:"x-nullable"`
 	Timestamp                          time.Time          `json:"timestamp"`
 	Protocol                           string             `json:"protocol"`
@@ -161,8 +161,6 @@ type Contract struct {
 func (c *Contract) FromModel(contract contract.Contract) {
 	c.Address = contract.Address
 	c.Delegate = contract.Delegate.String()
-	c.Entrypoints = contract.Entrypoints
-	c.Hash = contract.Hash
 	c.TxCount = contract.TxCount
 	c.LastAction = contract.LastAction
 
@@ -170,11 +168,19 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Manager = contract.Manager.String()
 	c.MigrationsCount = contract.MigrationsCount
 	c.Network = contract.Network.String()
-	c.ProjectID = contract.ProjectID.String()
 	c.Tags = contract.Tags.ToArray()
 	c.Timestamp = contract.Timestamp
-	c.FailStrings = contract.FailStrings
-	c.Annotations = contract.Annotations
+
+	script := contract.Alpha
+	if contract.BabylonID > 0 {
+		script = contract.Babylon
+	}
+
+	c.Hash = script.Hash
+	c.FailStrings = script.FailStrings
+	c.Annotations = script.Annotations
+	c.Entrypoints = script.Entrypoints
+	c.ProjectID = script.ProjectID.String()
 	c.ID = contract.ID
 }
 
@@ -452,8 +458,8 @@ func (c *SameContractsResponse) FromModel(same contract.SameResponse, ctx *Conte
 	for i := range same.Contracts {
 		var contract Contract
 		contract.FromModel(same.Contracts[i])
-		contract.Alias = ctx.CachedAlias(same.Contracts[i].Network, same.Contracts[i].Address)
-		contract.DelegateAlias = ctx.CachedAlias(same.Contracts[i].Network, same.Contracts[i].Delegate.String())
+		contract.Alias = ctx.Cache.Alias(same.Contracts[i].Network, same.Contracts[i].Address)
+		contract.DelegateAlias = ctx.Cache.Alias(same.Contracts[i].Network, same.Contracts[i].Delegate.String())
 		c.Contracts[i] = contract
 	}
 }

@@ -90,7 +90,7 @@ func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsO
 
 	transferParser, err := transfer.NewParser(
 		rpc,
-		ctx.TZIP, ctx.Blocks, ctx.TokenBalances, ctx.SharePath,
+		ctx.TZIP, ctx.Blocks, ctx.TokenBalances,
 		transfer.WithStackTrace(params.stackTrace),
 		transfer.WithNetwork(params.network),
 		transfer.WithChainID(params.head.ChainID),
@@ -101,10 +101,7 @@ func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsO
 	}
 	params.transferParser = transferParser
 
-	params.contractParser = contract.NewParser(
-		params.ctx,
-		contract.WithShareDir(ctx.SharePath),
-	)
+	params.contractParser = contract.NewParser(params.ctx)
 	storageParser, err := NewRichStorage(ctx.BigMapDiffs, rpc, params.head.Protocol)
 	if err != nil {
 		return nil, err

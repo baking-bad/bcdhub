@@ -30,6 +30,9 @@ func (a *Alpha) ParseTransaction(content noderpc.Operation, operation *operation
 
 // ParseOrigination -
 func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
+	if content.Script == nil {
+		return nil, nil
+	}
 	storage, err := operation.AST.StorageType()
 	if err != nil {
 		return nil, err

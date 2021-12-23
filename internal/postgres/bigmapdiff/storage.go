@@ -114,7 +114,7 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff) (response []bi
 }
 
 // GetForOperation -
-func (storage *Storage) GetForOperation(id int64) (response []*bigmapdiff.BigMapDiff, err error) {
+func (storage *Storage) GetForOperation(id int64) (response []bigmapdiff.BigMapDiff, err error) {
 	err = storage.DB.Model().Table(models.DocBigMapDiff).
 		Where("operation_id = ?", id).Select(&response)
 	return

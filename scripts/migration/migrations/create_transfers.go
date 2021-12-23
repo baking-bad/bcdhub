@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -61,7 +60,6 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		}
 
 		parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.TokenBalances,
-			ctx.SharePath,
 			transferParsers.WithNetwork(operations[i].Network),
 			transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 			transferParsers.WithoutViews(),
@@ -69,11 +67,15 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		proto, err := ctx.CachedProtocolByID(operations[i].Network, operations[i].ProtocolID)
+		proto, err := ctx.Cache.ProtocolByID(operations[i].Network, operations[i].ProtocolID)
 		if err != nil {
 			return err
 		}
-		operations[i].Script, err = fetch.ContractBySymLink(operations[i].Network, operations[i].Destination, proto.SymLink, ctx.SharePath)
+		script, err := ctx.Contracts.Script(operations[i].Network, operations[i].Destination, proto.SymLink)
+		if err != nil {
+			return err
+		}
+		operations[i].Script, err = script.Full()
 		if err != nil {
 			return err
 		}

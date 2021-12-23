@@ -18,12 +18,10 @@ func NewRegisterGlobalConstant(params *ParseParams) RegisterGlobalConstant {
 }
 
 // Parse -
-func (p RegisterGlobalConstant) Parse(data noderpc.Operation) (*parsers.Result, error) {
-	result := parsers.NewResult()
-
-	proto, err := p.ctx.CachedProtocolByHash(p.network, p.head.Protocol)
+func (p RegisterGlobalConstant) Parse(data noderpc.Operation, result *parsers.Result) error {
+	proto, err := p.ctx.Cache.ProtocolByHash(p.network, p.head.Protocol)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	registerGlobalConstant := operation.Operation{
@@ -48,9 +46,9 @@ func (p RegisterGlobalConstant) Parse(data noderpc.Operation) (*parsers.Result, 
 	result.Operations = append(result.Operations, &registerGlobalConstant)
 	if registerGlobalConstant.IsApplied() {
 		if err != nil {
-			return nil, err
+			return err
 		}
 		result.GlobalConstants = append(result.GlobalConstants, NewGlobalConstant().Parse(data, registerGlobalConstant))
 	}
-	return result, nil
+	return nil
 }

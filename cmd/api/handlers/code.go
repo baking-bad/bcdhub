@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -39,11 +39,11 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 	network := types.NewNetwork(req.Network)
 
 	if req.Protocol == "" {
-		state, err := ctx.CachedCurrentBlock(network)
+		state, err := ctx.Cache.CurrentBlock(network)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		proto, err := ctx.CachedProtocolByID(state.Network, state.ProtocolID)
+		proto, err := ctx.Cache.ProtocolByID(state.Network, state.ProtocolID)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -89,17 +89,20 @@ func (ctx *Context) GetDiff(c *gin.Context) {
 	c.SecureJSON(http.StatusOK, resp)
 }
 
-func (ctx *Context) getContractCodeJSON(network types.Network, address, protocol string) (res gjson.Result, err error) {
-	data, err := fetch.Contract(network, address, protocol, ctx.SharePath)
+func (ctx *Context) getContractCodeJSON(network types.Network, address string, protocol string) (res gjson.Result, err error) {
+	symLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
-		return
+		return res, err
 	}
-	contract := gjson.ParseBytes(data)
+	script, err := ctx.Cache.ScriptBytes(network, address, symLink)
+	if err != nil {
+		return res, err
+	}
+	contract := gjson.ParseBytes(script)
 	if !contract.IsArray() && !contract.IsObject() {
 		return res, errors.Errorf("Unknown contract: %s", address)
 	}
 
-	// return macros.FindMacros(contractJSON)
 	return contract, nil
 }
 
@@ -111,11 +114,11 @@ func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffRe
 		if leg.Protocol == "" {
 			protocol, ok := currentProtocols[leg.Network]
 			if !ok {
-				state, err := ctx.CachedCurrentBlock(leg.Network)
+				state, err := ctx.Cache.CurrentBlock(leg.Network)
 				if err != nil {
 					return res, err
 				}
-				proto, err := ctx.CachedProtocolByID(state.Network, state.ProtocolID)
+				proto, err := ctx.Cache.ProtocolByID(state.Network, state.ProtocolID)
 				if err != nil {
 					return res, err
 				}

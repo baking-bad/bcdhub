@@ -2,6 +2,7 @@ rpc:
   mainnet:
     uri: https://rpc.tzkt.io/mainnet
     timeout: 20
+    # cache: /etc/bcd
   granadanet:
     uri: https://rpc.tzkt.io/granadanet
     timeout: 20
@@ -81,7 +82,6 @@ indexer:
   skip_delegator_blocks: true
   networks:
     mainnet:
-      boost: tzkt
     # granadanet:
     # hangzhou2net:
   connections:

@@ -2,6 +2,7 @@ package operations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -30,12 +31,10 @@ func NewTransaction(params *ParseParams) Transaction {
 }
 
 // Parse -
-func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
-	result := parsers.NewResult()
-
-	proto, err := p.ctx.CachedProtocolByHash(p.network, p.head.Protocol)
+func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error {
+	proto, err := p.ctx.Cache.ProtocolByHash(p.network, p.head.Protocol)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	tx := operation.Operation{
@@ -67,36 +66,70 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 
 	result.Operations = append(result.Operations, &tx)
 
-	script, err := p.ctx.CachedScriptBytes(tx.Network, tx.Destination, proto.SymLink)
+	if !bcd.IsContract(tx.Destination) {
+		return nil
+	}
+
+	for i := range tx.Errors {
+		if tx.Errors[i].Is("contract.non_existing_contract") {
+			return nil
+		}
+	}
+
+	script, err := p.ctx.Cache.ScriptBytes(tx.Network, tx.Destination, proto.SymLink)
 	if err != nil {
-		return nil, err
+		if !tx.Internal {
+			return nil
+		}
+
+		for i := range result.Contracts {
+			if tx.Destination == result.Contracts[i].Address {
+				switch proto.SymLink {
+				case bcd.SymLinkAlpha:
+					script, err = result.Contracts[i].Alpha.Full()
+					if err != nil {
+						return err
+					}
+				case bcd.SymLinkBabylon:
+					script, err = result.Contracts[i].Babylon.Full()
+					if err != nil {
+						return err
+					}
+				default:
+					return errors.Errorf("unknwon protocol symbolic link: %s", proto.SymLink)
+				}
+			}
+		}
+		if script == nil {
+			return err
+		}
 	}
 	tx.Script = script
 
-	tx.AST, err = p.ctx.CachedScript(tx.Network, tx.Destination, proto.SymLink)
+	tx.AST, err = ast.NewScriptWithoutCode(script)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := setTags(p.ctx, nil, &tx); err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := p.getEntrypoint(&tx); err != nil {
-		return nil, err
+		return err
 	}
 	p.stackTrace.Add(tx)
 
 	if tx.IsApplied() {
 		if err := p.appliedHandler(data, &tx, result); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	if !tezerrors.HasParametersError(tx.Errors) {
 		if err := p.transferParser.Parse(tx.BigMapDiffs, p.head.Protocol, &tx); err != nil {
 			if !errors.Is(err, noderpc.InvalidNodeResponse{}) {
-				return nil, err
+				return err
 			}
 			logger.Warning().Err(err).Msg("transferParser.Parse")
 		}
@@ -106,14 +139,14 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 	if tx.IsApplied() {
 		ledgerResult, err := ledger.New(p.ctx.TokenBalances).Parse(&tx, p.stackTrace)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if ledgerResult != nil {
 			result.TokenBalances = append(result.TokenBalances, ledgerResult.TokenBalances...)
 		}
 	}
 
-	return result, nil
+	return nil
 }
 
 func (p Transaction) fillInternal(tx *operation.Operation) {
