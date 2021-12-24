@@ -89,7 +89,6 @@ func (api *app) makeRouter() {
 
 		v1.GET("head", cache.CachePage(store, time.Second*10, api.Context.GetHead))
 		v1.GET("opg/:hash", api.Context.GetOperation)
-		v1.GET("operation/:id/error_location", api.Context.GetOperationErrorLocation)
 		v1.GET("pick_random", api.Context.GetRandomContract)
 		v1.GET("search", api.Context.Search)
 		v1.POST("fork", api.Context.ForkContract)
