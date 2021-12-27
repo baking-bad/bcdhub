@@ -1,8 +1,6 @@
 package operations
 
 import (
-	"github.com/pkg/errors"
-
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -87,7 +85,7 @@ func (content Content) Parse(data noderpc.Operation, result *parsers.Result) err
 			return err
 		}
 	default:
-		return errors.Errorf("Invalid operation kind: %s", data.Kind)
+		return nil
 	}
 
 	if err := content.parseInternal(data, result); err != nil {
