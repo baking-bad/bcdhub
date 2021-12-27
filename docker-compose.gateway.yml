@@ -37,7 +37,7 @@ services:
       context: .
       dockerfile: build/api/Dockerfile
     environment:
-      - BCD_ENV=you
+      - BCD_ENV=production
       - GIN_MODE=release
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
@@ -59,7 +59,7 @@ services:
       context: .
       dockerfile: build/indexer/Dockerfile
     environment:
-      - BCD_ENV=you
+      - BCD_ENV=production
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
