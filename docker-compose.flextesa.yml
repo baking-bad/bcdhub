@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   elastic:
-    image: bakingbad/bcdhub-elastic:4.0
+    image: ghcr.io/baking-bad/bcdhub-elastic:${TAG}
     restart: always
     volumes:
       - esdata:/usr/share/elasticsearch/data
@@ -29,7 +29,7 @@ services:
 
   api:
     restart: always
-    image: bakingbad/bcdhub-api:4.0
+    image: ghcr.io/baking-bad/bcdhub-api:${TAG}
     environment:
       - BCD_ENV=sandbox
       - GIN_MODE=debug
@@ -50,7 +50,7 @@ services:
 
   indexer:
     restart: always
-    image: bakingbad/bcdhub-indexer:4.0
+    image: ghcr.io/baking-bad/bcdhub-indexer:${TAG}
     environment:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
@@ -68,7 +68,7 @@ services:
 
   metrics:
     restart: always
-    image: bakingbad/bcdhub-metrics:4.0
+    image: ghcr.io/baking-bad/bcdhub-metrics:${TAG}
     environment:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
@@ -86,8 +86,8 @@ services:
 
   flextesa:
     restart: always
-    image: tqtezos/flextesa:20211025
-    command: granabox start
+    image: tqtezos/flextesa:20211206
+    command: hangzbox start
     environment:
       - block_time=4
     ports:
