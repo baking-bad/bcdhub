@@ -11,7 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
+	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/tokens"
 	"github.com/pkg/errors"
 )
 

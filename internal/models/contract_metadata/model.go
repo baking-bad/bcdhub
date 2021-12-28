@@ -1,4 +1,4 @@
-package tzip
+package contract_metadata
 
 import (
 	"context"
@@ -8,10 +8,10 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
-// TZIP -
-type TZIP struct {
+// ContractMetadata -
+type ContractMetadata struct {
 	// nolint
-	tableName struct{} `pg:"tzips"`
+	tableName struct{} `pg:"contract_metadata"`
 
 	ID         int64
 	UpdatedAt  uint64 `pg:",use_zero"`
@@ -29,29 +29,29 @@ type TZIP struct {
 }
 
 // BeforeInsert -
-func (t *TZIP) BeforeInsert(ctx context.Context) error {
+func (t *ContractMetadata) BeforeInsert(ctx context.Context) error {
 	t.UpdatedAt = uint64(time.Now().Unix())
 	return nil
 }
 
 // BeforeUpdate -
-func (t *TZIP) BeforeUpdate(ctx context.Context) (context.Context, error) {
+func (t *ContractMetadata) BeforeUpdate(ctx context.Context) (context.Context, error) {
 	t.UpdatedAt = uint64(time.Now().Unix())
 	return ctx, nil
 }
 
 // GetID -
-func (t *TZIP) GetID() int64 {
+func (t *ContractMetadata) GetID() int64 {
 	return t.ID
 }
 
 // GetIndex -
-func (t *TZIP) GetIndex() string {
-	return "tzips"
+func (t *ContractMetadata) GetIndex() string {
+	return "contract_metadata"
 }
 
 // Save -
-func (t *TZIP) Save(tx pg.DBI) error {
+func (t *ContractMetadata) Save(tx pg.DBI) error {
 	_, err := tx.Model(t).OnConflict("(id) DO UPDATE").
 		Set(`
 		updated_at = excluded.updated_at,
@@ -72,7 +72,7 @@ func (t *TZIP) Save(tx pg.DBI) error {
 }
 
 // LogFields -
-func (t *TZIP) LogFields() map[string]interface{} {
+func (t *ContractMetadata) LogFields() map[string]interface{} {
 	return map[string]interface{}{
 		"network": t.Network,
 		"address": t.Address,

@@ -54,8 +54,13 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
+	account, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
+	if ctx.handleError(c, err, http.StatusNotFound) {
+		return
+	}
+
 	filters := prepareFilters(filtersReq)
-	ops, err := ctx.Operations.GetByContract(req.NetworkID(), req.Address, filtersReq.Size, filters)
+	ops, err := ctx.Operations.GetByAccount(account, filtersReq.Size, filters)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -199,7 +204,7 @@ func (ctx *Context) GetOperationDiff(c *gin.Context) {
 		}
 		result.Protocol = proto.Hash
 
-		storageBytes, err := ctx.Contracts.ScriptPart(operation.Network, operation.Destination, proto.SymLink, consts.STORAGE)
+		storageBytes, err := ctx.Contracts.ScriptPart(operation.Network, operation.Destination.Address, proto.SymLink, consts.STORAGE)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -214,7 +219,7 @@ func (ctx *Context) GetOperationDiff(c *gin.Context) {
 			return
 		}
 
-		if err := ctx.setStorageDiff(operation.Destination, operation.DeffatedStorage, &result, bmd, storageType); ctx.handleError(c, err, 0) {
+		if err := ctx.setStorageDiff(operation.Destination.Address, operation.DeffatedStorage, &result, bmd, storageType); ctx.handleError(c, err, 0) {
 			return
 		}
 	}
@@ -312,8 +317,8 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 	var op Operation
 	op.FromModel(operation)
 
-	op.SourceAlias = ctx.Cache.Alias(operation.Network, operation.Source)
-	op.DestinationAlias = ctx.Cache.Alias(operation.Network, operation.Destination)
+	op.SourceAlias = operation.Source.Alias
+	op.DestinationAlias = operation.Destination.Alias
 
 	proto, err := ctx.Cache.ProtocolByID(operation.Network, operation.ProtocolID)
 	if err != nil {
@@ -497,7 +502,7 @@ func (ctx *Context) getErrorLocation(operation operation.Operation, window int) 
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}
-	code, err := ctx.getScriptBytes(operation.Network, operation.Destination, proto.SymLink)
+	code, err := ctx.getScriptBytes(operation.Network, operation.Destination.Address, proto.SymLink)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}

@@ -82,11 +82,10 @@ func (p *MigrationParser) Parse(script noderpc.Script, old *modelsContract.Contr
 	}
 
 	m := &migration.Migration{
-		Network:        old.Network,
+		ContractID:     old.ID,
 		Level:          previous.EndLevel,
 		ProtocolID:     next.ID,
 		PrevProtocolID: previous.ID,
-		Address:        old.Address,
 		Timestamp:      timestamp,
 		Kind:           types.MigrationKindUpdate,
 	}
@@ -109,7 +108,7 @@ func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContr
 		newPtr = p
 	}
 
-	bmd, err := p.bmdRepo.GetByAddress(contract.Network, contract.Address)
+	bmd, err := p.bmdRepo.GetByAddress(contract.Network, contract.Account.Address)
 	if err != nil {
 		return err
 	}
@@ -124,7 +123,7 @@ func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContr
 		}
 	}
 
-	keys, err := p.bmdRepo.CurrentByContract(contract.Network, contract.Address)
+	keys, err := p.bmdRepo.CurrentByContract(contract.Network, contract.Account.Address)
 	if err != nil {
 		return err
 	}

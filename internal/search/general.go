@@ -27,15 +27,15 @@ var Indices = []string{
 	models.DocOperations,
 	models.DocBigMapDiff,
 	models.DocTokenMetadata,
-	models.DocTZIP,
+	models.DocContractMetadata,
 }
 
 var scorables = map[string]Scorable{
-	models.DocContracts:     &Contract{},
-	models.DocOperations:    &Operation{},
-	models.DocBigMapDiff:    &BigMapDiff{},
-	models.DocTokenMetadata: &Token{},
-	models.DocTZIP:          &Metadata{},
+	models.DocContracts:        &Contract{},
+	models.DocOperations:       &Operation{},
+	models.DocBigMapDiff:       &BigMapDiff{},
+	models.DocTokenMetadata:    &Token{},
+	models.DocContractMetadata: &Metadata{},
 }
 
 // ScoreInfo -

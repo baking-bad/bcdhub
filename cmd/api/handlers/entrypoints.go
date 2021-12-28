@@ -165,11 +165,11 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 
 		op, err := ctx.Operations.Get(
 			map[string]interface{}{
-				"network":     req.NetworkID(),
-				"destination": req.Address,
-				"kind":        modelTypes.OperationKindTransaction,
-				"entrypoint":  esReq.EntrypointName,
-				"status":      modelTypes.OperationStatusApplied,
+				"operation.network":   req.NetworkID(),
+				"destination.address": req.Address,
+				"kind":                modelTypes.OperationKindTransaction,
+				"entrypoint":          esReq.EntrypointName,
+				"status":              modelTypes.OperationStatusApplied,
 			},
 			1,
 			true,

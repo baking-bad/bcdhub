@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 )
 
 // Metadata -
@@ -27,7 +27,7 @@ func (m *Metadata) GetID() string {
 
 // GetIndex -
 func (m *Metadata) GetIndex() string {
-	return models.DocTZIP
+	return models.DocContractMetadata
 }
 
 // GetScores -
@@ -66,7 +66,7 @@ func (m Metadata) Parse(highlight map[string][]string, data []byte) (*Item, erro
 
 // Prepare -
 func (m *Metadata) Prepare(model models.Model) {
-	t, ok := model.(*tzip.TZIP)
+	t, ok := model.(*cm.ContractMetadata)
 	if !ok {
 		return
 	}
@@ -79,4 +79,5 @@ func (m *Metadata) Prepare(model models.Model) {
 	m.Name = t.Name
 	m.Network = t.Network.String()
 	m.Timestamp = t.Timestamp.UTC()
+
 }

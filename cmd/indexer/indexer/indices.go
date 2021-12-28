@@ -2,10 +2,12 @@ package indexer
 
 import (
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -14,7 +16,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 func (bi *BoostIndexer) createIndices() {
@@ -23,6 +24,13 @@ func (bi *BoostIndexer) createIndices() {
 	}
 
 	logger.Info().Msg("creating database indices...")
+
+	// Accounts
+	if _, err := bi.Context.StorageDB.DB.Model((*account.Account)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS accounts_network_address_idx ON ?TableName (network, address)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
 
 	// Big map action
 	if _, err := bi.Context.StorageDB.DB.Model((*bigmapaction.BigMapAction)(nil)).Exec(`
@@ -223,13 +231,13 @@ func (bi *BoostIndexer) createIndices() {
 	}
 
 	// Transfers
-	if _, err := bi.Context.StorageDB.DB.Model(new(tzip.TZIP)).Exec(`
+	if _, err := bi.Context.StorageDB.DB.Model(new(contract_metadata.ContractMetadata)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS tzips_network_level_idx ON ?TableName (network, level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
-	if _, err := bi.Context.StorageDB.DB.Model(new(tzip.TZIP)).Exec(`
+	if _, err := bi.Context.StorageDB.DB.Model(new(contract_metadata.ContractMetadata)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS tzips_network_address_idx ON ?TableName (network, address)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/models/migration"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,12 +28,17 @@ func (ctx *Context) GetContractMigrations(c *gin.Context) {
 		return
 	}
 
-	migrations, err := ctx.Migrations.Get(req.NetworkID(), req.Address)
+	contract, err := ctx.Contracts.Get(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	result, err := prepareMigrations(ctx, migrations)
+	migrations, err := ctx.Migrations.Get(contract.ID)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	result, err := prepareMigrations(ctx, req.NetworkID(), migrations)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -40,14 +46,14 @@ func (ctx *Context) GetContractMigrations(c *gin.Context) {
 	c.SecureJSON(http.StatusOK, result)
 }
 
-func prepareMigrations(ctx *Context, data []migration.Migration) ([]Migration, error) {
+func prepareMigrations(ctx *Context, network types.Network, data []migration.Migration) ([]Migration, error) {
 	result := make([]Migration, len(data))
 	for i := range data {
-		proto, err := ctx.Cache.ProtocolByID(data[i].Network, data[i].ProtocolID)
+		proto, err := ctx.Cache.ProtocolByID(network, data[i].ProtocolID)
 		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}
-		prevProto, err := ctx.Cache.ProtocolByID(data[i].Network, data[i].PrevProtocolID)
+		prevProto, err := ctx.Cache.ProtocolByID(network, data[i].PrevProtocolID)
 		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}

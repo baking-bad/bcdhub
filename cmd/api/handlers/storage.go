@@ -115,8 +115,8 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 		return
 	}
 	filters := map[string]interface{}{
-		"destination": req.Address,
-		"network":     types.NewNetwork(req.Network),
+		"destination.address": req.Address,
+		"operation.network":   types.NewNetwork(req.Network),
 	}
 	if sReq.Level > 0 {
 		filters["level"] = sReq.Level

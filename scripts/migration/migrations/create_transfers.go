@@ -59,7 +59,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.TokenBalances,
+		parser, err := transferParsers.NewParser(rpc, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
 			transferParsers.WithNetwork(operations[i].Network),
 			transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 			transferParsers.WithoutViews(),
@@ -71,7 +71,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		script, err := ctx.Contracts.Script(operations[i].Network, operations[i].Destination, proto.SymLink)
+		script, err := ctx.Contracts.Script(operations[i].Network, operations[i].Destination.Address, proto.SymLink)
 		if err != nil {
 			return err
 		}
@@ -119,7 +119,7 @@ func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {
 func (m *CreateTransfersTags) getOperations(ctx *config.Context) ([]operation.Operation, error) {
 	filters := map[string]interface{}{}
 	if m.Network != "" {
-		filters["network"] = m.Network
+		filters["operation.network"] = m.Network
 		if m.Address != "" {
 			filters["destination"] = m.Address
 		} else {

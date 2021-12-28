@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -23,39 +24,54 @@ func NewVestingParser(ctx *config.Context) *VestingParser {
 }
 
 // Parse -
-func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network types.Network, address string) (*parsers.Result, error) {
+func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network types.Network, address string, result *parsers.Result) error {
 	proto, err := p.ctx.Cache.ProtocolByHash(network, head.Protocol)
 	if err != nil {
-		return nil, err
-	}
-
-	migration := &migration.Migration{
-		Level:      head.Level,
-		Network:    network,
-		ProtocolID: proto.ID,
-		Address:    address,
-		Timestamp:  head.Timestamp,
-		Kind:       types.MigrationKindBootstrap,
+		return err
 	}
 
 	parser := contract.NewParser(p.ctx)
-	contractModels, err := parser.Parse(&operation.Operation{
-		Network:     network,
-		ProtocolID:  proto.ID,
-		Status:      types.OperationStatusApplied,
-		Kind:        types.OperationKindOrigination,
-		Amount:      data.Balance,
-		Counter:     data.Counter,
-		Source:      data.Manager,
-		Destination: address,
-		Delegate:    data.Delegate.Value,
-		Level:       head.Level,
-		Timestamp:   head.Timestamp,
-		Script:      data.RawScript,
-	})
-	if err != nil {
-		return nil, err
+	if err := parser.Parse(&operation.Operation{
+		Network:    network,
+		ProtocolID: proto.ID,
+		Status:     types.OperationStatusApplied,
+		Kind:       types.OperationKindOrigination,
+		Amount:     data.Balance,
+		Counter:    data.Counter,
+		Source: account.Account{
+			Network: network,
+			Address: data.Manager,
+			Type:    types.NewAccountType(data.Manager),
+		},
+		Destination: account.Account{
+			Network: network,
+			Address: address,
+			Type:    types.NewAccountType(address),
+		},
+		Delegate: account.Account{
+			Network: network,
+			Address: data.Delegate.Value,
+			Type:    types.NewAccountType(data.Delegate.Value),
+		},
+		Level:     head.Level,
+		Timestamp: head.Timestamp,
+		Script:    data.RawScript,
+	}, result); err != nil {
+		return err
 	}
-	contractModels.Migrations = append(contractModels.Migrations, migration)
-	return contractModels, nil
+
+	for i := range result.Contracts {
+		if result.Contracts[i].Network == network && result.Contracts[i].Account.Address == address {
+			result.Migrations = append(result.Migrations, &migration.Migration{
+				Level:      head.Level,
+				ProtocolID: proto.ID,
+				Timestamp:  head.Timestamp,
+				Kind:       types.MigrationKindBootstrap,
+				Contract:   result.Contracts[i],
+			})
+			break
+		}
+	}
+
+	return nil
 }

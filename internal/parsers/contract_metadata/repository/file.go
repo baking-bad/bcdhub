@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/pkg/errors"
 )
 
 // FileSystem -
@@ -28,6 +29,10 @@ func (fs *FileSystem) GetAll() ([]Item, error) {
 	items := make([]Item, 0)
 
 	for _, network := range networks {
+		if typ := types.NewNetwork(network.Name()); typ == types.Empty {
+			continue
+		}
+
 		if !network.IsDir() {
 			continue
 		}
@@ -55,6 +60,10 @@ func (fs *FileSystem) GetAll() ([]Item, error) {
 
 // Get -
 func (fs *FileSystem) Get(network, name string) (item Item, err error) {
+	if typ := types.NewNetwork(network); typ == types.Empty {
+		return item, errors.Errorf("unknown network: %s", network)
+	}
+
 	path := fmt.Sprintf("%s/%s/%s", fs.root, network, name)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {

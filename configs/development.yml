@@ -83,7 +83,7 @@ indexer:
   networks:
     mainnet:
     # granadanet:
-    # hangzhou2net:
+    hangzhou2net:
   connections:
     max: 5
     idle: 5

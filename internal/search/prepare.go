@@ -4,9 +4,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // Prepare -
@@ -31,7 +31,7 @@ func Prepare(items []models.Model) []Data {
 			var token Token
 			token.Prepare(val)
 			data = append(data, &token)
-		case *tzip.TZIP:
+		case *cm.ContractMetadata:
 			var m Metadata
 			m.Prepare(val)
 			data = append(data, &m)

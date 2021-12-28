@@ -92,21 +92,23 @@ func (o *Operation) Prepare(model models.Model) {
 	}
 
 	o.ID = helpers.GenerateID()
-	o.Destination = op.Destination
-	o.DestinationAlias = op.Destination
+	o.Destination = op.Destination.Address
+	o.DestinationAlias = op.Destination.Alias
 	if op.Entrypoint.Valid {
 		o.Entrypoint = op.Entrypoint.String()
 	}
 	o.Hash = op.Hash
-	o.Initiator = op.Initiator
+	o.Initiator = op.Initiator.Address
 	o.Internal = op.Internal
 	o.Kind = op.Kind.String()
 	o.Level = op.Level
 	o.Network = op.Network.String()
-	o.Source = op.Source
+	o.Source = op.Source.Address
+	o.SourceAlias = op.Source.Alias
 	o.Status = op.Status.String()
 	o.Timestamp = op.Timestamp.UTC()
-	o.Delegate = op.Delegate
+	o.Delegate = op.Delegate.Address
+	o.DelegateAlias = op.Delegate.Alias
 
 	if len(op.DeffatedStorage) > 0 {
 		var tree ast.UntypedAST

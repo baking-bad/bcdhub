@@ -90,7 +90,7 @@ func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsO
 
 	transferParser, err := transfer.NewParser(
 		rpc,
-		ctx.TZIP, ctx.Blocks, ctx.TokenBalances,
+		ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
 		transfer.WithStackTrace(params.stackTrace),
 		transfer.WithNetwork(params.network),
 		transfer.WithChainID(params.head.ChainID),

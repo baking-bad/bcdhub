@@ -2,10 +2,10 @@ package tokenbalance
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/go-pg/pg/v10"
 	"github.com/shopspring/decimal"
 )
 
@@ -19,16 +19,21 @@ func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
 }
 
-func (storage *Storage) Get(network types.Network, contract, address string, tokenID uint64) (t tokenbalance.TokenBalance, err error) {
-	query := storage.DB.Model(&t).Where("address = ?", address)
-	core.Token(network, contract, tokenID)(query)
-
-	err = query.First()
+func (storage *Storage) Get(network types.Network, contract string, accountID int64, tokenID uint64) (t tokenbalance.TokenBalance, err error) {
+	err = storage.DB.Model(&t).
+		Where("token_balance.network = ?", network).
+		Where("contract = ?", contract).
+		Where("account_id = ?", accountID).
+		Where("token_id = ?", tokenID).
+		Relation("Account").First()
 
 	if storage.IsRecordNotFound(err) {
 		t.Network = network
 		t.Contract = contract
-		t.Address = address
+		t.AccountID = accountID
+		t.Account = account.Account{
+			Network: network,
+		}
 		t.TokenID = tokenID
 		t.Balance = decimal.Zero
 		err = nil
@@ -40,19 +45,25 @@ func (storage *Storage) Get(network types.Network, contract, address string, tok
 // GetHolders -
 func (storage *Storage) GetHolders(network types.Network, contract string, tokenID uint64) ([]tokenbalance.TokenBalance, error) {
 	var balances []tokenbalance.TokenBalance
-	query := storage.DB.Model().Table(models.DocTokenBalances).Where("balance != 0")
+	query := storage.DB.Model((*tokenbalance.TokenBalance)(nil)).
+		Where("token_balance.network = ?", network).
+		Where("contract = ?", contract).
+		Where("token_id = ?", tokenID).
+		Where("balance != 0").
+		Relation("Account")
 
-	core.Token(network, contract, tokenID)(query)
 	err := query.Select(&balances)
 	return balances, err
 }
 
 // Batch -
-func (storage *Storage) Batch(network types.Network, addresses []string) (map[string][]tokenbalance.TokenBalance, error) {
+func (storage *Storage) Batch(network types.Network, accountID []int64) (map[string][]tokenbalance.TokenBalance, error) {
 	var balances []tokenbalance.TokenBalance
 
-	query := storage.DB.Model().Table(models.DocTokenBalances).Where("address IN (?)", pg.In(addresses))
-	core.Network(network)(query)
+	query := storage.DB.Model((*tokenbalance.TokenBalance)(nil)).
+		WhereIn("account_id IN (?)", accountID).
+		Where("network = ?", network).
+		Relation("Account.address")
 
 	if err := query.Select(&balances); err != nil {
 		return nil, err
@@ -61,10 +72,10 @@ func (storage *Storage) Batch(network types.Network, addresses []string) (map[st
 	result := make(map[string][]tokenbalance.TokenBalance)
 
 	for _, b := range balances {
-		if _, ok := result[b.Address]; !ok {
-			result[b.Address] = make([]tokenbalance.TokenBalance, 0)
+		if _, ok := result[b.Account.Address]; !ok {
+			result[b.Account.Address] = make([]tokenbalance.TokenBalance, 0)
 		}
-		result[b.Address] = append(result[b.Address], b)
+		result[b.Account.Address] = append(result[b.Account.Address], b)
 	}
 
 	return result, nil
@@ -76,11 +87,12 @@ type tokensByContract struct {
 }
 
 // CountByContract -
-func (storage *Storage) CountByContract(network types.Network, address string, hideEmpty bool) (map[string]int64, error) {
+func (storage *Storage) CountByContract(network types.Network, accountID int64, hideEmpty bool) (map[string]int64, error) {
 	var resp []tokensByContract
-	query := storage.DB.Model().Table(models.DocTokenBalances).
-		ColumnExpr("contract, count(*) as tokens_count")
-	core.NetworkAndAddress(network, address)(query)
+	query := storage.DB.Model((*tokenbalance.TokenBalance)(nil)).
+		ColumnExpr("contract, count(*) as tokens_count").
+		Where("network = ?", network).
+		Where("account_id = ?", accountID)
 
 	if hideEmpty {
 		query.Where("balance != 0")

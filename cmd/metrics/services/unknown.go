@@ -9,8 +9,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	tzipStorage "github.com/baking-bad/bcdhub/internal/parsers/tzip/storage"
-	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
+	cmStorage "github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/storage"
+	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/tokens"
 	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
 )
@@ -44,7 +44,7 @@ func (u *Unknown) refresh(ctx context.Context) error {
 	}
 	logger.Info().Msgf("Found %d unknown token metadata", len(metadata))
 
-	ipfs := tzipStorage.NewIPFSStorage(u.ctx.Config.IPFSGateways, tzipStorage.WithTimeoutIPFS(u.timeout))
+	ipfs := cmStorage.NewIPFSStorage(u.ctx.Config.IPFSGateways, cmStorage.WithTimeoutIPFS(u.timeout))
 
 	return u.ctx.StorageDB.DB.RunInTransaction(ctx, func(tx *pg.Tx) error {
 		for i := range metadata {
@@ -59,7 +59,7 @@ func (u *Unknown) refresh(ctx context.Context) error {
 
 			remoteMetadata := new(tokens.TokenMetadata)
 			if err := ipfs.Get(link, remoteMetadata); err != nil {
-				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) || errors.Is(err, tzipStorage.ErrInvalidIPFSHash) {
+				if errors.Is(err, cmStorage.ErrNoIPFSResponse) || errors.Is(err, cmStorage.ErrInvalidIPFSHash) {
 					continue
 				}
 				return err

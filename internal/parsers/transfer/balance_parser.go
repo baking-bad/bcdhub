@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -11,12 +12,13 @@ import (
 
 // DefaultBalanceParser -
 type DefaultBalanceParser struct {
-	repo tokenbalance.Repository
+	repo     tokenbalance.Repository
+	accounts account.Repository
 }
 
 // NewDefaultBalanceParser -
-func NewDefaultBalanceParser(repo tokenbalance.Repository) *DefaultBalanceParser {
-	return &DefaultBalanceParser{repo}
+func NewDefaultBalanceParser(repo tokenbalance.Repository, accounts account.Repository) *DefaultBalanceParser {
+	return &DefaultBalanceParser{repo, accounts}
 }
 
 // Parse -
@@ -25,9 +27,17 @@ func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, oper
 	for _, balance := range balances {
 		transfer := operation.EmptyTransfer()
 		if balance.Value.Cmp(decimal.Zero) > 0 {
-			transfer.To = balance.Address
+			transfer.To = account.Account{
+				Network: operation.Network,
+				Address: balance.Address,
+				Type:    types.NewAccountType(balance.Address),
+			}
 		} else {
-			transfer.From = balance.Address
+			transfer.From = account.Account{
+				Network: operation.Network,
+				Address: balance.Address,
+				Type:    types.NewAccountType(balance.Address),
+			}
 		}
 		transfer.Amount = balance.Value.Abs()
 		transfer.TokenID = balance.TokenID
@@ -44,16 +54,29 @@ func (parser *DefaultBalanceParser) ParseBalances(network types.Network, contrac
 	for _, balance := range balances {
 		transfer := operation.EmptyTransfer()
 
-		tb, err := parser.repo.Get(network, contract, balance.Address, balance.TokenID)
+		acc, err := parser.accounts.Get(network, balance.Address)
+		if err != nil {
+			return nil, err
+		}
+
+		tb, err := parser.repo.Get(network, contract, acc.ID, balance.TokenID)
 		if err != nil {
 			return nil, err
 		}
 
 		delta := balance.Value.Sub(tb.Balance)
 		if delta.Cmp(decimal.Zero) > 0 {
-			transfer.To = balance.Address
+			transfer.To = account.Account{
+				Network: operation.Network,
+				Address: balance.Address,
+				Type:    types.NewAccountType(balance.Address),
+			}
 		} else {
-			transfer.From = balance.Address
+			transfer.From = account.Account{
+				Network: operation.Network,
+				Address: balance.Address,
+				Type:    types.NewAccountType(balance.Address),
+			}
 		}
 
 		transfer.Amount = delta.Abs()

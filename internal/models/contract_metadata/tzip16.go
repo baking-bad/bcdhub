@@ -1,4 +1,4 @@
-package tzip
+package contract_metadata
 
 import (
 	"database/sql/driver"

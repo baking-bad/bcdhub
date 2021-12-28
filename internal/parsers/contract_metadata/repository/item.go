@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"time"
 
+	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // Item -
@@ -18,7 +18,7 @@ type Item struct {
 
 // Metadata -
 type Metadata struct {
-	tzip.TZIP
+	cm.ContractMetadata
 	Tokens struct {
 		Static []struct {
 			Name     string                 `json:"name"`

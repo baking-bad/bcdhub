@@ -26,7 +26,7 @@ func testAccounts(ctx *config.Context) {
 		}
 
 		for i := range balances {
-			path := fmt.Sprintf("account/mainnet/%s", balances[i].Address)
+			path := fmt.Sprintf("account/mainnet/%s", balances[i].Account.Address)
 			if err := request(path); err != nil {
 				logger.Err(err)
 			}

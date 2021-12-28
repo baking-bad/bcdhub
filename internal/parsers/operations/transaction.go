@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	modelsTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -37,6 +38,12 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 		return err
 	}
 
+	source := account.Account{
+		Network: p.network,
+		Address: data.Source,
+		Type:    modelsTypes.NewAccountType(data.Source),
+	}
+
 	tx := operation.Operation{
 		Network:      p.network,
 		Hash:         p.hash,
@@ -44,15 +51,23 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 		Level:        p.head.Level,
 		Timestamp:    p.head.Timestamp,
 		Kind:         modelsTypes.NewOperationKind(data.Kind),
-		Initiator:    data.Source,
-		Source:       data.Source,
+		Initiator:    source,
+		Source:       source,
 		Fee:          data.Fee,
 		Counter:      data.Counter,
 		GasLimit:     data.GasLimit,
 		StorageLimit: data.StorageLimit,
 		Amount:       *data.Amount,
-		Destination:  *data.Destination,
-		Delegate:     data.Delegate,
+		Destination: account.Account{
+			Network: p.network,
+			Address: *data.Destination,
+			Type:    modelsTypes.NewAccountType(*data.Destination),
+		},
+		Delegate: account.Account{
+			Network: p.network,
+			Address: data.Delegate,
+			Type:    modelsTypes.NewAccountType(data.Delegate),
+		},
 		Nonce:        data.Nonce,
 		Parameters:   data.Parameters,
 		ContentIndex: p.contentIdx,
@@ -66,7 +81,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 
 	result.Operations = append(result.Operations, &tx)
 
-	if !bcd.IsContract(tx.Destination) {
+	if tx.Destination.Type != modelsTypes.AccountTypeContract {
 		return nil
 	}
 
@@ -76,14 +91,14 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 		}
 	}
 
-	script, err := p.ctx.Cache.ScriptBytes(tx.Network, tx.Destination, proto.SymLink)
+	script, err := p.ctx.Cache.ScriptBytes(tx.Network, tx.Destination.Address, proto.SymLink)
 	if err != nil {
 		if !tx.Internal {
 			return nil
 		}
 
 		for i := range result.Contracts {
-			if tx.Destination == result.Contracts[i].Address {
+			if tx.Destination.Address == result.Contracts[i].Account.Address {
 				switch proto.SymLink {
 				case bcd.SymLinkAlpha:
 					script, err = result.Contracts[i].Alpha.Full()
@@ -137,7 +152,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 	}
 
 	if tx.IsApplied() {
-		ledgerResult, err := ledger.New(p.ctx.TokenBalances).Parse(&tx, p.stackTrace)
+		ledgerResult, err := ledger.New(p.ctx.TokenBalances, p.ctx.Accounts).Parse(&tx, p.stackTrace)
 		if err != nil {
 			return err
 		}
@@ -164,10 +179,6 @@ func (p Transaction) fillInternal(tx *operation.Operation) {
 }
 
 func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operation, result *parsers.Result) error {
-	if !bcd.IsContract(tx.Destination) || !tx.IsApplied() {
-		return nil
-	}
-
 	storageResult, err := p.storageParser.Parse(item, tx)
 	if err != nil {
 		return err
@@ -176,22 +187,10 @@ func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operat
 		result.Merge(storageResult)
 	}
 
-	migration, err := NewMigration().Parse(item, tx)
-	if err != nil {
-		return err
-	}
-	if migration != nil {
-		result.Migrations = append(result.Migrations, migration)
-	}
-
-	return nil
+	return NewMigration(p.ctx.Contracts).Parse(item, tx, result)
 }
 
 func (p Transaction) getEntrypoint(tx *operation.Operation) error {
-	if !bcd.IsContract(tx.Destination) {
-		return nil
-	}
-
 	if len(tx.Parameters) == 0 {
 		return tx.Entrypoint.Scan(consts.DefaultEntrypoint)
 	}

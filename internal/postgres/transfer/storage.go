@@ -65,7 +65,10 @@ func (storage *Storage) GetAll(network types.Network, level int64) ([]transfer.T
 
 // GetTransfered -
 func (storage *Storage) GetTransfered(network types.Network, contract string, tokenID uint64) (result float64, err error) {
-	query := storage.DB.Model().Table(models.DocTransfers).ColumnExpr("COALESCE(SUM(amount), 0)").Where("transfers.to != '' AND transfers.from != ''")
+	query := storage.DB.Model().Table(models.DocTransfers).ColumnExpr("COALESCE(SUM(amount), 0)").
+		Where(`"to".address != '' AND "from".address != ''`).
+		Relation("To").
+		Relation("From")
 	core.Token(network, contract, tokenID)(query)
 	core.IsApplied(query)
 	if err = query.Select(&result); err != nil {
@@ -88,7 +91,7 @@ func (storage *Storage) GetToken24HoursVolume(network types.Network, contract st
 		query.WhereIn("parent IN (?)", entrypoints)
 	}
 	if len(initiators) > 0 {
-		query.WhereIn("initiator IN (?)", initiators)
+		query.Relation("Initiator").WhereIn("initiator.address IN (?)", initiators)
 	}
 
 	core.Token(network, contract, tokenID)(query)
@@ -117,6 +120,7 @@ const (
 	`
 )
 
+// TODO: realize
 // GetTokenVolumeSeries -
 func (storage *Storage) GetTokenVolumeSeries(network types.Network, period string, contracts []string, entrypoints []dapp.DAppContract, tokenID uint64) ([][]float64, error) {
 	if err := core.ValidateHistogramPeriod(period); err != nil {
@@ -179,6 +183,7 @@ const (
 		on t1.address = t2.address and t1.token_id = t2.token_id;`
 )
 
+// TODO: realize
 // CalcBalances -
 func (storage *Storage) CalcBalances(network types.Network, contract string) ([]transfer.Balance, error) {
 	var balances []transfer.Balance

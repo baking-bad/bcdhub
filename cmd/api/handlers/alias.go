@@ -25,7 +25,7 @@ func (ctx *Context) GetBySlug(c *gin.Context) {
 		return
 	}
 
-	a, err := ctx.TZIP.GetBySlug(req.Slug)
+	a, err := ctx.ContractMetadata.GetBySlug(req.Slug)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

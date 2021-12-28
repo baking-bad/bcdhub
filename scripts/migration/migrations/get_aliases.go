@@ -5,12 +5,11 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
+	"github.com/go-pg/pg/v10"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -44,38 +43,24 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 	logger.Info().Msgf("Got %d aliases from tzkt api", len(aliases))
 	logger.Info().Msg("Saving aliases...")
 
-	newModels := make([]models.Model, 0)
-	updated := make([]models.Model, 0)
+	return ctx.StorageDB.DB.RunInTransaction(context.Background(), func(tx *pg.Tx) error {
+		bar := progressbar.NewOptions(len(aliases), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
+		for address, alias := range aliases {
+			if err := bar.Add(1); err != nil {
+				return err
+			}
 
-	bar := progressbar.NewOptions(len(aliases), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
-	for address, alias := range aliases {
-		if err := bar.Add(1); err != nil {
-			return err
-		}
-
-		item, err := ctx.TZIP.Get(types.Mainnet, address)
-		switch {
-		case err == nil:
-			item.Name = alias
-			item.Slug = helpers.Slug(alias)
-
-			updated = append(updated, item)
-		case ctx.Storage.IsRecordNotFound(err):
-			newModels = append(newModels, &tzip.TZIP{
+			acc := account.Account{
 				Network: types.Mainnet,
 				Address: address,
-				Slug:    helpers.Slug(alias),
-				TZIP16: tzip.TZIP16{
-					Name: alias,
-				},
-			})
-		default:
-			return err
-		}
-	}
-	if err := ctx.Storage.Save(context.Background(), updated); err != nil {
-		return err
-	}
+				Type:    types.NewAccountType(address),
+				Alias:   alias,
+			}
 
-	return ctx.Storage.Save(context.Background(), newModels)
+			if err := acc.Save(tx); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -38,13 +39,19 @@ type Operation struct {
 	Tags                               types.Tags    `pg:",use_zero"`
 	Nonce                              *int64
 
-	Timestamp       time.Time
-	Status          types.OperationStatus `pg:",type:SMALLINT"`
-	Kind            types.OperationKind   `pg:",type:SMALLINT"`
-	Initiator       string
-	Source          string
-	Destination     string
-	Delegate        string
+	InitiatorID   int64
+	Initiator     account.Account `pg:",rel:has-one"`
+	SourceID      int64
+	Source        account.Account `pg:",rel:has-one"`
+	DestinationID int64
+	Destination   account.Account `pg:",rel:has-one"`
+	DelegateID    int64
+	Delegate      account.Account `pg:",rel:has-one"`
+
+	Timestamp time.Time
+	Status    types.OperationStatus `pg:",type:SMALLINT"`
+	Kind      types.OperationKind   `pg:",type:SMALLINT"`
+
 	Entrypoint      types.NullString `pg:",type:text"`
 	Hash            string
 	Parameters      []byte
@@ -134,14 +141,14 @@ func (o *Operation) IsApplied() bool {
 
 // IsCall -
 func (o *Operation) IsCall() bool {
-	return bcd.IsContract(o.Destination) && len(o.Parameters) > 0
+	return bcd.IsContract(o.Destination.Address) && len(o.Parameters) > 0
 }
 
 // EmptyTransfer -
 func (o Operation) EmptyTransfer() *transfer.Transfer {
 	return &transfer.Transfer{
 		Network:     o.Network,
-		Contract:    o.Destination,
+		Contract:    o.Destination.Address,
 		Status:      o.Status,
 		Timestamp:   o.Timestamp,
 		Level:       o.Level,

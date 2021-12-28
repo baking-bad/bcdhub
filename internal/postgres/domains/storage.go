@@ -39,13 +39,14 @@ func (storage *Storage) getPageSizeForBalances(size int64) int {
 }
 
 // TokenBalances -
-func (storage *Storage) TokenBalances(network types.Network, contract, address string, size, offset int64, sort string, hideZeroBalances bool) (domains.TokenBalanceResponse, error) {
+func (storage *Storage) TokenBalances(network types.Network, contract string, accountID int64, size, offset int64, sort string, hideZeroBalances bool) (domains.TokenBalanceResponse, error) {
 	response := domains.TokenBalanceResponse{
 		Balances: make([]domains.TokenBalance, 0),
 	}
 
-	query := storage.DB.Model().Table(models.DocTokenBalances)
-	core.NetworkAndAddress(network, address)(query)
+	query := storage.DB.Model().Table(models.DocTokenBalances).
+		Where("network = ?", network).
+		Where("account_id = ?", accountID)
 
 	if contract != "" {
 		query.Where("contract = ?", contract)

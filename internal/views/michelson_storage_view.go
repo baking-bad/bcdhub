@@ -3,7 +3,7 @@ package views
 import (
 	"bytes"
 
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 )
 
 // MichelsonStorageView -
@@ -15,7 +15,7 @@ type MichelsonStorageView struct {
 }
 
 // NewMichelsonStorageView -
-func NewMichelsonStorageView(impl tzip.ViewImplementation, name string) *MichelsonStorageView {
+func NewMichelsonStorageView(impl cm.ViewImplementation, name string) *MichelsonStorageView {
 	var parameter []byte
 	if !impl.MichelsonStorageView.IsParameterEmpty() {
 		parameter = impl.MichelsonStorageView.Parameter

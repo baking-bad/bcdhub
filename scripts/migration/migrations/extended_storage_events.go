@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
@@ -36,7 +37,7 @@ func (m *ExtendedStorageEvents) Description() string {
 // Do - migrate function
 func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	m.contracts = make(map[string]string)
-	tzips, err := ctx.TZIP.GetWithEvents(0)
+	tzips, err := ctx.ContractMetadata.GetWithEvents(0)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,14 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 
 				protocol, err := ctx.Protocols.Get(tzips[i].Network, "", -1)
 				if err != nil {
-					return err
+					if !ctx.Storage.IsRecordNotFound(err) {
+						return err
+					}
+					protocol.Hash = bcd.GetCurrentProtocol()
+					protocol.SymLink, err = bcd.GetProtoSymLink(protocol.Hash)
+					if err != nil {
+						return err
+					}
 				}
 				rpc, err := ctx.GetRPC(tzips[i].Network)
 				if err != nil {
@@ -93,7 +101,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.TokenBalances,
+					parser, err := transferParsers.NewParser(rpc, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
 						transferParsers.WithNetwork(tzips[i].Network),
 						transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 						transferParsers.WithStackTrace(st),
@@ -161,16 +169,16 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	return ctx.Storage.Save(context.Background(), inserted)
 }
 
-func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip tzip.TZIP, impl tzip.EventImplementation) ([]operation.Operation, error) {
+func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip contract_metadata.ContractMetadata, impl contract_metadata.EventImplementation) ([]operation.Operation, error) {
 	operations := make([]operation.Operation, 0)
 
 	for i := range impl.MichelsonExtendedStorageEvent.Entrypoints {
 		ops, err := ctx.Operations.Get(map[string]interface{}{
-			"network":     tzip.Network,
-			"destination": tzip.Address,
-			"kind":        types.OperationKindTransaction,
-			"status":      types.OperationStatusApplied,
-			"entrypoint":  impl.MichelsonExtendedStorageEvent.Entrypoints[i],
+			"operation.network":   tzip.Network,
+			"destination.address": tzip.Address,
+			"kind":                types.OperationKindTransaction,
+			"status":              types.OperationStatusApplied,
+			"entrypoint":          impl.MichelsonExtendedStorageEvent.Entrypoints[i],
 		}, 0, false)
 		if err != nil {
 			return nil, err

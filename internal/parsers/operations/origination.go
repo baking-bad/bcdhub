@@ -1,17 +1,17 @@
 package operations
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/tokens"
 	"github.com/baking-bad/bcdhub/internal/parsers/ledger"
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
-	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 	"github.com/pkg/errors"
 )
 
@@ -34,6 +34,12 @@ func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error
 		return err
 	}
 
+	source := account.Account{
+		Network: p.network,
+		Address: data.Source,
+		Type:    types.NewAccountType(data.Source),
+	}
+
 	origination := operation.Operation{
 		Network:      p.network,
 		Hash:         p.hash,
@@ -41,14 +47,18 @@ func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error
 		Level:        p.head.Level,
 		Timestamp:    p.head.Timestamp,
 		Kind:         types.NewOperationKind(data.Kind),
-		Initiator:    data.Source,
-		Source:       data.Source,
+		Initiator:    source,
+		Source:       source,
 		Fee:          data.Fee,
 		Counter:      data.Counter,
 		GasLimit:     data.GasLimit,
 		StorageLimit: data.StorageLimit,
 		Amount:       *data.Balance,
-		Delegate:     data.Delegate,
+		Delegate: account.Account{
+			Network: p.network,
+			Address: data.Delegate,
+			Type:    types.NewAccountType(data.Delegate),
+		},
 		Parameters:   data.Parameters,
 		Nonce:        data.Nonce,
 		ContentIndex: p.contentIdx,
@@ -82,15 +92,10 @@ func (p Origination) appliedHandler(item noderpc.Operation, origination *operati
 	if origination == nil || result == nil {
 		return nil
 	}
-	if !bcd.IsContract(origination.Destination) || !origination.IsApplied() {
-		return nil
-	}
 
-	contractResult, err := p.contractParser.Parse(origination)
-	if err != nil {
+	if err := p.contractParser.Parse(origination, result); err != nil {
 		return err
 	}
-	result.Contracts = append(result.Contracts, contractResult.Contracts...)
 
 	if err := setTags(p.ctx, result.Contracts[0], origination); err != nil {
 		return err
@@ -104,7 +109,7 @@ func (p Origination) appliedHandler(item noderpc.Operation, origination *operati
 		result.Merge(storageResult)
 	}
 
-	ledgerResult, err := ledger.New(p.ctx.TokenBalances).Parse(origination, p.stackTrace)
+	ledgerResult, err := ledger.New(p.ctx.TokenBalances, p.ctx.Accounts).Parse(origination, p.stackTrace)
 	if err != nil {
 		return err
 	}
@@ -141,7 +146,7 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 		return nil
 	}
 
-	contractEvents, err := p.ctx.Cache.Events(origination.Network, origination.Destination)
+	contractEvents, err := p.ctx.Cache.Events(origination.Network, origination.Destination.Address)
 	if err != nil {
 		if p.ctx.Storage.IsRecordNotFound(err) {
 			return nil
@@ -181,8 +186,8 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 			balances, err := events.Execute(p.rpc, event, events.Context{
 				Network:                  origination.Network,
 				Parameters:               storageType,
-				Source:                   origination.Source,
-				Initiator:                origination.Initiator,
+				Source:                   origination.Source.Address,
+				Initiator:                origination.Initiator.Address,
 				Amount:                   origination.Amount,
 				HardGasLimitPerOperation: p.constants.HardGasLimitPerOperation,
 				ChainID:                  p.head.ChainID,
@@ -191,7 +196,7 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 				return err
 			}
 
-			res, err := transfer.NewDefaultBalanceParser(p.ctx.TokenBalances).Parse(balances, *origination)
+			res, err := transfer.NewDefaultBalanceParser(p.ctx.TokenBalances, p.ctx.Accounts).Parse(balances, *origination)
 			if err != nil {
 				return err
 			}
@@ -202,10 +207,14 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 
 			for i := range balances {
 				result.TokenBalances = append(result.TokenBalances, &tbModel.TokenBalance{
-					Network:  origination.Network,
-					Address:  balances[i].Address,
+					Network: origination.Network,
+					Account: account.Account{
+						Address: balances[i].Address,
+						Network: origination.Network,
+						Type:    types.NewAccountType(balances[i].Address),
+					},
 					TokenID:  balances[i].TokenID,
-					Contract: origination.Destination,
+					Contract: origination.Destination.Address,
 					Balance:  balances[i].Value,
 				})
 

@@ -14,8 +14,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	cmStorage "github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/storage"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
-	tzipStorage "github.com/baking-bad/bcdhub/internal/parsers/tzip/storage"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -88,15 +88,15 @@ func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storageAST *ast.TypedAs
 			ptr = bmPtr
 		}
 
-		s := tzipStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
+		s := cmStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
 
 		remoteMetadata := new(TokenMetadata)
 		if err := s.Get(t.network, bmd.Contract, m.Link, ptr, remoteMetadata); err != nil {
 			switch {
-			case errors.Is(err, tzipStorage.ErrHTTPRequest):
+			case errors.Is(err, cmStorage.ErrHTTPRequest):
 				logger.Warning().Str("url", m.Link).Str("kind", "token_metadata").Err(err).Msg("")
 				return nil, nil
-			case errors.Is(err, tzipStorage.ErrNoIPFSResponse):
+			case errors.Is(err, cmStorage.ErrNoIPFSResponse):
 				remoteMetadata.Name = consts.Unknown
 				logger.Warning().Str("url", m.Link).Str("kind", "token_metadata").Err(err).Msg("")
 			default:
@@ -144,11 +144,11 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 	result := make([]tokenmetadata.TokenMetadata, 0)
 	for _, m := range metadata {
 		if m.Link != "" {
-			s := tzipStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
+			s := cmStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
 
 			remoteMetadata := &TokenMetadata{}
 			if err := s.Get(t.network, address, m.Link, ptr, remoteMetadata); err != nil {
-				if errors.Is(err, tzipStorage.ErrHTTPRequest) {
+				if errors.Is(err, cmStorage.ErrHTTPRequest) {
 					logger.Err(err)
 					return nil, nil
 				}

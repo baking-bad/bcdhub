@@ -129,9 +129,14 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		contracts = strings.Split(ctxReq.Contracts, ",")
 	}
 
+	acc, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
+	if ctx.handleError(c, err, http.StatusNotFound) {
+		return
+	}
+
 	transfers, err := ctx.Domains.Transfers(transfer.GetContext{
 		Network:   req.NetworkID(),
-		Address:   req.Address,
+		AccountID: acc.ID,
 		Contracts: contracts,
 		Start:     ctxReq.Start,
 		End:       ctxReq.End,
@@ -195,11 +200,11 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network type
 			Network:       contracts[i].Network.String(),
 			Level:         contracts[i].Level,
 			Timestamp:     contracts[i].Timestamp,
-			Address:       contracts[i].Address,
-			Manager:       contracts[i].Manager.String(),
-			Delegate:      contracts[i].Delegate.String(),
-			Alias:         ctx.Cache.Alias(contracts[i].Network, contracts[i].Address),
-			DelegateAlias: ctx.Cache.Alias(contracts[i].Network, contracts[i].Delegate.String()),
+			Address:       contracts[i].Account.Address,
+			Manager:       contracts[i].Manager.Address,
+			Delegate:      contracts[i].Delegate.Address,
+			Alias:         contracts[i].Account.Alias,
+			DelegateAlias: contracts[i].Delegate.Alias,
 			LastAction:    contracts[i].LastAction,
 			TxCount:       contracts[i].TxCount,
 		}
@@ -401,7 +406,7 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 	}
 	result := make(map[string]string)
 	for i := range balances {
-		result[balances[i].Address] = balances[i].Balance.String()
+		result[balances[i].Account.Address] = balances[i].Balance.String()
 	}
 
 	c.SecureJSON(http.StatusOK, result)

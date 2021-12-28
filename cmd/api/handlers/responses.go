@@ -7,15 +7,16 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // Error -
@@ -73,14 +74,14 @@ func (o *Operation) FromModel(operation operation.Operation) {
 
 	o.Level = operation.Level
 	o.Kind = operation.Kind.String()
-	o.Source = operation.Source
+	o.Source = operation.Source.Address
 	o.Fee = operation.Fee
 	o.Counter = operation.Counter
 	o.GasLimit = operation.GasLimit
 	o.StorageLimit = operation.StorageLimit
 	o.Amount = operation.Amount
-	o.Destination = operation.Destination
-	o.Delegate = operation.Delegate
+	o.Destination = operation.Destination.Address
+	o.Delegate = operation.Delegate.Address
 	o.Status = operation.Status.String()
 	o.Burned = operation.Burned
 	o.Entrypoint = operation.Entrypoint.String()
@@ -95,23 +96,35 @@ func (o *Operation) FromModel(operation operation.Operation) {
 // ToModel -
 func (o *Operation) ToModel() operation.Operation {
 	return operation.Operation{
-		ID:           o.ID,
-		Hash:         o.Hash,
-		Network:      types.NewNetwork(o.Network),
-		Internal:     o.Internal,
-		Timestamp:    o.Timestamp,
-		Level:        o.Level,
-		Kind:         types.NewOperationKind(o.Kind),
-		Source:       o.Source,
+		ID:        o.ID,
+		Hash:      o.Hash,
+		Network:   types.NewNetwork(o.Network),
+		Internal:  o.Internal,
+		Timestamp: o.Timestamp,
+		Level:     o.Level,
+		Kind:      types.NewOperationKind(o.Kind),
+		Source: account.Account{
+			Network: types.NewNetwork(o.Network),
+			Address: o.Source,
+			Type:    types.NewAccountType(o.Source),
+		},
 		Fee:          o.Fee,
 		Counter:      o.Counter,
 		GasLimit:     o.GasLimit,
 		StorageLimit: o.StorageLimit,
 		Amount:       o.Amount,
-		Destination:  o.Destination,
-		Delegate:     o.Delegate,
-		Status:       types.NewOperationStatus(o.Status),
-		Burned:       o.Burned,
+		Destination: account.Account{
+			Network: types.NewNetwork(o.Network),
+			Address: o.Destination,
+			Type:    types.NewAccountType(o.Destination),
+		},
+		Delegate: account.Account{
+			Network: types.NewNetwork(o.Network),
+			Address: o.Delegate,
+			Type:    types.NewAccountType(o.Delegate),
+		},
+		Status: types.NewOperationStatus(o.Status),
+		Burned: o.Burned,
 		Entrypoint: types.NullString{
 			Str:   o.Entrypoint,
 			Valid: o.Entrypoint != "",
@@ -159,13 +172,15 @@ type Contract struct {
 
 // FromModel -
 func (c *Contract) FromModel(contract contract.Contract) {
-	c.Address = contract.Address
-	c.Delegate = contract.Delegate.String()
+	c.Address = contract.Account.Address
+	c.Alias = contract.Account.Alias
+	c.Delegate = contract.Delegate.Address
+	c.DelegateAlias = contract.Delegate.Alias
 	c.TxCount = contract.TxCount
 	c.LastAction = contract.LastAction
 
 	c.Level = contract.Level
-	c.Manager = contract.Manager.String()
+	c.Manager = contract.Manager.Address
 	c.MigrationsCount = contract.MigrationsCount
 	c.Network = contract.Network.String()
 	c.Tags = contract.Tags.ToArray()
@@ -372,7 +387,7 @@ type Alias struct {
 }
 
 // FromModel -
-func (a *Alias) FromModel(alias *tzip.TZIP) {
+func (a *Alias) FromModel(alias *contract_metadata.ContractMetadata) {
 	a.Alias = alias.Name
 	a.Address = alias.Address
 	a.Network = alias.Network.String()
@@ -458,8 +473,6 @@ func (c *SameContractsResponse) FromModel(same contract.SameResponse, ctx *Conte
 	for i := range same.Contracts {
 		var contract Contract
 		contract.FromModel(same.Contracts[i])
-		contract.Alias = ctx.Cache.Alias(same.Contracts[i].Network, same.Contracts[i].Address)
-		contract.DelegateAlias = ctx.Cache.Alias(same.Contracts[i].Network, same.Contracts[i].Delegate.String())
 		c.Contracts[i] = contract
 	}
 }
@@ -516,12 +529,12 @@ func TransferFromModel(model domains.Transfer) (t Transfer) {
 	t.IndexedTime = model.ID
 	t.Network = model.Network.String()
 	t.Contract = model.Contract
-	t.Initiator = model.Initiator
+	t.Initiator = model.Initiator.Address
 	t.Status = model.Status.String()
 	t.Timestamp = model.Timestamp.UTC()
 	t.Level = model.Level
-	t.From = model.From
-	t.To = model.To
+	t.From = model.From.Address
+	t.To = model.To.Address
 	t.TokenID = model.TokenID
 	t.Amount = model.Amount.String()
 	t.Parent = model.Parent.String()
@@ -553,21 +566,19 @@ type ConfigResponse struct {
 
 // DApp -
 type DApp struct {
-	Name              string   `json:"name"`
-	ShortDescription  string   `json:"short_description"`
-	FullDescription   string   `json:"full_description"`
-	WebSite           string   `json:"website"`
-	Slug              string   `json:"slug,omitempty" extensions:"x-nullable"`
-	AgoraReviewPostID int64    `json:"agora_review_post_id,omitempty" extensions:"x-nullable"`
-	AgoraQAPostID     int64    `json:"agora_qa_post_id,omitempty" extensions:"x-nullable"`
-	Authors           []string `json:"authors"`
-	SocialLinks       []string `json:"social_links"`
-	Interfaces        []string `json:"interfaces"`
-	Categories        []string `json:"categories"`
-	Soon              bool     `json:"soon"`
-	Logo              string   `json:"logo"`
-	Cover             string   `json:"cover,omitempty" extensions:"x-nullable"`
-	Volume24Hours     float64  `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
+	Name             string   `json:"name"`
+	ShortDescription string   `json:"short_description"`
+	FullDescription  string   `json:"full_description"`
+	WebSite          string   `json:"website"`
+	Slug             string   `json:"slug,omitempty" extensions:"x-nullable"`
+	Authors          []string `json:"authors"`
+	SocialLinks      []string `json:"social_links"`
+	Interfaces       []string `json:"interfaces"`
+	Categories       []string `json:"categories"`
+	Soon             bool     `json:"soon"`
+	Logo             string   `json:"logo"`
+	Cover            string   `json:"cover,omitempty" extensions:"x-nullable"`
+	Volume24Hours    float64  `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
 
 	Screenshots []Screenshot    `json:"screenshots,omitempty" extensions:"x-nullable"`
 	Contracts   []DAppContract  `json:"contracts,omitempty" extensions:"x-nullable"`
@@ -709,23 +720,23 @@ type ForkResponse struct {
 
 // TZIPResponse -
 type TZIPResponse struct {
-	Address     string                 `json:"address,omitempty"`
-	Network     string                 `json:"network,omitempty"`
-	DomainName  string                 `json:"domain,omitempty"`
-	Extras      map[string]interface{} `json:"extras,omitempty"`
-	Name        string                 `json:"name,omitempty"`
-	Description string                 `json:"description,omitempty"`
-	Version     string                 `json:"version,omitempty"`
-	License     *tzip.License          `json:"license,omitempty"`
-	Homepage    string                 `json:"homepage,omitempty"`
-	Authors     []string               `json:"authors,omitempty"`
-	Interfaces  []string               `json:"interfaces,omitempty"`
-	Views       tzip.Views             `json:"views,omitempty"`
-	tzip.TZIP20
+	Address     string                     `json:"address,omitempty"`
+	Network     string                     `json:"network,omitempty"`
+	DomainName  string                     `json:"domain,omitempty"`
+	Extras      map[string]interface{}     `json:"extras,omitempty"`
+	Name        string                     `json:"name,omitempty"`
+	Description string                     `json:"description,omitempty"`
+	Version     string                     `json:"version,omitempty"`
+	License     *contract_metadata.License `json:"license,omitempty"`
+	Homepage    string                     `json:"homepage,omitempty"`
+	Authors     []string                   `json:"authors,omitempty"`
+	Interfaces  []string                   `json:"interfaces,omitempty"`
+	Views       contract_metadata.Views    `json:"views,omitempty"`
+	contract_metadata.TZIP20
 }
 
 // FromModel -
-func (t *TZIPResponse) FromModel(model *tzip.TZIP, withViewsAndEvents bool) {
+func (t *TZIPResponse) FromModel(model *contract_metadata.ContractMetadata, withViewsAndEvents bool) {
 	t.DomainName = model.DomainName
 	t.Extras = model.Extras
 	t.Address = model.Address

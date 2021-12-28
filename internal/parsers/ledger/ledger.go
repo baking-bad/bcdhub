@@ -3,11 +3,13 @@ package ledger
 import (
 	"bytes"
 
+	"github.com/go-pg/pg/v10"
 	"github.com/shopspring/decimal"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -31,12 +33,14 @@ var (
 // Ledger -
 type Ledger struct {
 	tokenBalances tbModel.Repository
+	accounts      account.Repository
 }
 
 // New -
-func New(tokenBalanceRepo tbModel.Repository) *Ledger {
+func New(tokenBalanceRepo tbModel.Repository, accounts account.Repository) *Ledger {
 	return &Ledger{
 		tokenBalances: tokenBalanceRepo,
+		accounts:      accounts,
 	}
 }
 
@@ -114,8 +118,12 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 	}
 
 	tb := &tbModel.TokenBalance{
-		Network:  bmd.Network,
-		Address:  balance[0].Address,
+		Network: bmd.Network,
+		Account: account.Account{
+			Address: balance[0].Address,
+			Network: bmd.Network,
+			Type:    types.NewAccountType(balance[0].Address),
+		},
 		TokenID:  balance[0].TokenID,
 		Contract: bmd.Contract,
 		Balance:  balance[0].Value,
@@ -136,7 +144,11 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 			for i := range holders {
 				holders[i].Balance = decimal.Zero
 				holders[i].IsLedger = true
-				t.From = holders[i].Address
+				t.From = account.Account{
+					Network: bmd.Network,
+					Address: holders[i].Account.Address,
+					Type:    types.NewAccountType(holders[i].Account.Address),
+				}
 				balances = append(balances, &holders[i])
 			}
 		}
@@ -146,20 +158,37 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 }
 
 func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, st *stacktrace.StackTrace, op *operation.Operation) *transfer.Transfer {
+	acc, err := ledger.accounts.Get(op.Network, tb.Address)
+	if err != nil {
+		if !errors.Is(err, pg.ErrNoRows) {
+			logger.Err(err)
+			return nil
+		}
+	}
 
-	balance, err := ledger.tokenBalances.Get(op.Network, op.Destination, tb.Address, tb.TokenID)
+	balance, err := ledger.tokenBalances.Get(op.Network, op.Destination.Address, acc.ID, tb.TokenID)
 	if err != nil {
 		logger.Err(err)
 		return nil
 	}
+	if balance.AccountID == 0 {
+		balance.Account.Address = tb.Address
+		balance.Account.Type = types.NewAccountType(tb.Address)
+	}
 
 	t := op.EmptyTransfer()
 
+	account := account.Account{
+		Network: op.Network,
+		Address: tb.Address,
+		Type:    types.NewAccountType(tb.Address),
+	}
+
 	switch balance.Balance.Cmp(tb.Value) {
 	case 1:
-		t.From = tb.Address
+		t.From = account
 	case -1:
-		t.To = tb.Address
+		t.To = account
 	default:
 		return nil
 	}

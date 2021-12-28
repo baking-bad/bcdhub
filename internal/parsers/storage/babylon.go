@@ -75,20 +75,20 @@ func (b *Babylon) initPointersTypes(result *noderpc.OperationResult, operation *
 	}
 
 	if err := storage.SettleFromBytes(data); err != nil {
-		return errors.Wrapf(err, "settleStorage %s %d", operation.Destination, level)
+		return errors.Wrapf(err, "settleStorage %s %d", operation.Destination.Address, level)
 	}
 
 	if err := b.checkPointers(result, storage); err == nil {
 		return nil
 	}
 
-	rawData, err := b.rpc.GetScriptStorageRaw(operation.Destination, level)
+	rawData, err := b.rpc.GetScriptStorageRaw(operation.Destination.Address, level)
 	if err != nil {
-		return errors.Wrapf(err, "GetScriptStorageRaw %s %d", operation.Destination, level)
+		return errors.Wrapf(err, "GetScriptStorageRaw %s %d", operation.Destination.Address, level)
 	}
 
 	if err := storage.SettleFromBytes(rawData); err != nil {
-		return errors.Wrapf(err, "Settle %s %d", operation.Destination, level)
+		return errors.Wrapf(err, "Settle %s %d", operation.Destination.Address, level)
 	}
 
 	return b.checkPointers(result, storage)

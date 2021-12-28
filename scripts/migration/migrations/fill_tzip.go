@@ -6,9 +6,9 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/parsers/tzip/repository"
+	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/repository"
+	"github.com/go-pg/pg/v10"
 )
 
 // FillTZIP -
@@ -41,9 +41,6 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		networks[network] = struct{}{}
 	}
 
-	inserts := make([]models.Model, 0)
-	updates := make([]models.Model, 0)
-
 	network, err := ask("Enter network if you want certain TZIP will be added (all if empty):")
 	if err != nil {
 		return err
@@ -58,15 +55,19 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		for i := range items {
-			if _, ok := networks[items[i].Network.String()]; !ok {
-				continue
-			}
+		return ctx.StorageDB.DB.RunInTransaction(context.Background(), func(tx *pg.Tx) error {
+			for i := range items {
+				if _, ok := networks[items[i].Network.String()]; !ok {
+					continue
+				}
 
-			if err := processTzipItem(ctx, items[i], &inserts, &updates); err != nil {
-				return err
+				if err := processTzipItem(ctx, items[i], tx); err != nil {
+					return err
+				}
 			}
-		}
+			return nil
+		})
+
 	} else {
 		name, err := ask("Enter directory name of the TZIP (required):")
 		if name == "" {
@@ -80,29 +81,22 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 
-		if err := processTzipItem(ctx, item, &inserts, &updates); err != nil {
-			return err
-		}
+		return ctx.StorageDB.DB.RunInTransaction(context.Background(), func(tx *pg.Tx) error {
+			return processTzipItem(ctx, item, tx)
+		})
 	}
-
-	logger.Info().Int("new", len(inserts)).Int("updates", len(updates)).Msg("Saving metadata...")
-	if err := ctx.StorageDB.Save(context.Background(), inserts); err != nil {
-		return err
-	}
-
-	return ctx.StorageDB.Save(context.Background(), updates)
 }
 
-func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates *[]models.Model) error {
+func processTzipItem(ctx *config.Context, item repository.Item, tx pg.DBI) error {
 	model, err := item.ToModel()
 	if err != nil {
 		return err
 	}
 
 	for _, token := range model.Tokens.Static {
-		*inserts = append(*inserts, &tokenmetadata.TokenMetadata{
-			Network:   model.Network,
-			Contract:  model.Address,
+		tm := &tokenmetadata.TokenMetadata{
+			Network:   item.Network,
+			Contract:  item.Address,
 			Level:     0,
 			Timestamp: model.Timestamp,
 			TokenID:   token.TokenID,
@@ -110,10 +104,13 @@ func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates
 			Name:      token.Name,
 			Decimals:  token.Decimals,
 			Extras:    token.Extras,
-		})
+		}
+		if err := tm.Save(tx); err != nil {
+			return err
+		}
 	}
 
-	copyModel, err := ctx.TZIP.Get(model.Network, model.Address)
+	copyModel, err := ctx.ContractMetadata.Get(item.Network, item.Address)
 	switch {
 	case err == nil:
 		model.ID = copyModel.ID
@@ -124,33 +121,32 @@ func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates
 		if copyModel.Slug != "" {
 			model.Slug = copyModel.Slug
 		}
-		*updates = append(*updates, &model.TZIP)
-
-		for i := range model.DApps {
-			d, err := ctx.DApps.Get(model.DApps[i].Slug)
-			switch {
-			case err == nil:
-				model.DApps[i].ID = d.ID
-				*updates = append(*updates, &model.DApps[i])
-			case ctx.Storage.IsRecordNotFound(err):
-				*inserts = append(*inserts, &model.DApps[i])
-			default:
-				logger.Err(err)
-				return err
-			}
-		}
 	case ctx.Storage.IsRecordNotFound(err):
-		*inserts = append(*inserts, &model.TZIP)
-
-		for i := range model.DApps {
-			*inserts = append(*inserts, &model.DApps[i])
-		}
 	default:
-		logger.Err(err)
 		return err
 	}
 
-	*updates = append(*updates, &model.TZIP)
+	if model.ContractMetadata.Name != "" {
+		if err := model.ContractMetadata.Save(tx); err != nil {
+			return err
+		}
+	}
+
+	for i := range model.DApps {
+		d, err := ctx.DApps.Get(model.DApps[i].Slug)
+		switch {
+		case err == nil:
+			model.DApps[i].ID = d.ID
+		case ctx.Storage.IsRecordNotFound(err):
+		default:
+			logger.Err(err)
+			return err
+		}
+
+		if err := model.DApps[i].Save(tx); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

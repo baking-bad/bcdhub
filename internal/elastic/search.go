@@ -195,11 +195,11 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 }
 
 var typeMap = map[string]string{
-	models.DocContracts:     "contract",
-	models.DocOperations:    "operation",
-	models.DocBigMapDiff:    "bigmapdiff",
-	models.DocTokenMetadata: "token_metadata",
-	models.DocTZIP:          "tzip",
+	models.DocContracts:        "contract",
+	models.DocOperations:       "operation",
+	models.DocBigMapDiff:       "bigmapdiff",
+	models.DocTokenMetadata:    "token_metadata",
+	models.DocContractMetadata: "contract_metadata",
 }
 
 func prepare(searchString string, filters map[string]interface{}, fields []string) (search.Context, error) {
