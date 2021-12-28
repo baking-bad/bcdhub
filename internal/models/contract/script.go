@@ -69,6 +69,7 @@ func (s *Script) Full() ([]byte, error) {
 	}
 	buf.WriteByte('}')
 	if len(s.Views) > 2 {
+		buf.WriteByte(',')
 		if _, err := buf.Write(s.Views[1 : len(s.Views)-1]); err != nil {
 			return nil, err
 		}

@@ -13,7 +13,7 @@ type BigMapState struct {
 	tableName struct{} `pg:"big_map_states"`
 
 	ID              int64         `pg:",pk"`
-	Ptr             int64         `pg:",notnull,unique:big_map_key,default:-1,use_zero"`
+	Ptr             int64         `pg:",notnull,unique:big_map_key,use_zero"`
 	LastUpdateLevel int64         `pg:"last_update_level"`
 	Count           int64         `pg:",use_zero"`
 	LastUpdateTime  time.Time     `pg:"last_update_time"`

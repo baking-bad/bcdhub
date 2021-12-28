@@ -52,11 +52,7 @@ func (c *Contract) GetIndex() string {
 
 // Save -
 func (c *Contract) Save(tx pg.DBI) error {
-	_, err := tx.Model(c).
-		OnConflict("(id) DO UPDATE").
-		Set("project_id = EXCLUDED.project_id").
-		Returning("id").
-		Insert()
+	_, err := tx.Model(c).Returning("id").Insert()
 	return err
 }
 
