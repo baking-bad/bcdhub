@@ -70,7 +70,6 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, fromState block.Block
 				return err
 			}
 			return rm.searcher.Rollback(fromState.Network.String(), toLevel)
-
 		})
 		if err != nil {
 			return err

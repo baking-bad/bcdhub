@@ -101,7 +101,9 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 				}
 
 				operation.BigMapDiffs = append(operation.BigMapDiffs, b)
-				res.BigMapState = append(res.BigMapState, b.ToState())
+				state := b.ToState()
+				state.Ptr = -1
+				res.BigMapState = append(res.BigMapState, state)
 				return false, nil
 			}); err != nil {
 				return nil, err
@@ -142,7 +144,9 @@ func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operat
 		}
 
 		operation.BigMapDiffs = append(operation.BigMapDiffs, b)
-		res.BigMapState = append(res.BigMapState, b.ToState())
+		state := b.ToState()
+		state.Ptr = -1
+		res.BigMapState = append(res.BigMapState, state)
 	}
 	return res, nil
 }

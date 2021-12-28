@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -433,10 +434,11 @@ func (bi *BoostIndexer) implicitMigration(head noderpc.Header, tx pg.DBI) error 
 
 func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head noderpc.Header, tx pg.DBI) error {
 	logger.Info().Str("network", bi.Network.String()).Msg("Try to find migrations...")
-	contracts, err := bi.Contracts.GetMany(map[string]interface{}{
-		"network": bi.Network,
-	})
-	if err != nil {
+	var contracts []contract.Contract
+	if err := bi.StorageDB.DB.Model((*contract.Contract)(nil)).
+		Where("network = ?", bi.Network).
+		Where("tags & 4 = 0"). // except delegator contracts
+		Select(&contracts); err != nil {
 		return err
 	}
 	logger.Info().Str("network", bi.Network.String()).Msgf("Now %2d contracts are indexed", len(contracts))
@@ -450,12 +452,23 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 			return err
 		}
 
-		if err := migrationParser.Parse(script, contracts[i], bi.currentProtocol, newProtocol, head.Timestamp, tx); err != nil {
+		if err := migrationParser.Parse(script, &contracts[i], bi.currentProtocol, newProtocol, head.Timestamp, tx); err != nil {
+			return err
+		}
+
+		if _, err := bi.StorageDB.DB.
+			Model(&contracts[i]).
+			Set("alpha_id = ?alpha_id, babylon_id = ?babylon_id").
+			WherePK().Update(&contracts[i]); err != nil {
 			return err
 		}
 	}
 
-	return nil
+	_, err := bi.StorageDB.DB.Model((*contract.Contract)(nil)).
+		Set("babylon_id = alpha_id").
+		Where("tags & 4 > 0"). // only delegator contracts
+		Update()
+	return err
 }
 
 func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx pg.DBI) error {

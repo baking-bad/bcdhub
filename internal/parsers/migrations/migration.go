@@ -33,9 +33,9 @@ func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Rep
 }
 
 // Parse -
-func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx pg.DBI) error {
+func (p *MigrationParser) Parse(script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx pg.DBI) error {
 	if previous.SymLink == bcd.SymLinkAlpha {
-		if err := p.getUpdates(script, old, tx); err != nil {
+		if err := p.getUpdates(script, *old, tx); err != nil {
 			return err
 		}
 	}
@@ -74,10 +74,9 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 
 	switch next.SymLink {
 	case bcd.SymLinkAlpha:
+		old.AlphaID = contractScript.ID
 	case bcd.SymLinkBabylon:
-		if contractScript.ID == old.AlphaID {
-			return nil
-		}
+		old.BabylonID = contractScript.ID
 	default:
 		return errors.Errorf("unknown protocol symbolic link: %s", next.SymLink)
 	}
