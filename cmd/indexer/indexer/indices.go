@@ -104,7 +104,7 @@ func (bi *BoostIndexer) createIndices() {
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*contract.Contract)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_network_address_idx ON ?TableName (network, address)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_network_account_idx ON ?TableName (network, account_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
@@ -131,13 +131,13 @@ func (bi *BoostIndexer) createIndices() {
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_source_idx ON ?TableName (source)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_source_idx ON ?TableName (source_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_destination_idx ON ?TableName (destination)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_destination_idx ON ?TableName (destination_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
@@ -195,13 +195,13 @@ func (bi *BoostIndexer) createIndices() {
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*transfer.Transfer)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_from_idx ON ?TableName ("from")
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_from_idx ON ?TableName ("from_id")
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*transfer.Transfer)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_to_idx ON ?TableName ("to")
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_to_idx ON ?TableName ("to_id")
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
