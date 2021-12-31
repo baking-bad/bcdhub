@@ -104,7 +104,7 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff) (response []bi
 		query.Where("id < ?", lastID)
 	}
 
-	query.Group("key_hash,ptr")
+	query.Group("key_hash")
 
 	err = storage.DB.Model().Table(models.DocBigMapDiff).
 		Where("id IN (?)", query).
