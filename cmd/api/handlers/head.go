@@ -37,9 +37,21 @@ func (ctx *Context) GetHead(c *gin.Context) {
 		return
 	}
 
-	body := make([]HeadResponse, len(blocks))
+	body := make([]HeadResponse, 0)
 	for i := range blocks {
-		body[i] = HeadResponse{
+		var found bool
+		for j := range ctx.Config.API.Networks {
+			if blocks[i].Network.String() == ctx.Config.API.Networks[j] {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			continue
+		}
+
+		head := HeadResponse{
 			Network:   blocks[i].Network.String(),
 			Level:     blocks[i].Level,
 			Timestamp: blocks[i].Timestamp.UTC(),
@@ -49,10 +61,12 @@ func (ctx *Context) GetHead(c *gin.Context) {
 		if !ok {
 			continue
 		}
-		body[i].ContractCalls = int64(networkStats.CallsCount)
-		body[i].FACount = int64(networkStats.FACount)
-		body[i].UniqueContracts = int64(networkStats.UniqueContractsCount)
-		body[i].Total = int64(networkStats.ContractsCount)
+		head.ContractCalls = int64(networkStats.CallsCount)
+		head.FACount = int64(networkStats.FACount)
+		head.UniqueContracts = int64(networkStats.UniqueContractsCount)
+		head.Total = int64(networkStats.ContractsCount)
+
+		body = append(body, head)
 	}
 
 	c.SecureJSON(http.StatusOK, body)
