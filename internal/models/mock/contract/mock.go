@@ -50,18 +50,18 @@ func (mr *MockRepositoryMockRecorder) Get(network, address interface{}) *gomock.
 }
 
 // GetMany mocks base method
-func (m *MockRepository) GetMany(by map[string]interface{}) ([]model.Contract, error) {
+func (m *MockRepository) GetMany(network types.Network) ([]model.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMany", by)
+	ret := m.ctrl.Call(m, "GetMany", network)
 	ret0, _ := ret[0].([]model.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMany indicates an expected call of GetMany
-func (mr *MockRepositoryMockRecorder) GetMany(by interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetMany(network interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockRepository)(nil).GetMany), by)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockRepository)(nil).GetMany), network)
 }
 
 // GetRandom mocks base method

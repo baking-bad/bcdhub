@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -49,42 +50,48 @@ func (p *ImplicitParser) Parse(metadata noderpc.Metadata, head noderpc.Header) (
 }
 
 func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, result *parsers.Result) error {
-	result.Migrations = append(result.Migrations, &migration.Migration{
+	origination := operation.Operation{
 		Network:    p.network,
 		ProtocolID: protocolID,
 		Level:      head.Level,
 		Timestamp:  head.Timestamp,
-		Kind:       types.MigrationKindBootstrap,
-		Address:    implicit.OriginatedContracts[0],
-	})
-	logger.Info().Msg("Implicit bootstrap migration found")
-
-	origination := operation.Operation{
-		Network:             p.network,
-		ProtocolID:          protocolID,
-		Level:               head.Level,
-		Timestamp:           head.Timestamp,
-		Kind:                types.NewOperationKind(implicit.Kind),
-		Destination:         implicit.OriginatedContracts[0],
+		Kind:       types.NewOperationKind(implicit.Kind),
+		Destination: account.Account{
+			Network: p.network,
+			Address: implicit.OriginatedContracts[0],
+			Type:    types.AccountTypeContract,
+		},
 		ConsumedGas:         implicit.ConsumedGas,
 		PaidStorageSizeDiff: implicit.PaidStorageSizeDiff,
 		StorageSize:         implicit.StorageSize,
 		DeffatedStorage:     implicit.Storage,
 	}
 
-	script, err := p.rpc.GetRawScript(origination.Destination, origination.Level)
+	script, err := p.rpc.GetRawScript(origination.Destination.Address, origination.Level)
 	if err != nil {
 		return err
 	}
 	origination.Script = script
 
 	contractParser := contract.NewParser(p.ctx)
-	contractResult, err := contractParser.Parse(&origination)
-	if err != nil {
+	if err := contractParser.Parse(&origination, result); err != nil {
 		return err
 	}
-	if contractResult != nil {
-		result.Merge(contractResult)
+
+	for i := range result.Contracts {
+		if result.Contracts[i].Network == p.network && result.Contracts[i].Account.Address == implicit.OriginatedContracts[0] {
+			result.Migrations = append(result.Migrations, &migration.Migration{
+				ProtocolID: protocolID,
+				Level:      head.Level,
+				Timestamp:  head.Timestamp,
+				Kind:       types.MigrationKindBootstrap,
+				Contract:   result.Contracts[i],
+			})
+			break
+		}
 	}
+
+	logger.Info().Msg("Implicit bootstrap migration found")
+
 	return nil
 }

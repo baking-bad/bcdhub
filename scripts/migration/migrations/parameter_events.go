@@ -8,10 +8,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	transferParser "github.com/baking-bad/bcdhub/internal/parsers/transfer"
@@ -36,7 +36,7 @@ func (m *ParameterEvents) Description() string {
 // Do - migrate function
 func (m *ParameterEvents) Do(ctx *config.Context) error {
 	m.contracts = make(map[string]string)
-	tzips, err := ctx.TZIP.GetWithEvents(0)
+	tzips, err := ctx.ContractMetadata.GetWithEvents(0)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					parser, err := transferParser.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.TokenBalances,
+					parser, err := transferParser.NewParser(rpc, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
 						transferParser.WithNetwork(tzips[i].Network),
 						transferParser.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 						transferParser.WithStackTrace(st),
@@ -158,16 +158,16 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 	return nil
 }
 
-func (m *ParameterEvents) getOperations(ctx *config.Context, tzip tzip.TZIP, impl tzip.EventImplementation) ([]operation.Operation, error) {
+func (m *ParameterEvents) getOperations(ctx *config.Context, tzip contract_metadata.ContractMetadata, impl contract_metadata.EventImplementation) ([]operation.Operation, error) {
 	operations := make([]operation.Operation, 0)
 
 	for i := range impl.MichelsonParameterEvent.Entrypoints {
 		ops, err := ctx.Operations.Get(map[string]interface{}{
-			"network":     tzip.Network,
-			"destination": tzip.Address,
-			"kind":        types.OperationKindTransaction,
-			"status":      types.OperationStatusApplied,
-			"entrypoint":  impl.MichelsonParameterEvent.Entrypoints[i],
+			"operation.network":   tzip.Network,
+			"destination.address": tzip.Address,
+			"kind":                types.OperationKindTransaction,
+			"status":              types.OperationStatusApplied,
+			"entrypoint":          impl.MichelsonParameterEvent.Entrypoints[i],
 		}, 0, false)
 		if err != nil {
 			return nil, err

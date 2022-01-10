@@ -145,10 +145,10 @@ func (mr *MockRepositoryMockRecorder) GetForAddress(network, address interface{}
 }
 
 // GetValuesByKey mocks base method
-func (m *MockRepository) GetValuesByKey(keyHash string) ([]model.BigMapDiff, error) {
+func (m *MockRepository) GetValuesByKey(keyHash string) ([]model.BigMapState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValuesByKey", keyHash)
-	ret0, _ := ret[0].([]model.BigMapDiff)
+	ret0, _ := ret[0].([]model.BigMapState)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

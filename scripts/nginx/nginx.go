@@ -8,8 +8,8 @@ import (
 	"text/template"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 const (
@@ -57,7 +57,7 @@ const locationTemplate = `
 		sub_filter_once on;
 	}`
 
-func makeNginxConfig(dapps []dapp.DApp, _ []tzip.TZIP, filepath, baseURL string) error {
+func makeNginxConfig(dapps []dapp.DApp, _ []contract_metadata.ContractMetadata, filepath, baseURL string) error {
 	var locations strings.Builder
 	tmpl := template.Must(template.New("").Parse(locationTemplate))
 

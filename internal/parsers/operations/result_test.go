@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -37,7 +38,10 @@ func Test_parseOperationResult(t *testing.T) {
 				ConsumedGas:         15555,
 				StorageSize:         232,
 				PaidStorageSizeDiff: 232,
-				Destination:         "KT1FVhijNC7ZBL5EjcetiKddDQ2n98t8w4jo",
+				Destination: account.Account{
+					Address: "KT1FVhijNC7ZBL5EjcetiKddDQ2n98t8w4jo",
+					Type:    types.AccountTypeContract,
+				},
 			},
 		},
 	}

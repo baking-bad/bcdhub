@@ -20,9 +20,7 @@ func testContracts(ctx *config.Context) {
 	for _, network := range ctx.Config.API.Networks {
 		logger.Info().Msgf("testing %s contract endpoints...", network)
 
-		contracts, err := ctx.Contracts.GetMany(map[string]interface{}{
-			"network": types.NewNetwork(network),
-		})
+		contracts, err := ctx.Contracts.GetMany(types.NewNetwork(network))
 		if err != nil {
 			logger.Error().Msgf("testContracts: %s", err.Error())
 			return
@@ -90,7 +88,7 @@ func testContract(tasks chan contract.Contract, stop chan struct{}, counter *int
 		case <-stop:
 			return
 		case contract := <-tasks:
-			prefix := fmt.Sprintf("contract/%s/%s", contract.Network, contract.Address)
+			prefix := fmt.Sprintf("contract/%s/%s", contract.Network, contract.Account.Address)
 
 			if err := request(prefix); err != nil {
 				logger.Err(err)

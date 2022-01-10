@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -57,7 +57,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		LastAction: stats.LastAction.UTC(),
 	}
 
-	alias, err := ctx.TZIP.Get(req.NetworkID(), req.Address)
+	alias, err := ctx.ContractMetadata.Get(req.NetworkID(), req.Address)
 	if err != nil {
 		if !ctx.Storage.IsRecordNotFound(err) {
 			ctx.handleError(c, err, 0)
@@ -92,12 +92,22 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
+
+	network := req.NetworkID()
+
+	accountIDs := make([]int64, 0)
 	address := strings.Split(queryParams.Address, ",")
 	for i := range address {
 		if !bcd.IsAddress(address[i]) {
 			ctx.handleError(c, errors.Errorf("Invalid address: %s", address[i]), http.StatusBadRequest)
 			return
 		}
+
+		acc, err := ctx.Accounts.Get(network, address[i])
+		if ctx.handleError(c, err, http.StatusNotFound) {
+			return
+		}
+		accountIDs = append(accountIDs, acc.ID)
 	}
 
 	if len(address) > maxTokenBalanceBatch {
@@ -106,7 +116,7 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 		}
 	}
 
-	balances, err := ctx.TokenBalances.Batch(req.NetworkID(), address)
+	balances, err := ctx.TokenBalances.Batch(req.NetworkID(), accountIDs)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -166,7 +176,12 @@ func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
 }
 
 func (ctx *Context) getAccountBalances(network types.Network, address string, req tokenBalanceRequest) (*TokenBalances, error) {
-	balances, err := ctx.Domains.TokenBalances(network, req.Contract, address, req.Size, req.Offset, req.SortBy, req.HideEmpty)
+	acc, err := ctx.Accounts.Get(network, address)
+	if err != nil {
+		return nil, err
+	}
+
+	balances, err := ctx.Domains.TokenBalances(network, req.Contract, acc.ID, req.Size, req.Offset, req.SortBy, req.HideEmpty)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +235,12 @@ func (ctx *Context) GetAccountTokensCountByContract(c *gin.Context) {
 	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	res, err := ctx.TokenBalances.CountByContract(req.NetworkID(), req.Address, queryParams.HideEmpty)
+	network := req.NetworkID()
+	acc, err := ctx.Accounts.Get(network, req.Address)
+	if ctx.handleError(c, err, http.StatusNotFound) {
+		return
+	}
+	res, err := ctx.TokenBalances.CountByContract(network, acc.ID, queryParams.HideEmpty)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -251,20 +271,27 @@ func (ctx *Context) GetAccountTokensCountByContractWithMetadata(c *gin.Context) 
 	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	res, err := ctx.TokenBalances.CountByContract(req.NetworkID(), req.Address, queryParams.HideEmpty)
+
+	network := req.NetworkID()
+	acc, err := ctx.Accounts.Get(network, req.Address)
+	if ctx.handleError(c, err, http.StatusNotFound) {
+		return
+	}
+
+	res, err := ctx.TokenBalances.CountByContract(network, acc.ID, queryParams.HideEmpty)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	response := make(map[string]TokensCountWithMetadata)
 	for address, count := range res {
-		metadata, err := ctx.Cache.ContractMetadata(req.NetworkID(), address)
+		metadata, err := ctx.Cache.ContractMetadata(network, address)
 		if err != nil {
 			if !ctx.Storage.IsRecordNotFound(err) && ctx.handleError(c, err, 0) {
 				return
 			} else {
-				metadata = &tzip.TZIP{
-					Network: req.NetworkID(),
+				metadata = &contract_metadata.ContractMetadata{
+					Network: network,
 					Address: address,
 				}
 			}

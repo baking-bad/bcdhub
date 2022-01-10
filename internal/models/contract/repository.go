@@ -5,7 +5,7 @@ import "github.com/baking-bad/bcdhub/internal/models/types"
 // Repository -
 type Repository interface {
 	Get(network types.Network, address string) (Contract, error)
-	GetMany(by map[string]interface{}) ([]Contract, error)
+	GetMany(network types.Network) ([]Contract, error)
 	GetRandom(network types.Network) (Contract, error)
 	GetTokens(network types.Network, tokenInterface string, offset, size int64) ([]Contract, int64, error)
 

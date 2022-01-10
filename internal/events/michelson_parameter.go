@@ -3,7 +3,7 @@ package events
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 )
@@ -17,7 +17,7 @@ type MichelsonParameter struct {
 }
 
 // NewMichelsonParameter -
-func NewMichelsonParameter(impl tzip.EventImplementation, name string) (*MichelsonParameter, error) {
+func NewMichelsonParameter(impl contract_metadata.EventImplementation, name string) (*MichelsonParameter, error) {
 	retType, err := ast.NewTypedAstFromBytes(impl.MichelsonParameterEvent.ReturnType)
 	if err != nil {
 		return nil, err

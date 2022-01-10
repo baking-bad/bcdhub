@@ -3,8 +3,10 @@ package trees
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/shopspring/decimal"
 )
 
@@ -22,15 +24,25 @@ func MakeFa2Transfers(tree ast.Node, operation operation.Operation) ([]*transfer
 		for j := range toList.Data {
 			var err error
 			t := operation.EmptyTransfer()
-			t.From, err = getAddress(from)
+			fromAddr, err := getAddress(from)
 			if err != nil {
 				return nil, err
 			}
+			t.From = account.Account{
+				Network: operation.Network,
+				Address: fromAddr,
+				Type:    modelTypes.NewAccountType(fromAddr),
+			}
 			toPair := toList.Data[j].(*ast.Pair)
 			to := toPair.Args[0].GetValue().(string)
-			t.To, err = getAddress(to)
+			toAddr, err := getAddress(to)
 			if err != nil {
 				return nil, err
+			}
+			t.To = account.Account{
+				Network: operation.Network,
+				Address: toAddr,
+				Type:    modelTypes.NewAccountType(toAddr),
 			}
 			tokenPair := toPair.Args[1].(*ast.Pair)
 			t.TokenID = tokenPair.Args[0].GetValue().(*types.BigInt).Uint64()

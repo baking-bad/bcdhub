@@ -107,7 +107,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		}
 	}
 
-	alias, err := ctx.TZIP.Get(req.NetworkID(), res.Address)
+	alias, err := ctx.ContractMetadata.Get(req.NetworkID(), res.Address)
 	if err != nil {
 		if !ctx.Storage.IsRecordNotFound(err) {
 			ctx.handleError(c, err, 0)

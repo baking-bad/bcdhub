@@ -68,9 +68,9 @@ func (ctx *Context) transfersPostprocessing(transfers domains.TransfersResponse,
 		response.Transfers[i] = TransferFromModel(transfers.Transfers[i])
 		response.Transfers[i].Token = &token
 		response.Transfers[i].Alias = ctx.Cache.Alias(transfers.Transfers[i].Network, transfers.Transfers[i].Contract)
-		response.Transfers[i].InitiatorAlias = ctx.Cache.Alias(transfers.Transfers[i].Network, transfers.Transfers[i].Initiator)
-		response.Transfers[i].FromAlias = ctx.Cache.Alias(transfers.Transfers[i].Network, transfers.Transfers[i].From)
-		response.Transfers[i].ToAlias = ctx.Cache.Alias(transfers.Transfers[i].Network, transfers.Transfers[i].To)
+		response.Transfers[i].InitiatorAlias = transfers.Transfers[i].Initiator.Alias
+		response.Transfers[i].FromAlias = transfers.Transfers[i].From.Alias
+		response.Transfers[i].ToAlias = transfers.Transfers[i].To.Alias
 	}
 	return
 }

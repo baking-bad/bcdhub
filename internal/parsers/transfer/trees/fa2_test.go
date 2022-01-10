@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
@@ -32,9 +33,17 @@ func TestMakeFa2Transfers(t *testing.T) {
 			want: []*transfer.Transfer{
 				{
 					Network: modelTypes.Mainnet,
-					From:    "tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS",
-					To:      "tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2",
-					Amount:  decimal.RequireFromString("1000000000"),
+					From: account.Account{
+						Network: modelTypes.Mainnet,
+						Address: "tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS",
+						Type:    modelTypes.AccountTypeTz,
+					},
+					To: account.Account{
+						Network: modelTypes.Mainnet,
+						Address: "tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2",
+						Type:    modelTypes.AccountTypeTz,
+					},
+					Amount: decimal.RequireFromString("1000000000"),
 				},
 			},
 		}, {
@@ -47,8 +56,16 @@ func TestMakeFa2Transfers(t *testing.T) {
 			want: []*transfer.Transfer{
 				{
 					Network: modelTypes.Mainnet,
-					From:    "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
-					To:      "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
+					From: account.Account{
+						Network: modelTypes.Mainnet,
+						Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
+						Type:    modelTypes.AccountTypeTz,
+					},
+					To: account.Account{
+						Network: modelTypes.Mainnet,
+						Address: "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
+						Type:    modelTypes.AccountTypeTz,
+					},
 					Amount:  decimal.RequireFromString("1"),
 					TokenID: 12,
 				},

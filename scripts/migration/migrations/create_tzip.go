@@ -7,7 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	tzipParsers "github.com/baking-bad/bcdhub/internal/parsers/tzip"
+	tzipParsers "github.com/baking-bad/bcdhub/internal/parsers/contract_metadata"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -40,7 +40,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 
-		if _, err := ctx.TZIP.Get(bmd[i].Network, bmd[i].Contract); err != nil {
+		if _, err := ctx.ContractMetadata.Get(bmd[i].Network, bmd[i].Contract); err != nil {
 			if !ctx.Storage.IsRecordNotFound(err) {
 				return err
 			}
@@ -56,6 +56,11 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			IPFSGateways: ctx.Config.IPFSGateways,
 		})
 
+		proto, err := ctx.Protocols.Get(bmd[i].Network, "", bmd[i].LastUpdateLevel)
+		if err != nil {
+			return err
+		}
+
 		t, err := parser.Parse(tzipParsers.ParseContext{
 			BigMapDiff: bigmapdiff.BigMapDiff{
 				Contract:   bmd[i].Contract,
@@ -63,7 +68,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 				Ptr:        bmd[i].Ptr,
 				Value:      bmd[i].Value,
 				KeyHash:    bmd[i].KeyHash,
-				ProtocolID: bmd[i].ProtocolID,
+				ProtocolID: proto.ID,
 			},
 		})
 		if err != nil {

@@ -1,42 +1,18 @@
 {
     "id": 100,
-    "network": "carthagenet",
+    "network": "mainnet",
     "level": 386005,
     "timestamp": "2020-05-02T02:02:39Z",
-    "balance": 0,
-    "hash": "e9474f15368dad2d0e417cacb5c32b852b60af962f0403dc06e8696ef73596dea5cdf2c179a3e374e2f9a1c0bc6b40a4ffb14ed72159fd8981614ad9e45049d7",
-    "fingerprint": {
-        "code": "0221174c162e4c21995b164c21995b16392c4c21995b21174c16436365606e5b5b09075b975b21995b165042995b4c204c21995b21174c1621975b21995b1621995b292f4368682716975b21995b17975b21995b16975b21995b16292f4368682717124c42464c5042995b4c204c21995b21164c1716975b21995b17975b21995b1717124c424c42995b4c203d6d975b21995b17162f436c0b275565616e65606e5b5b5b2f436c0b27436a5b975b21995b1717975b21995b16424d1b4c204c21995b21164c1717975b21995b46424c42995b205b3d6d42",
-        "storage": "01616e606e5b5b636e5b",
-        "parameter": "006e5b6e"
+    "address":  {
+        "address": "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
+        "network": "mainnet",
+        "type": 1
     },
-    "fail_strings": [
-        "set_in_top-any",
-        "Get-item:27"
-    ],
-    "annotations": [
-        "%totalSupply",
-        "%amount",
-        "%mint",
-        "%setEuroTzMain",
-        "%approvals",
-        "%balance",
-        "%balances",
-        "%receiveDataFromStandardSC",
-        "%euroTzMain",
-        "%address"
-    ],
-    "entrypoints": [
-        "mint",
-        "setEuroTzMain"
-    ],
-    "address": "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-    "manager": "tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW",
+    "manager":  {
+        "address": "tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW",
+        "network": "mainnet",
+        "type": 2
+    },
     "last_action": "2020-05-02T02:20:59Z",
-    "tx_count": 11,
-    "verification_source": "",
-    "project_id": "24913295908842c9b30b448ea451f10e",
-    "verified": false,
-    "alias": "",
-    "total_withdrawn": 0
+    "tx_count": 11
 }

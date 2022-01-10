@@ -4,15 +4,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/account"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
+	mock_contract "github.com/baking-bad/bcdhub/internal/models/mock/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMigration_Parse(t *testing.T) {
 	timestamp := time.Now()
+
+	ctrlContractRepo := gomock.NewController(t)
+	defer ctrlContractRepo.Finish()
+	contractRepo := mock_contract.NewMockRepository(ctrlContractRepo)
 
 	tests := []struct {
 		name      string
@@ -23,31 +32,35 @@ func TestMigration_Parse(t *testing.T) {
 		{
 			name: "test 1",
 			operation: &operation.Operation{
-				Network:     types.Mainnet,
-				Level:       123,
-				ProtocolID:  2,
-				Destination: "destination",
-				Timestamp:   timestamp,
-				Hash:        "hash",
+				Network:    types.Mainnet,
+				Level:      123,
+				ProtocolID: 2,
+				Destination: account.Account{
+					Network: types.Mainnet,
+					Address: "destination",
+				},
+				Timestamp: timestamp,
+				Hash:      "hash",
 			},
 			fileName: "./data/migration/test1.json",
 			want:     nil,
 		}, {
 			name: "test 2",
 			operation: &operation.Operation{
-				Network:     types.Mainnet,
-				Level:       123,
-				ProtocolID:  2,
-				Destination: "destination",
-				Timestamp:   timestamp,
-				Hash:        "hash",
-			},
-			fileName: "./data/migration/test2.json",
-			want: &migration.Migration{
 				Network:    types.Mainnet,
 				Level:      123,
 				ProtocolID: 2,
-				Address:    "destination",
+				Destination: account.Account{
+					Network: types.Mainnet,
+					Address: "destination",
+				},
+				Timestamp: timestamp,
+				Hash:      "hash",
+			},
+			fileName: "./data/migration/test2.json",
+			want: &migration.Migration{
+				Level:      123,
+				ProtocolID: 2,
 				Timestamp:  timestamp,
 				Hash:       "hash",
 				Kind:       types.MigrationKindLambda,
@@ -61,15 +74,24 @@ func TestMigration_Parse(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.fileName, err)
 				return
 			}
-			got, err := NewMigration().Parse(op, tt.operation)
-			if err != nil {
+
+			contractRepo.
+				EXPECT().
+				Get(gomock.Eq(tt.operation.Network), gomock.Eq(tt.operation.Destination.Address)).
+				Return(contract.Contract{}, nil).
+				AnyTimes()
+
+			result := parsers.NewResult()
+			if err := NewMigration(contractRepo).Parse(op, tt.operation, result); err != nil {
 				t.Errorf("Migration.Parse() = %s", err)
 				return
 			}
 			if tt.want != nil {
-				tt.want.ID = got.ID
+				tt.want.ID = result.Migrations[0].ID
+				assert.Equal(t, tt.want, result.Migrations[0])
+			} else {
+				assert.Len(t, result.Migrations, 0)
 			}
-			assert.Equal(t, tt.want, got)
 		})
 	}
 }

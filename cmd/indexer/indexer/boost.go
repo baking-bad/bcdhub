@@ -446,8 +446,8 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 	migrationParser := migrations.NewMigrationParser(bi.Storage, bi.BigMapDiffs)
 
 	for i := range contracts {
-		logger.Info().Str("network", bi.Network.String()).Msgf("Migrate %s...", contracts[i].Address)
-		script, err := bi.rpc.GetScriptJSON(contracts[i].Address, newProtocol.StartLevel)
+		logger.Info().Str("network", bi.Network.String()).Msgf("Migrate %s...", contracts[i].Account.Address)
+		script, err := bi.rpc.GetScriptJSON(contracts[i].Account.Address, newProtocol.StartLevel)
 		if err != nil {
 			return err
 		}
@@ -479,6 +479,8 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx pg.DBI) error {
 
 	p := migrations.NewVestingParser(bi.Context)
 
+	result := parsers.NewResult()
+
 	for _, address := range addresses {
 		if !bcd.IsContract(address) {
 			continue
@@ -489,14 +491,10 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx pg.DBI) error {
 			return err
 		}
 
-		parsed, err := p.Parse(data, head, bi.Network, address)
-		if err != nil {
-			return err
-		}
-		if err := parsed.Save(tx); err != nil {
+		if err := p.Parse(data, head, bi.Network, address, result); err != nil {
 			return err
 		}
 	}
 
-	return nil
+	return result.Save(tx)
 }

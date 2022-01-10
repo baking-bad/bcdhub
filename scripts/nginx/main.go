@@ -28,7 +28,7 @@ func main() {
 		return
 	}
 
-	aliases, err := ctx.TZIP.GetAliases(types.Mainnet)
+	aliases, err := ctx.ContractMetadata.GetAliases(types.Mainnet)
 	if err != nil {
 		logger.Err(err)
 		return

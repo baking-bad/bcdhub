@@ -25,7 +25,6 @@ type Contract struct {
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 
-	ProjectID     string `json:"project_id"`
 	FoundBy       string `json:"found_by,omitempty"`
 	Alias         string `json:"alias,omitempty"`
 	DelegateAlias string `json:"delegate_alias,omitempty"`
@@ -94,17 +93,19 @@ func (c *Contract) Prepare(model models.Model) {
 		script = cont.Babylon
 	}
 
-	c.Address = cont.Address
+	c.Address = cont.Account.Address
+	c.Alias = cont.Account.Alias
 	c.Annotations = script.Annotations
-	c.Delegate = cont.Delegate.String()
+	c.Delegate = cont.Delegate.Address
+	c.DelegateAlias = cont.Delegate.Alias
 	c.Entrypoints = script.Entrypoints
 	c.FailStrings = script.FailStrings
 	c.Hardcoded = script.Hardcoded
 	c.Hash = script.Hash
 	c.Level = cont.Level
-	c.Manager = cont.Manager.String()
+	c.Manager = cont.Manager.Address
 	c.Network = cont.Network.String()
-	c.ProjectID = script.ProjectID.String()
 	c.Tags = cont.Tags.ToArray()
 	c.Timestamp = cont.Timestamp.UTC()
+	c.LastAction = &cont.LastAction
 }

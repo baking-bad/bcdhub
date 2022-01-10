@@ -1,10 +1,13 @@
 package operation
 
-import "github.com/baking-bad/bcdhub/internal/models/types"
+import (
+	"github.com/baking-bad/bcdhub/internal/models/account"
+	"github.com/baking-bad/bcdhub/internal/models/types"
+)
 
 // Repository -
 type Repository interface {
-	GetByContract(network types.Network, address string, size uint64, filters map[string]interface{}) (Pageable, error)
+	GetByAccount(acc account.Account, size uint64, filters map[string]interface{}) (Pageable, error)
 	// Last - returns last operation. TODO: change network and address.
 	Last(network types.Network, address string, indexedTime int64) (Operation, error)
 

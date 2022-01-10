@@ -26,7 +26,7 @@ func (h *logQueryHook) AfterQuery(ctx context.Context, event *pg.QueryEvent) err
 	if event.Err != nil {
 		logger.Info().Msgf("[%d ms] %s : %s", time.Since(event.StartTime).Milliseconds(), event.Err.Error(), string(query))
 	} else {
-		logger.Info().Msgf("[%d ms] %s", time.Since(event.StartTime).Milliseconds(), string(query))
+		logger.Info().Msgf("[%d ms] %d rows | %s", time.Since(event.StartTime).Milliseconds(), event.Result.RowsReturned(), string(query))
 	}
 	return nil
 }

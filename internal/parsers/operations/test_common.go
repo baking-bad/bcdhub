@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -98,11 +99,13 @@ func readTestScriptPart(network types.Network, address, symLink, part string) ([
 
 func readTestContractModel(network types.Network, address string) (contract.Contract, error) {
 	var c contract.Contract
-	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/contract/%s.json", address))
+	f, err := os.Open(fmt.Sprintf("./data/models/contract/%s.json", address))
 	if err != nil {
 		return c, err
 	}
-	err = json.Unmarshal(bytes, &c)
+	defer f.Close()
+
+	err = json.NewDecoder(f).Decode(&c)
 	return c, err
 }
 
@@ -165,7 +168,7 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 	return true
 }
 
-func compareTransfers(one, two *transfer.Transfer) bool {
+func compareTransfers(t *testing.T, one, two *transfer.Transfer) bool {
 	if one.Network != two.Network {
 		logger.Info().Msgf("Network: %s != %s", one.Network, two.Network)
 		return false
@@ -174,8 +177,7 @@ func compareTransfers(one, two *transfer.Transfer) bool {
 		logger.Info().Msgf("Contract: %s != %s", one.Contract, two.Contract)
 		return false
 	}
-	if one.Initiator != two.Initiator {
-		logger.Info().Msgf("Initiator: %s != %s", one.Initiator, two.Initiator)
+	if !assert.Equal(t, one.Initiator, two.Initiator) {
 		return false
 	}
 	if one.Status != two.Status {
@@ -190,12 +192,10 @@ func compareTransfers(one, two *transfer.Transfer) bool {
 		logger.Info().Msgf("Level: %d != %d", one.Level, two.Level)
 		return false
 	}
-	if one.From != two.From {
-		logger.Info().Msgf("From: %s != %s", one.From, two.From)
+	if !assert.Equal(t, one.From, two.From) {
 		return false
 	}
-	if one.To != two.To {
-		logger.Info().Msgf("To: %s != %s", one.To, two.To)
+	if !assert.Equal(t, one.To, two.To) {
 		return false
 	}
 	if one.TokenID != two.TokenID {
@@ -282,20 +282,16 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info().Msgf("Kind: %s != %s", one.Kind, two.Kind)
 		return false
 	}
-	if one.Initiator != two.Initiator {
-		logger.Info().Msgf("Initiator: %s != %s", one.Initiator, two.Initiator)
+	if !assert.Equal(t, one.Initiator, two.Initiator) {
 		return false
 	}
-	if one.Source != two.Source {
-		logger.Info().Msgf("Source: %s != %s", one.Source, two.Source)
+	if !assert.Equal(t, one.Source, two.Source) {
 		return false
 	}
-	if one.Destination != two.Destination {
-		logger.Info().Msgf("Destination: %s != %s", one.Destination, two.Destination)
+	if !assert.Equal(t, one.Destination, two.Destination) {
 		return false
 	}
-	if one.Delegate != two.Delegate {
-		logger.Info().Msgf("Delegate: %s != %s", one.Delegate, two.Delegate)
+	if !assert.Equal(t, one.Delegate, two.Delegate) {
 		return false
 	}
 	if one.Entrypoint != two.Entrypoint {
@@ -326,7 +322,7 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 
 	if one.Transfers != nil && two.Transfers != nil {
 		for i := range one.Transfers {
-			if !compareTransfers(one.Transfers[i], two.Transfers[i]) {
+			if !compareTransfers(t, one.Transfers[i], two.Transfers[i]) {
 				return false
 			}
 		}
@@ -451,7 +447,7 @@ func compareContract(t *testing.T, one, two *contract.Contract) bool {
 	if !assert.Equal(t, one.Network, two.Network) {
 		return false
 	}
-	if !assert.Equal(t, one.Address, two.Address) {
+	if !assert.Equal(t, one.Account, two.Account) {
 		return false
 	}
 	if !assert.Equal(t, one.Manager, two.Manager) {

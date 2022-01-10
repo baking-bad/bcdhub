@@ -3,6 +3,7 @@ package migration
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
 )
@@ -13,14 +14,14 @@ type Migration struct {
 	tableName struct{} `pg:"migrations"`
 
 	ID             int64
-	Network        types.Network `pg:",type:SMALLINT"`
-	ProtocolID     int64         `pg:",type:SMALLINT"`
+	ProtocolID     int64 `pg:",type:SMALLINT"`
 	PrevProtocolID int64
 	Hash           string
 	Timestamp      time.Time
 	Level          int64
-	Address        string
 	Kind           types.MigrationKind `pg:",type:SMALLINT"`
+	ContractID     int64
+	Contract       *contract.Contract `pg:",rel:has-one"`
 }
 
 // GetID -
@@ -42,9 +43,8 @@ func (m *Migration) Save(tx pg.DBI) error {
 // LogFields -
 func (m *Migration) LogFields() map[string]interface{} {
 	return map[string]interface{}{
-		"network": m.Network.String(),
-		"address": m.Address,
-		"block":   m.Level,
-		"kind":    m.Kind,
+		"id":    m.ID,
+		"block": m.Level,
+		"kind":  m.Kind,
 	}
 }

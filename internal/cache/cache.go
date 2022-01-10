@@ -9,9 +9,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/karlseguin/ccache"
 	"github.com/microcosm-cc/bluemonday"
@@ -27,11 +27,11 @@ type Cache struct {
 	contracts contract.Repository
 	protocols protocol.Repository
 	sanitizer *bluemonday.Policy
-	tzip      tzip.Repository
+	tzip      contract_metadata.Repository
 }
 
 // NewCache -
-func NewCache(rpc map[types.Network]noderpc.INode, blocks block.Repository, contracts contract.Repository, protocols protocol.Repository, tzip tzip.Repository, sanitizer *bluemonday.Policy) *Cache {
+func NewCache(rpc map[types.Network]noderpc.INode, blocks block.Repository, contracts contract.Repository, protocols protocol.Repository, cm contract_metadata.Repository, sanitizer *bluemonday.Policy) *Cache {
 	return &Cache{
 		ccache.New(ccache.Configure().MaxSize(100000)),
 		rpc,
@@ -39,7 +39,7 @@ func NewCache(rpc map[types.Network]noderpc.INode, blocks block.Repository, cont
 		contracts,
 		protocols,
 		sanitizer,
-		tzip,
+		cm,
 	}
 }
 
@@ -56,14 +56,14 @@ func (cache *Cache) Alias(network types.Network, address string) string {
 		return ""
 	}
 
-	if data, ok := item.Value().(*tzip.TZIP); ok && data != nil {
+	if data, ok := item.Value().(*contract_metadata.ContractMetadata); ok && data != nil {
 		return cache.sanitizer.Sanitize(data.Name)
 	}
 	return ""
 }
 
 // ContractMetadata -
-func (cache *Cache) ContractMetadata(network types.Network, address string) (*tzip.TZIP, error) {
+func (cache *Cache) ContractMetadata(network types.Network, address string) (*contract_metadata.ContractMetadata, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
@@ -75,11 +75,11 @@ func (cache *Cache) ContractMetadata(network types.Network, address string) (*tz
 		return nil, err
 	}
 
-	return item.Value().(*tzip.TZIP), nil
+	return item.Value().(*contract_metadata.ContractMetadata), nil
 }
 
 // Events -
-func (cache *Cache) Events(network types.Network, address string) (tzip.Events, error) {
+func (cache *Cache) Events(network types.Network, address string) (contract_metadata.Events, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
@@ -91,7 +91,7 @@ func (cache *Cache) Events(network types.Network, address string) (tzip.Events, 
 		return nil, err
 	}
 
-	return item.Value().(tzip.Events), nil
+	return item.Value().(contract_metadata.Events), nil
 }
 
 // Contract -

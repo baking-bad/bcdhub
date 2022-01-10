@@ -32,14 +32,14 @@ func (ch *ContractsHandler) Handle(ctx context.Context, items []models.Model, wg
 
 // Chunk -
 func (ch *ContractsHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	operations, err := getContracts(ch.StorageDB.DB, lastID, size)
+	contracts, err := getContracts(ch.StorageDB.DB, lastID, size)
 	if err != nil {
 		return nil, err
 	}
 
-	data := make([]models.Model, len(operations))
-	for i := range operations {
-		data[i] = &operations[i]
+	data := make([]models.Model, len(contracts))
+	for i := range contracts {
+		data[i] = &contracts[i]
 	}
 	return data, nil
 }

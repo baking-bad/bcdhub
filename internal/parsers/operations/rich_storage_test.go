@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
@@ -45,22 +46,30 @@ func TestRichStorage_Parse(t *testing.T) {
 		{
 			name: "test 1",
 			operation: &operation.Operation{
-				Level:       1151463,
-				Destination: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-				Network:     types.Mainnet,
-				Timestamp:   timestamp,
-				ProtocolID:  2,
-				Kind:        types.OperationKindTransaction,
+				Level: 1151463,
+				Destination: account.Account{
+					Network: types.Mainnet,
+					Address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Type:    types.AccountTypeContract,
+				},
+				Network:    types.Mainnet,
+				Timestamp:  timestamp,
+				ProtocolID: 2,
+				Kind:       types.OperationKindTransaction,
 			},
 			filename: "./data/rich_storage/test1.json",
 
 			wantOperation: operation.Operation{
-				Level:       1151463,
-				Destination: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-				Network:     types.Mainnet,
-				Timestamp:   timestamp,
-				ProtocolID:  2,
-				Kind:        types.OperationKindTransaction,
+				Level: 1151463,
+				Destination: account.Account{
+					Network: types.Mainnet,
+					Address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Type:    types.AccountTypeContract,
+				},
+				Network:    types.Mainnet,
+				Timestamp:  timestamp,
+				ProtocolID: 2,
+				Kind:       types.OperationKindTransaction,
 				BigMapDiffs: []*bigmapdiff.BigMapDiff{
 					{
 						Ptr:        31,
@@ -130,12 +139,16 @@ func TestRichStorage_Parse(t *testing.T) {
 		}, {
 			name: "test 2",
 			operation: &operation.Operation{
-				Level:       359942,
-				Destination: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
-				Network:     types.Carthagenet,
-				Timestamp:   timestamp,
-				ProtocolID:  2,
-				Kind:        types.OperationKindOrigination,
+				Level: 359942,
+				Destination: account.Account{
+					Network: types.Carthagenet,
+					Address: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
+					Type:    types.AccountTypeContract,
+				},
+				Network:    types.Carthagenet,
+				Timestamp:  timestamp,
+				ProtocolID: 2,
+				Kind:       types.OperationKindOrigination,
 			},
 			sourcePtr: 1055,
 			filename:  "./data/rich_storage/test2.json",
@@ -143,8 +156,12 @@ func TestRichStorage_Parse(t *testing.T) {
 				BigMapState: []*bigmapdiff.BigMapState{},
 			},
 			wantOperation: operation.Operation{
-				Level:       359942,
-				Destination: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
+				Level: 359942,
+				Destination: account.Account{
+					Network: types.Carthagenet,
+					Address: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
+					Type:    types.AccountTypeContract,
+				},
 				Network:     types.Carthagenet,
 				Timestamp:   timestamp,
 				ProtocolID:  2,
@@ -165,12 +182,16 @@ func TestRichStorage_Parse(t *testing.T) {
 		}, {
 			name: "test 3",
 			operation: &operation.Operation{
-				Level:       220,
-				Destination: "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-				Network:     types.Edo2net,
-				Timestamp:   timestamp,
-				ProtocolID:  3,
-				Kind:        types.OperationKindOrigination,
+				Level: 220,
+				Destination: account.Account{
+					Network: types.Edo2net,
+					Address: "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
+					Type:    types.AccountTypeContract,
+				},
+				Network:    types.Edo2net,
+				Timestamp:  timestamp,
+				ProtocolID: 3,
+				Kind:       types.OperationKindOrigination,
 			},
 			sourcePtr: 17,
 			filename:  "./data/rich_storage/test3.json",
@@ -189,12 +210,16 @@ func TestRichStorage_Parse(t *testing.T) {
 				},
 			},
 			wantOperation: operation.Operation{
-				Level:       220,
-				Destination: "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-				Network:     types.Edo2net,
-				Timestamp:   timestamp,
-				ProtocolID:  3,
-				Kind:        types.OperationKindOrigination,
+				Level: 220,
+				Destination: account.Account{
+					Network: types.Edo2net,
+					Address: "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
+					Type:    types.AccountTypeContract,
+				},
+				Network:    types.Edo2net,
+				Timestamp:  timestamp,
+				ProtocolID: 3,
+				Kind:       types.OperationKindOrigination,
 				BigMapDiffs: []*bigmapdiff.BigMapDiff{
 					{
 						Ptr:        17,
@@ -231,7 +256,7 @@ func TestRichStorage_Parse(t *testing.T) {
 
 			bmdRepo.
 				EXPECT().
-				GetByPtr(tt.operation.Network, tt.operation.Destination, tt.sourcePtr).
+				GetByPtr(tt.operation.Network, tt.operation.Destination.Address, tt.sourcePtr).
 				Return([]bigmapdiff.BigMapState{}, nil).
 				AnyTimes()
 
@@ -252,7 +277,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			script, err := readTestScript(tt.operation.Network, tt.operation.Destination, symLink)
+			script, err := readTestScript(tt.operation.Network, tt.operation.Destination.Address, symLink)
 			if err != nil {
 				t.Errorf(`readTestScript= error %v`, err)
 				return

@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -30,13 +31,13 @@ type opgForContract struct {
 	ID      int64
 }
 
-func (storage *Storage) getContractOPG(address string, network types.Network, size uint64, filters map[string]interface{}) (response []opgForContract, err error) {
-	subQuery := storage.DB.Model().Table(models.DocOperations).Column("hash", "counter", "id").Where("network = ?", network)
+func (storage *Storage) getContractOPG(accountID int64, size uint64, filters map[string]interface{}) (response []opgForContract, err error) {
+	subQuery := storage.DB.Model().Table(models.DocOperations).Column("hash", "counter", "id")
 
 	if _, ok := filters["entrypoints"]; !ok {
-		subQuery.Where("source = ? OR destination = ?", address, address)
+		subQuery.Where("source_id = ? OR destination_id = ?", accountID, accountID)
 	} else {
-		subQuery.Where("destination = ?", address)
+		subQuery.Where("destination_id = ?", accountID)
 	}
 
 	if err := prepareOperationFilters(subQuery, filters); err != nil {
@@ -76,8 +77,8 @@ func prepareOperationFilters(query *orm.Query, filters map[string]interface{}) e
 }
 
 // GetByContract -
-func (storage *Storage) GetByContract(network types.Network, address string, size uint64, filters map[string]interface{}) (po operation.Pageable, err error) {
-	opg, err := storage.getContractOPG(address, network, size, filters)
+func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters map[string]interface{}) (po operation.Pageable, err error) {
+	opg, err := storage.getContractOPG(acc.ID, size, filters)
 	if err != nil {
 		return
 	}
@@ -85,7 +86,7 @@ func (storage *Storage) GetByContract(network types.Network, address string, siz
 		return
 	}
 
-	query := storage.DB.Model().Table(models.DocOperations).Where("network = ?", network).WhereGroup(func(q *orm.Query) (*orm.Query, error) {
+	query := storage.DB.Model().Table(models.DocOperations).Where("network = ?", acc.Network).WhereGroup(func(q *orm.Query) (*orm.Query, error) {
 		for i := range opg {
 			q.WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
 				q.Where("hash = ?", opg[i].Hash).Where("counter = ?", opg[i].Counter)
@@ -118,7 +119,7 @@ func (storage *Storage) GetByContract(network types.Network, address string, siz
 
 // Last - get last operation for contract `address` with filter by `id`. If `id` is -1 then returns last in table.
 func (storage *Storage) Last(network types.Network, address string, id int64) (op operation.Operation, err error) {
-	query := storage.DB.Model(&op).Where("network = ?", network)
+	query := storage.DB.Model(&op).Where("operation.network = ?", network)
 
 	if id > -1 {
 		query.Where("id < ?", id)
@@ -127,7 +128,8 @@ func (storage *Storage) Last(network types.Network, address string, id int64) (o
 	query.
 		Where("status = ?", types.OperationStatusApplied).
 		Where("deffated_storage != ''").
-		Where("destination = ?", address).
+		Where("destination.address = ?", address).
+		Relation("Destination.address").
 		Order("id desc").Limit(1)
 
 	err = query.Select(&op)
@@ -136,7 +138,7 @@ func (storage *Storage) Last(network types.Network, address string, id int64) (o
 
 // Get -
 func (storage *Storage) Get(filters map[string]interface{}, size int64, sort bool) (operations []operation.Operation, err error) {
-	query := storage.DB.Model().Table(models.DocOperations)
+	query := storage.DB.Model((*operation.Operation)(nil)).Relation("Source.address").Relation("Destination.address")
 
 	for key, value := range filters {
 		query.Where("? = ?", pg.Ident(key), value)
@@ -161,10 +163,11 @@ func (storage *Storage) GetContract24HoursVolume(network types.Network, address 
 	var volume float64
 	query := storage.DB.Model().Table(models.DocOperations).
 		ColumnExpr("COALESCE(SUM(amount), 0)").
-		Where("destination = ?", address).
-		Where("network = ?", network).
+		Where("destination.address = ?", address).
+		Where("operation.network = ?", network).
 		Where("status = ?", types.OperationStatusApplied).
-		Where("timestamp > ?", aDayAgo)
+		Where("timestamp > ?", aDayAgo).
+		Relation("Destination.address")
 
 	if len(entrypoints) > 0 {
 		query.WhereIn("entrypoint IN (?)", entrypoints)
@@ -185,19 +188,19 @@ type tokenStats struct {
 func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
 	var stats []tokenStats
 	query := storage.DB.Model().Table(models.DocOperations).
-		Column("operations.destination", "operations.entrypoint").
+		Column("destination.address", "operations.entrypoint").
 		ColumnExpr("COUNT(*) as count, SUM(consumed_gas) AS gas").
-		Where("network = ?", network)
+		Where("network = ?", network).Relation("Destination.address")
 
 	if len(addresses) > 0 {
-		query.WhereIn("operations.destination IN (?)", addresses)
+		query.WhereIn("destination.address IN (?)", addresses)
 	}
 
 	if len(entrypoints) > 0 {
 		query.WhereIn("operations.entrypoint IN (?)", entrypoints)
 	}
 
-	query.GroupExpr("operations.destination, operations.entrypoint")
+	query.GroupExpr("destination.address, operations.entrypoint")
 
 	if err := query.Select(&stats); err != nil {
 		return nil, err
@@ -250,11 +253,11 @@ func (storage *Storage) GetDAppStats(network types.Network, addresses []string, 
 
 func getDAppQuery(db pg.DBI, network types.Network, addresses []string, period string) (*orm.Query, error) {
 	query := db.Model().Table(models.DocOperations).
-		Where("network = ?", network).
+		Where("operations.network = ?", network).
 		Where("status = ?", types.OperationStatusApplied)
 
 	if len(addresses) > 0 {
-		query.Where("destination IN (?)", addresses)
+		query.Relation("Destination.address").Where("destination.address IN (?)", addresses)
 	}
 
 	err := periodToRange(query, period)
@@ -282,5 +285,5 @@ func periodToRange(query *orm.Query, period string) error {
 }
 
 func addOperationSorting(query *orm.Query) {
-	query.OrderExpr("level desc, counter desc, id asc")
+	query.OrderExpr("operations.level desc, operations.counter desc, operations.id asc")
 }

@@ -3,23 +3,26 @@ package operations
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 )
 
 // Migration -
 type Migration struct {
+	contracts contract.Repository
 }
 
 // NewMigration -
-func NewMigration() Migration {
-	return Migration{}
+func NewMigration(contracts contract.Repository) Migration {
+	return Migration{contracts}
 }
 
 // Parse -
-func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation) (*migration.Migration, error) {
+func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation, result *parsers.Result) error {
 	var bmd []noderpc.BigMapDiff
 	switch {
 	case data.Result != nil && data.Result.BigMapDiffs != nil:
@@ -27,7 +30,7 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation)
 	case data.Metadata != nil && data.Metadata.OperationResult != nil && data.Metadata.OperationResult.BigMapDiffs != nil:
 		bmd = data.Metadata.OperationResult.BigMapDiffs
 	default:
-		return nil, nil
+		return nil
 	}
 
 	for i := range bmd {
@@ -37,7 +40,7 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation)
 
 		var tree ast.UntypedAST
 		if err := json.Unmarshal(bmd[i].Value, &tree); err != nil {
-			return nil, err
+			return err
 		}
 
 		if len(tree) == 0 {
@@ -45,18 +48,22 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation)
 		}
 
 		if tree[0].IsLambda() {
+			c, err := m.contracts.Get(operation.Network, operation.Destination.Address)
+			if err != nil {
+				return err
+			}
 			migration := &migration.Migration{
-				Network:    operation.Network,
+				ContractID: c.ID,
 				Level:      operation.Level,
 				ProtocolID: operation.ProtocolID,
-				Address:    operation.Destination,
 				Timestamp:  operation.Timestamp,
 				Hash:       operation.Hash,
 				Kind:       types.MigrationKindLambda,
 			}
+			result.Migrations = append(result.Migrations, migration)
 			logger.Info().Fields(migration.LogFields()).Msg("Migration detected")
-			return migration, nil
+			return nil
 		}
 	}
-	return nil, nil
+	return nil
 }

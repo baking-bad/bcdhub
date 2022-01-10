@@ -1,6 +1,7 @@
 package operations
 
 import (
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -24,6 +25,12 @@ func (p RegisterGlobalConstant) Parse(data noderpc.Operation, result *parsers.Re
 		return err
 	}
 
+	source := account.Account{
+		Network: p.network,
+		Address: data.Source,
+		Type:    types.NewAccountType(data.Source),
+	}
+
 	registerGlobalConstant := operation.Operation{
 		Network:      p.network,
 		Hash:         p.hash,
@@ -31,8 +38,8 @@ func (p RegisterGlobalConstant) Parse(data noderpc.Operation, result *parsers.Re
 		Level:        p.head.Level,
 		Timestamp:    p.head.Timestamp,
 		Kind:         types.NewOperationKind(data.Kind),
-		Initiator:    data.Source,
-		Source:       data.Source,
+		Initiator:    source,
+		Source:       source,
 		Fee:          data.Fee,
 		Counter:      data.Counter,
 		GasLimit:     data.GasLimit,

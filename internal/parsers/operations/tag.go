@@ -1,7 +1,6 @@
 package operations
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -9,12 +8,12 @@ import (
 )
 
 func setTags(ctx *config.Context, contract *contract.Contract, op *operation.Operation) error {
-	if !bcd.IsContract(op.Destination) {
+	if op.Destination.Type != types.AccountTypeContract {
 		return nil
 	}
 
 	if contract == nil {
-		c, err := ctx.Cache.Contract(op.Network, op.Destination)
+		c, err := ctx.Cache.Contract(op.Network, op.Destination.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				return nil

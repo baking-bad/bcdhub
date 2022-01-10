@@ -1,8 +1,8 @@
-package tzip
+package contract_metadata
 
 import (
+	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
 
@@ -17,8 +17,8 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(network types.Network, address string) (*tzip.TZIP, error) {
-	t := new(tzip.TZIP)
+func (storage *Storage) Get(network types.Network, address string) (*cm.ContractMetadata, error) {
+	t := new(cm.ContractMetadata)
 	query := storage.DB.Model(t)
 	core.NetworkAndAddress(network, address)(query)
 	err := query.Order("id desc").Limit(1).Select()
@@ -26,14 +26,14 @@ func (storage *Storage) Get(network types.Network, address string) (*tzip.TZIP, 
 }
 
 // GetBySlug -
-func (storage *Storage) GetBySlug(slug string) (*tzip.TZIP, error) {
-	t := new(tzip.TZIP)
+func (storage *Storage) GetBySlug(slug string) (*cm.ContractMetadata, error) {
+	t := new(cm.ContractMetadata)
 	err := storage.DB.Model(t).Where("slug = ?", slug).First()
 	return t, err
 }
 
 // GetAliases -
-func (storage *Storage) GetAliases(network types.Network) (t []tzip.TZIP, err error) {
+func (storage *Storage) GetAliases(network types.Network) (t []cm.ContractMetadata, err error) {
 	err = storage.DB.Model(&t).
 		Where("network = ?", network).
 		Where("name IS NOT NULL").
@@ -43,15 +43,15 @@ func (storage *Storage) GetAliases(network types.Network) (t []tzip.TZIP, err er
 }
 
 // GetWithEvents -
-func (storage *Storage) GetWithEvents(updatedAt uint64) ([]tzip.TZIP, error) {
-	query := storage.DB.Model((*tzip.TZIP)(nil)).
+func (storage *Storage) GetWithEvents(updatedAt uint64) ([]cm.ContractMetadata, error) {
+	query := storage.DB.Model((*cm.ContractMetadata)(nil)).
 		Where("events is not null AND jsonb_array_length(events) > 0")
 
 	if updatedAt > 0 {
 		query.Where("updated_at > ?", updatedAt)
 	}
 
-	t := make([]tzip.TZIP, 0)
+	t := make([]cm.ContractMetadata, 0)
 	if err := query.Order("updated_at asc").Select(&t); err != nil && !storage.IsRecordNotFound(err) {
 		return nil, err
 	}
@@ -59,8 +59,8 @@ func (storage *Storage) GetWithEvents(updatedAt uint64) ([]tzip.TZIP, error) {
 }
 
 // Events -
-func (storage *Storage) Events(network types.Network, address string) (events tzip.Events, err error) {
-	err = storage.DB.Model((*tzip.TZIP)(nil)).Column("events").
+func (storage *Storage) Events(network types.Network, address string) (events cm.Events, err error) {
+	err = storage.DB.Model((*cm.ContractMetadata)(nil)).Column("events").
 		Where("network = ?", network).Where("address = ?", address).
 		Limit(1).Select(&events)
 	return

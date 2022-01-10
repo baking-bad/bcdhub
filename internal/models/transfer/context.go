@@ -6,7 +6,7 @@ import "github.com/baking-bad/bcdhub/internal/models/types"
 type GetContext struct {
 	Contracts []string
 	Network   types.Network
-	Address   string
+	AccountID int64
 
 	Start       uint
 	End         uint

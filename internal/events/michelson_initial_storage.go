@@ -2,7 +2,7 @@ package events
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 )
@@ -16,7 +16,7 @@ type MichelsonInitialStorage struct {
 }
 
 // NewMichelsonInitialStorage -
-func NewMichelsonInitialStorage(impl tzip.EventImplementation, name string) (*MichelsonInitialStorage, error) {
+func NewMichelsonInitialStorage(impl contract_metadata.EventImplementation, name string) (*MichelsonInitialStorage, error) {
 	retType, err := ast.NewTypedAstFromBytes(impl.MichelsonInitialStorageEvent.ReturnType)
 	if err != nil {
 		return nil, err

@@ -10,21 +10,19 @@ type DApp struct {
 	// nolint
 	tableName struct{} `pg:"dapps"`
 
-	ID                int64          `json:"-"`
-	Name              string         `json:"name"`
-	ShortDescription  string         `json:"short_description"`
-	FullDescription   string         `json:"full_description"`
-	WebSite           string         `json:"web_site"`
-	Slug              string         `json:"slug,omitempty"`
-	AgoraReviewPostID int64          `json:"agora_review_post_id,omitempty"`
-	AgoraQAPostID     int64          `json:"agora_qa_post_id,omitempty"`
-	Authors           pq.StringArray `json:"authors" pg:",type:text[]"`
-	SocialLinks       pq.StringArray `json:"social_links" pg:",type:text[]"`
-	Interfaces        pq.StringArray `json:"interfaces" pg:",type:text[]"`
-	Categories        pq.StringArray `json:"categories" pg:",type:text[]"`
-	Contracts         DAppContracts  `json:"contracts" pg:",type:jsonb"`
-	Order             int64          `json:"order"`
-	Soon              bool           `json:"soon" pg:",use_zero"`
+	ID               int64          `json:"-"`
+	Name             string         `json:"name" pg:",unique"`
+	ShortDescription string         `json:"short_description"`
+	FullDescription  string         `json:"full_description"`
+	WebSite          string         `json:"web_site"`
+	Slug             string         `json:"slug,omitempty"`
+	Authors          pq.StringArray `json:"authors" pg:",type:text[]"`
+	SocialLinks      pq.StringArray `json:"social_links" pg:",type:text[]"`
+	Interfaces       pq.StringArray `json:"interfaces" pg:",type:text[]"`
+	Categories       pq.StringArray `json:"categories" pg:",type:text[]"`
+	Contracts        DAppContracts  `json:"contracts" pg:",type:jsonb"`
+	Order            int64          `json:"order"`
+	Soon             bool           `json:"soon" pg:",use_zero"`
 
 	Pictures  Pictures  `json:"pictures,omitempty" pg:",type:jsonb"`
 	DexTokens DexTokens `json:"dex_tokens,omitempty" pg:",type:jsonb"`
@@ -43,15 +41,12 @@ func (d *DApp) GetIndex() string {
 // Save -
 func (d *DApp) Save(tx pg.DBI) error {
 	_, err := tx.Model(d).
-		OnConflict("(id) DO UPDATE").
+		OnConflict("(name) DO UPDATE").
 		Set(`
-		"name" = excluded.name,
 		"short_description" = excluded.short_description,
 		"full_description" = excluded.full_description,
 		"web_site" = excluded.web_site,
 		"slug" = excluded.slug,
-		"agora_review_post_id" = excluded.agora_review_post_id,
-		"agora_qa_post_id" = excluded.agora_qa_post_id,
 		"authors" = excluded.authors,
 		"social_links" = excluded.social_links,
 		"interfaces" = excluded.interfaces,

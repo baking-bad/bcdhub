@@ -3,6 +3,7 @@ package contract
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
 )
@@ -17,9 +18,12 @@ type Contract struct {
 	Level     int64
 	Timestamp time.Time
 
-	Address  string
-	Manager  types.NullString `pg:",type:varchar(36)"`
-	Delegate types.NullString `pg:",type:varchar(36)"`
+	AccountID  int64
+	Account    account.Account `pg:",rel:has-one"`
+	ManagerID  int64
+	Manager    account.Account `pg:",rel:has-one"`
+	DelegateID int64
+	Delegate   account.Account `pg:",rel:has-one"`
 
 	TxCount         int64 `pg:",use_zero"`
 	LastAction      time.Time
@@ -30,14 +34,6 @@ type Contract struct {
 	Alpha     Script `pg:",rel:has-one"`
 	BabylonID int64
 	Babylon   Script `pg:",rel:has-one"`
-}
-
-// NewEmptyContract -
-func NewEmptyContract(network types.Network, address string) Contract {
-	return Contract{
-		Network: network,
-		Address: address,
-	}
 }
 
 // GetID -
@@ -52,7 +48,7 @@ func (c *Contract) GetIndex() string {
 
 // Save -
 func (c *Contract) Save(tx pg.DBI) error {
-	_, err := tx.Model(c).Returning("id").Insert()
+	_, err := tx.Model(c).OnConflict("DO NOTHING").Returning("id").Insert()
 	return err
 }
 
@@ -60,19 +56,7 @@ func (c *Contract) Save(tx pg.DBI) error {
 func (c *Contract) LogFields() map[string]interface{} {
 	return map[string]interface{}{
 		"network": c.Network.String(),
-		"address": c.Address,
+		"address": c.Account,
 		"block":   c.Level,
 	}
-}
-
-// Fingerprint -
-type Fingerprint struct {
-	Code      string
-	Storage   string
-	Parameter string
-}
-
-// Compare -
-func (f *Fingerprint) Compare(second *Fingerprint) bool {
-	return f.Code == second.Code && f.Parameter == second.Parameter && f.Storage == second.Storage
 }

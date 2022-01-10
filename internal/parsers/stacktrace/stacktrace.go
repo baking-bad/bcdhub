@@ -27,8 +27,8 @@ func NewItem(operation operation.Operation, parentID int64) *Item {
 	item := &Item{
 		ParentID:     parentID,
 		children:     make([]int64, 0),
-		source:       operation.Source,
-		destination:  operation.Destination,
+		source:       operation.Source.Address,
+		destination:  operation.Destination.Address,
 		contentIndex: operation.ContentIndex,
 		nonce:        operation.Nonce,
 		Entrypoint:   operation.Entrypoint,
@@ -60,7 +60,7 @@ func (sti *Item) IsNext(operation operation.Operation) bool {
 	if !sti.gtNonce(operation.Nonce) {
 		return false
 	}
-	return sti.destination == operation.Source
+	return sti.destination == operation.Source.Address
 }
 
 func (sti *Item) gtNonce(nonce *int64) bool {

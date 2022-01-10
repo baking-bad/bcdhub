@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -18,7 +18,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
@@ -120,7 +119,7 @@ func (rm Manager) rollbackTokenBalances(tx pg.DBI, network types.Network, level 
 func (rm Manager) rollbackAll(tx pg.DBI, network types.Network, level int64) error {
 	for _, index := range []models.Model{
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
-		&bigmapaction.BigMapAction{}, &tzip.TZIP{}, &migration.Migration{},
+		&bigmapaction.BigMapAction{}, &cm.ContractMetadata{}, &migration.Migration{},
 		&transfer.Transfer{}, &tokenmetadata.TokenMetadata{},
 		&global_constant.GlobalConstant{},
 	} {
@@ -213,18 +212,18 @@ func (rm Manager) rollbackOperations(tx pg.DBI, network types.Network, level int
 		if ops[i].IsOrigination() {
 			continue
 		}
-		if bcd.IsContract(ops[i].Destination) {
-			if _, ok := contracts[ops[i].Destination]; !ok {
-				contracts[ops[i].Destination] = 1
+		if ops[i].Destination.Type == types.AccountTypeContract {
+			if _, ok := contracts[ops[i].Destination.Address]; !ok {
+				contracts[ops[i].Destination.Address] = 1
 			} else {
-				contracts[ops[i].Destination] += 1
+				contracts[ops[i].Destination.Address] += 1
 			}
 		}
-		if bcd.IsContract(ops[i].Source) {
-			if _, ok := contracts[ops[i].Source]; !ok {
-				contracts[ops[i].Source] = 1
+		if ops[i].Source.Type == types.AccountTypeContract {
+			if _, ok := contracts[ops[i].Source.Address]; !ok {
+				contracts[ops[i].Source.Address] = 1
 			} else {
-				contracts[ops[i].Source] += 1
+				contracts[ops[i].Source.Address] += 1
 			}
 		}
 	}

@@ -26,32 +26,26 @@ func NewParser(ctx *config.Context) *Parser {
 }
 
 // Parse -
-func (p *Parser) Parse(operation *operation.Operation) (*parsers.Result, error) {
+func (p *Parser) Parse(operation *operation.Operation, result *parsers.Result) error {
 	if !operation.IsOrigination() {
-		return nil, errors.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
+		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
 
 	contract := contract.Contract{
-		Network:   operation.Network,
-		Level:     operation.Level,
-		Timestamp: operation.Timestamp,
-		Manager:   types.NewNullString(&operation.Source),
-		Address:   operation.Destination,
-		Delegate: types.NullString{
-			Str:   operation.Delegate,
-			Valid: operation.Delegate != "",
-		},
+		Network:    operation.Network,
+		Level:      operation.Level,
+		Timestamp:  operation.Timestamp,
+		Manager:    operation.Source,
+		Account:    operation.Destination,
+		Delegate:   operation.Delegate,
 		LastAction: operation.Timestamp,
 	}
 
 	if err := p.computeMetrics(operation, &contract); err != nil {
-		return nil, err
+		return err
 	}
-
-	result := parsers.NewResult()
 	result.Contracts = append(result.Contracts, &contract)
-
-	return result, nil
+	return nil
 }
 
 func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Contract) error {

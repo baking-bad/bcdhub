@@ -5,8 +5,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/shopspring/decimal"
 )
 
@@ -20,15 +22,25 @@ func MakeFa1_2Transfers(tree ast.Node, operation operation.Operation) ([]*transf
 	t := operation.EmptyTransfer()
 	pair := tree.(*ast.Pair)
 	from := pair.Args[0].GetValue().(string)
-	t.From, err = getAddress(from)
+	fromAddr, err := getAddress(from)
 	if err != nil {
 		return nil, err
 	}
+	t.From = account.Account{
+		Network: operation.Network,
+		Address: fromAddr,
+		Type:    modelTypes.NewAccountType(fromAddr),
+	}
 	toPair := pair.Args[1].(*ast.Pair)
 	to := toPair.Args[0].GetValue().(string)
-	t.To, err = getAddress(to)
+	toAddr, err := getAddress(to)
 	if err != nil {
 		return nil, err
+	}
+	t.To = account.Account{
+		Network: operation.Network,
+		Address: toAddr,
+		Type:    modelTypes.NewAccountType(toAddr),
 	}
 	i := toPair.Args[1].GetValue().(*types.BigInt)
 	t.Amount = decimal.NewFromBigInt(i.Int, 0)

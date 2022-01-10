@@ -8,8 +8,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/postgres/account"
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/postgres/contract"
+	cm "github.com/baking-bad/bcdhub/internal/postgres/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/postgres/dapp"
 	"github.com/baking-bad/bcdhub/internal/postgres/domains"
 	"github.com/baking-bad/bcdhub/internal/postgres/global_constant"
@@ -20,7 +22,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/postgres/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/postgres/transfer"
-	"github.com/baking-bad/bcdhub/internal/postgres/tzip"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
 
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
@@ -76,18 +77,19 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		contractStorage := contract.NewStorage(pg)
 		ctx.StorageDB = pg
 		ctx.Storage = pg
+		ctx.Accounts = account.NewStorage(pg)
 		ctx.BigMapActions = bigmapaction.NewStorage(pg)
 		ctx.Blocks = block.NewStorage(pg)
 		ctx.BigMapDiffs = bigmapdiff.NewStorage(pg)
 		ctx.DApps = dapp.NewStorage(pg)
 		ctx.Contracts = contractStorage
+		ctx.ContractMetadata = cm.NewStorage(pg)
 		ctx.Migrations = migration.NewStorage(pg)
 		ctx.Operations = operation.NewStorage(pg)
 		ctx.Protocols = protocol.NewStorage(pg)
 		ctx.TokenBalances = tokenbalance.NewStorage(pg)
 		ctx.TokenMetadata = tokenmetadata.NewStorage(pg)
 		ctx.Transfers = transfer.NewStorage(pg)
-		ctx.TZIP = tzip.NewStorage(pg)
 		ctx.GlobalConstants = global_constant.NewStorage(pg)
 		ctx.Domains = domains.NewStorage(pg)
 		ctx.Services = service.NewStorage(pg)

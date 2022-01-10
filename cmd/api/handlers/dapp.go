@@ -61,18 +61,16 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 
 func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, error) {
 	result := DApp{
-		Name:              dapp.Name,
-		ShortDescription:  dapp.ShortDescription,
-		FullDescription:   dapp.FullDescription,
-		WebSite:           dapp.WebSite,
-		Slug:              dapp.Slug,
-		AgoraReviewPostID: dapp.AgoraReviewPostID,
-		AgoraQAPostID:     dapp.AgoraQAPostID,
-		Authors:           dapp.Authors,
-		SocialLinks:       dapp.SocialLinks,
-		Interfaces:        dapp.Interfaces,
-		Categories:        dapp.Categories,
-		Soon:              dapp.Soon,
+		Name:             dapp.Name,
+		ShortDescription: dapp.ShortDescription,
+		FullDescription:  dapp.FullDescription,
+		WebSite:          dapp.WebSite,
+		Slug:             dapp.Slug,
+		Authors:          dapp.Authors,
+		SocialLinks:      dapp.SocialLinks,
+		Interfaces:       dapp.Interfaces,
+		Categories:       dapp.Categories,
+		Soon:             dapp.Soon,
 	}
 
 	if len(dapp.Pictures) > 0 {
@@ -159,8 +157,8 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 				}
 				result.Contracts = append(result.Contracts, DAppContract{
 					Network:     contract.Network.String(),
-					Address:     contract.Address,
-					Alias:       ctx.Cache.Alias(contract.Network, contract.Address),
+					Address:     contract.Account.Address,
+					Alias:       contract.Account.Alias,
 					ReleaseDate: contract.Timestamp.UTC(),
 				})
 

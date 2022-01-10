@@ -4,9 +4,9 @@ import (
 	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/events"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 )
 
@@ -19,18 +19,18 @@ type ImplementationKey struct {
 }
 
 type eventMap struct {
-	m  map[ImplementationKey]tzip.EventImplementation
+	m  map[ImplementationKey]contract_metadata.EventImplementation
 	mx sync.RWMutex
 }
 
 func newEventMap() *eventMap {
 	return &eventMap{
-		m: make(map[ImplementationKey]tzip.EventImplementation),
+		m: make(map[ImplementationKey]contract_metadata.EventImplementation),
 	}
 }
 
 // Load -
-func (m *eventMap) Load(key ImplementationKey) (tzip.EventImplementation, bool) {
+func (m *eventMap) Load(key ImplementationKey) (contract_metadata.EventImplementation, bool) {
 	m.mx.RLock()
 	data, ok := m.m[key]
 	m.mx.RUnlock()
@@ -38,7 +38,7 @@ func (m *eventMap) Load(key ImplementationKey) (tzip.EventImplementation, bool) 
 }
 
 // Store -
-func (m *eventMap) Store(key ImplementationKey, value tzip.EventImplementation) {
+func (m *eventMap) Store(key ImplementationKey, value contract_metadata.EventImplementation) {
 	m.mx.Lock()
 	m.m[key] = value
 	m.mx.Unlock()
@@ -58,15 +58,15 @@ func EmptyTokenEvents() *TokenEvents {
 }
 
 // NewTokenEvents -
-func NewTokenEvents(repo tzip.Repository) (*TokenEvents, error) {
+func NewTokenEvents(repo contract_metadata.Repository) (*TokenEvents, error) {
 	tokenEvents := EmptyTokenEvents()
 	return tokenEvents, tokenEvents.Update(repo)
 }
 
 // GetByOperation -
-func (tokenEvents *TokenEvents) GetByOperation(operation operation.Operation) (tzip.EventImplementation, string, bool) {
+func (tokenEvents *TokenEvents) GetByOperation(operation operation.Operation) (contract_metadata.EventImplementation, string, bool) {
 	if event, ok := tokenEvents.events.Load(ImplementationKey{
-		Address:    operation.Destination,
+		Address:    operation.Destination.Address,
 		Network:    operation.Network,
 		Entrypoint: operation.Entrypoint.String(),
 		Name:       tokenbalance.SingleAssetBalanceUpdates,
@@ -75,7 +75,7 @@ func (tokenEvents *TokenEvents) GetByOperation(operation operation.Operation) (t
 	}
 
 	event, ok := tokenEvents.events.Load(ImplementationKey{
-		Address:    operation.Destination,
+		Address:    operation.Destination.Address,
 		Network:    operation.Network,
 		Entrypoint: operation.Entrypoint.String(),
 		Name:       tokenbalance.MultiAssetBalanceUpdates,
@@ -87,7 +87,7 @@ func (tokenEvents *TokenEvents) GetByOperation(operation operation.Operation) (t
 }
 
 // Update -
-func (tokenEvents *TokenEvents) Update(repo tzip.Repository) error {
+func (tokenEvents *TokenEvents) Update(repo contract_metadata.Repository) error {
 	tokens, err := repo.GetWithEvents(tokenEvents.updatedAt)
 	if err != nil {
 		return err

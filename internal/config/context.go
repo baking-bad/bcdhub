@@ -4,10 +4,12 @@ import (
 	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/cache"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/global_constant"
@@ -19,7 +21,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/search"
@@ -41,24 +42,25 @@ type Context struct {
 
 	TezosDomainsContracts map[types.Network]string
 
-	Storage         models.GeneralRepository
-	Statistics      models.Statistics
-	BigMapActions   bigmapaction.Repository
-	BigMapDiffs     bigmapdiff.Repository
-	Blocks          block.Repository
-	Contracts       contract.Repository
-	DApps           dapp.Repository
-	GlobalConstants global_constant.Repository
-	Migrations      migration.Repository
-	Operations      operation.Repository
-	Protocols       protocol.Repository
-	TokenBalances   tokenbalance.Repository
-	TokenMetadata   tokenmetadata.Repository
-	Transfers       transfer.Repository
-	TZIP            tzip.Repository
-	Domains         domains.Repository
-	Services        service.Repository
-	Scripts         contract.ScriptRepository
+	Storage          models.GeneralRepository
+	Accounts         account.Repository
+	Statistics       models.Statistics
+	BigMapActions    bigmapaction.Repository
+	BigMapDiffs      bigmapdiff.Repository
+	Blocks           block.Repository
+	Contracts        contract.Repository
+	DApps            dapp.Repository
+	GlobalConstants  global_constant.Repository
+	Migrations       migration.Repository
+	Operations       operation.Repository
+	Protocols        protocol.Repository
+	TokenBalances    tokenbalance.Repository
+	TokenMetadata    tokenmetadata.Repository
+	Transfers        transfer.Repository
+	ContractMetadata cm.Repository
+	Domains          domains.Repository
+	Services         service.Repository
+	Scripts          contract.ScriptRepository
 
 	Searcher search.Searcher
 
@@ -78,7 +80,7 @@ func NewContext(opts ...ContextOption) *Context {
 	}
 
 	ctx.Cache = cache.NewCache(
-		ctx.RPC, ctx.Blocks, ctx.Contracts, ctx.Protocols, ctx.TZIP, ctx.Sanitizer,
+		ctx.RPC, ctx.Blocks, ctx.Contracts, ctx.Protocols, ctx.ContractMetadata, ctx.Sanitizer,
 	)
 	return ctx
 }

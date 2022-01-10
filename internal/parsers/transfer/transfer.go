@@ -8,13 +8,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer/trees"
@@ -27,8 +28,9 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 // Parser -
 type Parser struct {
 	tokenBalances tokenbalance.Repository
-	tzipRepo      tzip.Repository
+	cmRepo        contract_metadata.Repository
 	blocks        block.Repository
+	accounts      account.Repository
 
 	rpc        noderpc.INode
 	stackTrace *stacktrace.StackTrace
@@ -44,12 +46,13 @@ type Parser struct {
 var globalEvents *TokenEvents
 
 // NewParser -
-func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, tokenBalances tokenbalance.Repository, opts ...ParserOption) (*Parser, error) {
+func NewParser(rpc noderpc.INode, cmRepo contract_metadata.Repository, blocks block.Repository, tokenBalances tokenbalance.Repository, accounts account.Repository, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
 		rpc:           rpc,
 		tokenBalances: tokenBalances,
-		tzipRepo:      tzipRepo,
+		cmRepo:        cmRepo,
 		blocks:        blocks,
+		accounts:      accounts,
 	}
 
 	for i := range opts {
@@ -69,13 +72,13 @@ func (p *Parser) initialize() {
 		globalEvents = EmptyTokenEvents()
 	case p.withoutViews && globalEvents != nil:
 	case !p.withoutViews && globalEvents == nil:
-		tokenEvents, err := NewTokenEvents(p.tzipRepo)
+		tokenEvents, err := NewTokenEvents(p.cmRepo)
 		if err != nil {
 			logger.Err(err)
 		}
 		globalEvents = tokenEvents
 	case !p.withoutViews && globalEvents != nil:
-		if err := globalEvents.Update(p.tzipRepo); err != nil {
+		if err := globalEvents.Update(p.cmRepo); err != nil {
 			logger.Err(err)
 		}
 	}
@@ -111,19 +114,17 @@ func (p *Parser) Parse(diffs []*bigmapdiff.BigMapDiff, protocol string, operatio
 	return nil
 }
 
-func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol string, diffs []*bigmapdiff.BigMapDiff, operation *operation.Operation) error {
+func (p *Parser) executeEvents(impl contract_metadata.EventImplementation, name, protocol string, diffs []*bigmapdiff.BigMapDiff, operation *operation.Operation) error {
 	if !operation.IsApplied() {
 		return nil
 	}
 
-	var event events.Event
-
 	ctx := events.Context{
 		Network:                  p.network,
 		Protocol:                 protocol,
-		Source:                   operation.Source,
+		Source:                   operation.Source.Address,
 		Amount:                   operation.Amount,
-		Initiator:                operation.Initiator,
+		Initiator:                operation.Initiator.Address,
 		ChainID:                  p.chainID,
 		HardGasLimitPerOperation: p.gasLimit,
 	}
@@ -141,7 +142,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol str
 		}
 		ctx.Parameters = subTree
 		ctx.Entrypoint = operation.Entrypoint.String()
-		event, err = events.NewMichelsonParameter(impl, name)
+		event, err := events.NewMichelsonParameter(impl, name)
 		if err != nil {
 			return err
 		}
@@ -166,7 +167,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol str
 				bmd = append(bmd, *diffs[i])
 			}
 		}
-		event, err = events.NewMichelsonExtendedStorage(impl, name, bmd)
+		event, err := events.NewMichelsonExtendedStorage(impl, name, bmd)
 		if err != nil {
 			return err
 		}
@@ -179,15 +180,15 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol str
 func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.Context, operation *operation.Operation, isDelta bool) error {
 	balances, err := events.Execute(p.rpc, event, ctx)
 	if err != nil {
-		logger.Error().Msgf("Event of %s %s: %s", operation.Network, operation.Destination, err.Error())
+		logger.Error().Msgf("Event of %s %s: %s", operation.Network, operation.Destination.Address, err.Error())
 		return nil
 	}
 
-	parser := NewDefaultBalanceParser(p.tokenBalances)
+	parser := NewDefaultBalanceParser(p.tokenBalances, p.accounts)
 	if isDelta {
 		operation.Transfers, err = parser.Parse(balances, *operation)
 	} else {
-		operation.Transfers, err = parser.ParseBalances(p.network, operation.Destination, balances, *operation)
+		operation.Transfers, err = parser.ParseBalances(p.network, operation.Destination.Address, balances, *operation)
 	}
 	if err != nil {
 		return err

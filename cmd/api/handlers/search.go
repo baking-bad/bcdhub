@@ -94,7 +94,7 @@ var indicesMap = map[string]string{
 	"contract":       models.DocContracts,
 	"operation":      models.DocOperations,
 	"bigmapdiff":     models.DocBigMapDiff,
-	"tzip":           models.DocTZIP,
+	"tzip":           models.DocContractMetadata,
 	"token_metadata": models.DocTokenMetadata,
 }
 

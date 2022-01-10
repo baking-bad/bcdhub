@@ -58,11 +58,10 @@ func (storage *Storage) GetByAddress(network types.Network, address string) (res
 }
 
 // GetValuesByKey -
-func (storage *Storage) GetValuesByKey(keyHash string) (response []bigmapdiff.BigMapDiff, err error) {
-	err = storage.DB.Model().Table(models.DocBigMapDiff).
+func (storage *Storage) GetValuesByKey(keyHash string) (response []bigmapdiff.BigMapState, err error) {
+	err = storage.DB.Model().Table(models.DocBigMapState).
 		Where("key_hash = ?", keyHash).
-		Group("network, contract, ptr").
-		Order("level desc").
+		Order("last_update_level desc").
 		Select(&response)
 	return
 }
