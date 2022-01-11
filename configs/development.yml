@@ -70,7 +70,6 @@ api:
     sandbox_mode: false
   networks:
     - mainnet
-    - granadanet
     - hangzhou2net
   connections:
     max: 50
@@ -109,6 +108,3 @@ scripts:
   connections:
     max: 5
     idle: 5
-
-graphql:
-  db: "host=127.0.0.1 port=5432 user=graphql dbname=indexer password=${POSTGRES_GRAPHQL} sslmode=disable"

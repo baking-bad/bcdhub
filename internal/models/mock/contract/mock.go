@@ -65,18 +65,22 @@ func (mr *MockRepositoryMockRecorder) GetMany(network interface{}) *gomock.Call 
 }
 
 // GetRandom mocks base method
-func (m *MockRepository) GetRandom(network types.Network) (model.Contract, error) {
+func (m *MockRepository) GetRandom(networks ...types.Network) (model.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRandom", network)
+	varargs := []interface{}{}
+	for _, a := range networks {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetRandom", varargs...)
 	ret0, _ := ret[0].(model.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRandom indicates an expected call of GetRandom
-func (mr *MockRepositoryMockRecorder) GetRandom(network interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetRandom(networks ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRandom", reflect.TypeOf((*MockRepository)(nil).GetRandom), network)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRandom", reflect.TypeOf((*MockRepository)(nil).GetRandom), networks...)
 }
 
 // GetTokens mocks base method

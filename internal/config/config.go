@@ -51,10 +51,6 @@ type Config struct {
 		Networks    []string    `yaml:"networks"`
 		Connections Connections `yaml:"connections"`
 	} `yaml:"scripts"`
-
-	GraphQL struct {
-		DB string `yaml:"db"`
-	} `yaml:"graphql"`
 }
 
 // RPCConfig -

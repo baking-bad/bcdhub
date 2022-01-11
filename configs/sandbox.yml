@@ -72,6 +72,3 @@ metrics:
 scripts:
   networks:
     - sandboxnet
-
-graphql:
-  db: "host=${DB_HOSTNAME} port=5432 user=graphql dbname=indexer password=${POSTGRES_GRAPHQL} sslmode=disable"
