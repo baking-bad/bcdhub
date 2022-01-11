@@ -90,6 +90,3 @@ scripts:
   connections:
     max: 5
     idle: 5
-
-graphql:
-  db: "host=${DB_HOSTNAME} port=5432 user=graphql dbname=indexer password=${POSTGRES_GRAPHQL} sslmode=disable"

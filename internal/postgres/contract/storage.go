@@ -36,10 +36,17 @@ func (storage *Storage) GetMany(network types.Network) (response []contract.Cont
 }
 
 // GetRandom -
-func (storage *Storage) GetRandom(network types.Network) (response contract.Contract, err error) {
+func (storage *Storage) GetRandom(networks ...types.Network) (response contract.Contract, err error) {
 	queryCount := storage.DB.Model(&response).Where("tx_count > 2")
-	if network != types.Empty {
-		queryCount.Where("contract.network = ?", network)
+	if len(networks) > 0 {
+		queryCount.WhereGroup(func(q *orm.Query) (*orm.Query, error) {
+			for i := range networks {
+				if networks[i] != types.Empty {
+					q.WhereOr("contract.network = ?", networks[i])
+				}
+			}
+			return q, nil
+		})
 	}
 	count, err := queryCount.Count()
 	if err != nil {
@@ -51,10 +58,17 @@ func (storage *Storage) GetRandom(network types.Network) (response contract.Cont
 	}
 
 	query := storage.DB.Model(&response).Where("tx_count > 2")
-	if network != types.Empty {
-		query.Where("contract.network = ?", network)
+	if len(networks) > 0 {
+		queryCount.WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
+			for i := range networks {
+				if networks[i] != types.Empty {
+					q.Where("contract.network = ?", networks[i])
+				}
+			}
+			return q, nil
+		})
 	}
-	err = query.Offset(rand.Intn(count)).Relation("Account").Relation("Manager").Relation("Delegate").First()
+	err = query.Offset(rand.Intn(count)).Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").First()
 	return
 }
 
@@ -114,7 +128,7 @@ func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset in
 
 	scriptsQuery := storage.DB.Model().
 		Table(models.DocScripts).Column("id").
-		Where("project_id = ?",
+		Where("project_id = (?)",
 			storage.DB.Model().Table(models.DocScripts).Column("project_id").Where("id = ?", scriptID).Limit(1),
 		)
 
@@ -190,7 +204,7 @@ func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err er
 	}
 	scriptsQuery := storage.DB.Model().
 		Table(models.DocScripts).Column("id").
-		Where("project_id = ?",
+		Where("project_id = (?)",
 			storage.DB.Model().Table(models.DocScripts).Column("project_id").Where("id = ?", scriptID).Limit(1),
 		)
 
