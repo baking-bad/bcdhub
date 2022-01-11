@@ -24,12 +24,17 @@ type TzKT struct {
 
 // NewTzKT -
 func NewTzKT(host string, timeout time.Duration) *TzKT {
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = 100
+	t.MaxConnsPerHost = 100
+	t.MaxIdleConnsPerHost = 100
+
 	return &TzKT{
 		Host: host,
 		client: http.Client{
-			Timeout: timeout,
+			Timeout:   timeout,
+			Transport: t,
 		},
-
 		retryCount: 3,
 	}
 }

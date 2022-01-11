@@ -70,7 +70,7 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Mo
 
 	logger.Info().Msgf("%3d contract metadata are processed", len(updates))
 
-	if err := saveSearchModels(cm.Context, updates); err != nil {
+	if err := saveSearchModels(ctx, cm.Context, updates); err != nil {
 		return err
 	}
 

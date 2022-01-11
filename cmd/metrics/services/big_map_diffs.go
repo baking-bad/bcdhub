@@ -27,7 +27,7 @@ func (oh *BigMapDiffHandler) Handle(ctx context.Context, items []models.Model, w
 
 	logger.Info().Msgf("%3d big map diffs are processed", len(items))
 
-	return saveSearchModels(oh.Context, items)
+	return saveSearchModels(ctx, oh.Context, items)
 }
 
 // Chunk -

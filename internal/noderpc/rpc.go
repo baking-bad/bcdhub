@@ -31,6 +31,7 @@ func getBlockString(level int64) string {
 // NodeRPC -
 type NodeRPC struct {
 	baseURL string
+	client  *http.Client
 
 	timeout    time.Duration
 	retryCount int
@@ -47,6 +48,17 @@ func NewNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	for _, opt := range opts {
 		opt(node)
 	}
+
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = 100
+	t.MaxConnsPerHost = 100
+	t.MaxIdleConnsPerHost = 100
+
+	node.client = &http.Client{
+		Timeout:   node.timeout,
+		Transport: t,
+	}
+
 	return node
 }
 
@@ -97,13 +109,10 @@ func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool, res
 }
 
 func (rpc *NodeRPC) makeRequest(req *http.Request) (*http.Response, error) {
-	client := http.Client{
-		Timeout: rpc.timeout,
-	}
 
 	count := 0
 	for ; count < rpc.retryCount; count++ {
-		resp, err := client.Do(req)
+		resp, err := rpc.client.Do(req)
 		if err != nil {
 			logger.Warning().Msgf("Attempt #%d: %s", count+1, err.Error())
 			continue

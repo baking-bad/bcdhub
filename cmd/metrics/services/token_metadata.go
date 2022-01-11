@@ -69,7 +69,7 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model
 
 	logger.Info().Msgf("%3d token metadata are processed", len(updates))
 
-	if err := saveSearchModels(tm.Context, updates); err != nil {
+	if err := saveSearchModels(ctx, tm.Context, updates); err != nil {
 		return err
 	}
 	return tm.Storage.Save(ctx, updates)

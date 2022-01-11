@@ -27,7 +27,7 @@ func (ch *ContractsHandler) Handle(ctx context.Context, items []models.Model, wg
 
 	logger.Info().Msgf("%3d contracts are processed", len(items))
 
-	return saveSearchModels(ch.Context, items)
+	return saveSearchModels(ctx, ch.Context, items)
 }
 
 // Chunk -
