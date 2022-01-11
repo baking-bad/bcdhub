@@ -1,6 +1,7 @@
 package search
 
 import (
+	"context"
 	"io"
 
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -9,7 +10,7 @@ import (
 // Searcher -
 type Searcher interface {
 	ByText(text string, offset int64, fields []string, filters map[string]interface{}, group bool) (Result, error)
-	Save(items []Data) error
+	Save(ctx context.Context, items []Data) error
 	CreateIndexes() error
 	Rollback(network string, level int64) error
 

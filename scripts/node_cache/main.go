@@ -113,9 +113,13 @@ func getAndSave(ctx context.Context, url, filename string) error {
 		return errors.Errorf("makeGetRequest.NewRequest: %v", err)
 	}
 
-	res, err := http.DefaultClient.Do(req)
+	client := http.Client{
+		Timeout: time.Second * 30,
+	}
+
+	res, err := client.Do(req)
 	if err != nil {
-		return errors.Errorf("http.DefaultClient.Do: %v", err)
+		return errors.Errorf("http.Do: %v", err)
 	}
 	defer res.Body.Close()
 

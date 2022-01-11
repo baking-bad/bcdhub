@@ -27,7 +27,7 @@ func (oh *OperationsHandler) Handle(ctx context.Context, items []models.Model, w
 
 	logger.Info().Msgf("%3d operations are processed", len(items))
 
-	return saveSearchModels(oh.Context, items)
+	return saveSearchModels(ctx, oh.Context, items)
 }
 
 // Chunk -

@@ -19,7 +19,7 @@ type Postgres struct {
 	PageSize int64
 }
 
-func parseConncetionString(connection string) (*pg.Options, error) {
+func parseConnectionString(connection string) (*pg.Options, error) {
 	if len(connection) == 0 {
 		return nil, errors.New("invalid connection string")
 	}
@@ -57,6 +57,8 @@ func parseConncetionString(connection string) (*pg.Options, error) {
 	}
 
 	opts.Addr = fmt.Sprintf("%s:%s", host, port)
+	opts.IdleTimeout = time.Second * 15
+	opts.IdleCheckFrequency = time.Second * 10
 
 	return opts, nil
 }
@@ -68,7 +70,7 @@ func New(connection, appName string, opts ...PostgresOption) (*Postgres, error) 
 		connection = fmt.Sprintf("%s application_name=%s", connection, appName)
 	}
 
-	opt, err := parseConncetionString(connection)
+	opt, err := parseConnectionString(connection)
 	if err != nil {
 		panic(err)
 	}

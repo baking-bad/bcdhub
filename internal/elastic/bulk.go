@@ -5,19 +5,20 @@ import (
 	"context"
 	stdJSON "encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/pkg/errors"
 )
 
-func (e *Elastic) bulk(buf *bytes.Buffer) error {
+func (e *Elastic) bulk(ctx context.Context, body io.Reader) error {
 	req := esapi.BulkRequest{
-		Body:    bytes.NewReader(buf.Bytes()),
+		Body:    body,
 		Refresh: "true",
 	}
 
-	res, err := req.Do(context.Background(), e)
+	res, err := req.Do(ctx, e)
 	if err != nil {
 		return err
 	}
@@ -34,7 +35,7 @@ func (e *Elastic) bulk(buf *bytes.Buffer) error {
 }
 
 // Save -
-func (e *Elastic) Save(items []search.Data) error {
+func (e *Elastic) Save(ctx context.Context, items []search.Data) error {
 	if len(items) == 0 {
 		return nil
 	}
@@ -62,7 +63,7 @@ func (e *Elastic) Save(items []search.Data) error {
 		}
 
 		if (i%1000 == 0 && i > 0) || i == len(items)-1 {
-			if err := e.bulk(bulk); err != nil {
+			if err := e.bulk(ctx, bulk); err != nil {
 				return err
 			}
 			bulk.Reset()

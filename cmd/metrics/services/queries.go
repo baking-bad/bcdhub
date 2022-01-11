@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -60,8 +62,8 @@ func getDiffs(db pg.DBI, lastID, size int64) (resp []bigmapdiff.BigMapDiff, err 
 	return
 }
 
-func saveSearchModels(ctx *config.Context, items []models.Model) error {
+func saveSearchModels(ctx context.Context, internalContext *config.Context, items []models.Model) error {
 	data := search.Prepare(items)
 
-	return ctx.Searcher.Save(data)
+	return internalContext.Searcher.Save(ctx, data)
 }

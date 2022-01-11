@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -53,7 +54,7 @@ func (m *FixLostSearchContracts) getContracts(db *pg.DB) (resp []contract.Contra
 	return
 }
 
-func (m *FixLostSearchContracts) saveSearchModels(ctx *config.Context, contracts []contract.Contract) error {
+func (m *FixLostSearchContracts) saveSearchModels(internalContext *config.Context, contracts []contract.Contract) error {
 	items := make([]models.Model, len(contracts))
 	for i := range contracts {
 		items[i] = &contracts[i]
@@ -65,10 +66,10 @@ func (m *FixLostSearchContracts) saveSearchModels(ctx *config.Context, contracts
 
 	for i := range data {
 		if typ, ok := data[i].(*search.Contract); ok {
-			typ.Alias = ctx.Cache.Alias(types.NewNetwork(typ.Network), typ.Address)
-			typ.DelegateAlias = ctx.Cache.Alias(types.NewNetwork(typ.Network), typ.Delegate)
+			typ.Alias = internalContext.Cache.Alias(types.NewNetwork(typ.Network), typ.Address)
+			typ.DelegateAlias = internalContext.Cache.Alias(types.NewNetwork(typ.Network), typ.Delegate)
 		}
 	}
 
-	return ctx.Searcher.Save(data)
+	return internalContext.Searcher.Save(context.Background(), data)
 }
