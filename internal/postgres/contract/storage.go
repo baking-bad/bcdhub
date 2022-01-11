@@ -38,10 +38,14 @@ func (storage *Storage) GetMany(by map[string]interface{}) (response []contract.
 }
 
 // GetRandom -
-func (storage *Storage) GetRandom(network types.Network) (response contract.Contract, err error) {
+func (storage *Storage) GetRandom(networks ...types.Network) (response contract.Contract, err error) {
 	queryCount := storage.DB.Table(models.DocContracts).Where("tx_count > 2")
-	if network != types.Empty {
-		queryCount.Where("network = ?", network)
+	if len(networks) > 0 {
+		networksFilter := storage.DB.Where("network = ?", networks[0])
+		for i := 1; i < len(networks); i++ {
+			networksFilter.Or("network = ?", networks[i])
+		}
+		queryCount.Where(networksFilter)
 	}
 	var count int64
 	if err = queryCount.Count(&count).Error; err != nil {
@@ -53,10 +57,14 @@ func (storage *Storage) GetRandom(network types.Network) (response contract.Cont
 	}
 
 	query := storage.DB.Table(models.DocContracts).Where("tx_count > 2")
-	if network != types.Empty {
-		query.Where("network = ?", network)
+	if len(networks) > 0 {
+		networksFilter := storage.DB.Where("network = ?", networks[0])
+		for i := 1; i < len(networks); i++ {
+			networksFilter.Or("network = ?", networks[i])
+		}
+		query.Where(networksFilter)
 	}
-	err = query.Limit(1).Offset(rand.Intn(int(count))).First(&response).Error
+	err = query.Limit(1).Offset(rand.Intn(int(count))).Debug().First(&response).Error
 	return
 }
 

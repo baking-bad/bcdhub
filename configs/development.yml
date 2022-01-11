@@ -72,8 +72,6 @@ api:
     sandbox_mode: false
   networks:
     - mainnet
-    - florencenet
-    - granadanet
     - hangzhounet
   pinata:
     key: ${PINATA_KEY}

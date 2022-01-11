@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -62,8 +63,20 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
+	networks := make([]types.Network, 0)
 
-	contract, err := ctx.Contracts.GetRandom(req.NetworkID())
+	network := req.NetworkID()
+	if network != types.Empty {
+		networks = append(networks, network)
+	} else {
+		for i := range ctx.Config.API.Networks {
+			if net := types.NewNetwork(ctx.Config.API.Networks[i]); net != types.Empty {
+				networks = append(networks, net)
+			}
+		}
+	}
+
+	contract, err := ctx.Contracts.GetRandom(networks...)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
 			c.SecureJSON(http.StatusNoContent, gin.H{})
