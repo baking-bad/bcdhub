@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -57,7 +58,7 @@ func (b BigMapDiff) Parse(highlight map[string][]string, data []byte) (*Item, er
 	}
 	return &Item{
 		Type:       b.GetIndex(),
-		Value:      b.KeyHash,
+		Value:      fmt.Sprintf("%d", b.Ptr),
 		Body:       &b,
 		Highlights: highlight,
 		Network:    b.Network,

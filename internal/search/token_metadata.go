@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -38,8 +39,8 @@ func (t *Token) GetIndex() string {
 // GetScores -
 func (t Token) GetScores(search string) []string {
 	return []string{
-		"name^7",
-		"symbol^6",
+		"name^8",
+		"symbol^8",
 	}
 }
 
@@ -58,7 +59,7 @@ func (t Token) Parse(highlight map[string][]string, data []byte) (*Item, error) 
 	}
 	return &Item{
 		Type:       t.GetIndex(),
-		Value:      t.Contract,
+		Value:      fmt.Sprintf("token %d in %s", t.TokenID, t.Contract),
 		Body:       &t,
 		Highlights: highlight,
 		Network:    t.Network,

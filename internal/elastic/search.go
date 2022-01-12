@@ -237,7 +237,7 @@ func prepare(searchString string, filters map[string]interface{}, fields []strin
 func grouping(ctx search.Context, query Base) Base {
 	topHits := Item{
 		"top_hits": Item{
-			"size": 1,
+			"size": 3,
 			"sort": List{
 				Sort("_score", "desc"),
 			},
@@ -262,10 +262,8 @@ func grouping(ctx search.Context, query Base) Base {
 								return doc['network.keyword'].value + '|' + doc['address.keyword'].value
 							} else if (doc['_index'].value == 'big_map_diffs') {
 								return doc['key_hash.keyword'].value
-							} else if (doc['_index'].value == 'tezos_domains') {
-								return doc['name.keyword'].value + '|' + doc['network.keyword'].value
 							} else if (doc['_index'].value == 'token_metadata') {
-								return doc['network.keyword'].value + doc['contract.keyword'].value + doc['token_id'].value
+								return doc['network.keyword'].value + '|' + doc['contract.keyword'].value + '|' + doc['token_id'].value
 							}`,
 						"size": defaultSize + ctx.Offset,
 						"order": List{
