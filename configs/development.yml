@@ -2,7 +2,6 @@ rpc:
   mainnet:
     uri: https://rpc.tzkt.io/mainnet
     timeout: 20
-    # cache: /etc/bcd
   granadanet:
     uri: https://rpc.tzkt.io/granadanet
     timeout: 20

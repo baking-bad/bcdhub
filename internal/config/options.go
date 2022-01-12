@@ -43,18 +43,10 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 		rpc := make(map[types.Network]noderpc.INode)
 		for name, rpcProvider := range rpcConfig {
 			network := types.NewNetwork(name)
-			if rpcProvider.Cache != "" {
-				rpc[network] = noderpc.NewFS(
-					rpcProvider.URI,
-					rpcProvider.Cache,
-					name,
-				)
-			} else {
-				rpc[network] = noderpc.NewPool(
-					[]string{rpcProvider.URI},
-					noderpc.WithTimeout(time.Second*time.Duration(rpcProvider.Timeout)),
-				)
-			}
+			rpc[network] = noderpc.NewPool(
+				[]string{rpcProvider.URI},
+				noderpc.WithTimeout(time.Second*time.Duration(rpcProvider.Timeout)),
+			)
 		}
 		ctx.RPC = rpc
 	}
