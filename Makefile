@@ -73,8 +73,8 @@ ifeq (,$(wildcard $(LATEST_DUMP)))
 	aws s3 cp --profile bcd s3://bcd-db-snaps/$(BACKUP) $(LATEST_DUMP)
 endif
 
-	docker-compose exec -T db dropdb -U $(POSTGRES_USER) --if-exists indexer
-	gunzip -dc $(LATEST_DUMP) | docker-compose exec -T db psql -U $(POSTGRES_USER) -v ON_ERROR_STOP=on bcd
+	docker-compose exec -T db dropdb -U $(POSTGRES_USER) --if-exists $(POSTGRES_DB)
+	gunzip -dc $(LATEST_DUMP) | docker-compose exec -T db psql -U $(POSTGRES_USER) -v ON_ERROR_STOP=on $(POSTGRES_DB)
 	rm $(LATEST_DUMP)
 
 s3-es-restore:
@@ -97,7 +97,7 @@ endif
 
 s3-db-snapshot:
 	echo "Database snapshot..."
-	docker-compose exec db pg_dump indexer --create -U $(POSTGRES_USER) | gzip -c > $(LATEST_DUMP)	
+	docker-compose exec db pg_dump $(POSTGRES_DB) --create -U $(POSTGRES_USER) | gzip -c > $(LATEST_DUMP)	
 	aws s3 mv --profile bcd $(LATEST_DUMP) s3://bcd-db-snaps/dump_latest.gz
 
 s3-es-snapshot:
