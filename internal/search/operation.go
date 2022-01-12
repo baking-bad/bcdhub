@@ -53,8 +53,8 @@ func (o Operation) GetScores(search string) []string {
 	return []string{
 		"hash^10",
 		"entrypoint^8",
-		"errors.with^7",
-		"errors.id^6",
+		"errors.with^5",
+		"errors.id^5",
 		"source_alias",
 	}
 }

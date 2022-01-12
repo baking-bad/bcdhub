@@ -46,19 +46,19 @@ func (c Contract) GetIndex() string {
 // GetScores -
 func (c Contract) GetScores(search string) []string {
 	return []string{
-		"contract^10",
-		"alias^9",
-		"tags^9",
-		"fail_strings^6",
-		"annotations^3",
-		"hardcoded^2",
+		"address^10",
+		"alias^8",
+		"tags^6",
+		"fail_strings^1",
+		"annotations^1",
+		"hardcoded^1",
 	}
 }
 
 // GetFields -
 func (c Contract) GetFields() []string {
 	return []string{
-		"contract",
+		"address",
 		"alias",
 		"tags",
 		"fail_strings",
