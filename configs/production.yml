@@ -32,7 +32,7 @@ services:
     mempool: https://mempool.staging.dipdup.net/v1/graphql 
 
 storage:
-  pg: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=indexer password=${POSTGRES_PASSWORD} sslmode=disable"
+  pg: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB:-indexer} password=${POSTGRES_PASSWORD} sslmode=disable"
   elastic:
     - http://${ELASTIC_HOSTNAME:-elastic}:9200
     - http://${ELASTIC_HOSTNAME:-elastic}:9200
