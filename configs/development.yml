@@ -67,6 +67,9 @@ api:
     ga_enabled: false
     mempool_enabled: true
     sandbox_mode: false
+    rpc:
+      mainnet: https://rpc.tzkt.io/mainnet
+      hangzhou2net: https://rpc.tzkt.io/hangzhou2net
   networks:
     - mainnet
     - hangzhou2net

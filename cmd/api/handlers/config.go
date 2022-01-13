@@ -8,20 +8,15 @@ import (
 
 // GetConfig -
 func (ctx *Context) GetConfig(c *gin.Context) {
-	rpcEndpoints := make(map[string]string)
 	tzktEndpoints := make(map[string]string)
-
-	for network, rpc := range ctx.Config.RPC {
-		rpcEndpoints[network] = rpc.URI
-	}
-
 	for network, tzkt := range ctx.Config.TzKT {
 		tzktEndpoints[network] = tzkt.BaseURI
+		break
 	}
 
 	cfg := ConfigResponse{
 		Networks:       ctx.Config.API.Networks,
-		RPCEndpoints:   rpcEndpoints,
+		RPCEndpoints:   ctx.Config.API.Frontend.RPC,
 		TzKTEndpoints:  tzktEndpoints,
 		GaEnabled:      ctx.Config.API.Frontend.GaEnabled,
 		MempoolEnabled: ctx.Config.API.Frontend.MempoolEnabled,

@@ -114,9 +114,10 @@ type OAuthConfig struct {
 
 // FrontendConfig -
 type FrontendConfig struct {
-	GaEnabled      bool `yaml:"ga_enabled"`
-	MempoolEnabled bool `yaml:"mempool_enabled"`
-	SandboxMode    bool `yaml:"sandbox_mode"`
+	GaEnabled      bool              `yaml:"ga_enabled"`
+	MempoolEnabled bool              `yaml:"mempool_enabled"`
+	SandboxMode    bool              `yaml:"sandbox_mode"`
+	RPC            map[string]string `yaml:"rpc"`
 }
 
 // SeedConfig -

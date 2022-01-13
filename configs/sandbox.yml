@@ -28,6 +28,8 @@ api:
     ga_enabled: false
     mempool_enabled: false
     sandbox_mode: true
+    rpc:
+      sandboxnet: ${SANDBOX_NODE_URI}
   seed:
     user:
       login: sandboxuser
