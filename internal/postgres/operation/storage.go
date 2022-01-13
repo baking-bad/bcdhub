@@ -117,22 +117,19 @@ func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters m
 	return
 }
 
-// Last - get last operation for contract `address` with filter by `id`. If `id` is -1 then returns last in table.
-func (storage *Storage) Last(network types.Network, address string, id int64) (op operation.Operation, err error) {
-	query := storage.DB.Model(&op).Where("operation.network = ?", network)
+// Last - get last operation by `filters` with not empty deffated_storage
+func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (op operation.Operation, err error) {
+	query := storage.DB.Model((*operation.Operation)(nil)).Relation("Source.address").Relation("Destination.address").Where("deffated_storage != ''")
 
-	if id > -1 {
-		query.Where("id < ?", id)
+	for key, value := range filters {
+		query.Where("? = ?", pg.Ident(key), value)
 	}
 
-	query.
-		Where("status = ?", types.OperationStatusApplied).
-		Where("deffated_storage != ''").
-		Where("destination.address = ?", address).
-		Relation("Destination.address").
-		Order("id desc").Limit(1)
+	if lastID > 0 {
+		query.Where("id < ?", lastID)
+	}
 
-	err = query.Select(&op)
+	err = query.Order("id desc").Limit(1).Select(&op)
 	return
 }
 

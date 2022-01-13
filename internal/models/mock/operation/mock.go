@@ -51,18 +51,18 @@ func (mr *MockRepositoryMockRecorder) GetByAccount(acc, size, filters interface{
 }
 
 // Last mocks base method
-func (m *MockRepository) Last(network types.Network, address string, indexedTime int64) (model.Operation, error) {
+func (m *MockRepository) Last(filter map[string]interface{}, lastID int64) (model.Operation, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Last", network, address, indexedTime)
+	ret := m.ctrl.Call(m, "Last", filter, lastID)
 	ret0, _ := ret[0].(model.Operation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Last indicates an expected call of Last
-func (mr *MockRepositoryMockRecorder) Last(network, address, indexedTime interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Last(filter, lastID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Last", reflect.TypeOf((*MockRepository)(nil).Last), network, address, indexedTime)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Last", reflect.TypeOf((*MockRepository)(nil).Last), filter, lastID)
 }
 
 // Get mocks base method
