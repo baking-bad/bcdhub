@@ -8,8 +8,8 @@ import (
 // Repository -
 type Repository interface {
 	GetByAccount(acc account.Account, size uint64, filters map[string]interface{}) (Pageable, error)
-	// Last - returns last operation. TODO: change network and address.
-	Last(network types.Network, address string, indexedTime int64) (Operation, error)
+	// Last -  get last operation by `filters` with not empty deffated_storage.
+	Last(filter map[string]interface{}, lastID int64) (Operation, error)
 
 	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
 	// `Sort` - sort by time and content index by desc

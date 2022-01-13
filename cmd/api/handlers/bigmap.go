@@ -64,7 +64,12 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		operation, err := ctx.Operations.Last(req.NetworkID(), res.Address, -1)
+		operation, err := ctx.Operations.Last(
+			map[string]interface{}{
+				"network":             req.NetworkID(),
+				"destination.address": res.Address,
+				"status":              types.OperationStatusApplied,
+			}, 0)
 		if ctx.handleError(c, err, 0) {
 			return
 		}

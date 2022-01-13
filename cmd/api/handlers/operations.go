@@ -447,7 +447,12 @@ func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address string, 
 	}
 	var prevStorage *ast.TypedAst
 
-	prev, err := ctx.Operations.Last(modelTypes.NewNetwork(op.Network), address, op.ID)
+	prev, err := ctx.Operations.Last(
+		map[string]interface{}{
+			"network":             modelTypes.NewNetwork(op.Network),
+			"destination.address": address,
+			"status":              modelTypes.OperationStatusApplied,
+		}, op.ID)
 	if err == nil {
 		prevStorage = &ast.TypedAst{
 			Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},

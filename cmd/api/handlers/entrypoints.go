@@ -163,26 +163,20 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 			break
 		}
 
-		op, err := ctx.Operations.Get(
+		op, err := ctx.Operations.Last(
 			map[string]interface{}{
 				"operation.network":   req.NetworkID(),
 				"destination.address": req.Address,
 				"kind":                modelTypes.OperationKindTransaction,
 				"entrypoint":          esReq.EntrypointName,
 				"status":              modelTypes.OperationStatusApplied,
-			},
-			1,
-			true,
-		)
+			}, 0)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		if len(op) != 1 {
-			break
-		}
 
-		if op[0].Parameters != nil {
-			parameters := types.NewParameters(op[0].Parameters)
+		if op.Parameters != nil {
+			parameters := types.NewParameters(op.Parameters)
 			subTree, err := parameter.FromParameters(parameters)
 			if ctx.handleError(c, err, 0) {
 				return
