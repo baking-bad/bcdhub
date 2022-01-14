@@ -22,7 +22,7 @@ func (storage *Storage) Get(network types.Network, level int64) (block block.Blo
 		Where("block.network = ?", network).
 		Where("level = ?", level).
 		Limit(1).
-		Relation("Protocol.id").
+		Relation("Protocol").
 		Select()
 	return
 }
@@ -47,7 +47,7 @@ func (storage *Storage) Last(network types.Network) (block block.Block, err erro
 func (storage *Storage) LastByNetworks() (response []block.Block, err error) {
 	subQuery := storage.DB.Model((*block.Block)(nil)).ColumnExpr("MAX(block.id) as id").Group("network")
 	err = storage.DB.Model((*block.Block)(nil)).
-		Relation("Protocol.id").
+		Relation("Protocol").
 		Where("block.id IN (?)", subQuery).
 		Select(&response)
 	return
@@ -60,7 +60,7 @@ func (storage *Storage) GetNetworkAlias(chainID string) (string, error) {
 		Column("block.network").
 		Where("block.chain_id = ?", chainID).
 		Limit(1).
-		Relation("Protocol.id").
+		Relation("Protocol").
 		Select(&network)
 
 	return network.String(), err
