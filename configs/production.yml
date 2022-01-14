@@ -2,9 +2,6 @@ rpc:
   mainnet:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
-  granadanet:
-    uri: ${NEXTNET_RPC_URI:-https://rpc.tzkt.io/granadanet}
-    timeout: 20
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
     timeout: 20
@@ -12,10 +9,8 @@ rpc:
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-  granadanet:
-    mempool: https://mempool.staging.dipdup.net/v1/graphql
   hangzhou2net:
-    mempool: https://mempool.staging.dipdup.net/v1/graphql 
+    mempool: https://mempool.dipdup.net/v1/graphql 
 
 storage:
   pg: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB:-indexer} password=${POSTGRES_PASSWORD} sslmode=disable"
@@ -54,7 +49,6 @@ api:
       hangzhou2net: https://rpc.tzkt.io/hangzhou2net
   networks:
     - mainnet
-    - granadanet
     - hangzhou2net
   connections:
     max: 50
@@ -66,7 +60,6 @@ indexer:
   skip_delegator_blocks: false
   networks:
     mainnet:
-    granadanet:
     hangzhou2net:
   connections:
     max: 5
@@ -88,7 +81,6 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - granadanet
     - hangzhou2net
   connections:
     max: 5
