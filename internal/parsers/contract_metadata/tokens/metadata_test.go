@@ -178,6 +178,17 @@ func TestTokenMetadata_Parse(t *testing.T) {
 				IsBooleanAmount: true,
 				Extras:          map[string]interface{}{},
 			},
+		}, {
+			name:    "test 11",
+			value:   `{"prim":"Pair","args":[{"int":"1"},[{"prim":"Elt","args":[{"string":"decimals"},{"bytes":"36"}]},{"prim":"Elt","args":[{"string":"name"},{"bytes":"4e616d65"}]},{"prim":"Elt","args":[{"string":"minter"},{"bytes":"00000bc1d9ea1274f8233f4939f264dcebb1dbaece85"}]}]]}`,
+			wantErr: false,
+			want: &TokenMetadata{
+				TokenID:  1,
+				Decimals: getIntPtr(6),
+				Name:     "Name",
+				Minter:   "tz1LiCMFP7j9Q49TXmiXXDhCwKYB7jra7Cng",
+				Extras:   make(map[string]interface{}),
+			},
 		},
 	}
 	for _, tt := range tests {

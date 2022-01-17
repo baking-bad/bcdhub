@@ -27,6 +27,7 @@ type TokenMetadata struct {
 	DisplayURI         string                 `json:"display_uri,omitempty"`
 	ThumbnailURI       string                 `json:"thumbnail_uri,omitempty"`
 	ExternalURI        string                 `json:"external_uri,omitempty"`
+	Minter             string                 `json:"minter,omitempty"`
 	IsTransferable     bool                   `pg:",default:true" json:"is_transferable"`
 	IsBooleanAmount    bool                   `pg:",use_zero" json:"is_boolean_amount"`
 	ShouldPreferSymbol bool                   `pg:",use_zero" json:"should_prefer_symbol"`
@@ -87,7 +88,8 @@ func (t *TokenMetadata) Save(tx pg.DBI) error {
 			tags                 = excluded.tags,
 			creators             = excluded.creators,
 			formats              = excluded.formats,
-			extras               = excluded.extras
+			extras               = excluded.extras,
+			minter               = excluded.minter
 	`).Returning("id").Insert()
 	return err
 }

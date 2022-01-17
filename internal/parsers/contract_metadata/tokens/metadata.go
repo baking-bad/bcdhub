@@ -34,6 +34,7 @@ const (
 	keyCreators           = "creators"
 	keyTags               = "tags"
 	keyFormats            = "formats"
+	keyMinter             = "minter"
 )
 
 // Empty key name
@@ -54,6 +55,7 @@ type TokenMetadata struct {
 	DisplayURI         string                 `json:"displayUri"`
 	ThumbnailURI       string                 `json:"thumbnailUri"`
 	ExternalURI        string                 `json:"externalUri"`
+	Minter             string                 `json:"minter"`
 	IsTransferable     bool                   `json:"isTransferable"`
 	IsBooleanAmount    bool                   `json:"isBooleanAmount"`
 	ShouldPreferSymbol bool                   `json:"shouldPreferSymbol"`
@@ -81,6 +83,7 @@ func (m *TokenMetadata) ToModel(address string, network types.Network) tokenmeta
 		DisplayURI:         m.DisplayURI,
 		ThumbnailURI:       m.ThumbnailURI,
 		ExternalURI:        m.ExternalURI,
+		Minter:             m.Minter,
 		IsTransferable:     m.IsTransferable,
 		IsBooleanAmount:    m.IsBooleanAmount,
 		ShouldPreferSymbol: m.ShouldPreferSymbol,
@@ -174,6 +177,11 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 			if err != nil {
 				return err
 			}
+		case keyMinter:
+			m.Minter, err = forge.UnforgeAddress(value)
+			if err != nil {
+				return err
+			}
 		case keyIsBooleanAmount:
 			m.IsBooleanAmount = encodedTrue(value)
 		case keyIsTransferable:
@@ -216,6 +224,9 @@ func (m *TokenMetadata) Merge(second *TokenMetadata) {
 	}
 	if second.ThumbnailURI != "" {
 		m.ThumbnailURI = second.ThumbnailURI
+	}
+	if second.Minter != "" {
+		m.Minter = second.Minter
 	}
 	if second.IsBooleanAmount {
 		m.IsBooleanAmount = second.IsBooleanAmount
@@ -302,6 +313,7 @@ func (m *TokenMetadata) UnmarshalJSON(data []byte) error {
 	m.DisplayURI = getStringKey(res, keyDisplayURI)
 	m.ThumbnailURI = getStringKey(res, keyThumbnailURI)
 	m.ExternalURI = getStringKey(res, keyExternalURI)
+	m.Minter = getStringKey(res, keyMinter)
 
 	m.IsBooleanAmount = getBoolKey(res, keyIsBooleanAmount, false)
 	m.IsTransferable = getBoolKey(res, keyIsTransferable, true)

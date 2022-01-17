@@ -644,6 +644,7 @@ type TokenMetadata struct {
 	DisplayURI         string                 `json:"display_uri,omitempty" extensions:"x-nullable"`
 	ThumbnailURI       string                 `json:"thumbnail_uri,omitempty" extensions:"x-nullable"`
 	ExternalURI        string                 `json:"external_uri,omitempty" extensions:"x-nullable"`
+	Minter             string                 `json:"minter,omitempty" extensions:"x-nullable"`
 	IsTransferable     bool                   `json:"is_transferable,omitempty" extensions:"x-nullable"`
 	IsBooleanAmount    bool                   `json:"is_boolean_amount,omitempty" extensions:"x-nullable"`
 	ShouldPreferSymbol bool                   `json:"should_prefer_symbol,omitempty" extensions:"x-nullable"`
@@ -668,6 +669,7 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 	tm.DisplayURI = model.DisplayURI
 	tm.ThumbnailURI = model.ThumbnailURI
 	tm.ExternalURI = model.ExternalURI
+	tm.Minter = model.Minter
 	tm.IsTransferable = model.IsTransferable
 	tm.IsBooleanAmount = model.IsBooleanAmount
 	tm.ShouldPreferSymbol = model.ShouldPreferSymbol
@@ -689,7 +691,7 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 func (tm TokenMetadata) Empty() bool {
 	return tm.Symbol == "" && tm.Name == "" && tm.Decimals == nil && tm.TokenID == 0 &&
 		tm.Description == "" && tm.ArtifactURI == "" && tm.DisplayURI == "" && tm.ThumbnailURI == "" &&
-		tm.ExternalURI == "" && len(tm.Creators) == 0 && len(tm.Tags) == 0 && len(tm.Formats) == 0
+		tm.ExternalURI == "" && len(tm.Creators) == 0 && len(tm.Tags) == 0 && len(tm.Formats) == 0 && tm.Minter == ""
 }
 
 // CountResponse -
