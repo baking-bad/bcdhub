@@ -14,6 +14,9 @@ rpc:
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
     timeout: 20
+  ithacanet:
+    uri: https://rpc.tzkt.io/ithacanet
+    timeout: 20
 
 tzkt:
   mainnet:
@@ -75,6 +78,7 @@ api:
  #   - granadanet
  #   - hangzhounet
     - hangzhou2net
+    - ithacanet
   pinata:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}
@@ -95,6 +99,7 @@ indexer:
   #  granadanet:
   #  hangzhounet:
     hangzhou2net:
+    ithacanet:
   connections:
     max: 5
     idle: 5
@@ -119,6 +124,7 @@ scripts:
    # - granadanet
    # - hangzhounet
     - hangzhou2net
+    - ithacanet
   connections:
     max: 5
     idle: 5
