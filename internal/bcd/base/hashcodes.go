@@ -193,6 +193,7 @@ var codes = map[string]string{
 	"OPEN_CHEST":            "bb",
 	"VIEW":                  "bc",
 	"view":                  "bd",
+	"SUB_MUTEZ":             "be",
 }
 
 var regCodes = map[*regexp.Regexp]string{
