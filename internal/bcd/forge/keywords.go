@@ -148,6 +148,7 @@ var primKeywords = []string{
 	"VIEW",
 	"view",
 	"constant",
+	"SUB_MUTEZ",
 }
 
 // first bytes

@@ -2,25 +2,11 @@ rpc:
   mainnet:
     uri: https://rpc.tzkt.io/mainnet
     timeout: 20
-  granadanet:
-    uri: https://rpc.tzkt.io/granadanet
-    timeout: 20
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
     timeout: 20
-
-tzkt:
-  mainnet:
-    uri: https://api.tzkt.io/v1/
-    base_uri: https://tzkt.io/
-    timeout: 20
-  granadanet:
-    uri: https://api.granadanet.tzkt.io/v1/
-    base_uri: https://granadanet.tzkt.io/
-    timeout: 20
-  hangzhou2net:
-    uri: https://api.hangzhou2net.tzkt.io/v1/
-    base_uri: https://hangzhou2net.tzkt.io/
+  ithacanet:
+    uri: https://rpc.tzkt.io/ithacanet
     timeout: 20
 
 services:
@@ -73,6 +59,7 @@ api:
   networks:
     - mainnet
     - hangzhou2net
+    - ithacanet
   connections:
     max: 50
     idle: 50
@@ -83,8 +70,8 @@ indexer:
   skip_delegator_blocks: true
   networks:
     mainnet:
-    # granadanet:
     hangzhou2net:
+    ithacanet:
   connections:
     max: 5
     idle: 5
@@ -105,8 +92,8 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - granadanet
     - hangzhou2net
+    - ithacanet
   connections:
     max: 5
     idle: 5

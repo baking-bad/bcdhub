@@ -4,12 +4,17 @@ rpc:
     timeout: 20
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
+    timeout: 20  
+  ithacanet:
+    uri: https://rpc.tzkt.io/ithacanet
     timeout: 20
 
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
   hangzhou2net:
+    mempool: https://mempool.dipdup.net/v1/graphql 
+  ithacanet:
     mempool: https://mempool.dipdup.net/v1/graphql 
 
 storage:
@@ -50,6 +55,7 @@ api:
   networks:
     - mainnet
     - hangzhou2net
+    - ithacanet
   connections:
     max: 50
     idle: 10
@@ -61,6 +67,7 @@ indexer:
   networks:
     mainnet:
     hangzhou2net:
+    ithacanet:
   connections:
     max: 5
     idle: 5
@@ -82,6 +89,7 @@ scripts:
   networks:
     - mainnet
     - hangzhou2net
+    - ithacanet
   connections:
     max: 5
     idle: 5
