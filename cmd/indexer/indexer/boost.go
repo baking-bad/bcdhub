@@ -437,7 +437,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 	var contracts []contract.Contract
 	if err := bi.StorageDB.DB.Model((*contract.Contract)(nil)).
 		Relation("Account").
-		Where("network = ?", bi.Network).
+		Where("contract.network = ?", bi.Network).
 		Where("tags & 4 = 0"). // except delegator contracts
 		Select(&contracts); err != nil {
 		return err
@@ -467,6 +467,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 
 	_, err := bi.StorageDB.DB.Model((*contract.Contract)(nil)).
 		Set("babylon_id = alpha_id").
+		Where("network = ?", bi.Network).
 		Where("tags & 4 > 0"). // only delegator contracts
 		Update()
 	return err
