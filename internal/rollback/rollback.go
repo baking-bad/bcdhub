@@ -65,6 +65,9 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, fromState block.Block
 			if err := rm.rollbackOperations(tx, fromState.Network, level); err != nil {
 				return err
 			}
+			if err := rm.rollbackMigrations(tx, fromState.Network, level); err != nil {
+				return err
+			}
 			if err := rm.rollbackBigMapState(tx, fromState.Network, level); err != nil {
 				return err
 			}
@@ -119,7 +122,7 @@ func (rm Manager) rollbackTokenBalances(tx pg.DBI, network types.Network, level 
 func (rm Manager) rollbackAll(tx pg.DBI, network types.Network, level int64) error {
 	for _, index := range []models.Model{
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
-		&bigmapaction.BigMapAction{}, &cm.ContractMetadata{}, &migration.Migration{},
+		&bigmapaction.BigMapAction{}, &cm.ContractMetadata{},
 		&transfer.Transfer{}, &tokenmetadata.TokenMetadata{},
 		&global_constant.GlobalConstant{},
 	} {
@@ -134,6 +137,17 @@ func (rm Manager) rollbackAll(tx pg.DBI, network types.Network, level int64) err
 			Str("network", network.String()).
 			Str("model", index.GetIndex()).
 			Msg("rollback")
+	}
+	return nil
+}
+
+func (rm Manager) rollbackMigrations(tx pg.DBI, network types.Network, level int64) error {
+	if _, err := tx.Model(new(migration.Migration)).
+		Relation("Contract.network").
+		Where("contract_id IN (?)", tx.Model(new(contract.Contract)).Column("id").Where("network = ?", network).Where("level > ?", level)).
+		Where("level = ?", level).
+		Delete(); err != nil {
+		return err
 	}
 	return nil
 }
