@@ -436,6 +436,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 	logger.Info().Str("network", bi.Network.String()).Msg("Try to find migrations...")
 	var contracts []contract.Contract
 	if err := bi.StorageDB.DB.Model((*contract.Contract)(nil)).
+		Relation("Account").
 		Where("network = ?", bi.Network).
 		Where("tags & 4 = 0"). // except delegator contracts
 		Select(&contracts); err != nil {
