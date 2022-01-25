@@ -219,7 +219,7 @@ func (ctx *Context) GetOperationDiff(c *gin.Context) {
 			return
 		}
 
-		if err := ctx.setStorageDiff(operation.Destination.Address, operation.DeffatedStorage, &result, bmd, storageType); ctx.handleError(c, err, 0) {
+		if err := ctx.setStorageDiff(operation.DestinationID, operation.DeffatedStorage, &result, bmd, storageType); ctx.handleError(c, err, 0) {
 			return
 		}
 	}
@@ -326,34 +326,36 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 	}
 	op.Protocol = proto.Hash
 
-	if err := formatErrors(operation.Errors, &op); err != nil {
-		return op, err
-	}
+	if bcd.IsContract(op.Destination) {
+		if err := formatErrors(operation.Errors, &op); err != nil {
+			return op, err
+		}
 
-	script, err := ctx.getScript(operation.Network, op.Destination, proto.SymLink)
-	if err != nil {
-		return op, err
-	}
-
-	if withStorageDiff {
-		storageType, err := script.StorageType()
+		script, err := ctx.getScript(operation.Network, op.Destination, proto.SymLink)
 		if err != nil {
 			return op, err
 		}
-		if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
-			if err := ctx.setStorageDiff(op.Destination, operation.DeffatedStorage, &op, bmd, storageType); err != nil {
+
+		if withStorageDiff {
+			storageType, err := script.StorageType()
+			if err != nil {
 				return op, err
 			}
+			if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
+				if err := ctx.setStorageDiff(operation.DestinationID, operation.DeffatedStorage, &op, bmd, storageType); err != nil {
+					return op, err
+				}
+			}
 		}
-	}
 
-	if !operation.IsTransaction() {
-		return op, nil
-	}
+		if !operation.IsTransaction() {
+			return op, nil
+		}
 
-	if bcd.IsContract(op.Destination) && operation.IsCall() && !tezerrors.HasParametersError(op.Errors) {
-		if err := setParameters(operation.Parameters, script, &op); err != nil {
-			return op, err
+		if operation.IsCall() && !tezerrors.HasParametersError(op.Errors) {
+			if err := setParameters(operation.Parameters, script, &op); err != nil {
+				return op, err
+			}
 		}
 	}
 
@@ -432,8 +434,8 @@ func setParatemetersWithType(params *types.Parameters, script *ast.Script, op *O
 	return nil
 }
 
-func (ctx *Context) setStorageDiff(address string, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, storageType *ast.TypedAst) error {
-	storageDiff, err := ctx.getStorageDiff(bmd, address, storage, storageType, op)
+func (ctx *Context) setStorageDiff(destinationID int64, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, storageType *ast.TypedAst) error {
+	storageDiff, err := ctx.getStorageDiff(destinationID, bmd, storage, storageType, op)
 	if err != nil {
 		return err
 	}
@@ -441,7 +443,7 @@ func (ctx *Context) setStorageDiff(address string, storage []byte, op *Operation
 	return nil
 }
 
-func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address string, storage []byte, storageType *ast.TypedAst, op *Operation) (*ast.MiguelNode, error) {
+func (ctx *Context) getStorageDiff(destinationID int64, bmd []bigmapdiff.BigMapDiff, storage []byte, storageType *ast.TypedAst, op *Operation) (*ast.MiguelNode, error) {
 	currentStorage := &ast.TypedAst{
 		Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
 	}
@@ -449,9 +451,9 @@ func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address string, 
 
 	prev, err := ctx.Operations.Last(
 		map[string]interface{}{
-			"network":             modelTypes.NewNetwork(op.Network),
-			"destination.address": address,
-			"status":              modelTypes.OperationStatusApplied,
+			"operation.network": modelTypes.NewNetwork(op.Network),
+			"destination_id":    destinationID,
+			"status":            modelTypes.OperationStatusApplied,
 		}, op.ID)
 	if err == nil {
 		prevStorage = &ast.TypedAst{

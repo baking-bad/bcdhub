@@ -18,6 +18,7 @@ import (
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
+	mock_accounts "github.com/baking-bad/bcdhub/internal/models/mock/account"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
 	mock_contract "github.com/baking-bad/bcdhub/internal/models/mock/contract"
@@ -47,6 +48,10 @@ func TestGroup_Parse(t *testing.T) {
 	ctrlBmdRepo := gomock.NewController(t)
 	defer ctrlBmdRepo.Finish()
 	bmdRepo := mock_bmd.NewMockRepository(ctrlBmdRepo)
+
+	ctrlAccountsRepo := gomock.NewController(t)
+	defer ctrlAccountsRepo.Finish()
+	accountsRepo := mock_accounts.NewMockRepository(ctrlAccountsRepo)
 
 	ctrlBlockRepo := gomock.NewController(t)
 	defer ctrlBlockRepo.Finish()
@@ -355,7 +360,7 @@ func TestGroup_Parse(t *testing.T) {
 				Cache: cache.NewCache(
 					map[types.Network]noderpc.INode{
 						types.Mainnet: rpc,
-					}, blockRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					}, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -375,6 +380,7 @@ func TestGroup_Parse(t *testing.T) {
 			ctx: &config.Context{
 				Storage:          generalRepo,
 				Contracts:        contractRepo,
+				Accounts:         accountsRepo,
 				BigMapDiffs:      bmdRepo,
 				Blocks:           blockRepo,
 				Protocols:        protoRepo,
@@ -384,7 +390,7 @@ func TestGroup_Parse(t *testing.T) {
 				Cache: cache.NewCache(
 					map[types.Network]noderpc.INode{
 						types.Mainnet: rpc,
-					}, blockRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					}, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -622,6 +628,7 @@ func TestGroup_Parse(t *testing.T) {
 			ctx: &config.Context{
 				Storage:          generalRepo,
 				Contracts:        contractRepo,
+				Accounts:         accountsRepo,
 				BigMapDiffs:      bmdRepo,
 				Blocks:           blockRepo,
 				Protocols:        protoRepo,
@@ -631,7 +638,7 @@ func TestGroup_Parse(t *testing.T) {
 				Cache: cache.NewCache(
 					map[types.Network]noderpc.INode{
 						types.Mainnet: rpc,
-					}, blockRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					}, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -887,7 +894,7 @@ func TestGroup_Parse(t *testing.T) {
 				Cache: cache.NewCache(
 					map[types.Network]noderpc.INode{
 						types.Delphinet: rpc,
-					}, blockRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					}, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -996,7 +1003,7 @@ func TestGroup_Parse(t *testing.T) {
 				Cache: cache.NewCache(
 					map[types.Network]noderpc.INode{
 						types.Mainnet: rpc,
-					}, blockRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					}, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1101,7 +1108,7 @@ func TestGroup_Parse(t *testing.T) {
 				Cache: cache.NewCache(
 					map[types.Network]noderpc.INode{
 						types.Edo2net: rpc,
-					}, blockRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					}, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1313,7 +1320,7 @@ func TestGroup_Parse(t *testing.T) {
 				Cache: cache.NewCache(
 					map[types.Network]noderpc.INode{
 						types.Mainnet: rpc,
-					}, blockRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					}, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1466,7 +1473,7 @@ func TestGroup_Parse(t *testing.T) {
 				Cache: cache.NewCache(
 					map[types.Network]noderpc.INode{
 						types.Mainnet: rpc,
-					}, blockRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					}, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1607,7 +1614,7 @@ func TestGroup_Parse(t *testing.T) {
 				Cache: cache.NewCache(
 					map[types.Network]noderpc.INode{
 						types.Hangzhounet: rpc,
-					}, blockRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					}, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{

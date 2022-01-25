@@ -5,8 +5,11 @@ import (
 	"errors"
 
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/repository"
 	"github.com/go-pg/pg/v10"
 )
@@ -127,7 +130,20 @@ func processTzipItem(ctx *config.Context, item repository.Item, tx pg.DBI) error
 	}
 
 	if model.ContractMetadata.Name != "" {
+		if model.ContractMetadata.Slug == "" {
+			model.ContractMetadata.Slug = helpers.Slug(model.ContractMetadata.Name)
+		}
 		if err := model.ContractMetadata.Save(tx); err != nil {
+			return err
+		}
+
+		acc := account.Account{
+			Alias:   model.ContractMetadata.Name,
+			Address: model.ContractMetadata.Address,
+			Network: model.ContractMetadata.Network,
+			Type:    types.NewAccountType(model.ContractMetadata.Address),
+		}
+		if _, err := tx.Model(acc).OnConflict("(network, address) DO UPDATE").Set(`alias = excluded.alias`).Returning("id").Insert(); err != nil {
 			return err
 		}
 	}

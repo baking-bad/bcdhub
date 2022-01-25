@@ -54,7 +54,7 @@ func (t *ContractMetadata) GetIndex() string {
 func (t *ContractMetadata) Save(tx pg.DBI) error {
 	_, err := tx.Model(t).OnConflict("(id) DO UPDATE").
 		Set(`
-		updated_at = excluded.updated_at,
+		updated_at = ?,
 		level = excluded.level,
 		timestamp = excluded.timestamp,
 		extras = excluded.extras,
@@ -66,7 +66,8 @@ func (t *ContractMetadata) Save(tx pg.DBI) error {
 		homepage = excluded.homepage,
 		authors = excluded.authors,
 		interfaces = excluded.interfaces,
-		views = excluded.views`).
+		slug = excluded.slug,
+		views = excluded.views`, uint64(time.Now().Unix())).
 		Returning("id").Insert()
 	return err
 }

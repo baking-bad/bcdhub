@@ -104,6 +104,7 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 			return
 		}
 		response.Contracts[i].FromModel(similar[i], diff)
+		response.Contracts[i].SimilarCount = int64(total)
 	}
 
 	c.SecureJSON(http.StatusOK, response)

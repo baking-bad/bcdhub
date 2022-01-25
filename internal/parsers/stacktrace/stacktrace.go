@@ -176,8 +176,8 @@ func (st *StackTrace) print(arr []int64, depth int, builder io.StringWriter) err
 // Fill -
 func (st *StackTrace) Fill(repo operation.Repository, op operation.Operation) error {
 	ops, err := repo.Get(map[string]interface{}{
-		"network": op.Network,
-		"hash":    op.Hash,
+		"operation.network": op.Network,
+		"hash":              op.Hash,
 	}, 0, true)
 	if err != nil {
 		return err

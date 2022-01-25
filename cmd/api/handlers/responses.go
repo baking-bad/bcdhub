@@ -161,10 +161,7 @@ type Contract struct {
 	MigrationsCount int64     `json:"migrations_count,omitempty" extensions:"x-nullable"`
 	Alias           string    `json:"alias,omitempty" extensions:"x-nullable"`
 	DelegateAlias   string    `json:"delegate_alias,omitempty" extensions:"x-nullable"`
-
-	Subscription    *Subscription `json:"subscription,omitempty" extensions:"x-nullable"`
-	TotalSubscribed int           `json:"total_subscribed"`
-	Slug            string        `json:"slug,omitempty" extensions:"x-nullable"`
+	Slug            string    `json:"slug,omitempty" extensions:"x-nullable"`
 
 	SameCount    int64 `json:"same_count"`
 	SimilarCount int64 `json:"similar_count"`
@@ -197,29 +194,6 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Entrypoints = script.Entrypoints
 	c.ProjectID = script.ProjectID.String()
 	c.ID = contract.ID
-}
-
-// Subscription -
-type Subscription struct {
-	Address          string    `json:"address"`
-	Network          string    `json:"network"`
-	Alias            string    `json:"alias,omitempty" extensions:"x-nullable"`
-	SubscribedAt     time.Time `json:"subscribed_at"`
-	WatchSame        bool      `json:"watch_same"`
-	WatchSimilar     bool      `json:"watch_similar"`
-	WatchMempool     bool      `json:"watch_mempool"`
-	WatchMigrations  bool      `json:"watch_migrations"`
-	WatchDeployments bool      `json:"watch_deployments"`
-	WatchCalls       bool      `json:"watch_calls"`
-	WatchErrors      bool      `json:"watch_errors"`
-	SentryEnabled    bool      `json:"sentry_enabled"`
-	SentryDSN        string    `json:"sentry_dsn,omitempty" extensions:"x-nullable"`
-}
-
-// Event -
-type Event struct {
-	Event string    `json:"event"`
-	Date  time.Time `json:"date"`
 }
 
 // OperationResponse -
@@ -443,7 +417,6 @@ type SimilarContractsResponse struct {
 // SimilarContract -
 type SimilarContract struct {
 	*Contract
-	Count   int64 `json:"count"`
 	Added   int64 `json:"added,omitempty" extensions:"x-nullable"`
 	Removed int64 `json:"removed,omitempty" extensions:"x-nullable"`
 }
@@ -454,7 +427,6 @@ func (c *SimilarContract) FromModel(similar contract.Similar, diff CodeDiffRespo
 	contract.FromModel(*similar.Contract)
 	c.Contract = &contract
 
-	c.Count = similar.Count
 	c.Added = diff.Diff.Added
 	c.Removed = diff.Diff.Removed
 }
