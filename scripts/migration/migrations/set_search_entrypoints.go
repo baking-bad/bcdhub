@@ -28,7 +28,6 @@ func (m *FixEntrypointSearch) Description() string {
 
 // Do - migrate function
 func (m *FixEntrypointSearch) Do(ctx *config.Context) error {
-	m.lastID = 824000
 	var err error
 	operations := make([]operation.Operation, 0)
 
