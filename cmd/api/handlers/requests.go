@@ -242,7 +242,8 @@ type getTokenSeriesRequest struct {
 }
 
 type getDappRequest struct {
-	Slug string `uri:"slug" binding:"required"`
+	Slug        string `uri:"slug" binding:"required"`
+	WithDetails bool   `form:"with_details" binding:"omitempty"`
 }
 
 type getContractTransfers struct {
