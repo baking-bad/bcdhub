@@ -1,8 +1,6 @@
 package tokenmetadata
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10/orm"
@@ -26,10 +24,10 @@ func (storage *Storage) buildGetTokenMetadataContext(query *orm.Query, ctx ...to
 					subQuery.Where("token_id = ?", *ctx[i].TokenID)
 				}
 				if ctx[i].MaxLevel > 0 {
-					subQuery.Where(fmt.Sprintf("level <= %d", ctx[i].MaxLevel))
+					subQuery.Where("level <= ?", ctx[i].MaxLevel)
 				}
 				if ctx[i].MinLevel > 0 {
-					subQuery.Where(fmt.Sprintf("level > %d", ctx[i].MinLevel))
+					subQuery.Where("level > ?", ctx[i].MinLevel)
 				}
 				if ctx[i].Creator != "" {
 					subQuery.Where("? = ANY(creators)", ctx[i].Creator)
