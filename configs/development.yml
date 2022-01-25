@@ -72,7 +72,8 @@ api:
     sandbox_mode: false
   networks:
     - mainnet
-    - hangzhounet
+    - hangzhou2net
+    - ithacanet
   pinata:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}

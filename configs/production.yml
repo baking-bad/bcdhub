@@ -74,9 +74,6 @@ api:
     sandbox_mode: false
   networks:
     - mainnet
- #   - florencenet
- #   - granadanet
- #   - hangzhounet
     - hangzhou2net
     - ithacanet
   pinata:

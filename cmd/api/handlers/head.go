@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
@@ -48,6 +49,7 @@ func (ctx *Context) GetHead(c *gin.Context) {
 		}
 
 		if !found {
+			logger.Warning().Str("network", blocks[i].Network.String()).Msg("not found in config")
 			continue
 		}
 
@@ -57,8 +59,9 @@ func (ctx *Context) GetHead(c *gin.Context) {
 			Timestamp: blocks[i].Timestamp.UTC(),
 			Protocol:  blocks[i].Protocol.Hash,
 		}
-		networkStats, ok := stats[blocks[i].Network.String()]
+		networkStats, ok := stats[head.Network]
 		if !ok {
+			logger.Warning().Str("network", head.Network).Msg("not found in stats map")
 			continue
 		}
 		head.ContractCalls = int64(networkStats.CallsCount)
