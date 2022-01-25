@@ -9,6 +9,10 @@ rpc:
     uri: https://rpc.tzkt.io/ithacanet
     timeout: 20
 
+tzkt:
+  mainnet:
+    uri: https://api.tzkt.io/v1
+  
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql

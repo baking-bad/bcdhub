@@ -37,7 +37,7 @@ func (storage *Storage) GetMany(network types.Network) (response []contract.Cont
 
 // GetRandom -
 func (storage *Storage) GetRandom(networks ...types.Network) (response contract.Contract, err error) {
-	queryCount := storage.DB.Model(&response).Where("tx_count > 2")
+	queryCount := storage.DB.Model(&response).Where("contract.tx_count > 2")
 	if len(networks) > 0 {
 		queryCount.WhereGroup(func(q *orm.Query) (*orm.Query, error) {
 			for i := range networks {
@@ -57,7 +57,7 @@ func (storage *Storage) GetRandom(networks ...types.Network) (response contract.
 		return response, pg.ErrNoRows
 	}
 
-	query := storage.DB.Model(&response).Where("tx_count > 2")
+	query := storage.DB.Model(&response).Where("contract.tx_count > 2")
 	if len(networks) > 0 {
 		queryCount.WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
 			for i := range networks {
@@ -137,7 +137,7 @@ func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset in
 	var contracts []contract.Contract
 	if err := storage.DB.Model(&contracts).
 		Where("(alpha_id IN (?0)) OR (babylon_id IN (?0))", scriptsQuery).
-		Relation("Account").Relation("Manager").Relation("Delegate").
+		Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").
 		Order("last_action desc").
 		Limit(limit).
 		Offset(int(offset)).
@@ -167,11 +167,10 @@ func (storage *Storage) GetTokens(network types.Network, tokenInterface string, 
 	}
 
 	var contracts []contract.Contract
-	query := storage.DB.Model((*contract.Contract)(nil)).
-		Where("contract.network = ?", network)
-
-	err := query.Where("(tags & ?) > 0", tags).
-		Order("id desc").
+	err := storage.DB.Model((*contract.Contract)(nil)).
+		Where("contract.network = ?", network).
+		Where("(contract.tags & ?) > 0", tags).
+		Order("contract.id desc").
 		Limit(storage.GetPageSize(size)).
 		Offset(int(offset)).
 		Relation("Account").Relation("Manager").Relation("Delegate").
@@ -180,7 +179,7 @@ func (storage *Storage) GetTokens(network types.Network, tokenInterface string, 
 		return nil, 0, err
 	}
 
-	count, err := storage.DB.Model().Table(models.DocContracts).Where("(tags & ?) > 0", tags).Where("contract.network = ?", network).Count()
+	count, err := storage.DB.Model((*contract.Contract)(nil)).Where("(contract.tags & ?) > 0", tags).Where("contract.network = ?", network).Count()
 	return contracts, int64(count), err
 }
 

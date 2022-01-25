@@ -41,6 +41,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		Size:      req.Size,
 		Offset:    req.Offset,
 		TokenID:   req.TokenID,
+		AccountID: -1,
 	})
 	if ctx.handleError(c, err, 0) {
 		return

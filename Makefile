@@ -147,10 +147,10 @@ stable:
 	TAG=master docker-compose up -d api metrics indexer
 
 db-dump:
-	docker-compose exec db pg_dump -c bcd > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+	docker-compose exec db pg_dump -c $(POSTGRES_DB) > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 db-restore:
-	docker-compose exec db psql --username $$POSTGRES_USER -v ON_ERROR_STOP=on bcd < $(BACKUP)
+	docker-compose exec -T db psql --username $(POSTGRES_USER) -v ON_ERROR_STOP=on $(POSTGRES_DB) < $(BACKUP)
 
 ps:
 	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"

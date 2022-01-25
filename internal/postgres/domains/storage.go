@@ -81,7 +81,7 @@ func (storage *Storage) TokenBalances(network types.Network, contract string, ac
 
 var transfersQuery = `
 	select o.hash, o.nonce, o.counter, t.*, tm.symbol, tm.decimals, tm."name"  from (
-		(?)  as t
+		(?) as t
 		left join operations as o on o.id  = t.operation_id
 		left join token_metadata tm on tm.network = t.network and tm.contract = t.contract and tm.token_id = t.token_id
 	)
@@ -92,7 +92,7 @@ func (storage *Storage) Transfers(ctx transfer.GetContext) (domains.TransfersRes
 	response := domains.TransfersResponse{
 		Transfers: make([]domains.Transfer, 0),
 	}
-	query := storage.DB.Model().Table(models.DocTransfers)
+	query := storage.DB.Model((*transfer.Transfer)(nil)).Relation("From").Relation("To").Relation("Initiator")
 	storage.buildGetContext(query, ctx, true)
 
 	if _, err := storage.DB.Query(&response.Transfers, transfersQuery, query); err != nil {
@@ -104,7 +104,7 @@ func (storage *Storage) Transfers(ctx transfer.GetContext) (domains.TransfersRes
 	if ctx.Offset == 0 && size > received {
 		response.Total = int64(len(response.Transfers))
 	} else {
-		countQuery := storage.DB.Model().Table(models.DocTransfers)
+		countQuery := storage.DB.Model((*transfer.Transfer)(nil))
 		storage.buildGetContext(countQuery, ctx, false)
 		if count, err := countQuery.Count(); err != nil {
 			return response, err

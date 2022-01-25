@@ -118,7 +118,13 @@ func (bi *BoostIndexer) createIndices() {
 
 	// Migrations
 	if _, err := bi.Context.StorageDB.DB.Model((*migration.Migration)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS migrations_network_level_idx ON ?TableName (network, level)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS migrations_level_idx ON ?TableName (level)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	if _, err := bi.Context.StorageDB.DB.Model((*migration.Migration)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS migrations_contract_id_idx ON ?TableName (contract_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}

@@ -65,8 +65,13 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network types.Network, 
 	}
 
 	logger.Info().Msg("Removing token balance entities....")
-	if err := ctx.Storage.DeleteByContract(network, []string{models.DocTokenBalances}, address); err != nil {
+	if res, err := ctx.StorageDB.DB.Model((*tokenbalance.TokenBalance)(nil)).
+		Where("network = ?", network).
+		Where("contract = ?", address).
+		Delete(); err != nil {
 		return err
+	} else {
+		logger.Info().Msgf("removed %d balances", res.RowsAffected())
 	}
 
 	balances, err := ctx.Transfers.CalcBalances(network, address)

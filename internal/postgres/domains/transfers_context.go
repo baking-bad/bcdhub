@@ -15,11 +15,11 @@ func (storage *Storage) buildGetContext(query *orm.Query, ctx transfer.GetContex
 	}
 
 	if ctx.Network != types.Empty {
-		query.Where("network = ?", ctx.Network)
+		query.Where("transfer.network = ?", ctx.Network)
 	}
 	if ctx.AccountID > -1 {
 		query.WhereGroup(func(q *orm.Query) (*orm.Query, error) {
-			q = q.WhereOr("transfers.from_id = ?", ctx.AccountID).WhereOr("transfers.to_id = ?", ctx.AccountID)
+			q = q.WhereOr("transfer.from_id = ?", ctx.AccountID).WhereOr("transfer.to_id = ?", ctx.AccountID)
 			return q, nil
 		})
 	}

@@ -26,6 +26,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.TokenMetadataUnknown{},
 	&migrations.DefaultEntrypoint{},
 	&migrations.FixLostSearchContracts{},
+	&migrations.FixEntrypointSearch{},
 }
 
 func main() {

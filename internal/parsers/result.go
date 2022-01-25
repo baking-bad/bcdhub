@@ -161,7 +161,7 @@ func (result *Result) saveOperations(tx pg.DBI) error {
 			}
 		}
 	}
-	return nil
+	return result.updateContracts(tx)
 }
 
 func (result *Result) saveContracts(tx pg.DBI) error {
@@ -256,15 +256,12 @@ func (result *Result) updateContracts(tx pg.DBI) error {
 		})
 	}
 
-	if _, err := tx.Model(&contracts).
+	_, err := tx.Model(&contracts).
 		Set("last_action = _data.last_action, tx_count = contract_updates.tx_count + _data.tx_count").
 		Where("contract_updates.account_id = _data.account_id").
 		Where("contract_updates.network = _data.network").
-		Update(); err != nil {
-		return err
-	}
-
-	return nil
+		Update()
+	return err
 }
 
 func (result *Result) saveTokenBalances(tx pg.DBI) error {
