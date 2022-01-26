@@ -770,6 +770,7 @@ type HeadResponse struct {
 	ContractCalls   int64     `json:"contract_calls"`
 	UniqueContracts int64     `json:"unique_contracts"`
 	FACount         int64     `json:"fa_count"`
+	Synced          bool      `json:"synced"`
 }
 
 // TokensCountWithMetadata -
