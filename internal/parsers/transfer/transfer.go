@@ -281,3 +281,8 @@ func (p *Parser) setParentEntrypoint(operation *operation.Operation, transfer *t
 
 	transfer.Parent = parent.Entrypoint
 }
+
+// SetStackTrace -
+func (p *Parser) SetStackTrace(st *stacktrace.StackTrace) {
+	p.stackTrace = st
+}

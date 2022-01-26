@@ -57,8 +57,8 @@ func (ns *NullString) Scan(value interface{}) error {
 		return nil
 	}
 
-	if val, ok := value.(string); ok {
-		ns.Str, ns.Valid = val, true
+	if val, ok := value.([]byte); ok {
+		ns.Str, ns.Valid = string(val), true
 	}
 	return nil
 }
@@ -85,4 +85,18 @@ func (ns NullString) EqualString(value string) bool {
 		return false
 	}
 	return value == ns.Str
+}
+
+// Set -
+func (ns *NullString) Set(value interface{}) error {
+	ns.Str, ns.Valid = "", false
+
+	if value == nil {
+		return nil
+	}
+
+	if val, ok := value.(string); ok {
+		ns.Str, ns.Valid = val, true
+	}
+	return nil
 }

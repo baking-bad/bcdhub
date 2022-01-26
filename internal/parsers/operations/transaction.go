@@ -192,11 +192,11 @@ func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operat
 
 func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 	if len(tx.Parameters) == 0 {
-		return tx.Entrypoint.Scan(consts.DefaultEntrypoint)
+		return tx.Entrypoint.Set(consts.DefaultEntrypoint)
 	}
 
 	params := types.NewParameters(tx.Parameters)
-	if err := tx.Entrypoint.Scan(params.Entrypoint); err != nil {
+	if err := tx.Entrypoint.Set(params.Entrypoint); err != nil {
 		return err
 	}
 
@@ -219,5 +219,5 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 		return nil
 	}
 
-	return tx.Entrypoint.Scan(entrypointName)
+	return tx.Entrypoint.Set(entrypointName)
 }

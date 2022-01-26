@@ -80,7 +80,7 @@ func NewContext(opts ...ContextOption) *Context {
 	}
 
 	ctx.Cache = cache.NewCache(
-		ctx.RPC, ctx.Blocks, ctx.Contracts, ctx.Protocols, ctx.ContractMetadata, ctx.Sanitizer,
+		ctx.RPC, ctx.Blocks, ctx.Accounts, ctx.Contracts, ctx.Protocols, ctx.ContractMetadata, ctx.Sanitizer,
 	)
 	return ctx
 }

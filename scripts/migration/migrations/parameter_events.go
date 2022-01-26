@@ -47,7 +47,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 	for i := range tzips {
 		for _, event := range tzips[i].Events {
 			for _, impl := range event.Implementations {
-				if impl.MichelsonParameterEvent.Empty() {
+				if impl.MichelsonParameterEvent == nil || impl.MichelsonParameterEvent.Empty() {
 					continue
 				}
 				logger.Info().Msgf("%s...", tzips[i].Address)
@@ -57,6 +57,13 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					return err
 				}
 				rpc, err := ctx.GetRPC(tzips[i].Network)
+				if err != nil {
+					return err
+				}
+				parser, err := transferParser.NewParser(rpc, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
+					transferParser.WithNetwork(tzips[i].Network),
+					transferParser.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
+				)
 				if err != nil {
 					return err
 				}
@@ -97,15 +104,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					if err := st.Fill(ctx.Operations, op); err != nil {
 						return err
 					}
-
-					parser, err := transferParser.NewParser(rpc, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
-						transferParser.WithNetwork(tzips[i].Network),
-						transferParser.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
-						transferParser.WithStackTrace(st),
-					)
-					if err != nil {
-						return err
-					}
+					parser.SetStackTrace(st)
 
 					proto, err := ctx.Cache.ProtocolByID(operations[i].Network, operations[i].ProtocolID)
 					if err != nil {

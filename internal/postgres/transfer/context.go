@@ -16,11 +16,11 @@ func (storage *Storage) buildGetContext(query *orm.Query, ctx transfer.GetContex
 	}
 
 	if ctx.Network != types.Empty {
-		query.Where("network = ?", ctx.Network)
+		query.Where("transfer.network = ?", ctx.Network)
 	}
 	if ctx.AccountID > -1 {
 		query.WhereGroup(func(q *orm.Query) (*orm.Query, error) {
-			q = q.WhereOr(`from_id = ?`, ctx.AccountID).WhereOr(`to = ?`, ctx.AccountID)
+			q = q.WhereOr(`from_id = ?`, ctx.AccountID).WhereOr(`to_id = ?`, ctx.AccountID)
 			return q, nil
 		})
 	}
@@ -62,8 +62,8 @@ func (storage *Storage) buildGetContext(query *orm.Query, ctx transfer.GetContex
 		}
 	}
 	if ctx.SortOrder == "asc" || ctx.SortOrder == "desc" {
-		query.Order(fmt.Sprintf("level %s", ctx.SortOrder))
+		query.Order(fmt.Sprintf("transfer.level %s", ctx.SortOrder))
 	} else {
-		query.Order("level desc")
+		query.Order("transfer.level desc")
 	}
 }

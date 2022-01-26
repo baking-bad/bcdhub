@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
@@ -24,6 +25,7 @@ type Cache struct {
 	rpc map[types.Network]noderpc.INode
 
 	blocks    block.Repository
+	accounts  account.Repository
 	contracts contract.Repository
 	protocols protocol.Repository
 	sanitizer *bluemonday.Policy
@@ -31,11 +33,12 @@ type Cache struct {
 }
 
 // NewCache -
-func NewCache(rpc map[types.Network]noderpc.INode, blocks block.Repository, contracts contract.Repository, protocols protocol.Repository, cm contract_metadata.Repository, sanitizer *bluemonday.Policy) *Cache {
+func NewCache(rpc map[types.Network]noderpc.INode, blocks block.Repository, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository, cm contract_metadata.Repository, sanitizer *bluemonday.Policy) *Cache {
 	return &Cache{
 		ccache.New(ccache.Configure().MaxSize(100000)),
 		rpc,
 		blocks,
+		accounts,
 		contracts,
 		protocols,
 		sanitizer,
@@ -50,14 +53,24 @@ func (cache *Cache) Alias(network types.Network, address string) string {
 	}
 	key := fmt.Sprintf("alias:%d:%s", network, address)
 	item, err := cache.Fetch(key, time.Minute*30, func() (interface{}, error) {
-		return cache.tzip.Get(network, address)
+		acc, err := cache.accounts.Get(network, address)
+		if err == nil && acc.Alias != "" {
+			return acc.Alias, nil
+		}
+
+		cm, err := cache.tzip.Get(network, address)
+		if err == nil {
+			return cm.Name, nil
+		}
+
+		return "", err
 	})
 	if err != nil {
 		return ""
 	}
 
-	if data, ok := item.Value().(*contract_metadata.ContractMetadata); ok && data != nil {
-		return cache.sanitizer.Sanitize(data.Name)
+	if data, ok := item.Value().(string); ok && data != "" {
+		return cache.sanitizer.Sanitize(data)
 	}
 	return ""
 }

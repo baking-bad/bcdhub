@@ -3,11 +3,19 @@ package migrations
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/repository"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -26,12 +34,88 @@ func (m *FillTZIP) Description() string {
 
 // Do - migrate function
 func (m *FillTZIP) Do(ctx *config.Context) error {
-	root, err := ask("Enter full path to directory with TZIP data (if empty - /etc/bcd/off-chain-metadata):")
+	storages := []string{
+		"File system",
+		"GitHub",
+	}
+
+	for i := range storages {
+		fmt.Printf("  [%d] %s\r\n", i, storages[i])
+	}
+	storageIndex, err := ask("Enter storage type #")
 	if err != nil {
 		return err
 	}
-	if root == "" {
-		root = "/etc/bcd/off-chain-metadata"
+	idx, err := strconv.Atoi(storageIndex)
+	if err != nil {
+		return err
+	}
+
+	root := "/etc/bcd/off-chain-metadata"
+	switch idx {
+	case 0:
+		newRoot, err := ask("Enter full path to directory with TZIP data (if empty - /etc/bcd/off-chain-metadata): ")
+		if err != nil {
+			return err
+		}
+		if newRoot != "" {
+			root = newRoot
+		}
+
+	case 1:
+		gitHubUser, err := ask("GitHub user: ")
+		if err != nil {
+			return err
+		}
+
+		if _, err := os.Stat(root); err != nil {
+			if !os.IsNotExist(err) {
+				return err
+			}
+			if err := os.MkdirAll(root, os.ModePerm); err != nil {
+				return err
+			}
+			repositoryPath, err := ask("Enter git repository path: ")
+			if err != nil {
+				return err
+			}
+
+			if _, err := git.PlainClone(root, false, &git.CloneOptions{
+				URL:      repositoryPath,
+				Progress: os.Stdout,
+				Auth: &http.BasicAuth{
+					Username: gitHubUser,
+					Password: os.Getenv("GITHUB_TOKEN"),
+				},
+			}); err != nil {
+				return err
+			}
+		} else {
+			repo, err := git.PlainOpen(root)
+			if err != nil {
+				return err
+			}
+			workTree, err := repo.Worktree()
+			if err != nil {
+				return err
+			}
+			if err = workTree.Pull(&git.PullOptions{
+				RemoteName: "origin",
+				Progress:   os.Stdout,
+				Auth: &http.BasicAuth{
+					Username: gitHubUser,
+					Password: os.Getenv("GITHUB_TOKEN"),
+				},
+			}); err != nil {
+				if !errors.Is(err, git.NoErrAlreadyUpToDate) {
+					return err
+				}
+				logger.Info().Msg(err.Error())
+			}
+		}
+
+	default:
+		return errors.New("invalid storage index")
 	}
 
 	fs := repository.NewFileSystem(root)
@@ -127,7 +211,20 @@ func processTzipItem(ctx *config.Context, item repository.Item, tx pg.DBI) error
 	}
 
 	if model.ContractMetadata.Name != "" {
+		if model.ContractMetadata.Slug == "" {
+			model.ContractMetadata.Slug = helpers.Slug(model.ContractMetadata.Name)
+		}
 		if err := model.ContractMetadata.Save(tx); err != nil {
+			return err
+		}
+
+		acc := account.Account{
+			Alias:   model.ContractMetadata.Name,
+			Address: model.ContractMetadata.Address,
+			Network: model.ContractMetadata.Network,
+			Type:    types.NewAccountType(model.ContractMetadata.Address),
+		}
+		if _, err := tx.Model(&acc).OnConflict("(network, address) DO UPDATE").Set(`alias = excluded.alias`).Returning("id").Insert(); err != nil {
 			return err
 		}
 	}

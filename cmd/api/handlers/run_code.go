@@ -324,7 +324,13 @@ func (ctx *Context) setSimulateStorageDiff(response noderpc.RunCodeResponse, pro
 	if err != nil {
 		return err
 	}
-	storageDiff, err := ctx.getStorageDiff(bmd, main.Destination, response.Storage, storageType, main)
+
+	destination, err := ctx.Accounts.Get(types.NewNetwork(main.Network), main.Destination)
+	if err != nil {
+		return err
+	}
+
+	storageDiff, err := ctx.getStorageDiff(destination.ID, bmd, response.Storage, storageType, main)
 	if err != nil {
 		return err
 	}

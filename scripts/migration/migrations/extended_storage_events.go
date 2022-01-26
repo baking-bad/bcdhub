@@ -72,6 +72,14 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					return err
 				}
 
+				parser, err := transferParsers.NewParser(rpc, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
+					transferParsers.WithNetwork(tzips[i].Network),
+					transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
+				)
+				if err != nil {
+					return err
+				}
+
 				operations, err := m.getOperations(ctx, tzips[i], impl)
 				if err != nil {
 					return err
@@ -100,15 +108,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					if err := st.Fill(ctx.Operations, op); err != nil {
 						return err
 					}
-
-					parser, err := transferParsers.NewParser(rpc, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
-						transferParsers.WithNetwork(tzips[i].Network),
-						transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
-						transferParsers.WithStackTrace(st),
-					)
-					if err != nil {
-						return err
-					}
+					parser.SetStackTrace(st)
 
 					bmd, err := ctx.BigMapDiffs.GetForOperation(op.ID)
 					if err != nil {
@@ -116,7 +116,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 							return err
 						}
 					}
-					proto, err := ctx.Cache.ProtocolByID(operations[i].Network, operations[i].ProtocolID)
+					proto, err := ctx.Cache.ProtocolByID(op.Network, op.ProtocolID)
 					if err != nil {
 						return err
 					}

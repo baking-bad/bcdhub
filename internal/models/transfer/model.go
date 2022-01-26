@@ -33,7 +33,7 @@ type Transfer struct {
 	Timestamp  time.Time
 	Level      int64            `pg:",use_zero"`
 	TokenID    uint64           `pg:",type:numeric(50,0),use_zero"`
-	Amount     decimal.Decimal  `pg:",type:numeric(100,0),use_zero"`
+	Amount     decimal.Decimal  `pg:",type:numeric(200,0),use_zero"`
 	Parent     types.NullString `pg:",type:text"`
 	Entrypoint string
 

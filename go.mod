@@ -15,17 +15,19 @@ require (
 	github.com/gin-contrib/cache v1.1.0
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.7.4
+	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-pg/pg/v10 v10.10.6
 	github.com/go-playground/validator/v10 v10.9.0
-	github.com/golang/mock v1.4.4
+	github.com/golang/mock v1.5.0
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/iancoleman/strcase v0.1.3
 	github.com/ipfs/go-cid v0.1.0
-	github.com/jessevdk/go-flags v1.4.0
+	github.com/jessevdk/go-flags v1.5.0
 	github.com/json-iterator/go v1.1.10
 	github.com/karlseguin/ccache v2.0.3+incompatible
 	github.com/karlseguin/expect v1.0.2-0.20190806010014-778a5f0c6003 // indirect
