@@ -38,6 +38,7 @@ type Parser struct {
 	network  modelTypes.Network
 	chainID  string
 	gasLimit int64
+	level    int64
 	init     sync.Once
 
 	withoutViews bool
@@ -97,7 +98,10 @@ func (p *Parser) Parse(diffs []*bigmapdiff.BigMapDiff, protocol string, operatio
 		return nil
 	}
 
-	p.init.Do(p.initialize)
+	if p.level != operation.Level {
+		p.init.Do(p.initialize)
+		p.level = operation.Level
+	}
 
 	if impl, name, ok := globalEvents.GetByOperation(*operation); ok {
 		return p.executeEvents(impl, name, protocol, diffs, operation)
