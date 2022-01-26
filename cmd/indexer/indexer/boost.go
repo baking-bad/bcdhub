@@ -343,18 +343,18 @@ func (bi *BoostIndexer) getDataFromBlock(head noderpc.Header) (*parsers.Result, 
 	if err != nil {
 		return nil, err
 	}
+	parserParams, err := operations.NewParseParams(
+		bi.rpc,
+		bi.Context,
+		operations.WithConstants(*bi.currentProtocol.Constants),
+		operations.WithHead(head),
+		operations.WithNetwork(bi.Network),
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	for i := range opg {
-		parserParams, err := operations.NewParseParams(
-			bi.rpc,
-			bi.Context,
-			operations.WithConstants(*bi.currentProtocol.Constants),
-			operations.WithHead(head),
-			operations.WithNetwork(bi.Network),
-		)
-		if err != nil {
-			return nil, err
-		}
 		parser := operations.NewGroup(parserParams)
 		opgResult, err := parser.Parse(opg[i])
 		if err != nil {

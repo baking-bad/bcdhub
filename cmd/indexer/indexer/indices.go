@@ -109,6 +109,12 @@ func (bi *BoostIndexer) createIndices() {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
+	if _, err := bi.Context.StorageDB.DB.Model((*contract.Contract)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_account_id_idx ON ?TableName (account_id)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
 	// Global constants
 	if _, err := bi.Context.StorageDB.DB.Model((*global_constant.GlobalConstant)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS global_constants_address_idx ON ?TableName (address)
