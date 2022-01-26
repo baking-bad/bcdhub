@@ -14,7 +14,7 @@ type TokenBalance struct {
 	Address  string          `json:"address" gorm:"not null;primaryKey"`
 	Contract string          `json:"contract" gorm:"not null;primaryKey;index:token_balances_token_idx"`
 	TokenID  uint64          `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false;index:token_balances_token_idx"`
-	Balance  decimal.Decimal `json:"balance" gorm:"type:numeric(100,0);default:0"`
+	Balance  decimal.Decimal `json:"balance" gorm:"type:numeric(200,0);default:0"`
 
 	IsLedger bool `json:"-" gorm:"-"`
 }
