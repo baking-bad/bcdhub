@@ -68,50 +68,31 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 
-		if _, err := os.Stat(root); err != nil {
-			if !os.IsNotExist(err) {
+		if _, err := os.Stat(root); err == nil {
+			if err := os.RemoveAll(root); err != nil {
 				return err
 			}
-			if err := os.MkdirAll(root, os.ModePerm); err != nil {
-				return err
-			}
-			repositoryPath, err := ask("Enter git repository path: ")
-			if err != nil {
-				return err
-			}
+		} else if !os.IsNotExist(err) {
+			return err
+		}
 
-			if _, err := git.PlainClone(root, false, &git.CloneOptions{
-				URL:      repositoryPath,
-				Progress: os.Stdout,
-				Auth: &http.BasicAuth{
-					Username: gitHubUser,
-					Password: os.Getenv("GITHUB_TOKEN"),
-				},
-			}); err != nil {
-				return err
-			}
-		} else {
-			repo, err := git.PlainOpen(root)
-			if err != nil {
-				return err
-			}
-			workTree, err := repo.Worktree()
-			if err != nil {
-				return err
-			}
-			if err = workTree.Pull(&git.PullOptions{
-				RemoteName: "origin",
-				Progress:   os.Stdout,
-				Auth: &http.BasicAuth{
-					Username: gitHubUser,
-					Password: os.Getenv("GITHUB_TOKEN"),
-				},
-			}); err != nil {
-				if !errors.Is(err, git.NoErrAlreadyUpToDate) {
-					return err
-				}
-				logger.Info().Msg(err.Error())
-			}
+		if err := os.MkdirAll(root, os.ModePerm); err != nil {
+			return err
+		}
+		repositoryPath, err := ask("Enter git repository path: ")
+		if err != nil {
+			return err
+		}
+
+		if _, err := git.PlainClone(root, false, &git.CloneOptions{
+			URL:      repositoryPath,
+			Progress: os.Stdout,
+			Auth: &http.BasicAuth{
+				Username: gitHubUser,
+				Password: os.Getenv("GITHUB_TOKEN"),
+			},
+		}); err != nil {
+			return err
 		}
 
 	default:
