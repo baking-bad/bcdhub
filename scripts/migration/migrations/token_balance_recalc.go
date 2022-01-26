@@ -101,9 +101,9 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network types.Network, 
 }
 
 // DoBatch -
-func (m *TokenBalanceRecalc) DoBatch(ctx *config.Context, contracts map[string]string) error {
+func (m *TokenBalanceRecalc) DoBatch(ctx *config.Context, contracts map[string]types.Network) error {
 	for address, network := range contracts {
-		if err := m.Recalc(ctx, types.NewNetwork(network), address); err != nil {
+		if err := m.Recalc(ctx, network, address); err != nil {
 			return err
 		}
 	}
