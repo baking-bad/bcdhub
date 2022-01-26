@@ -40,6 +40,9 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
+	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
 
 	dapp, err := ctx.DApps.Get(req.Slug)
 	if err != nil {
