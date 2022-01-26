@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -54,7 +53,7 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 		return
 	}
 
-	response, err := ctx.appendDAppInfo(dapp, req.WithDetails, true)
+	response, err := ctx.appendDAppInfo(dapp, true, true)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -134,23 +133,23 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool, withContrac
 					return result, err
 				}
 
-				var initiators, entrypoints []string
-				for _, c := range dapp.Contracts {
-					initiators = append(initiators, c.Address)
-					entrypoints = append(entrypoints, c.Entrypoint...)
-				}
+				// var initiators, entrypoints []string
+				// for _, c := range dapp.Contracts {
+				// 	initiators = append(initiators, c.Address)
+				// 	entrypoints = append(entrypoints, c.Entrypoint...)
+				// }
 
-				vol, err := ctx.Transfers.GetToken24HoursVolume(types.Mainnet, token.Contract, initiators, entrypoints, token.TokenID)
-				if err != nil {
-					if ctx.Storage.IsRecordNotFound(err) {
-						continue
-					}
-					return result, err
-				}
+				// vol, err := ctx.Transfers.GetToken24HoursVolume(types.Mainnet, token.Contract, initiators, entrypoints, token.TokenID)
+				// if err != nil {
+				// 	if ctx.Storage.IsRecordNotFound(err) {
+				// 		continue
+				// 	}
+				// 	return result, err
+				// }
 
 				for i := range tokenMetadata {
 					tm := TokenMetadataFromElasticModel(tokenMetadata[i], true)
-					tm.Volume24Hours = &vol
+					// tm.Volume24Hours = &vol
 					result.DexTokens = append(result.DexTokens, tm)
 				}
 			}
@@ -173,14 +172,14 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool, withContrac
 				result.Tokens = append(result.Tokens, tokens...)
 			}
 
-			if helpers.StringInArray("DEX", dapp.Categories) {
-				vol, err := ctx.Operations.GetContract24HoursVolume(types.Mainnet, address.Address, address.Entrypoint)
-				if err != nil {
-					return result, err
-				}
+			// if helpers.StringInArray("DEX", dapp.Categories) {
+			// 	vol, err := ctx.Operations.GetContract24HoursVolume(types.Mainnet, address.Address, address.Entrypoint)
+			// 	if err != nil {
+			// 		return result, err
+			// 	}
 
-				result.Volume24Hours += vol
-			}
+			// 	result.Volume24Hours += vol
+			// }
 		}
 	}
 
