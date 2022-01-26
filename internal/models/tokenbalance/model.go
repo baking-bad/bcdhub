@@ -17,7 +17,7 @@ type TokenBalance struct {
 	AccountID int64           `pg:",unique:token_balance"`
 	TokenID   uint64          `pg:",type:numeric(50,0),use_zero,unique:token_balance"`
 	Contract  string          `pg:",notnull,unique:token_balance"`
-	Balance   decimal.Decimal `pg:",type:numeric(100,0),use_zero"`
+	Balance   decimal.Decimal `pg:",type:numeric(200,0),use_zero"`
 
 	IsLedger bool `pg:"-"`
 
