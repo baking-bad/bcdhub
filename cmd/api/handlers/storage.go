@@ -49,7 +49,6 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		sReq.Level = int(block.Level)
 		protocol = block.Protocol.Hash
 	} else {
 		header, err := rpc.GetHeader(int64(sReq.Level))
