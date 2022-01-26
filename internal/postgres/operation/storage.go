@@ -156,15 +156,22 @@ func (storage *Storage) Get(filters map[string]interface{}, size int64, sort boo
 // GetContract24HoursVolume -
 func (storage *Storage) GetContract24HoursVolume(network types.Network, address string, entrypoints []string) (float64, error) {
 	aDayAgo := time.Now().UTC().AddDate(0, 0, -1)
+	var destinationID int64
+	if err := storage.DB.Model((*account.Account)(nil)).
+		Column("id").
+		Where("network = ?", network).
+		Where("address = ?", address).
+		Select(&destinationID); err != nil {
+		return 0, err
+	}
 
 	var volume float64
 	query := storage.DB.Model((*operation.Operation)(nil)).
 		ColumnExpr("COALESCE(SUM(amount), 0)").
-		Where("destination.address = ?", address).
+		Where("destination_id = ?", destinationID).
 		Where("operation.network = ?", network).
 		Where("status = ?", types.OperationStatusApplied).
-		Where("timestamp > ?", aDayAgo).
-		Relation("Destination._")
+		Where("timestamp > ?", aDayAgo)
 
 	if len(entrypoints) > 0 {
 		query.WhereIn("entrypoint IN (?)", entrypoints)
@@ -225,7 +232,17 @@ func (storage *Storage) GetByIDs(ids ...int64) (result []operation.Operation, er
 
 // GetDAppStats -
 func (storage *Storage) GetDAppStats(network types.Network, addresses []string, period string) (stats operation.DAppStats, err error) {
-	query, err := getDAppQuery(storage.DB, network, addresses, period)
+	var ids []int64
+	if len(addresses) > 0 {
+		if err = storage.DB.Model((*account.Account)(nil)).
+			Column("id").
+			WhereIn("address IN (?)", addresses).
+			Select(&ids); err != nil {
+			return
+		}
+	}
+
+	query, err := getDAppQuery(storage.DB, network, ids, period)
 	if err != nil {
 		return
 	}
@@ -234,12 +251,12 @@ func (storage *Storage) GetDAppStats(network types.Network, addresses []string, 
 		return
 	}
 
-	queryCount, err := getDAppQuery(storage.DB, network, addresses, period)
+	queryCount, err := getDAppQuery(storage.DB, network, ids, period)
 	if err != nil {
 		return
 	}
 
-	count, err := queryCount.Group("source").Count()
+	count, err := queryCount.Column("source_id").Group("source_id").Count()
 	if err != nil {
 		return
 	}
@@ -247,13 +264,13 @@ func (storage *Storage) GetDAppStats(network types.Network, addresses []string, 
 	return
 }
 
-func getDAppQuery(db pg.DBI, network types.Network, addresses []string, period string) (*orm.Query, error) {
-	query := db.Model().Table(models.DocOperations).
-		Where("operations.network = ?", network).
+func getDAppQuery(db pg.DBI, network types.Network, ids []int64, period string) (*orm.Query, error) {
+	query := db.Model((*operation.Operation)(nil)).
+		Where("network = ?", network).
 		Where("status = ?", types.OperationStatusApplied)
 
-	if len(addresses) > 0 {
-		query.Relation("Destination.address").Where("destination.address IN (?)", addresses)
+	if len(ids) > 0 {
+		query.WhereIn("destination_id IN (?)", ids)
 	}
 
 	err := periodToRange(query, period)

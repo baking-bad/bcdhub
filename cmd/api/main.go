@@ -200,7 +200,15 @@ func (api *app) makeRouter() {
 		dapps := v1.Group("dapps")
 		{
 			dapps.GET("", api.Context.GetDAppList)
-			dapps.GET(":slug", api.Context.GetDApp)
+			dappsBySlug := dapps.Group(":slug")
+			{
+				dappsBySlug.GET("", api.Context.GetDApp)
+				dex := dappsBySlug.Group("dex")
+				{
+					dex.GET("tokens", api.Context.GetDexTokens)
+					dex.GET("tezos_volume", cache.CachePage(store, time.Minute, api.Context.GetDexTezosVolume))
+				}
+			}
 		}
 
 		globalConstants := v1.Group("global_constants/:network/:address")
