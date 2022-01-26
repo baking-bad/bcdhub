@@ -24,7 +24,7 @@ func (ctx *Context) GetDAppList(c *gin.Context) {
 
 	results := make([]DApp, len(dapps))
 	for i := range dapps {
-		result, err := ctx.appendDAppInfo(dapps[i], false)
+		result, err := ctx.appendDAppInfo(dapps[i], false, false)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -51,7 +51,7 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 		return
 	}
 
-	response, err := ctx.appendDAppInfo(dapp, true)
+	response, err := ctx.appendDAppInfo(dapp, req.WithDetails, true)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -59,7 +59,7 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 	c.SecureJSON(http.StatusOK, response)
 }
 
-func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, error) {
+func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool, withContracts bool) (DApp, error) {
 	result := DApp{
 		Name:              dapp.Name,
 		ShortDescription:  dapp.ShortDescription,
@@ -92,6 +92,26 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 		}
 
 		result.Screenshots = screenshots
+	}
+
+	if withContracts && len(dapp.Contracts) > 0 {
+		result.Contracts = make([]DAppContract, 0)
+
+		for _, address := range dapp.Contracts {
+			contract, err := ctx.Contracts.Get(types.Mainnet, address.Address)
+			if err != nil {
+				if ctx.Storage.IsRecordNotFound(err) {
+					continue
+				}
+				return result, err
+			}
+			result.Contracts = append(result.Contracts, DAppContract{
+				Network:     contract.Network.String(),
+				Address:     contract.Address,
+				Alias:       ctx.CachedAlias(contract.Network, contract.Address),
+				ReleaseDate: contract.Timestamp.UTC(),
+			})
+		}
 	}
 
 	if withDetails {
@@ -133,48 +153,30 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 			}
 		}
 
-		if len(dapp.Contracts) > 0 {
-			result.Contracts = make([]DAppContract, 0)
-
-			for _, address := range dapp.Contracts {
-				contract, err := ctx.Contracts.Get(types.Mainnet, address.Address)
+		for _, address := range dapp.Contracts {
+			if address.WithTokens {
+				metadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
+					Contract: address.Address,
+					Network:  types.Mainnet,
+					TokenID:  nil,
+				})
 				if err != nil {
-					if ctx.Storage.IsRecordNotFound(err) {
-						continue
-					}
 					return result, err
 				}
-				result.Contracts = append(result.Contracts, DAppContract{
-					Network:     contract.Network.String(),
-					Address:     contract.Address,
-					Alias:       ctx.CachedAlias(contract.Network, contract.Address),
-					ReleaseDate: contract.Timestamp.UTC(),
-				})
+				tokens, err := ctx.addSupply(metadata)
+				if err != nil {
+					return result, err
+				}
+				result.Tokens = append(result.Tokens, tokens...)
+			}
 
-				if address.WithTokens {
-					metadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
-						Contract: address.Address,
-						Network:  types.Mainnet,
-						TokenID:  nil,
-					})
-					if err != nil {
-						return result, err
-					}
-					tokens, err := ctx.addSupply(metadata)
-					if err != nil {
-						return result, err
-					}
-					result.Tokens = append(result.Tokens, tokens...)
+			if helpers.StringInArray("DEX", dapp.Categories) {
+				vol, err := ctx.Operations.GetContract24HoursVolume(types.Mainnet, address.Address, address.Entrypoint)
+				if err != nil {
+					return result, err
 				}
 
-				if helpers.StringInArray("DEX", dapp.Categories) {
-					vol, err := ctx.Operations.GetContract24HoursVolume(types.Mainnet, address.Address, address.Entrypoint)
-					if err != nil {
-						return result, err
-					}
-
-					result.Volume24Hours += vol
-				}
+				result.Volume24Hours += vol
 			}
 		}
 	}
