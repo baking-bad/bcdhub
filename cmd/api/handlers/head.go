@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -45,8 +46,9 @@ func (ctx *Context) GetHead(c *gin.Context) {
 	for i := range blocks {
 
 		head, err := ctx.getHead(blocks[i], stats)
-		if ctx.handleError(c, err, 0) {
-			return
+		if err != nil {
+			logger.Warning().Str("network", blocks[i].Network.String()).Err(err).Msg("head API")
+			continue
 		}
 
 		body = append(body, head)
