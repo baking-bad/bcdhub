@@ -3,6 +3,7 @@ package migrations
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 const yes = "yes"
@@ -97,8 +98,8 @@ func (m *BigRussianBoss) eventsAndTokenBalances(ctx *config.Context) error {
 		return err
 	}
 
-	uniqueContracts := make(map[string]string)
-	for _, contracts := range []map[string]string{
+	uniqueContracts := make(map[string]types.Network)
+	for _, contracts := range []map[string]types.Network{
 		extStorageEvents.AffectedContracts(),
 		parameterEvents.AffectedContracts(),
 	} {
