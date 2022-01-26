@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
+	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -111,6 +112,13 @@ func (bi *BoostIndexer) createIndices() {
 
 	if _, err := bi.Context.StorageDB.DB.Model((*contract.Contract)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_account_id_idx ON ?TableName (account_id)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	// Blocks
+	if _, err := bi.Context.StorageDB.DB.Model((*dapp.DApp)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS dapps_slug_idx ON ?TableName (slug)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}

@@ -1,7 +1,6 @@
 package tokenbalance
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -111,10 +110,11 @@ func (storage *Storage) CountByContract(network types.Network, accountID int64, 
 
 // TokenSupply -
 func (storage *Storage) TokenSupply(network types.Network, contract string, tokenID uint64) (supply string, err error) {
-	query := storage.DB.Model().Table(models.DocTokenBalances).
-		ColumnExpr("coalesce(sum(balance), 0)::text as supply")
-	core.Token(network, contract, tokenID)(query)
-
-	err = query.Limit(1).Select(&supply)
+	err = storage.DB.Model((*tokenbalance.TokenBalance)(nil)).
+		ColumnExpr("coalesce(sum(balance), 0)::text as supply").
+		Where("network = ?", network).
+		Where("contract = ?", contract).
+		Where("token_id = ?", tokenID).
+		Select(&supply)
 	return
 }

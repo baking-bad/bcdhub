@@ -68,12 +68,11 @@ func (storage *Storage) GetAll(network types.Network, level int64) ([]transfer.T
 func (storage *Storage) GetTransfered(network types.Network, contract string, tokenID uint64) (result float64, err error) {
 	query := storage.DB.Model().Model((*transfer.Transfer)(nil)).
 		ColumnExpr("COALESCE(SUM(amount), 0)").
-		Where(`"to".address != '' AND "from".address != ''`).
-		Relation("To._").
-		Relation("From._").
-		Where("transfer.network = ?", network).
-		Where("transfer.contract = ?", contract).
-		Where("transfer.token_id = ?", tokenID)
+		Where("to_id is not null").
+		Where("from_id is not null").
+		Where("network = ?", network).
+		Where("contract = ?", contract).
+		Where("token_id = ?", tokenID)
 
 	core.IsApplied(query)
 	if err = query.Select(&result); err != nil {
@@ -90,16 +89,24 @@ func (storage *Storage) GetToken24HoursVolume(network types.Network, contract st
 	var volume float64
 	query := storage.DB.Model((*transfer.Transfer)(nil)).
 		ColumnExpr("COALESCE(SUM(amount), 0)").
-		Where("transfer.timestamp > ?", aDayAgo).
-		Where("transfer.network = ?", network).
-		Where("transfer.contract = ?", contract).
-		Where("transfer.token_id = ?", tokenID)
+		Where("timestamp > ?", aDayAgo).
+		Where("network = ?", network).
+		Where("contract = ?", contract).
+		Where("token_id = ?", tokenID)
 
 	if len(entrypoints) > 0 {
-		query.WhereIn("transfer.parent IN (?)", entrypoints)
+		query.WhereIn("parent IN (?)", entrypoints)
 	}
 	if len(initiators) > 0 {
-		query.Relation("Initiator._").WhereIn("initiator.address IN (?)", initiators)
+		var ids []int64
+		if err := storage.DB.Model((*account.Account)(nil)).
+			Column("id").
+			WhereIn("address IN (?)", initiators).
+			Where("network = ?", network).
+			Select(&ids); err != nil {
+			return 0, err
+		}
+		query.WhereIn("initiator_id IN (?)", ids)
 	}
 
 	core.IsApplied(query)
