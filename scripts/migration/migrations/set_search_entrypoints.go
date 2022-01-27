@@ -35,7 +35,7 @@ func (m *FixEntrypointSearch) Do(ctx *config.Context) error {
 		return err
 	}
 
-	for m.lastID == 0 || len(operations) == 1000 {
+	for m.lastID == 0 || len(operations) == 100 {
 		fmt.Printf("last id = %d\r", m.lastID)
 		operations, err = m.getOperations(ctx.StorageDB.DB)
 		if err != nil {
@@ -54,7 +54,7 @@ func (m *FixEntrypointSearch) getOperations(db *pg.DB) (resp []operation.Operati
 	if m.lastID > 0 {
 		query.Where("operation.id > ?", m.lastID)
 	}
-	err = query.Limit(1000).Select(&resp)
+	err = query.Limit(100).Select(&resp)
 	return
 }
 
