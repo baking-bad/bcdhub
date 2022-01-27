@@ -54,7 +54,7 @@ func (m *FixEntrypointSearch) getOperations(db *pg.DB) (resp []operation.Operati
 	if m.lastID > 0 {
 		query.Where("operation.id > ?", m.lastID)
 	}
-	err = query.Limit(500).Select(&resp)
+	err = query.Limit(1000).Select(&resp)
 	return
 }
 
