@@ -1,4 +1,4 @@
-FROM node:latest AS build
+FROM node:14 AS build
 
 RUN git clone https://github.com/baking-bad/bcd.git /bcd
 
