@@ -6,6 +6,7 @@ WORKDIR /bcd
 RUN yarn
 
 COPY build/sandbox/env.production /bcd/.env.production
+RUN export NODE_OPTIONS=--openssl-legacy-provider
 RUN yarn build
 
 FROM nginx:latest AS release
