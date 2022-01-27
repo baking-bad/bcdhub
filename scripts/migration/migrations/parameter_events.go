@@ -66,6 +66,11 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 				return err
 			}
 
+			destination, err := ctx.Accounts.Get(tzips[i].Network, tzips[i].Address)
+			if err != nil {
+				return err
+			}
+
 			var lastID int64
 
 			for _, event := range tzips[i].Events {
@@ -78,7 +83,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 
 					var end bool
 					for !end {
-						operations, err := m.getOperations(ctx, tzips[i], lastID, 10000, impl)
+						operations, err := m.getOperations(ctx, destination.ID, lastID, 10000, impl)
 						if err != nil {
 							return err
 						}
@@ -143,13 +148,12 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 
 }
 
-func (m *ParameterEvents) getOperations(ctx *config.Context, tzip contract_metadata.ContractMetadata, lastID int64, size int, impl contract_metadata.EventImplementation) ([]operation.Operation, error) {
+func (m *ParameterEvents) getOperations(ctx *config.Context, destinationID int64, lastID int64, size int, impl contract_metadata.EventImplementation) ([]operation.Operation, error) {
 	operations := make([]operation.Operation, 0)
 
 	query := ctx.StorageDB.DB.Model((*operation.Operation)(nil)).
 		Order("operation.id asc").
-		Where("operation.network = ?", tzip.Network).
-		Where("destination.address = ?", tzip.Address).
+		Where("destination_id = ?", destinationID).
 		Where("kind = ?", types.OperationKindTransaction).
 		Where("status = ?", types.OperationStatusApplied).
 		WhereIn("entrypoint IN (?)", impl.MichelsonParameterEvent.Entrypoints)

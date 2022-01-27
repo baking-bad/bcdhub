@@ -15,7 +15,7 @@ func CreateIndexers(ctx context.Context, internalCtx *config.Context, cfg config
 		return nil, err
 	}
 
-	if err := NewInitializer(internalCtx.Storage).Init(); err != nil {
+	if err := NewInitializer(internalCtx.Storage, internalCtx.StorageDB.DB).Init(); err != nil {
 		return nil, err
 	}
 
