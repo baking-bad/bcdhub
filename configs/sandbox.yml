@@ -29,7 +29,7 @@ api:
     mempool_enabled: false
     sandbox_mode: true
     rpc:
-      sandboxnet: ${SANDBOX_NODE_URI}
+      sandboxnet: "localhost:20000"
   seed:
     user:
       login: sandboxuser

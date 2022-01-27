@@ -91,7 +91,7 @@ services:
     environment:
       - block_time=4
     ports:
-      - "20000:20000"
+      - 127.0.0.1:20000:20000
     expose:
       - 20000/tcp
     logging: *bcd-logging
@@ -99,7 +99,7 @@ services:
   gui:
     container_name: sandbox-gui
     restart: always
-    image: bakingbad/bcdhub-gui:4.0
+    image: ghcr.io/baking-bad/bcdhub-gui:${TAG}
     depends_on:
       - api
     ports:

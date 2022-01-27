@@ -175,3 +175,6 @@ gateway-down:
 
 gateway-clear:
 	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml down -v
+
+sandbox-image:
+	docker build -t ghcr.io/baking-bad/bcdhub-gui:master ./build/sandbox

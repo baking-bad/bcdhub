@@ -87,7 +87,7 @@ services:
   gui:
     container_name: sandbox-gui
     restart: always
-    image: bakingbad/bcdhub-gui:4.0
+    image: ghcr.io/baking-bad/bcdhub-gui:${TAG}
     depends_on:
       - api
     ports:
