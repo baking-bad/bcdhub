@@ -31,7 +31,8 @@ var symLinks = map[string]string{
 	"PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV": SymLinkBabylon, // Granadanet
 	"PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r": SymLinkBabylon, // Hangzhounet
 	"PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx": SymLinkBabylon, // Hangzhounet 2
-	"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP": SymLinkBabylon, // Ithacanet
+	"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP": SymLinkBabylon, // Ithacanet,
+	"Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A": SymLinkBabylon, // Ithacanet 2
 }
 
 // GetProtoSymLink -
