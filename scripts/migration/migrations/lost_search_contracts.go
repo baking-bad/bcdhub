@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/go-pg/pg/v10"
 )
@@ -46,7 +45,7 @@ func (m *FixLostSearchContracts) Do(ctx *config.Context) error {
 }
 
 func (m *FixLostSearchContracts) getContracts(db *pg.DB) (resp []contract.Contract, err error) {
-	query := db.Model().Table(models.DocContracts).Order("id asc")
+	query := db.Model((*contract.Contract)(nil)).Order("id asc").Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon")
 	if m.lastID > 0 {
 		query.Where("id > ?", m.lastID)
 	}
@@ -63,13 +62,5 @@ func (m *FixLostSearchContracts) saveSearchModels(internalContext *config.Contex
 		}
 	}
 	data := search.Prepare(items)
-
-	for i := range data {
-		if typ, ok := data[i].(*search.Contract); ok {
-			typ.Alias = internalContext.Cache.Alias(types.NewNetwork(typ.Network), typ.Address)
-			typ.DelegateAlias = internalContext.Cache.Alias(types.NewNetwork(typ.Network), typ.Delegate)
-		}
-	}
-
 	return internalContext.Searcher.Save(context.Background(), data)
 }
