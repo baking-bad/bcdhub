@@ -16,8 +16,6 @@ tzkt:
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-  granadanet:
-    mempool: https://mempool.dipdup.net/v1/graphql
   hangzhou2net:
     mempool: https://mempool.dipdup.net/v1/graphql
 
