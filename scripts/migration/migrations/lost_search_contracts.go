@@ -45,9 +45,9 @@ func (m *FixLostSearchContracts) Do(ctx *config.Context) error {
 }
 
 func (m *FixLostSearchContracts) getContracts(db *pg.DB) (resp []contract.Contract, err error) {
-	query := db.Model((*contract.Contract)(nil)).Order("id asc").Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon")
+	query := db.Model((*contract.Contract)(nil)).Order("contract.id asc").Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon")
 	if m.lastID > 0 {
-		query.Where("id > ?", m.lastID)
+		query.Where("contract.id > ?", m.lastID)
 	}
 	err = query.Limit(1000).Select(&resp)
 	return
