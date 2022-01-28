@@ -57,7 +57,10 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 				Alias:   alias,
 			}
 
-			if err := acc.Save(tx); err != nil {
+			if _, err := tx.Model(&acc).
+				OnConflict("(network, address) DO UPDATE").
+				Set("alias = ?alias").
+				Insert(); err != nil {
 				return err
 			}
 		}
