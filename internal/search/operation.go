@@ -31,6 +31,8 @@ type Operation struct {
 	Entrypoint       string    `json:"entrypoint,omitempty"`
 	SourceAlias      string    `json:"source_alias,omitempty"`
 	DestinationAlias string    `json:"destination_alias,omitempty"`
+	PaidStorageDiff  int64     `json:"paid_storage_diff,omitempty"`
+	ConsumedGas      int64     `json:"consumed_gas,omitempty"`
 
 	DelegateAlias string `json:"delegate_alias,omitempty"`
 
@@ -109,6 +111,8 @@ func (o *Operation) Prepare(model models.Model) {
 	o.Timestamp = op.Timestamp.UTC()
 	o.Delegate = op.Delegate.Address
 	o.DelegateAlias = op.Delegate.Alias
+	o.PaidStorageDiff = op.PaidStorageSizeDiff
+	o.ConsumedGas = op.ConsumedGas
 
 	if len(op.DeffatedStorage) > 0 {
 		var tree ast.UntypedAST

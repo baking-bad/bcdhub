@@ -27,6 +27,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.DefaultEntrypoint{},
 	&migrations.FixLostSearchContracts{},
 	&migrations.FixEntrypointSearch{},
+	&migrations.FindLostContracts{},
 }
 
 func main() {

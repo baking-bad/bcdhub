@@ -258,7 +258,7 @@ func grouping(ctx search.Context, query Base) Base {
 								return doc['hash.keyword'].value
 							} else if (doc['_index'].value == 'operations') {
 								return doc['hash.keyword'].value
-							} else if (doc['_index'].value == 'tzips') {
+							} else if (doc['_index'].value == 'contract_metadata') {
 								return doc['network.keyword'].value + '|' + doc['address.keyword'].value
 							} else if (doc['_index'].value == 'big_map_diffs') {
 								return doc['key_hash.keyword'].value
