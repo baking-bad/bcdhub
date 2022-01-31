@@ -189,8 +189,8 @@ func (ctx *Context) GetOperationDiff(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	operation := operation.Operation{ID: req.ID}
-	if err := ctx.Storage.GetByID(&operation); ctx.handleError(c, err, 0) {
+	operation, err := ctx.Operations.GetByID(req.ID)
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -466,8 +466,14 @@ func (ctx *Context) getStorageDiff(destinationID int64, bmd []bigmapdiff.BigMapD
 		}
 
 		if len(prev.DeffatedStorage) > 0 {
-			if err := prepareStorage(prevStorage, prev.DeffatedStorage, prevBmd); err != nil {
-				return nil, err
+			if len(prevBmd) > 0 {
+				if err := prepareStorage(prevStorage, prev.DeffatedStorage, prevBmd); err != nil {
+					return nil, err
+				}
+			} else {
+				if err := prepareStorage(prevStorage, prev.DeffatedStorage, bmd); err != nil {
+					return nil, err
+				}
 			}
 		}
 	} else if !ctx.Storage.IsRecordNotFound(err) {

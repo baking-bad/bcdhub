@@ -20,4 +20,5 @@ type Repository interface {
 
 	GetDAppStats(network types.Network, addresses []string, period string) (DAppStats, error)
 	GetByIDs(ids ...int64) ([]Operation, error)
+	GetByID(id int64) (Operation, error)
 }

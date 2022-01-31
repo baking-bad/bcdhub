@@ -230,6 +230,12 @@ func (storage *Storage) GetByIDs(ids ...int64) (result []operation.Operation, er
 	return
 }
 
+// GetByID -
+func (storage *Storage) GetByID(id int64) (result operation.Operation, err error) {
+	err = storage.DB.Model(&result).Relation("Destination").Where("operation.id = ?", id).First()
+	return
+}
+
 // GetDAppStats -
 func (storage *Storage) GetDAppStats(network types.Network, addresses []string, period string) (stats operation.DAppStats, err error) {
 	var ids []int64
