@@ -167,7 +167,6 @@
 									"    pm.expect(contract).to.have.property('timestamp');",
 									"    pm.expect(contract).to.have.property('hash');",
 									"    pm.expect(contract).to.have.property('address');",
-									"    pm.expect(contract).to.have.property('total_subscribed');",
 									"    pm.expect(contract).to.have.property('same_count');",
 									"    pm.expect(contract).to.have.property('similar_count');",
 									"    pm.expect(contract).to.have.property('tx_count');",
@@ -595,45 +594,6 @@
 		{
 			"name": "slug",
 			"item": [
-				{
-					"name": "slug/atomex",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const slug = pm.response.json();",
-									"",
-									"    pm.expect(slug).to.eql({",
-									"        \"alias\": \"Atomex\",",
-									"        \"network\": \"mainnet\",",
-									"        \"address\": \"KT1VG2WtYdSWz5E7chTeAdDPZNy2MpP8pTfL\",",
-									"        \"slug\": \"atomex\"",
-									"    });",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/slug/atomex",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"slug",
-								"atomex"
-							]
-						}
-					},
-					"response": []
-				},
 				{
 					"name": "slug/tzbtc",
 					"event": [
@@ -1192,7 +1152,6 @@
 									"    pm.expect(response).to.have.property('level');",
 									"    pm.expect(response).to.have.property('timestamp');",
 									"    pm.expect(response).to.have.property('hash');",
-									"    pm.expect(response).to.have.property('total_subscribed');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1589,14 +1548,12 @@
 									"    pm.expect(response).to.have.property('count');",
 									"",
 									"    for (const contract of response.contracts) {        ",
-									"        pm.expect(contract.network).to.be.eql('mainnet');",
-									"",
+									"        pm.expect(contract).to.have.property('network');",
 									"        pm.expect(contract).to.have.property('level');",
 									"        pm.expect(contract).to.have.property('timestamp');",
 									"        pm.expect(contract).to.have.property('hash');",
 									"        pm.expect(contract).to.have.property('address');",
-									"        pm.expect(contract).to.have.property('total_subscribed');",
-									"        pm.expect(contract).to.have.property('count');",
+									"        pm.expect(contract).to.have.property('similar_count');",
 									"    }",
 									"});"
 								],
@@ -2709,7 +2666,25 @@
 									"        \"soon\": false,",
 									"        \"logo\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_logo.png\",",
 									"        \"cover\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_cover.png\",",
-									"        \"screenshots\": [{ \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_screen_1.png\", \"type\": \"desktop\" }, { \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_screen_2.png\", \"type\": \"desktop\" }, { \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_screen_3.png\", \"type\": \"desktop\" }]",
+									"        \"screenshots\": [{ \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_screen_1.png\", \"type\": \"desktop\" }, { \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_screen_2.png\", \"type\": \"desktop\" }, { \"link\": \"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_screen_3.png\", \"type\": \"desktop\" }],",
+									"        \"contracts\": [",
+									"            {",
+									"                \"network\": \"mainnet\",",
+									"                \"address\": \"KT1XjcRq5MLAzMKQ3UHsrue2SeU2NbxUrzmU\",",
+									"                \"alias\": \"objkt.bid English\",",
+									"                \"release_date\": \"2021-07-05T16:44:02Z\"",
+									"            },",
+									"            {",
+									"                \"network\": \"mainnet\",",
+									"                \"address\": \"KT1QJ71jypKGgyTNtXjkCAYJZNhCKWiHuT2r\",",
+									"                \"release_date\": \"2021-07-05T16:45:02Z\"",
+									"            },",
+									"            {",
+									"                \"network\": \"mainnet\",",
+									"                \"address\": \"KT1FvqJwEDWb1Gwc55Jd1jjTHRVWbYKUUpyq\",",
+									"                \"release_date\": \"2021-06-30T20:47:26Z\"",
+									"            }",
+									"        ]",
 									"    }",
 									"    );",
 									"});"
@@ -2876,8 +2851,46 @@
 									"      \"address\": \"KT1EctCuorV2NfVb1XTQgvzJ88MQtWP8cMMv\",",
 									"      \"alias\": \"StakerDAO\",",
 									"      \"release_date\": \"2020-01-06T03:46:32Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1SxyJctfkEJoHmDA4Vr4DoFexdgdiFp785\",",
+									"         \"alias\": \"STKR Farm XTZ/kUSD LP\",",
+									"        \"release_date\": \"2021-06-11T02:05:26Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1Jib9AmhYdbnef2F97uEHtApk2GhuHMQBq\",",
+									"         \"alias\": \"STKR Farm XTZ/STKR LP\",",
+									"        \"release_date\": \"2021-06-11T01:58:26Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1EAvfbUsed9tbdVzaJKcLM2BSkv7q9oDG1\",",
+									"        \"alias\": \"STKR Farm XTZ/wXTZ LP\",",
+									"        \"release_date\": \"2021-06-11T02:04:26Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1AEfeckNbdEYwaMKkytBwPJPycz7jdSGea\",",
+									"         \"alias\": \"STKR \",",
+									"        \"release_date\": \"2021-03-01T04:28:06Z\"",
 									"    }",
-									"  ]",
+									"  ],",
+									"    \"tokens\": [",
+									"        {",
+									"            \"contract\": \"KT1AEfeckNbdEYwaMKkytBwPJPycz7jdSGea\",",
+									"            \"network\": \"mainnet\",",
+									"            \"timestamp\": \"2018-06-30T00:00:00Z\",",
+									"            \"token_id\": 0,",
+									"            \"symbol\": \"STKR\",",
+									"            \"name\": \"STKR\",",
+									"            \"decimals\": 18,",
+									"            \"is_transferable\": true,",
+									"            \"supply\": \"305100000000000000000000000\",",
+									"            \"transfered\": 3.9109134734589525e+26",
+									"        }",
+									"    ]",
 									"});",
 									"});"
 								],
@@ -3214,15 +3227,14 @@
 									"            \"address\": \"KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr\",",
 									"             \"alias\": \"Atomex tzBTC\",",
 									"            \"release_date\": \"2020-04-08T11:37:32Z\"",
+									"        },",
+									"        {",
+									"            \"network\": \"mainnet\",",
+									"            \"address\": \"KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL\",",
+									"            \"alias\": \"Atomex kUSD\",",
+									"            \"release_date\": \"2021-02-24T16:28:18Z\"",
 									"        }",
 									"    ]);",
-									"",
-									"    pm.expect(dapp.dex_tokens.length).to.eql(2);",
-									"    for (const token of dapp.dex_tokens) {",
-									"        pm.expect(token).to.have.property('contract');",
-									"        pm.expect(token).to.have.property('network');",
-									"        pm.expect(token).to.have.property('token_id');",
-									"    }",
 									"});"
 								],
 								"type": "text/javascript"
@@ -3281,13 +3293,6 @@
 									"    pm.expect(dapp.soon).to.eql(false);",
 									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tezex/tezex_logo.png\");",
 									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tezex/tezex_cover.png\");",
-									"",
-									"    pm.expect(dapp.dex_tokens.length).to.eql(2);",
-									"    for (const token of dapp.dex_tokens) {",
-									"        pm.expect(token).to.have.property('contract');",
-									"        pm.expect(token).to.have.property('network');",
-									"        pm.expect(token).to.have.property('token_id');",
-									"    }",
 									"});"
 								],
 								"type": "text/javascript"
