@@ -211,7 +211,7 @@ func (ctx *Context) getHistogramOptions(name string, network types.Network, addr
 
 		return []models.HistogramOption{
 			models.WithHistogramIndex(models.DocOperations),
-			models.WithHistogramFunction("cardinality", "initiator"),
+			models.WithHistogramFunction("cardinality", "initiator.keyword"),
 			models.WithHistogramFilters(filters),
 		}, nil
 	case "volume":
