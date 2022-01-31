@@ -52,6 +52,9 @@ func SetUserIDSentry(id string) {
 // CatchPanicSentry -
 func CatchPanicSentry() {
 	if err := recover(); err != nil {
+		sentry.CurrentHub().WithScope(func(scope *sentry.Scope) {
+			scope.SetLevel(sentry.LevelError)
+		})
 		sentry.CurrentHub().Recover(err)
 		sentry.Flush(time.Second * 5)
 	}
