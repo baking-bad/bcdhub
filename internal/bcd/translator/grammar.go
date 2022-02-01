@@ -13,8 +13,10 @@ const defaultGrammar = `
 	
 	Int        <- < Minus? Digit+ >
 	Byte       <- < HexPrefix Hex+ >
-    String     <- < '"' StringContent* '"' >
+    String     <- < Quote StringBody* Quote >
+	StringBody <- StringContent+ EQuote* Slash*
     Annot      <- AnnotPrefix+ AnnotBody*
+	EQuote     <- Slash Quote
     LeftParen  <- '('
 	RightParen <- ')'
 	LeftCurly  <- '{'
@@ -22,9 +24,10 @@ const defaultGrammar = `
 	Semi       <- ';'
 	Minus      <- '-'
 	Dot        <- '.'
-
+	Quote      <- '"'
+	Slash      <- '\\'
 	
-	StringContent <- [_a-zA-Z0-9- /:,\\.'\\\\(\\)\\*\\+><=!\[\]^?%$;#№@~{}]
+	StringContent <- [_a-zA-Z0-9- /:,.'()*+><=!\[\]^?%$;#№@~{}]	
 	Hex           <- [A-F0-9a-f]
 	Alpha         <- [a-zA-Z]
 	Accessable    <- [A-Za-z0-9_]

@@ -26,7 +26,7 @@ func NewJSONTranslator() *MichelineTranslator {
 		"arg":           t.argTranslate,
 		"Int":           t.intTranslate,
 		"String":        t.stringTranslate,
-		"StringContent": t.pass,
+		"StringBody":    t.pass,
 		"annots":        t.arrayTranslate,
 		"annot":         t.tokenTranslate,
 		"Byte":          t.bytesTranslate,
@@ -157,8 +157,8 @@ func (t *MichelineTranslator) complexInstrTranslate(ast *peg.Ast) (string, error
 
 func sanitizeString(token string) string {
 	for from, to := range map[string]string{
-		// "\\n": "\n",
-		"\"": "",
+		"\\\"": "'",
+		"\"":   "",
 	} {
 		token = strings.ReplaceAll(token, from, to)
 	}

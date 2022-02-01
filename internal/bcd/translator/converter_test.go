@@ -40,7 +40,7 @@ func TestConverter_FromFile(t *testing.T) {
 				return
 			}
 
-			assert.JSONEq(t, string(resultBytes), got)
+			assert.JSONEq(t, string(resultBytes), got, "JSON comparing")
 		})
 	}
 }

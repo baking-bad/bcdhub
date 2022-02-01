@@ -2,7 +2,6 @@ package translator
 
 import (
 	"io/ioutil"
-	"os"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/yhirose/go-peg"
@@ -69,7 +68,7 @@ func (c Converter) FromString(input string) (string, error) {
 func (c Converter) trace() {
 	if c.debug {
 		c.parser.TracerEnter = func(name string, s string, v *peg.Values, d peg.Any, p int) {
-			logger.Info().Msgf("Enter: %s %d %d", name, p, len(s))
+			logger.Info().Msgf("Enter: %s %d %d %s", name, p, len(s), s[p:])
 		}
 		c.parser.TracerLeave = func(name string, s string, v *peg.Values, d peg.Any, p int, l int) {
 			if l != -1 {
@@ -80,11 +79,7 @@ func (c Converter) trace() {
 }
 
 func readFileToString(filename string) (string, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return "", err
-	}
-	data, err := ioutil.ReadAll(f)
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return "", err
 	}
