@@ -1,6 +1,7 @@
 FROM node:14 AS build
 
-RUN git clone https://github.com/baking-bad/bcd.git /bcd
+ARG TAG
+RUN git clone --depth=1 --branch ${TAG} https://github.com/baking-bad/bcd.git /bcd
 
 WORKDIR /bcd
 RUN yarn

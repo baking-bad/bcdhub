@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   elastic:
-    image: bakingbad/bcdhub-elastic:${TAG:-latest}
+    image: ghcr.io/baking-bad/bcdhub-elastic:${TAG:-master}
     build:
       context: .
       dockerfile: build/elastic/Dockerfile
@@ -21,7 +21,7 @@ services:
         max-file: "5"
 
   db:
-    image: bakingbad/bcdhub-db:${TAG:-latest}
+    image: ghcr.io/baking-bad/bcdhub-db:${TAG:-master}
     shm_size: 1g
     user: postgres
     build:
@@ -43,7 +43,7 @@ services:
 
   api:
     restart: always
-    image: bakingbad/bcdhub-api:${TAG:-latest}
+    image: ghcr.io/baking-bad/bcdhub-api:${TAG:-master}
     build:
       context: .
       dockerfile: build/api/Dockerfile
@@ -60,7 +60,7 @@ services:
 
   indexer:
     restart: always
-    image: bakingbad/bcdhub-indexer:${TAG:-latest}
+    image: ghcr.io/baking-bad/bcdhub-indexer:${TAG:-master}
     build:
       context: .
       dockerfile: build/indexer/Dockerfile
@@ -75,7 +75,7 @@ services:
 
   metrics:
     restart: always
-    image: bakingbad/bcdhub-metrics:${TAG:-latest}
+    image: ghcr.io/baking-bad/bcdhub-metrics:${TAG:-master}
     build:
       context: .
       dockerfile: build/metrics/Dockerfile
@@ -87,36 +87,6 @@ services:
     volumes:
       - ${SHARE_PATH}:/etc/bcd
     logging: *bcd-logging
-
-  gui:
-    restart: always
-    image: bakingbad/bcdhub-gui:${TAG:-latest}
-    entrypoint: /bin/bash
-    command: >-
-      -c "(cp /etc/bcd/nginx/default.${BCD_ENV:-production}.conf /etc/nginx/conf.d/default.conf || true)
-      && (cp /etc/bcd/nginx/sitemap.${BCD_ENV:-production}.xml /usr/share/nginx/html/sitemap.xml || true)
-      && nginx -g 'daemon off;'"
-    ports:
-      - 127.0.0.1:${BCD_GUI_PORT}:80
-    volumes:
-      - ${SHARE_PATH}:/etc/bcd
-    logging: *bcd-logging
-
-#  graphql:
-#    restart: always
-#    image: bakingbad/bcdhub-graphql:${TAG:-latest}
-#    build:
-#      context: .
-#      dockerfile: build/graphql/Dockerfile
-#    env_file:
-#      - .env
-#    depends_on:
-#      - db
-#    ports:
-#      - 127.0.0.1:3000:3000
-#    volumes:
-#      - ${SHARE_PATH}:/etc/bcd
-#    logging: *bcd-logging
 
 volumes:
   esdata:

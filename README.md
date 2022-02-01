@@ -25,18 +25,15 @@ make gateway-clear
 
 ### Sandbox
 
-Make sure your Tezos node is exposed at `0.0.0.0:8732`
-```
-make sandbox-images
-make sandbox
-```
+The simplest way is just to copy the `docker-compose.flexesa.yml` to your project.
 
-Sandbox UI is now available at http://localhost:8000
-
-You can also use a builtin Flextesa instance instead (will be exposed at 8732):
+Make sure you have the latest images and run the compose:
 ```
+make sandbox-pull
 make flextesa-sandbox
 ```
+Sandbox UI is now available at http://localhost:8000
+
 
 In order to stop or reset sandbox:
 ```

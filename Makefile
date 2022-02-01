@@ -155,26 +155,23 @@ db-restore:
 ps:
 	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"
 
-sandbox:
-	COMPOSE_PROJECT_NAME=bcdbox TAG=master docker-compose -f docker-compose.sandbox.yml up -d
+sandbox-pull:
+	TAG=4.1.0 docker-compose -f docker-compose.flextesa.yml pull
 
 flextesa-sandbox:
-	COMPOSE_PROJECT_NAME=bcdbox TAG=master docker-compose -f docker-compose.flextesa.yml up -d
+	COMPOSE_PROJECT_NAME=bcdbox TAG=4.1.0 docker-compose -f docker-compose.flextesa.yml up -d
 
 sandbox-down:
-	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml down
+	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.flextesa.yml down
 
 sandbox-clear:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.flextesa.yml down -v
 
 gateway:
-	COMPOSE_PROJECT_NAME=bcdhub TAG=master docker-compose -f docker-compose.gateway.yml up -d
+	COMPOSE_PROJECT_NAME=bcdhub TAG=4.1.0 docker-compose -f docker-compose.gateway.yml up -d
 
 gateway-down:
 	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml down
 
 gateway-clear:
 	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml down -v
-
-sandbox-image:
-	docker build -t ghcr.io/baking-bad/bcdhub-gui:master ./build/sandbox
