@@ -86,7 +86,7 @@ services:
 
   flextesa:
     restart: always
-    image: tqtezos/flextesa:20211206
+    image: oxheadalpha/flextesa:test-multi-arch-00
     command: hangzbox start
     environment:
       - block_time=4

@@ -165,7 +165,7 @@ sandbox-down:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml down
 
 sandbox-clear:
-	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml down -v
+	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.flextesa.yml down -v
 
 gateway:
 	COMPOSE_PROJECT_NAME=bcdhub TAG=master docker-compose -f docker-compose.gateway.yml up -d
