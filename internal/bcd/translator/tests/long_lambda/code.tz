@@ -1,0 +1,1 @@
+{ PUSH string "WrongCondition: sp.view(\"tokens_infusable\", storage.value.contract_registry, infusion.token_address, sp.TBool).open_some(message = 'Invalid view')"; FAILWITH }
