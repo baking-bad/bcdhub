@@ -61,8 +61,8 @@ func (t *ContractMetadata) handle(bmd *domains.BigMapDiff) ([]models.Model, erro
 		return nil, nil
 	}
 
-	var m cmModel.ContractMetadata
-	if err := t.storage.GetByID(&m); err == nil && m.OffChain {
+	m, err := t.repo.Get(model.Network, model.Address)
+	if err == nil && m.OffChain {
 		return nil, nil
 	}
 

@@ -68,20 +68,26 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 			}
 
 			tree, err := getViewTree(impl)
-			if ctx.handleError(c, err, 0) {
-				return
+			if err != nil {
+				schema.Error = err.Error()
+				schemas = append(schemas, schema)
+				continue
 			}
 			entrypoints, err := tree.GetEntrypointsDocs()
-			if ctx.handleError(c, err, 0) {
-				return
+			if err != nil {
+				schema.Error = err.Error()
+				schemas = append(schemas, schema)
+				continue
 			}
 			if len(entrypoints) != 1 {
 				continue
 			}
 			schema.Type = entrypoints[0].Type
 			schema.Schema, err = tree.ToJSONSchema()
-			if ctx.handleError(c, err, 0) {
-				return
+			if err != nil {
+				schema.Error = err.Error()
+				schemas = append(schemas, schema)
+				continue
 			}
 
 			schemas = append(schemas, schema)
