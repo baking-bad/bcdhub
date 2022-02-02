@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/views"
 	"github.com/gin-gonic/gin"
@@ -39,7 +40,12 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 	}
 
 	tzip, err := ctx.TZIP.Get(req.NetworkID(), req.Address)
-	if ctx.handleError(c, err, 0) {
+	if err != nil {
+		if ctx.Storage.IsRecordNotFound(err) {
+			c.SecureJSON(http.StatusOK, []ViewSchema{})
+			return
+		}
+		ctx.handleError(c, err, 0)
 		return
 	}
 
@@ -63,20 +69,23 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 			}
 
 			tree, err := getViewTree(impl)
-			if ctx.handleError(c, err, 0) {
-				return
+			if err != nil {
+				logger.Err(err)
+				continue
 			}
 			entrypoints, err := tree.GetEntrypointsDocs()
-			if ctx.handleError(c, err, 0) {
-				return
+			if err != nil {
+				logger.Err(err)
+				continue
 			}
 			if len(entrypoints) != 1 {
 				continue
 			}
 			schema.Type = entrypoints[0].Type
 			schema.Schema, err = tree.ToJSONSchema()
-			if ctx.handleError(c, err, 0) {
-				return
+			if err != nil {
+				logger.Err(err)
+				continue
 			}
 
 			schemas = append(schemas, schema)
