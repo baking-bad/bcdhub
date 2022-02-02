@@ -15,11 +15,11 @@ type PendingOrigination struct {
 	CreatedAt       int64           `json:"created_at"`
 	Delegate        string          `json:"delegate"`
 	Errors          json.RawMessage `json:"errors"`
-	ExpirationLevel int64           `json:"expiration_level"`
+	ExpirationLevel *int64          `json:"expiration_level,omitempty"`
 	Fee             int64           `json:"fee"`
 	GasLimit        int64           `json:"gas_limit"`
 	Kind            string          `json:"kind"`
-	Level           int64           `json:"level"`
+	Level           *int64          `json:"level,omitempty"`
 	Signature       string          `json:"signature"`
 	Source          string          `json:"source"`
 	Status          string          `json:"status"`
@@ -43,7 +43,7 @@ type PendingTransaction struct {
 	Fee             int64           `json:"fee"`
 	GasLimit        int64           `json:"gas_limit"`
 	Kind            string          `json:"kind"`
-	Level           int64           `json:"level"`
+	Level           *int64          `json:"level,omitempty"`
 	Parameters      json.RawMessage `json:"parameters"`
 	Signature       string          `json:"signature"`
 	Source          string          `json:"source"`
