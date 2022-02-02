@@ -39,7 +39,12 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 	}
 
 	tzip, err := ctx.ContractMetadata.Get(req.NetworkID(), req.Address)
-	if ctx.handleError(c, err, 0) {
+	if err != nil {
+		if ctx.Storage.IsRecordNotFound(err) {
+			c.SecureJSON(http.StatusOK, []ViewSchema{})
+			return
+		}
+		ctx.handleError(c, err, 0)
 		return
 	}
 
