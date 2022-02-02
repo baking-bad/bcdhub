@@ -27,7 +27,7 @@ const defaultGrammar = `
 	Quote      <- '"'
 	Slash      <- '\\'
 	
-	StringContent <- [_a-zA-Z0-9- /:,.'()*+><=!\[\]^?%$;#№@~{}]	
+	StringContent <- [_a-zA-Z0-9- /:,.'()*+><=!^?%$;#№@~{}[\]]	
 	Hex           <- [A-F0-9a-f]
 	Alpha         <- [a-zA-Z]
 	Accessable    <- [A-Za-z0-9_]
