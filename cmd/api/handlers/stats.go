@@ -183,7 +183,7 @@ func (ctx *Context) getHistogramOptions(name string, network types.Network, addr
 
 		return []models.HistogramOption{
 			models.WithHistogramIndex(models.DocOperations),
-			models.WithHistogramFunction("sum", "paid_storage_size_diff"),
+			models.WithHistogramFunction("sum", "paid_storage_diff"),
 			models.WithHistogramFilters(filters),
 		}, nil
 	case "consumed_gas":
