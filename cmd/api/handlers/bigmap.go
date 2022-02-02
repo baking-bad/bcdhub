@@ -11,8 +11,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 // GetBigMap godoc
@@ -289,8 +289,7 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapState) ([]BigMapRe
 	if len(data) == 0 {
 		return []BigMapResponseItem{}, nil
 	}
-
-	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Ptr)
+	bigMapType, err := ctx.getBigMapType(data[0].ToDiff())
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +321,7 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 		return
 	}
 
-	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Ptr)
+	bigMapType, err := ctx.getBigMapType(data[0])
 	if err != nil {
 		return
 	}
@@ -348,9 +347,34 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 	return
 }
 
-func prepareItem(itemKey, itemValue types.Bytes, bigMapType noderpc.BigMap) (key, value *ast.MiguelNode, keyString string, err error) {
+func (ctx *Context) getBigMapType(data bigmapdiff.BigMapDiff) (*ast.BigMap, error) {
+	storageType, err := ctx.getStorageType(data.Network, data.Contract, bcd.GetCurrentSymLink())
+	if err != nil {
+		return nil, err
+	}
+	operation, err := ctx.Operations.Last(map[string]interface{}{
+		"operation.network":   data.Network,
+		"destination.address": data.Contract,
+		"kind":                types.OperationKindTransaction,
+		"status":              types.OperationStatusApplied,
+	}, 0)
+	if err != nil {
+		return nil, err
+	}
+	if err := storageType.SettleFromBytes(operation.DeffatedStorage); err != nil {
+		return nil, err
+	}
+	bigMaps := storageType.FindBigMapByPtr()
+	bigMapType, ok := bigMaps[data.Ptr]
+	if !ok {
+		return nil, errors.Errorf("can't find ptr in storage: %d", data.Ptr)
+	}
+	return bigMapType, nil
+}
+
+func prepareItem(itemKey, itemValue types.Bytes, bigMapType *ast.BigMap) (key, value *ast.MiguelNode, keyString string, err error) {
 	if itemKey != nil {
-		keyType := ast.Copy(bigMapType.KeyType.Nodes[0])
+		keyType := ast.Copy(bigMapType.KeyType)
 		key, err = createMiguelForType(keyType, itemKey)
 		if err != nil {
 			return nil, nil, "", err
@@ -374,7 +398,7 @@ func prepareItem(itemKey, itemValue types.Bytes, bigMapType noderpc.BigMap) (key
 	}
 
 	if itemValue != nil {
-		valueType := ast.Copy(bigMapType.ValueType.Nodes[0])
+		valueType := ast.Copy(bigMapType.ValueType)
 		valueMiguel, err := createMiguelForType(valueType, itemValue)
 		if err != nil {
 			return nil, nil, "", err
@@ -420,13 +444,4 @@ func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHist
 	}
 
 	return response
-}
-
-func (ctx *Context) getBigMapType(network types.Network, ptr int64) (noderpc.BigMap, error) {
-	rpc, err := ctx.GetRPC(network)
-	if err != nil {
-		return noderpc.BigMap{}, err
-	}
-
-	return rpc.GetBigMapType(ptr, 0)
 }
