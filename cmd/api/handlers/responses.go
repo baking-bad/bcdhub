@@ -682,6 +682,7 @@ type ViewSchema struct {
 	Description    string          `json:"description"`
 	Schema         *ast.JSONSchema `json:"schema"`
 	DefaultModel   interface{}     `json:"default_model,omitempty" extensions:"x-nullable"`
+	Error          string          `json:"error,omitempty"`
 }
 
 // ForkResponse -
