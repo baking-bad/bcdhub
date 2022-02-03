@@ -69,6 +69,11 @@ func createStartIndices(db pg.DBI) error {
 			return err
 		}
 
+		// Scripts
+		if _, err := db.Model((*contract.Script)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS scripts_hash_idx ON ?TableName (hash)`); err != nil {
+			logger.Error().Err(err).Msg("can't create index")
+		}
+
 		// States
 		if _, err := db.Model((*service.State)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS states_name_idx ON ?TableName (name)`); err != nil {
 			return err
@@ -189,6 +194,13 @@ func (bi *BoostIndexer) createIndices() {
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_sort_idx ON ?TableName (level, counter, id)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	// Scripts
+	if _, err := bi.Context.StorageDB.DB.Model((*contract.Script)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS scripts_project_id_idx ON ?TableName (project_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
