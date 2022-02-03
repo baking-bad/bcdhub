@@ -2,14 +2,8 @@ rpc:
   mainnet:
     uri: https://rpc.tzkt.io/mainnet
     timeout: 20
-  florencenet:
-    uri: https://rpc.tzkt.io/florencenobanet
-    timeout: 20
-  granadanet:
-    uri: https://granadanet.smartpy.io/
-    timeout: 20
-  hangzhounet:
-    uri: https://rpc.tzkt.io/hangzhounet
+  hangzhou2net:
+    uri: https://rpc.tzkt.io/hangzhou2net
     timeout: 20
 
 tzkt:
@@ -35,9 +29,9 @@ services:
     mempool: https://mempool.dipdup.net/v1/graphql
 
 storage:
-  pg: "host=${DB_HOSTNAME:-127.0.0.1} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB:-indexer} password=${POSTGRES_PASSWORD} sslmode=disable"
+  pg: "host=${DB_HOSTNAME:-127.0.0.1} port=5433 user=${POSTGRES_USER} dbname=${POSTGRES_DB:-indexer} password=${POSTGRES_PASSWORD} sslmode=disable"
   elastic:
-    - http://${ELASTIC_HOSTNAME:-127.0.0.1}:9200
+    - http://${ELASTIC_HOSTNAME:-127.0.0.1}:9201
   timeout: 10
 
 sentry:
