@@ -179,18 +179,16 @@ func (p *Pair) ToJSONSchema() (*JSONSchema, error) {
 
 // FromJSONSchema -
 func (p *Pair) FromJSONSchema(data map[string]interface{}) error {
+	obj, ok := data[p.GetName()]
+	if !ok {
+		obj = data
+	}
+	typ, ok := obj.(map[string]interface{})
+	if !ok {
+		return errors.Errorf("invalid type '%s' key", p.GetName())
+	}
+
 	for i := range p.Args {
-		obj, ok := data[p.GetName()]
-		if !ok {
-			if err := p.Args[i].FromJSONSchema(data); err != nil {
-				return err
-			}
-			continue
-		}
-		typ, ok := obj.(map[string]interface{})
-		if !ok {
-			return errors.Errorf("invalid type '%s' key", p.GetName())
-		}
 		if err := p.Args[i].FromJSONSchema(typ); err != nil {
 			return err
 		}
