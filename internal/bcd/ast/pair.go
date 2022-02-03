@@ -180,7 +180,7 @@ func (p *Pair) ToJSONSchema() (*JSONSchema, error) {
 // FromJSONSchema -
 func (p *Pair) FromJSONSchema(data map[string]interface{}) error {
 	obj, ok := data[p.GetName()]
-	if ok {
+	if !ok {
 		obj = data
 	}
 	typ, ok := obj.(map[string]interface{})
