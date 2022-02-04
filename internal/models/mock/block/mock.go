@@ -64,21 +64,6 @@ func (mr *MockRepositoryMockRecorder) Last(network interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Last", reflect.TypeOf((*MockRepository)(nil).Last), network)
 }
 
-// LastByNetworks mocks base method
-func (m *MockRepository) LastByNetworks() ([]modelBlock.Block, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LastByNetworks")
-	ret0, _ := ret[0].([]modelBlock.Block)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LastByNetworks indicates an expected call of LastByNetworks
-func (mr *MockRepositoryMockRecorder) LastByNetworks() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastByNetworks", reflect.TypeOf((*MockRepository)(nil).LastByNetworks))
-}
-
 // GetNetworkAlias mocks base method
 func (m *MockRepository) GetNetworkAlias(chainID string) (string, error) {
 	m.ctrl.T.Helper()

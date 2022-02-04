@@ -43,16 +43,6 @@ func (storage *Storage) Last(network types.Network) (block block.Block, err erro
 	return
 }
 
-// LastByNetworks - return last block for all networks
-func (storage *Storage) LastByNetworks() (response []block.Block, err error) {
-	subQuery := storage.DB.Model((*block.Block)(nil)).ColumnExpr("MAX(block.id) as id").Group("network")
-	err = storage.DB.Model((*block.Block)(nil)).
-		Relation("Protocol").
-		Where("block.id IN (?)", subQuery).
-		Select(&response)
-	return
-}
-
 // GetNetworkAlias -
 func (storage *Storage) GetNetworkAlias(chainID string) (string, error) {
 	var network types.Network
