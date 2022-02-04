@@ -71,13 +71,13 @@ func (storage *Storage) GetByAddresses(addresses []contract.Address) (response [
 func (storage *Storage) GetSameContracts(c contract.Contract, manager string, size, offset int64) (pcr contract.SameResponse, err error) {
 	limit := storage.GetPageSize(size)
 
-	query := storage.DB.Model((*contract.Contract)(nil)).Where("account_id != ?", c.AccountID)
+	contractQuery := storage.DB.Model((*contract.Contract)(nil)).Where("account_id != ?", c.AccountID)
 
 	if c.AlphaID > 0 {
-		query.Where("alpha_id = ?", c.AlphaID)
+		contractQuery.Where("alpha_id = ?", c.AlphaID)
 	}
 	if c.BabylonID > 0 {
-		query.Where("babylon_id = ?", c.BabylonID)
+		contractQuery.Where("babylon_id = ?", c.BabylonID)
 	}
 
 	var managerID int64
@@ -85,10 +85,22 @@ func (storage *Storage) GetSameContracts(c contract.Contract, manager string, si
 		if err = storage.DB.Model((*account.Account)(nil)).Column("id").Where("network = ?", c.Network).Where("address = ?", manager).Select(&managerID); err != nil {
 			return
 		}
-		query.Where("manager_id = ?", managerID)
+		contractQuery.Where("manager_id = ?", managerID)
 	}
-	query.Order("last_action desc").Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").Limit(limit).Offset(int(offset))
-	if err = query.Select(&pcr.Contracts); err != nil {
+	contractQuery.Order("last_action desc").Limit(limit).Offset(int(offset))
+	if err = storage.DB.Model().TableExpr(`(?) as contract`, contractQuery).
+		ColumnExpr("contract.*").
+		ColumnExpr("account.address as account__address").
+		ColumnExpr("manager.address as manager__address").
+		ColumnExpr("delegate.address as delegate__address").
+		ColumnExpr("alpha.hash as alpha__hash, alpha.project_id as alpha__project_id, alpha.entrypoints as alpha__entrypoints, alpha.fail_strings as alpha__fail_strings, alpha.annotations as alpha__annotations, alpha.hardcoded as alpha__hardcoded, alpha.tags as alpha__tags").
+		ColumnExpr("babylon.hash as babylon__hash, babylon.project_id as babylon__project_id, babylon.entrypoints as babylon__entrypoints, babylon.fail_strings as babylon__fail_strings, babylon.annotations as babylon__annotations, babylon.hardcoded as babylon__hardcoded, babylon.tags as babylon__tags").
+		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
+		Join(`LEFT JOIN "accounts" AS "manager" ON "manager"."id" = "contract"."manager_id" `).
+		Join(`LEFT JOIN "accounts" AS "delegate" ON "delegate"."id" = "contract"."delegate_id"`).
+		Join(`LEFT JOIN "scripts" AS "alpha" ON "alpha"."id" = "contract"."alpha_id"`).
+		Join(`LEFT JOIN "scripts" AS "babylon" ON "babylon"."id" = "contract"."babylon_id"`).
+		Select(&pcr.Contracts); err != nil {
 		return
 	}
 
@@ -135,7 +147,7 @@ func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset in
 	if err := storage.DB.Model(&contracts).
 		WhereIn("alpha_id IN (?)", ids).
 		WhereIn("babylon_id IN (?)", ids).
-		Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").
+		Relation("Account.address").Relation("Manager.address").Relation("Delegate.address").Relation("Alpha").Relation("Babylon").
 		Order("last_action desc").
 		Limit(limit).
 		Offset(int(offset)).
@@ -143,9 +155,10 @@ func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset in
 		return nil, 0, err
 	}
 
-	count, err := storage.DB.Model((*contract.Contract)(nil)).
-		WhereIn("alpha_id IN (?)", ids).
-		WhereIn("babylon_id IN (?)", ids).
+	count, err := storage.DB.Model((*contract.Script)(nil)).
+		Column("id").
+		Where("project_id = ?", script.ProjectID).
+		Where("hash != ?", script.Hash).
 		Count()
 	if err != nil {
 		return nil, 0, err
@@ -206,6 +219,13 @@ func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err er
 	}
 	scriptsQuery := storage.DB.Model((*contract.Script)(nil)).Column("id").
 		Where("project_id = (?)", projectID)
+
+	if c.AlphaID > 0 {
+		scriptsQuery.Where("id != ?", c.AlphaID)
+	}
+	if c.BabylonID > 0 {
+		scriptsQuery.Where("id != ?", c.BabylonID)
+	}
 
 	similarCount, err := storage.DB.Model((*contract.Contract)(nil)).
 		Where("(alpha_id is not null and alpha_id IN (?0)) OR (babylon_id is not null and babylon_id IN (?0))", scriptsQuery).
