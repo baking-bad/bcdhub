@@ -178,14 +178,22 @@ func (storage *Storage) GetTokens(network types.Network, tokenInterface string, 
 		tags = types.NewTags([]string{tokenInterface})
 	}
 
-	var contracts []contract.Contract
-	err := storage.DB.Model((*contract.Contract)(nil)).
-		Where("contract.network = ?", network).
-		Where("(contract.tags & ?) > 0", tags).
-		Order("contract.id desc").
+	query := storage.DB.Model((*contract.Contract)(nil)).
+		Where("network = ?", network).
+		Where("(tags & ?) > 0", tags).
+		Order("id desc").
 		Limit(storage.GetPageSize(size)).
-		Offset(int(offset)).
-		Relation("Account").Relation("Manager").Relation("Delegate").
+		Offset(int(offset))
+
+	var contracts []contract.Contract
+	err := storage.DB.Model().TableExpr("(?) as contract", query).
+		ColumnExpr("contract.*").
+		ColumnExpr("account.address as account__address, account.alias as account__alias").
+		ColumnExpr("manager.address as manager__address, manager.alias as manager__alias").
+		ColumnExpr("delegate.address as delegate__address, delegate.alias as delegate__alias").
+		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
+		Join(`LEFT JOIN "accounts" AS "manager" ON "manager"."id" = "contract"."manager_id" `).
+		Join(`LEFT JOIN "accounts" AS "delegate" ON "delegate"."id" = "contract"."delegate_id"`).
 		Select(&contracts)
 	if err != nil {
 		return nil, 0, err
