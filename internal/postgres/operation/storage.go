@@ -119,7 +119,7 @@ func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters m
 
 // Last - get last operation by `filters` with not empty deffated_storage
 func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (op operation.Operation, err error) {
-	query := storage.DB.Model((*operation.Operation)(nil)).Relation("Source.address").Relation("Destination.address").Where("deffated_storage is not null")
+	query := storage.DB.Model((*operation.Operation)(nil)).Where("deffated_storage is not null").Order("operation.id desc").Limit(1)
 
 	for key, value := range filters {
 		query.Where("? = ?", pg.Ident(key), value)
@@ -129,7 +129,13 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (op o
 		query.Where("operation.id < ?", lastID)
 	}
 
-	err = query.Order("operation.id desc").Limit(1).Select(&op)
+	err = storage.DB.Model().TableExpr("(?) as operation", query).
+		ColumnExpr("operation.*").
+		ColumnExpr("source.address as source__address").
+		ColumnExpr("destination.address as destination__address").
+		Join("LEFT JOIN accounts as source ON source.id = operation.source_id").
+		Join("LEFT JOIN accounts as destination ON destination.id = operation.destination_id").
+		Select(&op)
 	return
 }
 
