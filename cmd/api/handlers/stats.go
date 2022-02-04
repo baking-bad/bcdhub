@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -22,17 +22,24 @@ import (
 // @Failure 500 {object} Error
 // @Router /v1/stats [get]
 func (ctx *Context) GetStats(c *gin.Context) {
-	stats, err := ctx.Blocks.LastByNetworks()
-	if ctx.handleError(c, err, 0) {
-		return
+	stats := make([]block.Block, 0)
+	for _, net := range ctx.Config.API.Networks {
+		block, err := ctx.Blocks.Last(types.NewNetwork(net))
+		if err != nil {
+			if ctx.Storage.IsRecordNotFound(err) {
+				continue
+			}
+			ctx.handleError(c, err, 0)
+			return
+		}
+		stats = append(stats, block)
 	}
+
 	blocks := make([]Block, 0)
 	for i := range stats {
-		if helpers.StringInArray(stats[i].Network.String(), ctx.Config.API.Networks) {
-			var block Block
-			block.FromModel(stats[i])
-			blocks = append(blocks, block)
-		}
+		var block Block
+		block.FromModel(stats[i])
+		blocks = append(blocks, block)
 	}
 
 	c.SecureJSON(http.StatusOK, blocks)

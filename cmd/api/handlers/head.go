@@ -24,10 +24,17 @@ import (
 // @Failure 500 {object} Error
 // @Router /v1/head [get]
 func (ctx *Context) GetHead(c *gin.Context) {
-
-	blocks, err := ctx.Blocks.LastByNetworks()
-	if ctx.handleError(c, err, 0) {
-		return
+	blocks := make([]block.Block, 0)
+	for _, net := range ctx.Config.API.Networks {
+		block, err := ctx.Blocks.Last(types.NewNetwork(net))
+		if err != nil {
+			if ctx.Storage.IsRecordNotFound(err) {
+				continue
+			}
+			ctx.handleError(c, err, 0)
+			return
+		}
+		blocks = append(blocks, block)
 	}
 
 	var network types.Network
