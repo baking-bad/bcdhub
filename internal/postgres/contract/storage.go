@@ -240,11 +240,15 @@ func (storage *Storage) ByHash(hash string) (result contract.Script, err error) 
 
 // Script -
 func (storage *Storage) Script(network types.Network, address string, symLink string) (contract.Script, error) {
+	var accountID int64
+	if err := storage.DB.Model((*account.Account)(nil)).Column("id").Where("network = ?", network).Where("address = ?", address).Select(&accountID); err != nil {
+		return contract.Script{}, err
+	}
+
 	var c contract.Contract
 	query := storage.DB.Model(&c).
 		Where("contract.network = ?", network).
-		Where("account.address = ?", address).
-		Relation("Account.address")
+		Where("account_id = ?", accountID)
 	switch symLink {
 	case bcd.SymLinkAlpha:
 		err := query.Relation("Alpha").Select()
@@ -291,10 +295,14 @@ func (storage *Storage) Storage(id int64) ([]byte, error) {
 
 // ScriptPart -
 func (storage *Storage) ScriptPart(network types.Network, address string, symLink, part string) ([]byte, error) {
+	var accountID int64
+	if err := storage.DB.Model((*account.Account)(nil)).Column("id").Where("network = ?", network).Where("address = ?", address).Select(&accountID); err != nil {
+		return nil, err
+	}
+
 	query := storage.DB.Model((*contract.Contract)(nil)).
 		Where("contract.network = ?", network).
-		Where("account.address = ?", address).
-		Relation("Account._")
+		Where("account_id = ?", accountID)
 
 	switch symLink {
 	case "alpha":
