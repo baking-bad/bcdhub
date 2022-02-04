@@ -217,7 +217,7 @@ func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypo
 
 	var stats []tokenStats
 	query := storage.DB.Model((*operation.Operation)(nil)).
-		ColumnExpr("entrypoint, COUNT(*) as count, SUM(consumed_gas) AS gas").
+		ColumnExpr("destination_id, entrypoint, COUNT(*) as count, SUM(consumed_gas) AS gas").
 		Where("network = ?", network)
 
 	if len(accs) > 0 {

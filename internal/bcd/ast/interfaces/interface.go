@@ -56,7 +56,7 @@ func GetMethods(name string) ([]string, error) {
 	if err := json.UnmarshalFromString(i.GetContractInterface(), &ci); err != nil {
 		return nil, err
 	}
-	methods := make([]string, len(ci.Entrypoints))
+	methods := make([]string, 0)
 	for entrypoint := range ci.Entrypoints {
 		methods = append(methods, entrypoint)
 	}
