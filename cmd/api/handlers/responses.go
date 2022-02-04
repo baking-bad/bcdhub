@@ -445,6 +445,7 @@ func (c *SameContractsResponse) FromModel(same contract.SameResponse, ctx *Conte
 	for i := range same.Contracts {
 		var contract Contract
 		contract.FromModel(same.Contracts[i])
+		contract.SameCount = same.Count
 		c.Contracts[i] = contract
 	}
 }
