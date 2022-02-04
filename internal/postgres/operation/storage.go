@@ -188,28 +188,51 @@ func (storage *Storage) GetContract24HoursVolume(network types.Network, address 
 }
 
 type tokenStats struct {
-	Address    string `pg:"destination__address"`
-	Entrypoint string
-	Gas        int64
-	Count      int64
+	DestinationID int64
+	Entrypoint    string
+	Gas           int64
+	Count         int64
+}
+
+type acc struct {
+	ID      int64
+	Address string
 }
 
 // GetTokensStats -
 func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
+	var accs []acc
+	if err := storage.DB.Model((*account.Account)(nil)).
+		ColumnExpr("id, address").
+		Where("network = ?", network).
+		WhereIn("address IN (?)", addresses).
+		Select(&accs); err != nil {
+		return nil, err
+	}
+
+	accMap := make(map[int64]string)
+	for i := range accs {
+		accMap[accs[i].ID] = accs[i].Address
+	}
+
 	var stats []tokenStats
 	query := storage.DB.Model((*operation.Operation)(nil)).
-		ColumnExpr("operation.entrypoint as entrypoint, COUNT(*) as count, SUM(consumed_gas) AS gas").
-		Where("operation.network = ?", network).Relation("Destination.address")
+		ColumnExpr("entrypoint, COUNT(*) as count, SUM(consumed_gas) AS gas").
+		Where("network = ?", network)
 
-	if len(addresses) > 0 {
-		query.WhereIn("destination.address IN (?)", addresses)
+	if len(accs) > 0 {
+		ids := make([]int64, len(accs))
+		for i := range accs {
+			ids[i] = accs[i].ID
+		}
+		query.WhereIn("destination_id IN (?)", ids)
 	}
 
 	if len(entrypoints) > 0 {
-		query.WhereIn("operation.entrypoint IN (?)", entrypoints)
+		query.WhereIn("entrypoint IN (?)", entrypoints)
 	}
 
-	query.GroupExpr("destination.address, operation.entrypoint")
+	query.GroupExpr("destination_id, entrypoint")
 
 	if err := query.Select(&stats); err != nil {
 		return nil, err
@@ -221,10 +244,14 @@ func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypo
 			Count:       stats[i].Count,
 			ConsumedGas: stats[i].Gas,
 		}
-		if _, ok := usageStats[stats[i].Address]; !ok {
-			usageStats[stats[i].Address] = make(operation.TokenUsageStats)
+		address, ok := accMap[stats[i].DestinationID]
+		if !ok {
+			continue
 		}
-		usageStats[stats[i].Address][stats[i].Entrypoint] = usage
+		if _, ok := usageStats[address]; !ok {
+			usageStats[address] = make(operation.TokenUsageStats)
+		}
+		usageStats[address][stats[i].Entrypoint] = usage
 	}
 
 	return usageStats, nil
