@@ -71,7 +71,7 @@ func createStartIndices(db pg.DBI) error {
 
 		// Scripts
 		if _, err := db.Model((*contract.Script)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS scripts_hash_idx ON ?TableName (hash)`); err != nil {
-			logger.Error().Err(err).Msg("can't create index")
+			return err
 		}
 
 		// States
@@ -79,8 +79,17 @@ func createStartIndices(db pg.DBI) error {
 			return err
 		}
 
+		// Token balances
+		if _, err := db.Model((*tokenbalance.TokenBalance)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS token_balances_by_token_idx ON ?TableName (network, contract, token_id)`); err != nil {
+			return err
+		}
+
 		// Contract Metadata
 		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS tzips_network_address_idx ON ?TableName (network, address)`); err != nil {
+			return err
+		}
+
+		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_network_address_idx ON ?TableName (updated_at)`); err != nil {
 			return err
 		}
 
@@ -201,13 +210,6 @@ func (bi *BoostIndexer) createIndices() {
 	// Scripts
 	if _, err := bi.Context.StorageDB.DB.Model((*contract.Script)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS scripts_project_id_idx ON ?TableName (project_id)
-	`); err != nil {
-		logger.Error().Err(err).Msg("can't create index")
-	}
-
-	// Token balances
-	if _, err := bi.Context.StorageDB.DB.Model((*tokenbalance.TokenBalance)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS token_balances_by_token_idx ON ?TableName (network, contract, token_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
