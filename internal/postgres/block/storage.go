@@ -50,7 +50,6 @@ func (storage *Storage) GetNetworkAlias(chainID string) (string, error) {
 		Column("block.network").
 		Where("block.chain_id = ?", chainID).
 		Limit(1).
-		Relation("Protocol").
 		Select(&network)
 
 	return network.String(), err

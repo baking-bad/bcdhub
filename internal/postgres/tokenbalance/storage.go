@@ -18,26 +18,31 @@ func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
 }
 
+// Get -
 func (storage *Storage) Get(network types.Network, contract string, accountID int64, tokenID uint64) (t tokenbalance.TokenBalance, err error) {
 	err = storage.DB.Model(&t).
 		Where("token_balance.network = ?", network).
 		Where("contract = ?", contract).
 		Where("account_id = ?", accountID).
 		Where("token_id = ?", tokenID).
-		Relation("Account").First()
+		First()
 
-	if storage.IsRecordNotFound(err) {
-		t.Network = network
-		t.Contract = contract
-		t.AccountID = accountID
-		t.Account = account.Account{
-			Network: network,
+	if err != nil {
+		if storage.IsRecordNotFound(err) {
+			t.Network = network
+			t.Contract = contract
+			t.AccountID = accountID
+			t.Account = account.Account{
+				Network: network,
+			}
+			t.TokenID = tokenID
+			t.Balance = decimal.Zero
+			err = nil
 		}
-		t.TokenID = tokenID
-		t.Balance = decimal.Zero
-		err = nil
+		return
 	}
 
+	err = storage.DB.Model((*account.Account)(nil)).Where("id = ?", t.AccountID).Select(&t.Account)
 	return
 }
 
@@ -48,10 +53,13 @@ func (storage *Storage) GetHolders(network types.Network, contract string, token
 		Where("token_balance.network = ?", network).
 		Where("contract = ?", contract).
 		Where("token_id = ?", tokenID).
-		Where("balance != 0").
-		Relation("Account")
+		Where("balance != 0")
 
-	err := query.Select(&balances)
+	err := storage.DB.Model().TableExpr("(?) as token_balance", query).
+		ColumnExpr("token_balance.*").
+		ColumnExpr("account.id as account__id, account.address as account__address, account.network as account__network, account.alias as account__alias, account.type as account__type").
+		Join("LEFT JOIN accounts as account ON token_balance.account_id = account.id").
+		Select(&balances)
 	return balances, err
 }
 
@@ -61,10 +69,13 @@ func (storage *Storage) Batch(network types.Network, accountID []int64) (map[str
 
 	query := storage.DB.Model((*tokenbalance.TokenBalance)(nil)).
 		WhereIn("account_id IN (?)", accountID).
-		Where("network = ?", network).
-		Relation("Account.address")
+		Where("network = ?", network)
 
-	if err := query.Select(&balances); err != nil {
+	if err := storage.DB.Model().TableExpr("(?) as token_balance", query).
+		ColumnExpr("token_balance.*").
+		ColumnExpr("account.address as account__address").
+		Join("LEFT JOIN accounts as account ON token_balance.account_id = account.id").
+		Select(&balances); err != nil {
 		return nil, err
 	}
 

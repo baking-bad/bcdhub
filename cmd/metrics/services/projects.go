@@ -51,7 +51,7 @@ func (p *ProjectsHandler) Handle(ctx context.Context, items []models.Model, wg *
 }
 
 // Chunk -
-func (p *ProjectsHandler) Chunk(lastID, size int64) ([]models.Model, error) {
+func (p *ProjectsHandler) Chunk(lastID int64, size int) ([]models.Model, error) {
 	scripts, err := getScripts(p.StorageDB.DB, lastID, size)
 	if err != nil {
 		return nil, err

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -22,7 +23,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 var balanceQuery = `
 	select tb.network, tb.contract, tb.token_id, tb.balance, tm.symbol, tm.name, tm.decimals, tm.description, tm.artifact_uri, tm.display_uri, tm.external_uri, tm.thumbnail_uri, tm.is_transferable, tm.is_boolean_amount, tm.should_prefer_symbol, tm.tags, tm.creators, tm.formats, tm.extras  from (
-		(?)  as tb
+		(?) as tb
 		left join token_metadata as tm on tm.network  = tb.network and tm.token_id = tb.token_id and tm.contract = tb.contract
 	)
 `
@@ -121,11 +122,21 @@ func (storage *Storage) Transfers(ctx transfer.GetContext) (domains.TransfersRes
 
 // BigMapDiffs -
 func (storage *Storage) BigMapDiffs(lastID, size int64) (result []domains.BigMapDiff, err error) {
-	query := storage.DB.Model((*domains.BigMapDiff)(nil)).Relation("Operation").Relation("Protocol").Order("id asc")
+	var ids []int64
+	query := storage.DB.Model((*bigmapdiff.BigMapDiff)(nil)).Column("id").Order("id asc")
 	if lastID > 0 {
 		query.Where("big_map_diff.id > ?", lastID)
 	}
-	query.Limit(storage.GetPageSize(size))
-	err = query.Select(&result)
+	if err = query.Limit(storage.GetPageSize(size)).Select(&ids); err != nil {
+		return
+	}
+
+	if len(ids) == 0 {
+		return
+	}
+
+	err = storage.DB.Model((*domains.BigMapDiff)(nil)).WhereIn("big_map_diff.id IN (?)", ids).
+		Relation("Operation").Relation("Protocol").
+		Select(&result)
 	return
 }

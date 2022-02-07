@@ -141,7 +141,7 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (op o
 
 // Get -
 func (storage *Storage) Get(filters map[string]interface{}, size int64, sort bool) (operations []operation.Operation, err error) {
-	query := storage.DB.Model((*operation.Operation)(nil)).Relation("Source.address").Relation("Destination.address")
+	query := storage.DB.Model((*operation.Operation)(nil)).Relation("Destination.address")
 
 	for key, value := range filters {
 		query.Where("? = ?", pg.Ident(key), value)
@@ -259,7 +259,7 @@ func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypo
 
 // GetByIDs -
 func (storage *Storage) GetByIDs(ids ...int64) (result []operation.Operation, err error) {
-	err = storage.DB.Model().Table(models.DocOperations).Where("id IN (?)", pg.In(ids)).Order("id asc").Select(&result)
+	err = storage.DB.Model((*operation.Operation)(nil)).Where("id IN (?)", pg.In(ids)).Order("id asc").Select(&result)
 	return
 }
 

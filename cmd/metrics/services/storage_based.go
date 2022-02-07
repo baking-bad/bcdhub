@@ -16,7 +16,7 @@ type StorageBased struct {
 	updatePeriod time.Duration
 	repo         service.Repository
 	state        service.State
-	bulkSize     int64
+	bulkSize     int
 
 	wg sync.WaitGroup
 }
@@ -27,7 +27,7 @@ func NewStorageBased(
 	repo service.Repository,
 	handler Handler,
 	updatePeriod time.Duration,
-	bulkSize int64,
+	bulkSize int,
 ) *StorageBased {
 	if bulkSize < 10 {
 		bulkSize = 10
@@ -119,5 +119,5 @@ func (s *StorageBased) do(ctx context.Context, wg *sync.WaitGroup) (bool, error)
 		}
 	}
 
-	return len(items) == int(s.bulkSize), nil
+	return len(items) == s.bulkSize, nil
 }

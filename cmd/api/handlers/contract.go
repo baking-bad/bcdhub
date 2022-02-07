@@ -68,12 +68,6 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	network := req.NetworkID()
 	if network != types.Empty {
 		networks = append(networks, network)
-	} else {
-		for i := range ctx.Config.API.Networks {
-			if net := types.NewNetwork(ctx.Config.API.Networks[i]); net != types.Empty {
-				networks = append(networks, net)
-			}
-		}
 	}
 
 	contract, err := ctx.Contracts.GetRandom(networks...)

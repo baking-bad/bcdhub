@@ -76,8 +76,8 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model
 }
 
 // Chunk -
-func (tm *TokenMetadataHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	diff, err := tm.Domains.BigMapDiffs(lastID, size)
+func (tm *TokenMetadataHandler) Chunk(lastID int64, size int) ([]models.Model, error) {
+	diff, err := tm.Domains.BigMapDiffs(lastID, int64(size))
 	if err != nil {
 		return nil, err
 	}

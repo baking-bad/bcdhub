@@ -49,25 +49,14 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		return
 	}
 
-	accountInfo := AccountInfo{
+	c.SecureJSON(http.StatusOK, AccountInfo{
 		Address:    req.Address,
 		Network:    req.Network,
 		TxCount:    stats.Count,
 		Balance:    balance,
 		LastAction: stats.LastAction.UTC(),
-	}
-
-	alias, err := ctx.ContractMetadata.Get(req.NetworkID(), req.Address)
-	if err != nil {
-		if !ctx.Storage.IsRecordNotFound(err) {
-			ctx.handleError(c, err, 0)
-			return
-		}
-	} else {
-		accountInfo.Alias = alias.Name
-	}
-
-	c.SecureJSON(http.StatusOK, accountInfo)
+		Alias:      ctx.Cache.Alias(req.NetworkID(), req.Address),
+	})
 }
 
 // GetBatchTokenBalances godoc

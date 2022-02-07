@@ -31,7 +31,7 @@ func (oh *BigMapDiffHandler) Handle(ctx context.Context, items []models.Model, w
 }
 
 // Chunk -
-func (oh *BigMapDiffHandler) Chunk(lastID, size int64) ([]models.Model, error) {
+func (oh *BigMapDiffHandler) Chunk(lastID int64, size int) ([]models.Model, error) {
 	diffs, err := getDiffs(oh.StorageDB.DB, lastID, size)
 	if err != nil {
 		return nil, err

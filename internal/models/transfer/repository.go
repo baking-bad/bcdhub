@@ -7,7 +7,6 @@ import (
 
 // Repository -
 type Repository interface {
-	Get(ctx GetContext) (Pageable, error)
 	GetAll(network types.Network, level int64) ([]Transfer, error)
 	GetTransfered(network types.Network, contract string, tokenID uint64) (result float64, err error)
 	GetToken24HoursVolume(network types.Network, contract string, initiators, entrypoints []string, tokenID uint64) (float64, error)
