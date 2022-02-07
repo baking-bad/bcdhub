@@ -78,8 +78,8 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Mo
 }
 
 // Chunk -
-func (cm *ContractMetadataHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	diff, err := cm.Domains.BigMapDiffs(lastID, size)
+func (cm *ContractMetadataHandler) Chunk(lastID int64, size int) ([]models.Model, error) {
+	diff, err := cm.Domains.BigMapDiffs(lastID, int64(size))
 	if err != nil {
 		return nil, err
 	}

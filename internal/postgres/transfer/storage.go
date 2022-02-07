@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -22,36 +21,6 @@ type Storage struct {
 // NewStorage -
 func NewStorage(es *core.Postgres) *Storage {
 	return &Storage{es}
-}
-
-// Get -
-func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err error) {
-	po.Transfers = make([]transfer.Transfer, 0)
-	query := storage.DB.Model(&po.Transfers).Relation("To").Relation("From").Relation("Initiator")
-	storage.buildGetContext(query, ctx, true)
-
-	if err = query.Select(&po.Transfers); err != nil {
-		return
-	}
-
-	received := len(po.Transfers)
-	size := storage.GetPageSize(ctx.Size)
-	if ctx.Offset == 0 && size > received {
-		po.Total = int64(len(po.Transfers))
-	} else {
-		countQuery := storage.DB.Model().Table(models.DocTransfers)
-		storage.buildGetContext(countQuery, ctx, false)
-		count, err := countQuery.Count()
-		if err != nil {
-			return po, err
-		}
-		po.Total = int64(count)
-	}
-
-	if received > 0 {
-		po.LastID = fmt.Sprintf("%d", po.Transfers[received-1].ID)
-	}
-	return po, nil
 }
 
 // GetAll -
@@ -75,10 +44,7 @@ func (storage *Storage) GetTransfered(network types.Network, contract string, to
 		Where("token_id = ?", tokenID)
 
 	core.IsApplied(query)
-	if err = query.Select(&result); err != nil {
-		return
-	}
-
+	err = query.Select(&result)
 	return
 }
 

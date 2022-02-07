@@ -31,7 +31,7 @@ func (oh *OperationsHandler) Handle(ctx context.Context, items []models.Model, w
 }
 
 // Chunk -
-func (oh *OperationsHandler) Chunk(lastID, size int64) ([]models.Model, error) {
+func (oh *OperationsHandler) Chunk(lastID int64, size int) ([]models.Model, error) {
 	operations, err := getOperations(oh.StorageDB.DB, lastID, size)
 	if err != nil {
 		return nil, err

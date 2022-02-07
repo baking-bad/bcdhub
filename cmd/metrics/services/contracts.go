@@ -31,7 +31,7 @@ func (ch *ContractsHandler) Handle(ctx context.Context, items []models.Model, wg
 }
 
 // Chunk -
-func (ch *ContractsHandler) Chunk(lastID, size int64) ([]models.Model, error) {
+func (ch *ContractsHandler) Chunk(lastID int64, size int) ([]models.Model, error) {
 	contracts, err := getContracts(ch.StorageDB.DB, lastID, size)
 	if err != nil {
 		return nil, err

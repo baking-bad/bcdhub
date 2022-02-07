@@ -25,16 +25,12 @@ func SetScriptProjectID(scripts contract.ScriptRepository, c *contract.Script, c
 		if err != nil {
 			return err
 		}
-		end = len(buckets) < size
-
-		if !end {
-			projectID := getContractProjectID(*c, buckets)
-			if projectID != "" {
-				c.ProjectID = types.NewNullString(&projectID)
-				return nil
-			}
+		projectID := getContractProjectID(*c, buckets)
+		if projectID != "" {
+			c.ProjectID = types.NewNullString(&projectID)
+			return nil
 		}
-
+		end = len(buckets) < size
 		offset += size
 	}
 

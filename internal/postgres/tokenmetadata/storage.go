@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -38,7 +37,7 @@ func (storage *Storage) GetOne(network types.Network, contract string, tokenID u
 
 // Get -
 func (storage *Storage) Get(ctx []tokenmetadata.GetContext, size, offset int64) (tokens []tokenmetadata.TokenMetadata, err error) {
-	query := storage.DB.Model().Table(models.DocTokenMetadata)
+	query := storage.DB.Model(&tokenmetadata.TokenMetadata{})
 	storage.buildGetTokenMetadataContext(query, ctx...)
 
 	query.Limit(storage.GetPageSize(size))
@@ -52,7 +51,7 @@ func (storage *Storage) Get(ctx []tokenmetadata.GetContext, size, offset int64) 
 
 // GetAll -
 func (storage *Storage) GetAll(ctx ...tokenmetadata.GetContext) (tokens []tokenmetadata.TokenMetadata, err error) {
-	query := storage.DB.Model().Table(models.DocTokenMetadata)
+	query := storage.DB.Model(&tokenmetadata.TokenMetadata{})
 	storage.buildGetTokenMetadataContext(query, ctx...)
 	err = query.Select(&tokens)
 	return
@@ -60,7 +59,7 @@ func (storage *Storage) GetAll(ctx ...tokenmetadata.GetContext) (tokens []tokenm
 
 // GetRecent -
 func (storage *Storage) GetRecent(since time.Time, ctx ...tokenmetadata.GetContext) (tokens []tokenmetadata.TokenMetadata, err error) {
-	query := storage.DB.Model().Table(models.DocTokenMetadata)
+	query := storage.DB.Model(&tokenmetadata.TokenMetadata{})
 	storage.buildGetTokenMetadataContext(query, ctx...)
 	err = query.
 		Where("timestamp > ?", since).
@@ -71,7 +70,7 @@ func (storage *Storage) GetRecent(since time.Time, ctx ...tokenmetadata.GetConte
 
 // GetWithExtras -
 func (storage *Storage) GetWithExtras() (tokens []tokenmetadata.TokenMetadata, err error) {
-	err = storage.DB.Model().Table(models.DocTokenMetadata).
+	err = storage.DB.Model(&tokenmetadata.TokenMetadata{}).
 		Where("extras->'tags' is not null").
 		WhereOr("extras->'formats' is not null").
 		WhereOr("extras->'creators' is not null").
@@ -81,7 +80,7 @@ func (storage *Storage) GetWithExtras() (tokens []tokenmetadata.TokenMetadata, e
 
 // Count -
 func (storage *Storage) Count(ctx []tokenmetadata.GetContext) (int64, error) {
-	query := storage.DB.Model().Table(models.DocTokenMetadata)
+	query := storage.DB.Model(&tokenmetadata.TokenMetadata{})
 	storage.buildGetTokenMetadataContext(query, ctx...)
 	count, err := query.Count()
 	return int64(count), err

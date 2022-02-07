@@ -44,15 +44,14 @@ func (storage *Storage) GetAliases(network types.Network) (t []cm.ContractMetada
 
 // GetWithEvents -
 func (storage *Storage) GetWithEvents(updatedAt uint64) ([]cm.ContractMetadata, error) {
-	query := storage.DB.Model((*cm.ContractMetadata)(nil)).
-		Where("events is not null AND jsonb_array_length(events) > 0")
+	query := storage.DB.Model((*cm.ContractMetadata)(nil))
 
 	if updatedAt > 0 {
 		query.Where("updated_at > ?", updatedAt)
 	}
 
 	t := make([]cm.ContractMetadata, 0)
-	if err := query.Order("updated_at asc").Select(&t); err != nil && !storage.IsRecordNotFound(err) {
+	if err := query.Where("events is not null AND jsonb_array_length(events) > 0").Order("updated_at asc").Select(&t); err != nil && !storage.IsRecordNotFound(err) {
 		return nil, err
 	}
 	return t, nil

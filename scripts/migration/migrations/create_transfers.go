@@ -121,7 +121,7 @@ func (m *CreateTransfersTags) getOperations(ctx *config.Context) ([]operation.Op
 	if m.Network != "" {
 		filters["operation.network"] = m.Network
 		if m.Address != "" {
-			filters["destination"] = m.Address
+			filters["destination.address"] = m.Address
 		} else {
 			filters["entrypoint"] = "transfer"
 		}

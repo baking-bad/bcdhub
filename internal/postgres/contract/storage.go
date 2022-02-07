@@ -40,7 +40,8 @@ func (storage *Storage) GetMany(network types.Network) (response []contract.Cont
 
 // GetRandom -
 func (storage *Storage) GetRandom(networks ...types.Network) (response contract.Contract, err error) {
-	query := storage.DB.Model(&response)
+	var id int64
+	query := storage.DB.Model(&response).Column("contract.id")
 	if len(networks) > 0 {
 		for i := range networks {
 			if networks[i] != types.Empty {
@@ -48,22 +49,12 @@ func (storage *Storage) GetRandom(networks ...types.Network) (response contract.
 			}
 		}
 	}
-	err = query.OrderExpr("random()").Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").First()
-	return
-}
 
-// GetByAddresses -
-func (storage *Storage) GetByAddresses(addresses []contract.Address) (response []contract.Contract, err error) {
-	query := storage.DB.Model((*contract.Contract)(nil))
-
-	for i := range addresses {
-		query.WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
-			q.Where("contract.network = ?", addresses[i].Network).Where("account.address = ?", addresses[i].Address)
-			return q, nil
-		})
+	if err = query.OrderExpr("random()").Limit(1).Select(&id); err != nil {
+		return
 	}
-
-	err = query.Relation("Account").Relation("Manager").Relation("Delegate").Select(&response)
+	err = storage.DB.Model(&response).Where("contract.id = ?", id).
+		Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").First()
 	return
 }
 

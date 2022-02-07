@@ -143,7 +143,6 @@ func (rm Manager) rollbackAll(tx pg.DBI, network types.Network, level int64) err
 
 func (rm Manager) rollbackMigrations(tx pg.DBI, network types.Network, level int64) error {
 	if _, err := tx.Model(new(migration.Migration)).
-		Relation("Contract.network").
 		Where("contract_id IN (?)", tx.Model(new(contract.Contract)).Column("id").Where("network = ?", network).Where("level > ?", level)).
 		Where("level = ?", level).
 		Delete(); err != nil {
