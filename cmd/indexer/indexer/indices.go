@@ -89,6 +89,10 @@ func createStartIndices(db pg.DBI) error {
 			return err
 		}
 
+		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_events_idx ON contract_metadata (events) where events is not null`); err != nil {
+			return err
+		}
+
 		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_network_address_idx ON ?TableName (updated_at)`); err != nil {
 			return err
 		}
