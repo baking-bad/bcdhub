@@ -34,28 +34,29 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
-
-	stats, err := ctx.Statistics.ContractStats(req.NetworkID(), req.Address)
+	acc, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	block, err := ctx.Cache.CurrentBlock(req.NetworkID())
+	stats, err := ctx.Statistics.ContractStats(acc.Network, acc.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-
-	balance, err := ctx.Cache.TezosBalance(req.NetworkID(), req.Address, block.Level)
+	block, err := ctx.Cache.CurrentBlock(acc.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-
+	balance, err := ctx.Cache.TezosBalance(acc.Network, acc.Address, block.Level)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
 	c.SecureJSON(http.StatusOK, AccountInfo{
-		Address:    req.Address,
-		Network:    req.Network,
+		Address:    acc.Address,
+		Network:    acc.Network.String(),
+		Alias:      acc.Alias,
 		TxCount:    stats.Count,
 		Balance:    balance,
 		LastAction: stats.LastAction.UTC(),
-		Alias:      ctx.Cache.Alias(req.NetworkID(), req.Address),
 	})
 }
 
