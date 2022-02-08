@@ -204,6 +204,7 @@ var typeMap = map[string]string{
 
 func prepare(searchString string, filters map[string]interface{}, fields []string) (search.Context, error) {
 	ctx := search.NewContext()
+	searchString = strings.Trim(searchString, "\"")
 
 	if search.IsPtrSearch(searchString) {
 		ctx.Text = strings.TrimPrefix(searchString, "ptr:")
