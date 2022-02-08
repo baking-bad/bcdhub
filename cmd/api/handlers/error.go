@@ -28,7 +28,7 @@ func (ctx *Context) handleError(c *gin.Context, err error, code int) bool {
 		}
 	}
 
-	c.AbortWithStatusJSON(code, Error{Message: err.Error()})
+	c.AbortWithStatusJSON(code, Error{Message: ctx.getErrorText(err)})
 	return true
 }
 
@@ -37,4 +37,11 @@ func (ctx *Context) getErrorCode(err error) int {
 		return http.StatusNotFound
 	}
 	return http.StatusInternalServerError
+}
+
+func (ctx *Context) getErrorText(err error) string {
+	if ctx.Storage.IsRecordNotFound(err) {
+		return "not found"
+	}
+	return err.Error()
 }
