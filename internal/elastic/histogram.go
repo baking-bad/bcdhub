@@ -38,6 +38,7 @@ func buildHistogramContext(ctx models.HistogramContext) Base {
 	}
 
 	matches := make([]Item, 0)
+	matches = append(matches, Range("timestamp", Item{"gt": getHistogramInterval(ctx.Period)}))
 	for _, fltr := range ctx.Filters {
 		switch fltr.Kind {
 		case models.HistogramFilterKindExists:
@@ -115,4 +116,19 @@ func (e *Elastic) Histogram(period string, opts ...models.HistogramOption) ([][]
 		histogram = append(histogram, item)
 	}
 	return histogram, nil
+}
+
+func getHistogramInterval(period string) string {
+	switch period {
+	case "hour":
+		return "now-1d"
+	case "day":
+		return "now-1M"
+	case "week":
+		return "now-16w"
+	case "month":
+		return "now-1y"
+	default:
+		return "2018-06-25"
+	}
 }
