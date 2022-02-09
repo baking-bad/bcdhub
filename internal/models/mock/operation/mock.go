@@ -65,6 +65,21 @@ func (mr *MockRepositoryMockRecorder) Last(filter, lastID interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Last", reflect.TypeOf((*MockRepository)(nil).Last), filter, lastID)
 }
 
+// GetByHash mocks base method
+func (m *MockRepository) GetByHash(hash string) ([]model.Operation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByHash", hash)
+	ret0, _ := ret[0].([]model.Operation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByHash indicates an expected call of GetByHash
+func (mr *MockRepositoryMockRecorder) GetByHash(hash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByHash", reflect.TypeOf((*MockRepository)(nil).GetByHash), hash)
+}
+
 // Get mocks base method
 func (m *MockRepository) Get(filter map[string]interface{}, size int64, sort bool) ([]model.Operation, error) {
 	m.ctrl.T.Helper()

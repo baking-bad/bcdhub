@@ -159,6 +159,20 @@ func (storage *Storage) Get(filters map[string]interface{}, size int64, sort boo
 	return operations, err
 }
 
+// GetByHash -
+func (storage *Storage) GetByHash(hash string) (operations []operation.Operation, err error) {
+	query := storage.DB.Model((*operation.Operation)(nil)).Where("hash = ?", hash)
+	addOperationSorting(query)
+	err = storage.DB.Model().TableExpr("(?) as operation", query).
+		ColumnExpr("operation.*").
+		ColumnExpr("source.address as source__address, source.alias as source__alias, source.type as source__type, source.network as source__network, source.id as source__id").
+		ColumnExpr("destination.address as destination__address, destination.alias as destination__alias, destination.type as destination__type, destination.network as destination__network, destination.id as destination__id").
+		Join("LEFT JOIN accounts as source ON source.id = operation.source_id").
+		Join("LEFT JOIN accounts as destination ON destination.id = operation.destination_id").
+		Select(&operations)
+	return operations, err
+}
+
 // GetContract24HoursVolume -
 func (storage *Storage) GetContract24HoursVolume(network types.Network, address string, entrypoints []string) (float64, error) {
 	aDayAgo := time.Now().UTC().AddDate(0, 0, -1)
