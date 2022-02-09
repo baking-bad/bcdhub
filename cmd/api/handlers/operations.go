@@ -100,13 +100,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
-	op, err := ctx.Operations.Get(
-		map[string]interface{}{
-			"hash": req.Hash,
-		},
-		0,
-		true,
-	)
+	op, err := ctx.Operations.GetByHash(req.Hash)
 	if !ctx.Storage.IsRecordNotFound(err) && ctx.handleError(c, err, 0) {
 		return
 	}
