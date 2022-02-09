@@ -33,10 +33,11 @@ type Config struct {
 	API APIConfig `yaml:"api"`
 
 	Indexer struct {
-		Networks      map[string]struct{} `yaml:"networks"`
-		ProjectName   string              `yaml:"project_name"`
-		SentryEnabled bool                `yaml:"sentry_enabled"`
-		Connections   Connections         `yaml:"connections"`
+		Networks        map[string]struct{} `yaml:"networks"`
+		ProjectName     string              `yaml:"project_name"`
+		SentryEnabled   bool                `yaml:"sentry_enabled"`
+		Connections     Connections         `yaml:"connections"`
+		OffchainBaseURL string              `yaml:"offchain_base_url"`
 	} `yaml:"indexer"`
 
 	Metrics struct {

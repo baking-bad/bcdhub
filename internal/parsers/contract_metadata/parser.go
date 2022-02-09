@@ -1,7 +1,6 @@
-package tzip
+package contract_metadata
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
