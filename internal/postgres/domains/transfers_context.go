@@ -36,9 +36,9 @@ func (storage *Storage) buildGetContext(query *orm.Query, ctx transfer.GetContex
 	if ctx.LastID != "" {
 		if id, err := strconv.ParseInt(ctx.LastID, 10, 64); err == nil {
 			if ctx.SortOrder == "asc" {
-				query.Where("id > ?", id)
+				query.Where("transfer.id > ?", id)
 			} else {
-				query.Where("id < ?", id)
+				query.Where("transfer.id < ?", id)
 			}
 		}
 	}
@@ -65,8 +65,8 @@ func (storage *Storage) buildGetContext(query *orm.Query, ctx transfer.GetContex
 
 	switch ctx.SortOrder {
 	case "asc":
-		query.Order("id asc")
+		query.Order("transfer.id asc")
 	default:
-		query.Order("id desc")
+		query.Order("transfer.id desc")
 	}
 }
