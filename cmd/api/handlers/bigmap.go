@@ -56,6 +56,12 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 			res.Address = actions[0].Address
 		}
 	} else {
+		destination, err := ctx.Accounts.Get(req.NetworkID(), res.Address)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		res.ContractAlias = destination.Alias
+
 		script, err := ctx.Contracts.ScriptPart(req.NetworkID(), res.Address, bcd.SymLinkBabylon, consts.STORAGE)
 		if ctx.handleError(c, err, 0) {
 			return
@@ -66,9 +72,8 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		}
 		operation, err := ctx.Operations.Last(
 			map[string]interface{}{
-				"status":              types.OperationStatusApplied,
-				"operation.network":   req.NetworkID(),
-				"destination.address": res.Address,
+				"status":         types.OperationStatusApplied,
+				"destination_id": destination.ID,
 			}, 0)
 		if ctx.handleError(c, err, 0) {
 			return
@@ -112,14 +117,16 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		}
 	}
 
-	alias, err := ctx.ContractMetadata.Get(req.NetworkID(), res.Address)
-	if err != nil {
-		if !ctx.Storage.IsRecordNotFound(err) {
-			ctx.handleError(c, err, 0)
-			return
+	if res.ContractAlias != "" {
+		alias, err := ctx.ContractMetadata.Get(req.NetworkID(), res.Address)
+		if err != nil {
+			if !ctx.Storage.IsRecordNotFound(err) {
+				ctx.handleError(c, err, 0)
+				return
+			}
+		} else {
+			res.ContractAlias = alias.Name
 		}
-	} else {
-		res.ContractAlias = alias.Name
 	}
 
 	c.SecureJSON(http.StatusOK, res)
@@ -289,6 +296,7 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapState) ([]BigMapRe
 	if len(data) == 0 {
 		return []BigMapResponseItem{}, nil
 	}
+
 	bigMapType, err := ctx.getBigMapType(data[0].ToDiff())
 	if err != nil {
 		return nil, err
@@ -352,11 +360,15 @@ func (ctx *Context) getBigMapType(data bigmapdiff.BigMapDiff) (*ast.BigMap, erro
 	if err != nil {
 		return nil, err
 	}
+
+	contract, err := ctx.Accounts.Get(data.Network, data.Contract)
+	if err != nil {
+		return nil, err
+	}
+
 	operation, err := ctx.Operations.Last(map[string]interface{}{
-		"operation.network":   data.Network,
-		"destination.address": data.Contract,
-		"kind":                types.OperationKindTransaction,
-		"status":              types.OperationStatusApplied,
+		"destination_id": contract.ID,
+		"status":         types.OperationStatusApplied,
 	}, 0)
 	if err != nil {
 		return nil, err
