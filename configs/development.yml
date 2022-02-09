@@ -70,6 +70,7 @@ indexer:
   project_name: indexer
   sentry_enabled: false
   skip_delegator_blocks: true
+  offchain_base_url: ${OFFCHAIN_BASE_URL}
   networks:
     mainnet:
     hangzhou2net:
