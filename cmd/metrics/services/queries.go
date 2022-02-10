@@ -26,9 +26,9 @@ func getScripts(db pg.DBI, lastID int64, size int) (resp []contract.Script, err 
 
 func getContracts(db pg.DBI, lastID int64, size int) (resp []contract.Contract, err error) {
 	var ids []int64
-	query := db.Model((*contract.Contract)(nil)).Order("id asc")
+	query := db.Model((*contract.Contract)(nil)).Column("id").Order("id asc")
 	if lastID > 0 {
-		query.Where("contract.id > ?", lastID)
+		query.Where("id > ?", lastID)
 	}
 	if size == 0 || size > 1000 {
 		size = 10

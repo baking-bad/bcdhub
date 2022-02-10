@@ -35,8 +35,8 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 	if result.AllocatedDestinationContract != nil {
 		tx.AllocatedDestinationContract = *result.AllocatedDestinationContract
 	}
-	errs, err := tezerrors.ParseArray(result.Errors)
-	if err == nil {
+
+	if errs, err := tezerrors.ParseArray(result.Errors); err == nil {
 		tx.Errors = errs
 	}
 }

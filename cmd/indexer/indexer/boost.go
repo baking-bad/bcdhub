@@ -313,15 +313,11 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 	return errSameLevel
 }
 func (bi *BoostIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
-	proto, err := bi.Cache.ProtocolByHash(bi.Network, head.Protocol)
-	if err != nil {
-		return err
-	}
 	newBlock := block.Block{
 		Network:     bi.Network,
 		Hash:        head.Hash,
 		Predecessor: head.Predecessor,
-		ProtocolID:  proto.ID,
+		ProtocolID:  bi.currentProtocol.ID,
 		ChainID:     head.ChainID,
 		Level:       head.Level,
 		Timestamp:   head.Timestamp,
@@ -346,7 +342,7 @@ func (bi *BoostIndexer) getDataFromBlock(head noderpc.Header) (*parsers.Result, 
 	parserParams, err := operations.NewParseParams(
 		bi.rpc,
 		bi.Context,
-		operations.WithConstants(*bi.currentProtocol.Constants),
+		operations.WithProtocol(&bi.currentProtocol),
 		operations.WithHead(head),
 		operations.WithNetwork(bi.Network),
 	)
@@ -421,7 +417,7 @@ func (bi *BoostIndexer) implicitMigration(head noderpc.Header, tx pg.DBI) error 
 	if err != nil {
 		return err
 	}
-	implicitParser := migrations.NewImplicitParser(bi.Context, bi.Network, bi.rpc)
+	implicitParser := migrations.NewImplicitParser(bi.Context, bi.Network, bi.rpc, bi.currentProtocol)
 	implicitResult, err := implicitParser.Parse(metadata, head)
 	if err != nil {
 		return err
@@ -493,7 +489,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx pg.DBI) error {
 			return err
 		}
 
-		if err := p.Parse(data, head, bi.Network, address, result); err != nil {
+		if err := p.Parse(data, head, bi.Network, address, bi.currentProtocol, result); err != nil {
 			return err
 		}
 	}

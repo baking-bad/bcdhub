@@ -85,7 +85,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 	parserParams, err := operations.NewParseParams(
 		rpc,
 		ctx.Context,
-		operations.WithConstants(*state.Protocol.Constants),
+		operations.WithProtocol(&state.Protocol),
 		operations.WithHead(header),
 		operations.WithNetwork(network),
 	)
