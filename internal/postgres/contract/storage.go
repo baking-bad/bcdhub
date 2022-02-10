@@ -266,7 +266,9 @@ func (storage *Storage) Script(network types.Network, address string, symLink st
 
 // GetScripts -
 func (storage *Storage) GetScripts(limit, offset int) (scripts []contract.Script, err error) {
-	err = storage.DB.Model(&scripts).Limit(limit).Offset(offset).Order("id asc").Select()
+	err = storage.DB.Model(&scripts).
+		ColumnExpr("tags, hash, project_id, fail_strings, annotations, entrypoints, fingerprint_code, fingerprint_storage, fingerprint_parameter").
+		Limit(limit).Offset(offset).Order("id asc").Select()
 	return
 }
 

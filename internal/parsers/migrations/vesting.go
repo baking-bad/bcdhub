@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -24,12 +25,7 @@ func NewVestingParser(ctx *config.Context) *VestingParser {
 }
 
 // Parse -
-func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network types.Network, address string, result *parsers.Result) error {
-	proto, err := p.ctx.Cache.ProtocolByHash(network, head.Protocol)
-	if err != nil {
-		return err
-	}
-
+func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network types.Network, address string, proto protocol.Protocol, result *parsers.Result) error {
 	parser := contract.NewParser(p.ctx)
 	if err := parser.Parse(&operation.Operation{
 		Network:    network,
@@ -56,7 +52,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Level:     head.Level,
 		Timestamp: head.Timestamp,
 		Script:    data.RawScript,
-	}, result); err != nil {
+	}, proto.SymLink, result); err != nil {
 		return err
 	}
 

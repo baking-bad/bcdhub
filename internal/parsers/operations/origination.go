@@ -29,11 +29,6 @@ var delegatorContract = []byte(`{"code":[{"prim":"parameter","args":[{"prim":"or
 
 // Parse -
 func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error {
-	proto, err := p.ctx.Cache.ProtocolByHash(p.network, p.head.Protocol)
-	if err != nil {
-		return err
-	}
-
 	source := account.Account{
 		Network: p.network,
 		Address: data.Source,
@@ -43,7 +38,7 @@ func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error
 	origination := operation.Operation{
 		Network:      p.network,
 		Hash:         p.hash,
-		ProtocolID:   proto.ID,
+		ProtocolID:   p.protocol.ID,
 		Level:        p.head.Level,
 		Timestamp:    p.head.Timestamp,
 		Kind:         types.NewOperationKind(data.Kind),
@@ -73,7 +68,7 @@ func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error
 
 	parseOperationResult(data, &origination)
 
-	origination.SetBurned(p.constants)
+	origination.SetBurned(*p.protocol.Constants)
 
 	p.stackTrace.Add(origination)
 
@@ -93,7 +88,7 @@ func (p Origination) appliedHandler(item noderpc.Operation, origination *operati
 		return nil
 	}
 
-	if err := p.contractParser.Parse(origination, result); err != nil {
+	if err := p.contractParser.Parse(origination, p.protocol.SymLink, result); err != nil {
 		return err
 	}
 
@@ -189,7 +184,7 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 				Source:                   origination.Source.Address,
 				Initiator:                origination.Initiator.Address,
 				Amount:                   origination.Amount,
-				HardGasLimitPerOperation: p.constants.HardGasLimitPerOperation,
+				HardGasLimitPerOperation: p.protocol.Constants.HardGasLimitPerOperation,
 				ChainID:                  p.head.ChainID,
 			})
 			if err != nil {

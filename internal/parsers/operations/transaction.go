@@ -33,11 +33,6 @@ func NewTransaction(params *ParseParams) Transaction {
 
 // Parse -
 func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error {
-	proto, err := p.ctx.Cache.ProtocolByHash(p.network, p.head.Protocol)
-	if err != nil {
-		return err
-	}
-
 	source := account.Account{
 		Network: p.network,
 		Address: data.Source,
@@ -47,7 +42,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 	tx := operation.Operation{
 		Network:      p.network,
 		Hash:         p.hash,
-		ProtocolID:   proto.ID,
+		ProtocolID:   p.protocol.ID,
 		Level:        p.head.Level,
 		Timestamp:    p.head.Timestamp,
 		Kind:         modelsTypes.NewOperationKind(data.Kind),
@@ -77,7 +72,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 
 	parseOperationResult(data, &tx)
 
-	tx.SetBurned(p.constants)
+	tx.SetBurned(*p.protocol.Constants)
 
 	result.Operations = append(result.Operations, &tx)
 
@@ -91,7 +86,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 		}
 	}
 
-	script, err := p.ctx.Cache.ScriptBytes(tx.Network, tx.Destination.Address, proto.SymLink)
+	script, err := p.ctx.Cache.ScriptBytes(tx.Network, tx.Destination.Address, p.protocol.SymLink)
 	if err != nil {
 		if !tx.Internal {
 			return nil
@@ -99,7 +94,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 
 		for i := range result.Contracts {
 			if tx.Destination.Address == result.Contracts[i].Account.Address {
-				switch proto.SymLink {
+				switch p.protocol.SymLink {
 				case bcd.SymLinkAlpha:
 					script, err = result.Contracts[i].Alpha.Full()
 					if err != nil {
@@ -111,7 +106,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 						return err
 					}
 				default:
-					return errors.Errorf("unknwon protocol symbolic link: %s", proto.SymLink)
+					return errors.Errorf("unknwon protocol symbolic link: %s", p.protocol.SymLink)
 				}
 			}
 		}

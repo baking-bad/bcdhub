@@ -26,7 +26,7 @@ func NewParser(ctx *config.Context) *Parser {
 }
 
 // Parse -
-func (p *Parser) Parse(operation *operation.Operation, result *parsers.Result) error {
+func (p *Parser) Parse(operation *operation.Operation, symLink string, result *parsers.Result) error {
 	if !operation.IsOrigination() {
 		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
@@ -41,18 +41,20 @@ func (p *Parser) Parse(operation *operation.Operation, result *parsers.Result) e
 		LastAction: operation.Timestamp,
 	}
 
-	if err := p.computeMetrics(operation, &contract); err != nil {
+	if err := p.computeMetrics(operation, symLink, &contract); err != nil {
 		return err
 	}
 	result.Contracts = append(result.Contracts, &contract)
 	return nil
 }
 
-func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
+func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, c *contract.Contract) error {
 	script, err := astContract.NewParser(operation.Script)
 	if err != nil {
 		return errors.Wrap(err, "astContract.NewParser")
 	}
+	operation.Script = script.CodeRaw
+	operation.AST = script.Code
 
 	contractScript, err := p.ctx.Scripts.ByHash(script.Hash)
 	if err != nil {
@@ -62,13 +64,6 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 		var s bcd.RawScript
 		if err := json.Unmarshal(script.CodeRaw, &s); err != nil {
 			return err
-		}
-		contractScript = contract.Script{
-			Hash:      script.Hash,
-			Code:      s.Code,
-			Parameter: s.Parameter,
-			Storage:   s.Storage,
-			Views:     s.Views,
 		}
 
 		constants, err := script.FindConstants()
@@ -89,51 +84,45 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 				return errors.Wrap(err, "astContract.NewParser")
 			}
 		}
-	}
 
-	if err := script.Parse(); err != nil {
-		return err
-	}
-	operation.Script = script.CodeRaw
-	operation.AST = script.Code
+		if err := script.Parse(); err != nil {
+			return err
+		}
 
-	contractScript.FingerprintParameter = script.Fingerprint.Parameter
-	contractScript.FingerprintCode = script.Fingerprint.Code
-	contractScript.FingerprintStorage = script.Fingerprint.Storage
-	contractScript.FailStrings = script.FailStrings.Values()
-	contractScript.Annotations = script.Annotations.Values()
-	contractScript.Tags = types.NewTags(script.Tags.Values())
-	contractScript.Hardcoded = script.HardcodedAddresses.Values()
+		params, err := script.Code.Parameter.ToTypedAST()
+		if err != nil {
+			return err
+		}
 
-	params, err := script.Code.Parameter.ToTypedAST()
-	if err != nil {
-		return err
-	}
-	contractScript.Entrypoints = params.GetEntrypoints()
+		contractScript = contract.Script{
+			Hash:                 script.Hash,
+			Code:                 s.Code,
+			Parameter:            s.Parameter,
+			Storage:              s.Storage,
+			Views:                s.Views,
+			FingerprintParameter: script.Fingerprint.Parameter,
+			FingerprintCode:      script.Fingerprint.Code,
+			FingerprintStorage:   script.Fingerprint.Storage,
+			FailStrings:          script.FailStrings.Values(),
+			Annotations:          script.Annotations.Values(),
+			Tags:                 types.NewTags(script.Tags.Values()),
+			Hardcoded:            script.HardcodedAddresses.Values(),
+			Entrypoints:          params.GetEntrypoints(),
+		}
 
-	if script.IsUpgradable() {
-		contractScript.Tags.Set(types.UpgradableTag)
-	}
-
-	proto, err := p.ctx.Cache.ProtocolByID(operation.Network, operation.ProtocolID)
-	if err != nil {
-		return err
-	}
-
-	if contractScript.ID > 0 {
-		switch proto.SymLink {
+		switch symLink {
+		case bcd.SymLinkAlpha:
+			c.Alpha = contractScript
+		case bcd.SymLinkBabylon:
+			c.Babylon = contractScript
+		}
+	} else {
+		switch symLink {
 		case bcd.SymLinkAlpha:
 			c.AlphaID = contractScript.ID
 			c.Alpha = contractScript
 		case bcd.SymLinkBabylon:
 			c.BabylonID = contractScript.ID
-			c.Babylon = contractScript
-		}
-	} else {
-		switch proto.SymLink {
-		case bcd.SymLinkAlpha:
-			c.Alpha = contractScript
-		case bcd.SymLinkBabylon:
 			c.Babylon = contractScript
 		}
 	}

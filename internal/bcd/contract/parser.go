@@ -101,6 +101,10 @@ func (p *Parser) Parse() error {
 		return err
 	}
 
+	if p.IsUpgradable() {
+		p.Tags.Add(consts.UpgradableTag)
+	}
+
 	return p.setStorageTypeTags()
 }
 
