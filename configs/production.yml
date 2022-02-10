@@ -27,12 +27,8 @@ tzkt:
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-#  florencenet:
-#    mempool: https://mempool.staging.dipdup.net/v1/graphql
-#  hangzhounet:
-#    mempool: https://mempool.staging.dipdup.net/v1/graphql 
   hangzhou2net:
-    mempool: https://mempool.staging.dipdup.net/v1/graphql 
+    mempool: https://mempool.dipdup.net/v1/graphql 
 
 storage:
   pg: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB:-indexer} password=${POSTGRES_PASSWORD} sslmode=disable"
