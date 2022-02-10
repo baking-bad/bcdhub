@@ -81,21 +81,21 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 	switch {
 	case resp.StatusCode == http.StatusOK:
 		return nil
-	case resp.StatusCode == http.StatusInternalServerError:
+	case resp.StatusCode > http.StatusInternalServerError:
+		return NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
+	case checkStatusCode:
 		invalidResponseErr := newInvalidNodeResponse()
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return errors.Wrap(invalidResponseErr, err.Error())
 		}
 		invalidResponseErr.Raw = data
-		if err := json.Unmarshal(data, &invalidResponseErr.Errors); err != nil {
-			return errors.Wrap(invalidResponseErr, err.Error())
+		if json.Valid(data) {
+			if err := json.Unmarshal(data, &invalidResponseErr.Errors); err != nil {
+				return errors.Wrap(invalidResponseErr, err.Error())
+			}
 		}
 		return invalidResponseErr
-	case resp.StatusCode > http.StatusInternalServerError:
-		return NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
-	case checkStatusCode:
-		return errors.Wrap(ErrInvalidStatusCode, fmt.Sprintf("%d", resp.StatusCode))
 	default:
 		return nil
 	}
@@ -103,7 +103,7 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 
 func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool, response interface{}) error {
 	if err := rpc.checkStatusCode(resp, checkStatusCode); err != nil {
-		return err
+		return errors.Wrap(err, ErrNodeRPCError)
 	}
 	return json.NewDecoder(resp.Body).Decode(response)
 }
@@ -165,7 +165,7 @@ func (rpc *NodeRPC) getRaw(uri string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if err := rpc.checkStatusCode(resp, true); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, ErrNodeRPCError)
 	}
 	return ioutil.ReadAll(resp.Body)
 }
