@@ -65,18 +65,30 @@ func newInvalidNodeResponse() InvalidNodeResponse {
 	}
 }
 
+// Error -
 func (e InvalidNodeResponse) Error() string {
 	var s strings.Builder
-	for i := range e.Errors {
-		if i > 0 {
-			s.WriteByte('\n')
+	if len(e.Errors) > 0 {
+		for i := range e.Errors {
+			if i > 0 {
+				s.WriteByte('\n')
+			}
+			s.WriteString(e.Errors[i].ID)
 		}
-		s.WriteString(e.Errors[i].ID)
+	} else {
+		_, _ = s.Write(e.Raw)
 	}
 	return s.String()
+}
+
+// Is -
+func (e InvalidNodeResponse) Is(target error) bool {
+	_, ok := target.(InvalidNodeResponse)
+	return ok
 }
 
 // Errors
 var (
 	ErrInvalidStatusCode = errors.New("invalid status code")
+	ErrNodeRPCError      = "Node RPC error"
 )
