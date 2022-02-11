@@ -53,7 +53,6 @@ func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, 
 	if err != nil {
 		return errors.Wrap(err, "astContract.NewParser")
 	}
-	operation.Script = script.CodeRaw
 	operation.AST = script.Code
 
 	contractScript, err := p.ctx.Scripts.ByHash(script.Hash)
@@ -83,6 +82,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, 
 			if err != nil {
 				return errors.Wrap(err, "astContract.NewParser")
 			}
+			operation.AST = script.Code
 		}
 
 		if err := script.Parse(); err != nil {
@@ -94,6 +94,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, 
 			return err
 		}
 
+		operation.Script = script.CodeRaw
 		contractScript = contract.Script{
 			Hash:                 script.Hash,
 			Code:                 s.Code,
