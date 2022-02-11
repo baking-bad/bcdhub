@@ -231,7 +231,7 @@ func (result *Result) updateContracts(tx pg.DBI) error {
 	count := make(map[int64]uint64)
 	for i := range result.Operations {
 		destination := result.Operations[i].Destination
-		if destination.Type == types.AccountTypeContract {
+		if destination.Type != types.AccountTypeContract {
 			continue
 		}
 
@@ -239,6 +239,17 @@ func (result *Result) updateContracts(tx pg.DBI) error {
 			count[destination.ID] = value + 1
 		} else {
 			count[destination.ID] = 1
+		}
+
+		source := result.Operations[i].Source
+		if source.Type != types.AccountTypeContract {
+			continue
+		}
+
+		if value, ok := count[source.ID]; ok {
+			count[source.ID] = value + 1
+		} else {
+			count[source.ID] = 1
 		}
 	}
 
@@ -257,9 +268,9 @@ func (result *Result) updateContracts(tx pg.DBI) error {
 	}
 
 	_, err := tx.Model(&contracts).
-		Set("last_action = _data.last_action, tx_count = contract_updates.tx_count + _data.tx_count").
-		Where("contract_updates.account_id = _data.account_id").
-		Where("contract_updates.network = _data.network").
+		Set("last_action = ?last_action, tx_count = contract_updates.tx_count + ?tx_count").
+		Where("contract_updates.account_id = ?account_id").
+		Where("contract_updates.network = ?network").
 		Update()
 	return err
 }
