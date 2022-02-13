@@ -154,6 +154,9 @@ func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operat
 			return err
 		}
 		if len(storageStrings) > 0 {
+			if len(storageStrings) > 1000 { // golden fix for postgres limit
+				storageStrings = storageStrings[:1000]
+			}
 			tx.StorageStrings = storageStrings
 		}
 	}
@@ -191,6 +194,9 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 		return err
 	}
 	if len(parameterStrings) > 0 {
+		if len(parameterStrings) > 1000 { // golden fix for postgres limit
+			parameterStrings = parameterStrings[:1000]
+		}
 		tx.ParameterStrings = parameterStrings
 	}
 

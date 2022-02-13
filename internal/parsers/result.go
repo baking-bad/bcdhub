@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	batchSize = 2
+	batchSize = 10
 )
 
 // Result -
