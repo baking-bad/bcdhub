@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	batchSize = 1
+	batchSize = 10
 )
 
 // Result -
@@ -42,8 +42,16 @@ func NewResult() *Result {
 
 // Save -
 func (result *Result) Save(tx *gorm.DB) error {
-	if err := tx.CreateInBatches(result.Operations, batchSize).Error; err != nil {
+	if err := tx.Omit("BigMapDiffs").CreateInBatches(result.Operations, batchSize).Error; err != nil {
 		return err
+	}
+	for i := range result.Operations {
+		for j := range result.Operations[i].BigMapDiffs {
+			result.Operations[i].BigMapDiffs[j].OperationID = result.Operations[i].ID
+		}
+		if err := tx.CreateInBatches(result.Operations[i].BigMapDiffs, batchSize).Error; err != nil {
+			return err
+		}
 	}
 	if err := tx.CreateInBatches(result.BigMapActions, batchSize).Error; err != nil {
 		return err

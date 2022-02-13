@@ -5,6 +5,9 @@ rpc:
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
     timeout: 20
+  ithacanet:
+    uri: https://rpc.tzkt.io/ithacanet
+    timeout: 20
 
 tzkt:
   mainnet:
@@ -83,9 +86,8 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    florencenet:
-    granadanet:
-    hangzhounet:
+    hangzhou2net:
+    ithacanet:
   connections:
     max: 5
     idle: 5
