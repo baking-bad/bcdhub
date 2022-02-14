@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 	"github.com/pkg/errors"
 )
@@ -76,40 +77,31 @@ func (storage *Storage) Count(network types.Network, ptr int64) (int64, error) {
 }
 
 // Previous -
-func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff) (response []bigmapdiff.BigMapDiff, err error) {
+func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff) ([]bigmapdiff.BigMapDiff, error) {
 	if len(filters) == 0 {
-		return
+		return nil, nil
 	}
-	var lastID int64
-	query := storage.DB.Model().Table(models.DocBigMapDiff).ColumnExpr("MAX(id) as id").WhereOrGroup(
-		func(q *orm.Query) (*orm.Query, error) {
-			for i := range filters {
-				q.WhereGroup(
-					func(q *orm.Query) (*orm.Query, error) {
-						q.Where("key_hash = ?", filters[i].KeyHash).Where("ptr = ? ", filters[i].Ptr).Where("network = ?", filters[i].Network)
-						return q, nil
-					},
-				)
 
-				if lastID > filters[i].ID || lastID == 0 {
-					lastID = filters[i].ID
-				}
+	response := make([]bigmapdiff.BigMapDiff, 0)
+
+	for i := range filters {
+		var prev bigmapdiff.BigMapDiff
+		if err := storage.DB.Model(&prev).
+			Where("id < ?", filters[i].ID).
+			Where("key_hash = ?", filters[i].KeyHash).
+			Where("ptr = ? ", filters[i].Ptr).
+			Where("network = ?", filters[i].Network).
+			Order("id desc").Limit(1).
+			Select(); err != nil {
+			if errors.Is(err, pg.ErrNoRows) {
+				continue
 			}
-			return q, nil
-		},
-	)
-
-	if lastID > 0 {
-		query.Where("id < ?", lastID)
+			return nil, err
+		}
+		response = append(response, prev)
 	}
 
-	query.GroupExpr("key_hash,ptr")
-
-	err = storage.DB.Model().Table(models.DocBigMapDiff).
-		Where("id IN (?)", query).
-		Select(&response)
-
-	return
+	return response, nil
 }
 
 // GetForOperation -
