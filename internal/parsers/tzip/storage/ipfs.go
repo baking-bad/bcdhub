@@ -90,8 +90,7 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 
 	for i := range s.gateways {
 		url := fmt.Sprintf("%s/ipfs/%s%s", s.gateways[i], ipfsURI.Host, ipfsURI.Path)
-		err := s.HTTPStorage.Get(url, output)
-		if err == nil {
+		if err := s.HTTPStorage.Get(url, output); err == nil {
 			s.cache.Set(value, output, MaxTTL)
 			return nil
 		}

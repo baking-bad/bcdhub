@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -63,7 +65,13 @@ func (s HTTPStorage) Get(value string, output interface{}) error {
 		return errors.Errorf("Invalid status code: %d", resp.StatusCode)
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(output); err != nil {
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return errors.Wrap(ErrJSONDecoding, err.Error())
+	}
+
+	data = bytes.ReplaceAll(data, []byte{'\u0000'}, []byte(`\u0000`))
+	if err := json.Unmarshal(data, output); err != nil {
 		return errors.Wrap(ErrJSONDecoding, err.Error())
 	}
 

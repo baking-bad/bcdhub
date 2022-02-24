@@ -203,7 +203,7 @@ func (m *TokenMetadata) Merge(second *TokenMetadata) {
 		m.Name = second.Name
 	}
 	if second.Description != "" {
-		m.Description = second.Description
+		m.Description = helpers.Escape(second.Description)
 	}
 	if second.ArtifactURI != "" {
 		m.ArtifactURI = second.ArtifactURI
