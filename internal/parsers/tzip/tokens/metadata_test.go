@@ -402,6 +402,66 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 				Extras:         map[string]interface{}{},
 			},
 			data: []byte(`{"name":"8-5","description":"dat\u0000\u0000\u0000\u0000\u0000™dy!\fTm¸4f\u001a\bB\u0005y´∫÷\u001aæj\u0010A!%ÕJV33cñâ¿ F*)R‰\u0002IV\u000f\u0013\u0002\u001cf@ÁìMX\u0012W/€*dZÜ$\u0001‘!¥\u0003ê¡(&\u000b≡///╱━━━━━------_____🔫","tags":["Glitch","gun","lines","🔫","9983","2021"],"symbol":"OBJKT","artifactUri":"ipfs://QmQ1KzkhbkPvnRrWczXoekG64bCZ5T2NT7dwuFS6qVCi69","displayUri":"","thumbnailUri":"ipfs://QmNrhZHUaEqxhyLfqoq1mtHSipkWHeT31LNHb1QEbDHgnc","creators":["tz1dAVKwbGe1PVnPBkRZYmYFsecDtTLHjHLK"],"formats":[{"uri":"ipfs://QmQ1KzkhbkPvnRrWczXoekG64bCZ5T2NT7dwuFS6qVCi69","mimeType":"video/mp4"}],"decimals":0,"isBooleanAmount":false,"shouldPreferSymbol":false}`),
+		}, {
+			name: "test ipfs 5",
+			data: []byte(`{"name":"ASCII Squigl #6","iterationHash":"opSHCwaLLUsTV2r15pwY6Pijr1NftAh7LdqCLYMMjkAw1pjx2hy","description":"fx({asciisquigl:'Squigls flowing through the Tezos Blockchain.'})\n\nASCII Squigls have 9 attributes and they are drawn to a 1000 x 1000 px canvas.\n\nSave image with 'S'\nStop animation with mouseclick","tags":["squiggle","squigl","hicetsquigl","ascii"],"generatorUri":"ipfs://QmXjGCuZPLH1W8YAupKqobNknhihDY38k5d8L4h7bM3Wxy","artifactUri":"ipfs://QmXjGCuZPLH1W8YAupKqobNknhihDY38k5d8L4h7bM3Wxy?fxhash=opSHCwaLLUsTV2r15pwY6Pijr1NftAh7LdqCLYMMjkAw1pjx2hy","displayUri":"ipfs://QmZD2gxEfK2JXGVoJqHurUxU9CgmLqKW6BCPtF5Sidp4mE","thumbnailUri":"ipfs://Qmehj9m1dnx5AqdbNEu7tRexjDhHYDGcF58NU4NcvCUqxn","authenticityHash":"b5784430923afe0ea3a124f3f0c6080d1585e11d83bd8948a82aacaf061f5df0","attributes":[{"name":"step","value":20},{"name":"theme","value":"Grayscale"},{"name":"color","value":"Grayscale"},{"name":"squigl_chars","value":23},{"name":"squigl_string","value":"£µ_\b9\u0019\u0003\u0000#88u;Dg»E+7*¥»"},{"name":"background_chars","value":12},{"name":"background_string","value":"f¥>\u0002\u0011cE3@["},{"name":"animation","value":"None"},{"name":"animation_speed","value":"DISABLED"}],"decimals":0,"symbol":"GENTK","version":"0.2"}`),
+			tm: TokenMetadata{
+				TokenID:         0,
+				Decimals:        getIntPtr(0),
+				Name:            "ASCII Squigl #6",
+				Symbol:          "GENTK",
+				Tags:            []string{"squiggle", "squigl", "hicetsquigl", "ascii"},
+				Description:     "fx({asciisquigl:'Squigls flowing through the Tezos Blockchain.'})\n\nASCII Squigls have 9 attributes and they are drawn to a 1000 x 1000 px canvas.\n\nSave image with 'S'\nStop animation with mouseclick",
+				IsBooleanAmount: false,
+				IsTransferable:  true,
+				ArtifactURI:     "ipfs://QmXjGCuZPLH1W8YAupKqobNknhihDY38k5d8L4h7bM3Wxy?fxhash=opSHCwaLLUsTV2r15pwY6Pijr1NftAh7LdqCLYMMjkAw1pjx2hy",
+				DisplayURI:      "ipfs://QmZD2gxEfK2JXGVoJqHurUxU9CgmLqKW6BCPtF5Sidp4mE",
+				ThumbnailURI:    "ipfs://Qmehj9m1dnx5AqdbNEu7tRexjDhHYDGcF58NU4NcvCUqxn",
+				Extras: map[string]interface{}{
+					"authenticityHash": "b5784430923afe0ea3a124f3f0c6080d1585e11d83bd8948a82aacaf061f5df0",
+					"generatorUri":     "ipfs://QmXjGCuZPLH1W8YAupKqobNknhihDY38k5d8L4h7bM3Wxy",
+					"iterationHash":    "opSHCwaLLUsTV2r15pwY6Pijr1NftAh7LdqCLYMMjkAw1pjx2hy",
+					"version":          "0.2",
+					"attributes": []interface{}{
+						map[string]interface{}{
+							"name":  "step",
+							"value": 20.,
+						},
+						map[string]interface{}{
+							"name":  "theme",
+							"value": "Grayscale",
+						},
+						map[string]interface{}{
+							"name":  "color",
+							"value": "Grayscale",
+						},
+						map[string]interface{}{
+							"name":  "squigl_chars",
+							"value": 23.,
+						},
+						map[string]interface{}{
+							"name":  "squigl_string",
+							"value": "£µ_\b9\x19\x03\x00#88u;Dg»E+7*¥»",
+						},
+						map[string]interface{}{
+							"name":  "background_chars",
+							"value": 12.,
+						},
+						map[string]interface{}{
+							"name":  "background_string",
+							"value": "f¥\u0080>\x02\x11cE3@[\u009a",
+						},
+						map[string]interface{}{
+							"name":  "animation",
+							"value": "None",
+						},
+						map[string]interface{}{
+							"name":  "animation_speed",
+							"value": "DISABLED",
+						},
+					},
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
