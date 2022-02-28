@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -48,6 +49,7 @@ func (o *Offchain) GetContractMetadata(ctx context.Context) (metadata []contract
 
 	for i := range metadata {
 		metadata[i].OffChain = true
+		metadata[i].Network = types.Mainnet
 	}
 	return
 }
