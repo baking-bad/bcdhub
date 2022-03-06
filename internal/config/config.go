@@ -36,6 +36,7 @@ type Config struct {
 		Networks        map[string]struct{} `yaml:"networks"`
 		ProjectName     string              `yaml:"project_name"`
 		SentryEnabled   bool                `yaml:"sentry_enabled"`
+		Cache           bool                `yaml:"cache"`
 		Connections     Connections         `yaml:"connections"`
 		OffchainBaseURL string              `yaml:"offchain_base_url"`
 	} `yaml:"indexer"`

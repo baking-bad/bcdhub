@@ -4,9 +4,13 @@ import (
 	"bytes"
 	stdJSON "encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -34,6 +38,7 @@ type NodeRPC struct {
 	client  *http.Client
 
 	timeout    time.Duration
+	cacheDir   string
 	retryCount int
 }
 
@@ -77,6 +82,18 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	return node
 }
 
+func (rpc *NodeRPC) cached() bool {
+	return rpc.cacheDir != ""
+}
+
+func (rpc *NodeRPC) cachePath(uri string) string {
+	return path.Join(rpc.cacheDir, uri)
+}
+
+func (rpc *NodeRPC) isHead(path string) bool {
+	return strings.Contains(path, "/head/")
+}
+
 func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) error {
 	switch {
 	case resp.StatusCode == http.StatusOK:
@@ -101,15 +118,32 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 	}
 }
 
-func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool, response interface{}) error {
+func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool, uri string, response interface{}) error {
 	if err := rpc.checkStatusCode(resp, checkStatusCode); err != nil {
 		return errors.Wrap(err, ErrNodeRPCError)
 	}
+
+	if rpc.cached() && uri != "" && !rpc.isHead(uri) {
+		cachePath := rpc.cachePath(uri)
+		dirPath := path.Dir(cachePath)
+		if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+			if err := os.MkdirAll(dirPath, 0700); err != nil {
+				return err
+			}
+		}
+		f, err := os.Create(cachePath)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		return json.NewDecoder(io.TeeReader(resp.Body, f)).Decode(response)
+	}
+
 	return json.NewDecoder(resp.Body).Decode(response)
 }
 
 func (rpc *NodeRPC) makeRequest(req *http.Request) (*http.Response, error) {
-
 	count := 0
 	for ; count < rpc.retryCount; count++ {
 		resp, err := rpc.client.Do(req)
@@ -148,13 +182,22 @@ func (rpc *NodeRPC) makePostRequest(uri string, data interface{}) (*http.Respons
 }
 
 func (rpc *NodeRPC) get(uri string, response interface{}) error {
+	if rpc.cached() && !rpc.isHead(uri) {
+		if f, err := os.Open(rpc.cachePath(uri)); err == nil {
+			defer f.Close()
+			if err := json.NewDecoder(f).Decode(response); err == nil {
+				return nil
+			}
+		}
+	}
+
 	resp, err := rpc.makeGetRequest(uri)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp, true, response)
+	return rpc.parseResponse(resp, true, uri, response)
 }
 
 func (rpc *NodeRPC) getRaw(uri string) ([]byte, error) {
@@ -178,7 +221,7 @@ func (rpc *NodeRPC) post(uri string, data interface{}, checkStatusCode bool, res
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp, checkStatusCode, response)
+	return rpc.parseResponse(resp, checkStatusCode, "", response)
 }
 
 // GetHead - get head
@@ -372,4 +415,17 @@ func (rpc *NodeRPC) GetBigMapType(ptr, level int64) (bm BigMap, err error) {
 func (rpc *NodeRPC) GetBlockMetadata(level int64) (metadata Metadata, err error) {
 	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/metadata", getBlockString(level)), &metadata)
 	return
+}
+
+// RollbackCache -
+func (rpc *NodeRPC) RollbackCache(level int64) error {
+	if !rpc.cached() {
+		return nil
+	}
+
+	dirPath := rpc.cachePath(fmt.Sprintf("chains/main/blocks/%d", level))
+	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+		return nil
+	}
+	return os.RemoveAll(dirPath)
 }

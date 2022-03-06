@@ -18,6 +18,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
@@ -25,6 +26,7 @@ import (
 
 // Manager -
 type Manager struct {
+	rpc           noderpc.INode
 	searcher      search.Searcher
 	storage       models.GeneralRepository
 	transfersRepo transfer.Repository
@@ -33,9 +35,9 @@ type Manager struct {
 }
 
 // NewManager -
-func NewManager(searcher search.Searcher, storage models.GeneralRepository, blockRepo block.Repository, bmdRepo bigmapdiff.Repository, transfersRepo transfer.Repository) Manager {
+func NewManager(rpc noderpc.INode, searcher search.Searcher, storage models.GeneralRepository, blockRepo block.Repository, bmdRepo bigmapdiff.Repository, transfersRepo transfer.Repository) Manager {
 	return Manager{
-		searcher, storage, transfersRepo, blockRepo, bmdRepo,
+		rpc, searcher, storage, transfersRepo, blockRepo, bmdRepo,
 	}
 }
 
@@ -74,6 +76,10 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, fromState block.Block
 			return rm.searcher.Rollback(fromState.Network.String(), toLevel)
 		})
 		if err != nil {
+			return err
+		}
+
+		if err := rm.rpc.RollbackCache(level); err != nil {
 			return err
 		}
 	}

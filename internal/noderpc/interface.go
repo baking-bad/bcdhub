@@ -19,4 +19,6 @@ type INode interface {
 	GetCounter(string) (int64, error)
 	GetBigMapType(ptr, level int64) (BigMap, error)
 	GetBlockMetadata(level int64) (metadata Metadata, err error)
+
+	RollbackCache(level int64) error
 }
