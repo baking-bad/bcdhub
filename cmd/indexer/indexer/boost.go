@@ -36,7 +36,7 @@ type BoostIndexer struct {
 	receiver        *Receiver
 	state           block.Block
 	currentProtocol protocol.Protocol
-	blocks          map[int64]Block
+	blocks          map[int64]*Block
 
 	updateTicker *time.Ticker
 	Network      types.Network
@@ -71,7 +71,7 @@ func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig 
 		Network:  network,
 		rpc:      rpc,
 		receiver: NewReceiver(rpc, 100, int64(receiverThreadsCount)),
-		blocks:   make(map[int64]Block),
+		blocks:   make(map[int64]*Block),
 	}
 
 	if err := bi.init(ctx, bi.Context.StorageDB); err != nil {
@@ -232,7 +232,7 @@ func (bi *BoostIndexer) Index(ctx context.Context, head noderpc.Header) error {
 	return nil
 }
 
-func (bi *BoostIndexer) handleBlock(ctx context.Context, block Block) error {
+func (bi *BoostIndexer) handleBlock(ctx context.Context, block *Block) error {
 	result := parsers.NewResult()
 	err := bi.StorageDB.DB.RunInTransaction(ctx,
 		func(tx *pg.Tx) error {
@@ -364,7 +364,7 @@ func (bi *BoostIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
 	return nil
 }
 
-func (bi *BoostIndexer) getDataFromBlock(block Block) (*parsers.Result, error) {
+func (bi *BoostIndexer) getDataFromBlock(block *Block) (*parsers.Result, error) {
 	result := parsers.NewResult()
 	if block.Header.Level <= 1 {
 		return result, nil

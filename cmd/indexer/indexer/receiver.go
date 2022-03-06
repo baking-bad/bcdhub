@@ -19,7 +19,7 @@ type Receiver struct {
 	rpc    noderpc.INode
 	queue  chan int64
 	failed chan int64
-	blocks chan Block
+	blocks chan *Block
 
 	threads chan struct{}
 	present map[int64]struct{}
@@ -36,7 +36,7 @@ func NewReceiver(rpc noderpc.INode, queueSize, threadsCount int64) *Receiver {
 		rpc:     rpc,
 		queue:   make(chan int64, queueSize),
 		failed:  make(chan int64, queueSize),
-		blocks:  make(chan Block, queueSize),
+		blocks:  make(chan *Block, queueSize),
 		threads: make(chan struct{}, threadsCount),
 		present: make(map[int64]struct{}),
 	}
@@ -59,7 +59,7 @@ func (r *Receiver) Start(ctx context.Context) {
 }
 
 // Blocks -
-func (r *Receiver) Blocks() <-chan Block {
+func (r *Receiver) Blocks() <-chan *Block {
 	return r.blocks
 }
 
@@ -111,7 +111,7 @@ func (r *Receiver) job(level int64) {
 			r.failed <- level
 			return
 		}
-		r.blocks <- block
+		r.blocks <- &block
 
 		r.mx.Lock()
 		delete(r.present, level)
