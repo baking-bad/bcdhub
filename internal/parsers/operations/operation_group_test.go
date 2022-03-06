@@ -81,6 +81,37 @@ func TestGroup_Parse(t *testing.T) {
 	defer ctrlRPC.Finish()
 	rpc := noderpc.NewMockINode(ctrlRPC)
 
+	rpc.
+		EXPECT().
+		GetScriptJSON("KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn", int64(0)).
+		DoAndReturn(readRPCScript).
+		AnyTimes()
+	rpc.
+		EXPECT().
+		GetScriptJSON("KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV", int64(0)).
+		DoAndReturn(readRPCScript).
+		AnyTimes()
+	rpc.
+		EXPECT().
+		GetScriptJSON("KT19at7rQUvyjxnZ2fBv7D9zc8rkyG7gAoU8", int64(0)).
+		DoAndReturn(readRPCScript).
+		AnyTimes()
+	rpc.
+		EXPECT().
+		GetScriptJSON("KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo", int64(0)).
+		DoAndReturn(readRPCScript).
+		AnyTimes()
+	rpc.
+		EXPECT().
+		GetScriptJSON("KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9", int64(0)).
+		DoAndReturn(readRPCScript).
+		AnyTimes()
+	rpc.
+		EXPECT().
+		GetScriptJSON("KT1S95Dyj2QrJpSnAbHRUSUZr7DhuFqssrog", int64(0)).
+		DoAndReturn(readRPCScript).
+		AnyTimes()
+
 	cmRepo.
 		EXPECT().
 		GetWithEvents(gomock.Any()).

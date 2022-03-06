@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
+	"github.com/baking-bad/bcdhub/internal/events/contracts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -45,6 +46,7 @@ type Parser struct {
 }
 
 var globalEvents *TokenEvents
+var contractHandlers ContractHandlers
 
 // NewParser -
 func NewParser(rpc noderpc.INode, cmRepo contract_metadata.Repository, blocks block.Repository, tokenBalances tokenbalance.Repository, accounts account.Repository, opts ...ParserOption) (*Parser, error) {
@@ -68,6 +70,15 @@ func NewParser(rpc noderpc.INode, cmRepo contract_metadata.Repository, blocks bl
 }
 
 func (p *Parser) initialize() {
+	if contractHandlers == nil && p.network == modelTypes.Mainnet {
+		ch, err := NewContractHandlers(p.rpc)
+		if err != nil {
+			logger.Error().Err(err).Msg("create contract handlers")
+		} else {
+			contractHandlers = ch
+		}
+	}
+
 	switch {
 	case p.withoutViews && globalEvents == nil:
 		globalEvents = EmptyTokenEvents()
@@ -103,6 +114,12 @@ func (p *Parser) Parse(diffs []*bigmapdiff.BigMapDiff, protocol string, operatio
 		p.level = operation.Level
 	}
 
+	if ch, ok := contractHandlers[operation.Destination.Address]; ok && operation.IsApplied() {
+		if ch.HasHandler(operation.Entrypoint.String()) {
+			return p.executeContractHandler(ch, operation)
+		}
+	}
+
 	if impl, name, ok := globalEvents.GetByOperation(*operation); ok {
 		return p.executeEvents(impl, name, protocol, diffs, operation)
 	}
@@ -115,6 +132,23 @@ func (p *Parser) Parse(diffs []*bigmapdiff.BigMapDiff, protocol string, operatio
 			return p.makeFA12Transfers(operation)
 		}
 	}
+	return nil
+}
+
+func (p *Parser) executeContractHandler(ch contracts.Contract, operation *operation.Operation) error {
+	balances, err := ch.Handler(types.NewParameters(operation.Parameters))
+	if err != nil {
+		return err
+	}
+
+	if len(balances) > 0 {
+		operation.Transfers, err = NewDefaultBalanceParser(p.tokenBalances, p.accounts).Parse(balances, *operation)
+		if err != nil {
+			return err
+		}
+		p.transferPostprocessing(operation)
+	}
+
 	return nil
 }
 

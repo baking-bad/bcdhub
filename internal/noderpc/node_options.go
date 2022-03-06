@@ -1,6 +1,9 @@
 package noderpc
 
-import "time"
+import (
+	"path"
+	"time"
+)
 
 // NodeOption -
 type NodeOption func(*NodeRPC)
@@ -16,5 +19,12 @@ func WithTimeout(timeout time.Duration) NodeOption {
 func WithRetryCount(retryCount int) NodeOption {
 	return func(node *NodeRPC) {
 		node.retryCount = retryCount
+	}
+}
+
+// WithCache -
+func WithCache(cacheDir, network string) NodeOption {
+	return func(node *NodeRPC) {
+		node.cacheDir = path.Join(cacheDir, "rpc", network)
 	}
 }

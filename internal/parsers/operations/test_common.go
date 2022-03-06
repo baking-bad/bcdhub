@@ -18,6 +18,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -38,6 +39,22 @@ func readJSONFile(name string, response interface{}) error {
 func readTestScript(network types.Network, address, symLink string) ([]byte, error) {
 	path := filepath.Join("./test/contracts", network.String(), fmt.Sprintf("%s_%s.json", address, symLink))
 	return ioutil.ReadFile(path)
+}
+
+func readRPCScript(address string, _ int64) (noderpc.Script, error) {
+	var script noderpc.Script
+	storageFile := fmt.Sprintf("./data/rpc/script/script/%s.json", address)
+	if _, err := os.Lstat(storageFile); !os.IsNotExist(err) {
+		f, err := os.Open(storageFile)
+		if err != nil {
+			return script, err
+		}
+		defer f.Close()
+
+		err = json.NewDecoder(f).Decode(&script)
+		return script, err
+	}
+	return script, errors.Errorf("unknown RPC script: %s", address)
 }
 
 func readTestScriptModel(network types.Network, address, symLink string) (contract.Script, error) {

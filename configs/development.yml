@@ -40,9 +40,6 @@ ipfs:
   - https://ipfs.io
   - https://dweb.link
 
-domains:
-  mainnet: KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS
-
 api:
   project_name: api
   bind: "127.0.0.1:14000"
@@ -71,6 +68,7 @@ indexer:
   sentry_enabled: false
   skip_delegator_blocks: true
   offchain_base_url: ${OFFCHAIN_BASE_URL}
+  cache: true
   networks:
     mainnet:
     hangzhou2net:
