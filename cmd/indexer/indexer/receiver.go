@@ -86,7 +86,7 @@ func (r *Receiver) get(level int64) (Block, error) {
 	if err != nil {
 		return Block{}, err
 	}
-	if level == 0 {
+	if level < 2 {
 		return Block{header, make([]noderpc.LightOperationGroup, 0)}, nil
 	}
 	opg, err := r.rpc.GetLightOPG(level)
@@ -107,7 +107,7 @@ func (r *Receiver) job(level int64) {
 
 		block, err := r.get(level)
 		if err != nil {
-			logger.Error().Err(err).Msg("Receiver.get")
+			logger.Error().Int64("block", level).Err(err).Msg("Receiver.get")
 			r.failed <- level
 			return
 		}
