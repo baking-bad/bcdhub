@@ -10,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -104,7 +103,7 @@ func (bi *BoostIndexer) init(ctx context.Context, db *core.Postgres) error {
 			return err
 		}
 
-		if err := bi.Storage.Save(ctx, []models.Model{&currentProtocol}); err != nil {
+		if err := currentProtocol.Save(db.DB); err != nil {
 			return err
 		}
 	}

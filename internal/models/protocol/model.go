@@ -42,7 +42,7 @@ func (p *Protocol) GetIndex() string {
 // Save -
 func (p *Protocol) Save(tx pg.DBI) error {
 	_, err := tx.Model(p).
-		OnConflict("(id) DO UPDATE").
+		OnConflict("(hash, network) DO UPDATE").
 		Set("end_level = ?", p.EndLevel).
 		Returning("id").Insert()
 	return err
