@@ -363,11 +363,11 @@ func (ctx *Context) addSupply(metadata []tokenmetadata.TokenMetadata) ([]Token, 
 		}
 		t.Supply = supply
 
-		transfered, err := ctx.Transfers.GetTransfered(token.Network, token.Contract, token.TokenID)
+		transferred, err := ctx.Transfers.GetTransfered(token.Network, token.Contract, token.TokenID)
 		if err != nil {
 			return nil, err
 		}
-		t.Transfered = transfered
+		t.Transferred = transferred
 
 		tokens = append(tokens, t)
 	}

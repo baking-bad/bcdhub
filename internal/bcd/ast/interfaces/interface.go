@@ -50,7 +50,7 @@ func GetAll() (map[string]ContractInterface, error) {
 func GetMethods(name string) ([]string, error) {
 	i, ok := all[name]
 	if !ok {
-		return nil, errors.Errorf("Unknwon interface name: %s", name)
+		return nil, errors.Errorf("Unknown interface name: %s", name)
 	}
 	var ci ContractInterface
 	if err := json.UnmarshalFromString(i.GetContractInterface(), &ci); err != nil {

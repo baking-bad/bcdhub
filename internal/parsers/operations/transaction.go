@@ -106,7 +106,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 						return err
 					}
 				default:
-					return errors.Errorf("unknwon protocol symbolic link: %s", p.protocol.SymLink)
+					return errors.Errorf("unknown protocol symbolic link: %s", p.protocol.SymLink)
 				}
 			}
 		}

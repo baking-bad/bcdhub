@@ -21,7 +21,7 @@ type Scorable interface {
 	Parse(highlight map[string][]string, data []byte) (*Item, error)
 }
 
-// Indices - list of indices availiable to search
+// Indices - list of indices available to search
 var Indices = []string{
 	models.DocContracts,
 	models.DocOperations,

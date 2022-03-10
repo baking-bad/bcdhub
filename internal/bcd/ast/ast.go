@@ -342,7 +342,7 @@ func (a *TypedAst) Diff(b *TypedAst) (*MiguelNode, error) {
 	return nil, nil
 }
 
-// FromParameters - fill(settle) subtree in `a` with `data`. Returned settled subtree and error if occured. If `entrypoint` is empty string it will try to settle main tree.
+// FromParameters - fill(settle) subtree in `a` with `data`. Returned settled subtree and error if occurred. If `entrypoint` is empty string it will try to settle main tree.
 func (a *TypedAst) FromParameters(data *types.Parameters) (*TypedAst, error) {
 	var tree UntypedAST
 	if err := json.Unmarshal(data.Value, &tree); err != nil {
@@ -423,7 +423,7 @@ func (a *TypedAst) GetJSONModel(model JSONModel) {
 	}
 }
 
-// Unwrap - clear paramaters from Left/Right. Tree must be settled.
+// Unwrap - clear parameters from Left/Right. Tree must be settled.
 func (a *TypedAst) UnwrapAndGetEntrypointName() (Node, string) {
 	if !a.IsSettled() || len(a.Nodes) != 1 {
 		return nil, ""
