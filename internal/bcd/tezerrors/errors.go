@@ -502,7 +502,7 @@ var errorsDescrs = `{
         "descr": "The sum of gas consumed by all the operations in the block exceeds the hard gas limit per block"
     },
     "gas_exhausted.init_deserialize": {
-        "title": "Not enough gas for initial deserialization of script expresions",
+        "title": "Not enough gas for initial deserialization of script expressions",
         "descr": "Gas limit was not high enough to deserialize the transaction parameters or origination script code or initial storage, making the operation impossible to parse within the provided gas bounds."
     },
     "gas_exhausted.operation": {
@@ -583,7 +583,7 @@ var errorsDescrs = `{
     },
     "invalidMapBlockFail": {
         "title": "FAIL instruction occurred as body of map block",
-        "descr": "FAIL cannot be the only instruction in the body. The propper type of the return list cannot be inferred."
+        "descr": "FAIL cannot be the only instruction in the body. The proper type of the return list cannot be inferred."
     },
     "invalidMapBody": {
         "title": "Invalid map body",
@@ -839,7 +839,7 @@ var errorsDescrs = `{
     },
     "michelson_v1.invalid_map_block_fail": {
         "title": "FAIL instruction occurred as body of map block",
-        "descr": "FAIL cannot be the only instruction in the body. The propper type of the return list cannot be inferred."
+        "descr": "FAIL cannot be the only instruction in the body. The proper type of the return list cannot be inferred."
     },
     "michelson_v1.invalid_map_body": {
         "title": "Invalid map body",
@@ -1059,7 +1059,7 @@ var errorsDescrs = `{
     },
     "node.state.block.inconsistent_context_hash": {
         "title": "Inconsistent commit hash",
-        "descr": "When commiting the context of a block, the announced context hash was not the one computed at commit time."
+        "descr": "When committing the context of a block, the announced context hash was not the one computed at commit time."
     },
     "node.state.block_not_invalid": {
         "title": "Block not invalid",
@@ -1239,7 +1239,7 @@ var errorsDescrs = `{
     },
     "timestamp_sub": {
         "title": "Timestamp sub",
-        "descr": "Substracting timestamps resulted in negative period."
+        "descr": "Subtracting timestamps resulted in negative period."
     },
     "too_many_internal_operations": {
         "title": "Too many internal operations",
@@ -1271,7 +1271,7 @@ var errorsDescrs = `{
     },
     "undefined_operation_nonce": {
         "title": "Ill timed access to the origination nonce",
-        "descr": "An origination was attemped out of the scope of a manager operation"
+        "descr": "An origination was attempted out of the scope of a manager operation"
     },
     "unexpectedAnnotation": {
         "title": "An annotation was encountered where no annotation is expected",

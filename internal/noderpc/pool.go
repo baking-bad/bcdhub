@@ -67,7 +67,7 @@ func (p Pool) getNode() (*poolItem, error) {
 	}
 
 	if len(nodes) == 0 {
-		return nil, errors.Errorf("No availiable nodes")
+		return nil, errors.Errorf("No available nodes")
 	}
 
 	return nodes[rand.Intn(len(nodes))], nil

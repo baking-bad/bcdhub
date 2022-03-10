@@ -23,8 +23,7 @@ func EncodeFromHex(input string, prefix []byte) (string, error) {
 
 // EncodeFromBytes - encodes bytes slice to base58 with prefix
 func EncodeFromBytes(input, prefix []byte) string {
-	payload := append(prefix[1:], input...)
-	return base58.CheckEncode(payload, prefix[0])
+	return base58.CheckEncode(append(prefix[1:], input...), prefix[0])
 }
 
 // DecodeToHex - decodes hex string from base58 with prefix

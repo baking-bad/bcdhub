@@ -9,7 +9,7 @@ const defaultGrammar = `
 	annot          <- < Annot >
 	args           <- (arg+)
 	arg            <- prim / Byte / Int / String / complex_instr / (LeftParen expr RightParen)
-	prim           <- < Alpha Accessable+ >
+	prim           <- < Alpha Accessible+ >
 	
 	Int        <- < Minus? Digit+ >
 	Byte       <- < HexPrefix Hex+ >
@@ -30,7 +30,7 @@ const defaultGrammar = `
 	StringContent <- [_a-zA-Z0-9- /:,.'()*+><=!^?%$;#№@~{}[\]]	
 	Hex           <- [A-F0-9a-f]
 	Alpha         <- [a-zA-Z]
-	Accessable    <- [A-Za-z0-9_]
+	Accessible    <- [A-Za-z0-9_]
 	Digit         <- [0-9]
 	HexPrefix     <- '0' 'x'
 	AnnotPrefix   <- [:@%]

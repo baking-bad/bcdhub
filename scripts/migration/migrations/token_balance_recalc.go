@@ -56,7 +56,7 @@ func (m *TokenBalanceRecalc) Do(ctx *config.Context) error {
 // Recalc -
 func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network types.Network, address string) error {
 	if !helpers.StringInArray(network.String(), ctx.Config.Scripts.Networks) {
-		return errors.Errorf("Invalid network: `%s`. Availiable values: %s", network, strings.Join(ctx.Config.Scripts.Networks, ","))
+		return errors.Errorf("Invalid network: `%s`. Available values: %s", network, strings.Join(ctx.Config.Scripts.Networks, ","))
 	}
 
 	if !bcd.IsContract(address) {

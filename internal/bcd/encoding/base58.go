@@ -173,9 +173,7 @@ func EncodeBase58(data, prefix []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	b := append(enc.DecodedPrefix, data...)
-
-	return base58Enc.CheckEncode(b), nil
+	return base58Enc.CheckEncode(append(enc.DecodedPrefix, data...)), nil
 }
 
 // EncodeBase58String -

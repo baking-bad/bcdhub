@@ -106,7 +106,7 @@ func listPolicies(storage search.Searcher) error {
 	}
 
 	fmt.Println("")
-	fmt.Println("Availiable snapshot policies")
+	fmt.Println("Available snapshot policies")
 	fmt.Println("=======================================")
 	for i := range policies {
 		fmt.Println(policies[i])
@@ -122,7 +122,7 @@ func listRepositories(storage search.Searcher) error {
 	}
 
 	fmt.Println("")
-	fmt.Println("Availiable repositories")
+	fmt.Println("Available repositories")
 	fmt.Println("=======================================")
 	for i := range listRepos {
 		fmt.Print(listRepos[i].String())

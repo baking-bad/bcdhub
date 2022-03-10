@@ -4,8 +4,12 @@ linters:
     - goconst
     - gocritic
     - gofmt
-    - interfacer
-    - maligned
+    - govet
     - prealloc
     - unconvert
     - unparam
+    - deadcode
+    - gosimple
+    - structcheck
+    - varcheck
+    - unused
