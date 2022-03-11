@@ -72,8 +72,11 @@ indexer:
   cache: true
   networks:
     mainnet:
+      receiver_threads: 20
     hangzhou2net:
+      receiver_threads: 2
     ithacanet:
+      receiver_threads: 2
   connections:
     max: 5
     idle: 5

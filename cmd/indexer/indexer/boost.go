@@ -44,7 +44,7 @@ type BoostIndexer struct {
 }
 
 // NewBoostIndexer -
-func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig config.RPCConfig, network types.Network) (*BoostIndexer, error) {
+func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig config.RPCConfig, network types.Network, cfg config.IndexerConfig) (*BoostIndexer, error) {
 	logger.Info().Str("network", network.String()).Msg("Creating indexer object...")
 
 	rpcOpts := []noderpc.NodeOption{
@@ -60,16 +60,11 @@ func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig 
 		rpcOpts...,
 	)
 
-	receiverThreadsCount := 2
-	if types.Mainnet == network {
-		receiverThreadsCount = 10
-	}
-
 	bi := &BoostIndexer{
 		Context:  &internalCtx,
 		Network:  network,
 		rpc:      rpc,
-		receiver: NewReceiver(rpc, 100, int64(receiverThreadsCount)),
+		receiver: NewReceiver(rpc, 100, cfg.ReceiverThreads),
 		blocks:   make(map[int64]*Block),
 	}
 
@@ -429,7 +424,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
 				newProtocol.SymLink, bi.currentProtocol.Alias, newProtocol.Alias)
 		}
 
-		if err := bi.implicitMigration(head, tx); err != nil {
+		if err := bi.implicitMigration(head, newProtocol, tx); err != nil {
 			return err
 		}
 	}
@@ -441,12 +436,12 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
 	return nil
 }
 
-func (bi *BoostIndexer) implicitMigration(head noderpc.Header, tx pg.DBI) error {
+func (bi *BoostIndexer) implicitMigration(head noderpc.Header, protocol protocol.Protocol, tx pg.DBI) error {
 	metadata, err := bi.rpc.GetBlockMetadata(head.Level)
 	if err != nil {
 		return err
 	}
-	implicitParser := migrations.NewImplicitParser(bi.Context, bi.Network, bi.rpc, bi.currentProtocol)
+	implicitParser := migrations.NewImplicitParser(bi.Context, bi.Network, bi.rpc, protocol)
 	implicitResult, err := implicitParser.Parse(metadata, head)
 	if err != nil {
 		return err

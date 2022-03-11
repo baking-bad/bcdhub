@@ -33,12 +33,12 @@ type Config struct {
 	API APIConfig `yaml:"api"`
 
 	Indexer struct {
-		Networks        map[string]struct{} `yaml:"networks"`
-		ProjectName     string              `yaml:"project_name"`
-		SentryEnabled   bool                `yaml:"sentry_enabled"`
-		Cache           bool                `yaml:"cache"`
-		Connections     Connections         `yaml:"connections"`
-		OffchainBaseURL string              `yaml:"offchain_base_url"`
+		Networks        map[string]IndexerConfig `yaml:"networks"`
+		ProjectName     string                   `yaml:"project_name"`
+		SentryEnabled   bool                     `yaml:"sentry_enabled"`
+		Cache           bool                     `yaml:"cache"`
+		Connections     Connections              `yaml:"connections"`
+		OffchainBaseURL string                   `yaml:"offchain_base_url"`
 	} `yaml:"indexer"`
 
 	Metrics struct {
@@ -53,6 +53,11 @@ type Config struct {
 		Networks    []string    `yaml:"networks"`
 		Connections Connections `yaml:"connections"`
 	} `yaml:"scripts"`
+}
+
+// IndexerConfig -
+type IndexerConfig struct {
+	ReceiverThreads int64 `yaml:"receiver_threads"`
 }
 
 // RPCConfig -
