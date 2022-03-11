@@ -237,7 +237,7 @@ func (rpc *NodeRPC) GetLevel() (int64, error) {
 
 // GetHeader - get head for certain level
 func (rpc *NodeRPC) GetHeader(level int64) (header Header, err error) {
-	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/header", getBlockString(level)), true, &header)
+	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/header", getBlockString(level)), level > 0, &header)
 	return
 }
 
