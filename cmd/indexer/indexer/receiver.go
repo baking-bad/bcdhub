@@ -32,6 +32,9 @@ func NewReceiver(rpc noderpc.INode, queueSize, threadsCount int64) *Receiver {
 	if queueSize == 0 || queueSize > 100 {
 		queueSize = 10
 	}
+	if threadsCount == 0 {
+		threadsCount = 2
+	}
 	return &Receiver{
 		rpc:     rpc,
 		queue:   make(chan int64, queueSize),
