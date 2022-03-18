@@ -102,7 +102,17 @@ func (ss *SaplingState) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	if !ok {
 		return nil, nil
 	}
-	return ss.Default.Distinguish(&second.Default)
+	node, err := ss.Default.ToMiguel()
+	if err != nil {
+		return nil, err
+	}
+	node.Children = make([]*MiguelNode, 0)
+	child, err := ss.Type.Distinguish(second.Type)
+	if err != nil {
+		return nil, err
+	}
+	node.Children = append(node.Children, child)
+	return node, nil
 }
 
 // EqualType -
