@@ -48,11 +48,12 @@ func NewReceiver(rpc noderpc.INode, queueSize, threadsCount int64) *Receiver {
 // AddTask -
 func (r *Receiver) AddTask(level int64) {
 	r.mx.Lock()
+	defer r.mx.Unlock()
+
 	if _, ok := r.present[level]; ok {
 		return
 	}
 	r.present[level] = struct{}{}
-	r.mx.Unlock()
 	r.queue <- level
 }
 
