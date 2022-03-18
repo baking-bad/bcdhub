@@ -26,13 +26,13 @@ func (x *listServicesCommand) Execute(_ []string) error {
 		var lastID int64
 		query := ctx.StorageDB.DB.Model()
 		switch s.Name {
-		case "projects":
+		case "projects", "contracts":
 			if id, ok := ids[models.DocContracts]; ok {
 				lastID = id
 			} else {
 				query.Table(models.DocContracts)
 			}
-		case "contract_metadata", "token_metadata", "tezos_domains", "big_map_diffs":
+		case "contract_metadata", "token_metadata", "big_map_diffs":
 			if id, ok := ids[models.DocBigMapDiff]; ok {
 				lastID = id
 			} else {
