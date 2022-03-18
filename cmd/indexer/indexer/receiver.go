@@ -23,7 +23,7 @@ type Receiver struct {
 
 	threads chan struct{}
 	present map[int64]struct{}
-	mx      sync.Mutex
+	mx      sync.RWMutex
 	wg      sync.WaitGroup
 }
 
@@ -47,14 +47,19 @@ func NewReceiver(rpc noderpc.INode, queueSize, threadsCount int64) *Receiver {
 
 // AddTask -
 func (r *Receiver) AddTask(level int64) {
-	r.mx.Lock()
-	defer r.mx.Unlock()
-
+	r.mx.RLock()
 	if _, ok := r.present[level]; ok {
+		r.mx.RUnlock()
 		return
 	}
-	r.present[level] = struct{}{}
-	r.queue <- level
+	r.mx.RUnlock()
+
+	r.mx.Lock()
+	{
+		r.present[level] = struct{}{}
+		r.queue <- level
+	}
+	r.mx.Unlock()
 }
 
 // Start -
@@ -118,7 +123,9 @@ func (r *Receiver) job(level int64) {
 		r.blocks <- &block
 
 		r.mx.Lock()
-		delete(r.present, level)
+		{
+			delete(r.present, level)
+		}
 		r.mx.Unlock()
 	}()
 }

@@ -1061,6 +1061,12 @@ func TestTypedAst_Diff(t *testing.T) {
 			curr: `[{"prim":"Pair","args":[{"bytes":"000002"},{"prim":"Some","args":[{"string":"expruN32WETsB2Dx1AynDmMufVr1As9qdnjRxKQ82rk2qZ4uxuKVMK"}]}]}]`,
 			prev: `[]`,
 			want: `{"prim":"list","type":"list","name":"@list_1","children":[{"prim":"pair","type":"namedtuple","name":"@pair_2","diff_type":"create","children":[{"prim":"sapling_transaction","type":"sapling_transaction","name":"@sapling_transaction_3","diff_type":"create","value":"000002"},{"prim":"key_hash","type":"key_hash","name":"@key_hash_5","diff_type":"create","value":"expruN32WETsB2Dx1AynDmMufVr1As9qdnjRxKQ82rk2qZ4uxuKVMK"}]}]}`,
+		}, {
+			name: "ithacanet/KT1Ndofgeqti5nRHtV96No9RswGm93Efn743/entrypoint_0 sapling state",
+			tree: `{"prim":"sapling_state","args":[{"int":"8"}]}`,
+			curr: `{"int":"785"}`,
+			prev: `{"int":"785"}`,
+			want: `{"prim":"sapling_state","type":"sapling_state","name":"@sapling_state_1","children":[{"prim":"int","type":"int","name":"@int_0","value":"785"}]}`,
 		},
 	}
 	for _, tt := range tests {
