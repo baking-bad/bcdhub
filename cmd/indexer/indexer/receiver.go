@@ -57,9 +57,9 @@ func (r *Receiver) AddTask(level int64) {
 	r.mx.Lock()
 	{
 		r.present[level] = struct{}{}
-		r.queue <- level
 	}
 	r.mx.Unlock()
+	r.queue <- level
 }
 
 // Start -
