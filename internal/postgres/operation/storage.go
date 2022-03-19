@@ -27,7 +27,7 @@ func NewStorage(es *core.Postgres) *Storage {
 
 type opgForContract struct {
 	Counter int64
-	Hash    string
+	Hash    *string
 	ID      int64
 }
 
@@ -89,8 +89,12 @@ func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters m
 	query := storage.DB.Model((*operation.Operation)(nil)).Where("operation.network = ?", acc.Network).WhereGroup(func(q *orm.Query) (*orm.Query, error) {
 		for i := range opg {
 			q.WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
-				q.Where("operation.hash = ?", opg[i].Hash).Where("operation.counter = ?", opg[i].Counter)
-				return q, nil
+				if opg[i].Hash == nil {
+					q.Where("operation.hash is null")
+				} else {
+					q.Where("operation.hash = ?", opg[i].Hash)
+				}
+				return q.Where("operation.counter = ?", opg[i].Counter), nil
 			})
 		}
 		return q, nil

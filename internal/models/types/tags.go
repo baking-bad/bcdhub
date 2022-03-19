@@ -38,6 +38,8 @@ func NewTags(value []string) Tags {
 			t.Set(ViewNatTag)
 		case LedgerStringTag:
 			t.Set(LedgerTag)
+		case ImplicitOperationStringTag:
+			t.Set(ImplicitOperationTag)
 		}
 	}
 	return t
@@ -62,6 +64,7 @@ func (t Tags) ToArray() []string {
 		ViewBalanceOfTag,
 		ViewNatTag,
 		LedgerTag,
+		ImplicitOperationTag,
 	} {
 		if t.Has(tag) {
 			switch tag {
@@ -95,6 +98,9 @@ func (t Tags) ToArray() []string {
 				value = append(value, ViewNatStringTag)
 			case LedgerTag:
 				value = append(value, LedgerStringTag)
+			case ImplicitOperationTag:
+				value = append(value, ImplicitOperationStringTag)
+
 			}
 		}
 	}
@@ -115,21 +121,22 @@ func (t *Tags) Has(flag Tags) bool { return *t&flag != 0 }
 
 // Tags name
 const (
-	ContractFactoryStringTag = "CREATE_CONTRACT"
-	DelegatableStringTag     = "SET_DELEGATE"
-	DelegatorStringTag       = "delegator"
-	ChainAwareStringTag      = "CHAIN_ID"
-	CheckSigStringTag        = "CHECK_SIGNATURE"
-	SaplingStringTag         = "sapling"
-	FA1StringTag             = "fa1"
-	FA12StringTag            = "fa1-2"
-	FA2StringTag             = "fa2"
-	UpgradableStringTag      = "upgradable"
-	MultisigStringTag        = "multisig"
-	ViewAddressStringTag     = "view_address"
-	ViewBalanceOfStringTag   = "view_balance_of"
-	ViewNatStringTag         = "view_nat"
-	LedgerStringTag          = "ledger"
+	ContractFactoryStringTag   = "CREATE_CONTRACT"
+	DelegatableStringTag       = "SET_DELEGATE"
+	DelegatorStringTag         = "delegator"
+	ChainAwareStringTag        = "CHAIN_ID"
+	CheckSigStringTag          = "CHECK_SIGNATURE"
+	SaplingStringTag           = "sapling"
+	FA1StringTag               = "fa1"
+	FA12StringTag              = "fa1-2"
+	FA2StringTag               = "fa2"
+	UpgradableStringTag        = "upgradable"
+	MultisigStringTag          = "multisig"
+	ViewAddressStringTag       = "view_address"
+	ViewBalanceOfStringTag     = "view_balance_of"
+	ViewNatStringTag           = "view_nat"
+	LedgerStringTag            = "ledger"
+	ImplicitOperationStringTag = "implicit_operation"
 )
 
 // Tags
@@ -149,4 +156,5 @@ const (
 	ViewBalanceOfTag
 	ViewNatTag
 	LedgerTag
+	ImplicitOperationTag
 )

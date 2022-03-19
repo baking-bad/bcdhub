@@ -335,7 +335,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 			if err != nil {
 				return op, err
 			}
-			if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
+			if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination() || operation.Hash == "") && operation.IsApplied() {
 				if err := ctx.setStorageDiff(operation.DestinationID, operation.DeffatedStorage, &op, bmd, storageType); err != nil {
 					return op, err
 				}

@@ -6,7 +6,7 @@ import (
 )
 
 func (ctx *Context) getScript(network types.Network, address, symLink string) (*ast.Script, error) {
-	data, err := ctx.getScriptBytes(network, address, symLink)
+	data, err := ctx.Cache.ScriptBytes(network, address, symLink)
 	if err != nil {
 		return nil, err
 	}

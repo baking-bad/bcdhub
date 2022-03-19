@@ -76,7 +76,9 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.Kind = operation.Kind.String()
 	o.Source = operation.Source.Address
 	o.Fee = operation.Fee
-	o.Counter = operation.Counter
+	if o.Hash != "" {
+		o.Counter = operation.Counter
+	}
 	o.GasLimit = operation.GasLimit
 	o.StorageLimit = operation.StorageLimit
 	o.Amount = operation.Amount
