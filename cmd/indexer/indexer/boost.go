@@ -240,6 +240,10 @@ func (bi *BoostIndexer) handleBlock(ctx context.Context, block *Block) error {
 				}
 			}
 
+			if err := bi.implicitMigration(block.Header, bi.currentProtocol, tx); err != nil {
+				return err
+			}
+
 			res, err := bi.getDataFromBlock(block)
 			if err != nil {
 				return err
@@ -424,9 +428,6 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
 				newProtocol.SymLink, bi.currentProtocol.Alias, newProtocol.Alias)
 		}
 
-		if err := bi.implicitMigration(head, newProtocol, tx); err != nil {
-			return err
-		}
 	}
 
 	bi.currentProtocol = newProtocol
