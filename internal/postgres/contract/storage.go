@@ -340,3 +340,16 @@ func (storage *Storage) ScriptPart(network types.Network, address string, symLin
 	err := query.Select(pg.Scan(&data))
 	return data, err
 }
+
+// RecentlyCalled -
+func (storage *Storage) RecentlyCalled(network types.Network, offset, size int64) (contracts []contract.Contract, err error) {
+	err = storage.DB.Model((*contract.Contract)(nil)).
+		ColumnExpr("contract.network, contract.id, contract.tx_count, contract.last_action, contract.account_id").
+		ColumnExpr("account.address as account__address, account.alias as account__alias").
+		Where("contract.network = ?", network).
+		Offset(int(offset)).Limit(int(size)).
+		OrderExpr("contract.id desc, contract.tx_count desc").
+		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
+		Select(&contracts)
+	return
+}

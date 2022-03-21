@@ -111,6 +111,7 @@ func (api *app) makeRouter() {
 				networkStats.GET("", cache.CachePage(store, time.Minute*10, api.Context.GetNetworkStats))
 				networkStats.GET("series", cache.CachePage(store, time.Minute*10, api.Context.GetSeries))
 				networkStats.GET("contracts", cache.CachePage(store, time.Minute*10, api.Context.GetContractsStats))
+				networkStats.GET("recently_called_contracts", cache.CachePage(store, time.Second*10, api.Context.RecentlyCalledContracts))
 			}
 		}
 

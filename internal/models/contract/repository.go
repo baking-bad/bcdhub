@@ -8,6 +8,7 @@ type Repository interface {
 	GetMany(network types.Network) ([]Contract, error)
 	GetRandom(networks ...types.Network) (Contract, error)
 	GetTokens(network types.Network, tokenInterface string, offset, size int64) ([]Contract, int64, error)
+	RecentlyCalled(network types.Network, offset, size int64) ([]Contract, error)
 
 	GetSameContracts(contact Contract, manager string, size, offset int64) (SameResponse, error)
 	GetSimilarContracts(Contract, int64, int64) ([]Similar, int, error)

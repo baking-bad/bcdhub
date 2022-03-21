@@ -17,7 +17,7 @@ import (
 // @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} Contract
+// @Success 200 {object} ContractWithStats
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
@@ -39,7 +39,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 		return
 	}
 
-	res, err := ctx.contractPostprocessing(contract)
+	res, err := ctx.contractWithStatsPostprocessing(contract)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -54,7 +54,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 // @Param network query string false "Network"
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} Contract
+// @Success 200 {object} ContractWithStats
 // @Success 204 {object} gin.H
 // @Failure 500 {object} Error
 // @Router /v1/pick_random [get]
@@ -80,7 +80,7 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 		return
 	}
 
-	res, err := ctx.contractPostprocessing(contract)
+	res, err := ctx.contractWithStatsPostprocessing(contract)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -91,18 +91,25 @@ func (ctx *Context) contractPostprocessing(contract contract.Contract) (Contract
 	var res Contract
 	res.FromModel(contract)
 
-	if alias, err := ctx.ContractMetadata.Get(contract.Network, contract.Account.Address); err == nil {
+	if alias, err := ctx.Cache.ContractMetadata(contract.Network, contract.Account.Address); err == nil && alias != nil {
 		res.Slug = alias.Slug
 	} else if !ctx.Storage.IsRecordNotFound(err) {
 		return res, err
 	}
+	return res, nil
+}
 
+func (ctx *Context) contractWithStatsPostprocessing(contract contract.Contract) (ContractWithStats, error) {
+	c, err := ctx.contractPostprocessing(contract)
+	if err != nil {
+		return ContractWithStats{}, err
+	}
+	res := ContractWithStats{c, 0, 0}
 	stats, err := ctx.Contracts.Stats(contract)
 	if err != nil {
 		return res, err
 	}
 	res.SameCount = stats.SameCount
 	res.SimilarCount = stats.SimilarCount
-
 	return res, nil
 }

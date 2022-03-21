@@ -164,9 +164,6 @@ type Contract struct {
 	Alias           string    `json:"alias,omitempty" extensions:"x-nullable"`
 	DelegateAlias   string    `json:"delegate_alias,omitempty" extensions:"x-nullable"`
 	Slug            string    `json:"slug,omitempty" extensions:"x-nullable"`
-
-	SameCount    int64 `json:"same_count"`
-	SimilarCount int64 `json:"similar_count"`
 }
 
 // FromModel -
@@ -195,6 +192,34 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Annotations = script.Annotations
 	c.Entrypoints = script.Entrypoints
 	c.ProjectID = script.ProjectID.String()
+	c.ID = contract.ID
+}
+
+// ContractWithStats -
+type ContractWithStats struct {
+	Contract
+
+	SameCount    int64 `json:"same_count"`
+	SimilarCount int64 `json:"similar_count"`
+}
+
+// RecentlyCalledContract -
+type RecentlyCalledContract struct {
+	ID         int64     `json:"id"`
+	Network    string    `json:"network"`
+	Address    string    `json:"address"`
+	Alias      string    `json:"alias,omitempty" extensions:"x-nullable"`
+	LastAction time.Time `json:"last_action,omitempty" extensions:"x-nullable"`
+	TxCount    int64     `json:"tx_count,omitempty" extensions:"x-nullable"`
+}
+
+// FromModel -
+func (c *RecentlyCalledContract) FromModel(contract contract.Contract) {
+	c.Address = contract.Account.Address
+	c.Alias = contract.Account.Alias
+	c.TxCount = contract.TxCount
+	c.LastAction = contract.LastAction
+	c.Network = contract.Network.String()
 	c.ID = contract.ID
 }
 
@@ -418,16 +443,16 @@ type SimilarContractsResponse struct {
 
 // SimilarContract -
 type SimilarContract struct {
-	*Contract
+	*ContractWithStats
 	Added   int64 `json:"added,omitempty" extensions:"x-nullable"`
 	Removed int64 `json:"removed,omitempty" extensions:"x-nullable"`
 }
 
 // FromModel -
 func (c *SimilarContract) FromModel(similar contract.Similar, diff CodeDiffResponse) {
-	var contract Contract
+	var contract ContractWithStats
 	contract.FromModel(*similar.Contract)
-	c.Contract = &contract
+	c.ContractWithStats = &contract
 
 	c.Added = diff.Diff.Added
 	c.Removed = diff.Diff.Removed
@@ -435,17 +460,17 @@ func (c *SimilarContract) FromModel(similar contract.Similar, diff CodeDiffRespo
 
 // SameContractsResponse -
 type SameContractsResponse struct {
-	Count     int64      `json:"count"`
-	Contracts []Contract `json:"contracts"`
+	Count     int64               `json:"count"`
+	Contracts []ContractWithStats `json:"contracts"`
 }
 
 // FromModel -
 func (c *SameContractsResponse) FromModel(same contract.SameResponse, ctx *Context) {
 	c.Count = same.Count
 
-	c.Contracts = make([]Contract, len(same.Contracts))
+	c.Contracts = make([]ContractWithStats, len(same.Contracts))
 	for i := range same.Contracts {
-		var contract Contract
+		var contract ContractWithStats
 		contract.FromModel(same.Contracts[i])
 		contract.SameCount = same.Count
 		c.Contracts[i] = contract

@@ -99,6 +99,21 @@ func (mr *MockRepositoryMockRecorder) GetTokens(network, tokenInterface, offset,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokens", reflect.TypeOf((*MockRepository)(nil).GetTokens), network, tokenInterface, offset, size)
 }
 
+// RecentlyCalled mocks base method
+func (m *MockRepository) RecentlyCalled(network types.Network, offset, size int64) ([]model.Contract, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecentlyCalled", network, offset, size)
+	ret0, _ := ret[0].([]model.Contract)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RecentlyCalled indicates an expected call of RecentlyCalled
+func (mr *MockRepositoryMockRecorder) RecentlyCalled(network, offset, size interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecentlyCalled", reflect.TypeOf((*MockRepository)(nil).RecentlyCalled), network, offset, size)
+}
+
 // GetSameContracts mocks base method
 func (m *MockRepository) GetSameContracts(contact model.Contract, manager string, size, offset int64) (model.SameResponse, error) {
 	m.ctrl.T.Helper()
