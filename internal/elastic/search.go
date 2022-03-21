@@ -96,7 +96,16 @@ func (e *Elastic) ByText(text string, offset int64, fields []string, filters map
 	ctx.Offset = offset
 
 	query := NewQuery().Query(
-		QueryString(ctx.Text, ctx.Fields),
+		FunctionScore(
+			[]Item{
+				Function(
+					Match("network", "mainnet"),
+					2.0,
+				),
+			},
+			"multiply",
+			QueryString(ctx.Text, ctx.Fields),
+		),
 	)
 
 	if group {

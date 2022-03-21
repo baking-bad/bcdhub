@@ -120,6 +120,14 @@ func Should(items ...Item) Item {
 	}
 }
 
+// Function -
+func Function(filter Item, weight float64) Item {
+	return Item{
+		"filter": filter,
+		"weight": weight,
+	}
+}
+
 // AggItem -
 type AggItem struct {
 	Name string
@@ -257,6 +265,17 @@ func ValueCount(field string) Item {
 	return Item{
 		"value_count": Item{
 			"field": field,
+		},
+	}
+}
+
+// FunctionScore -
+func FunctionScore(functions []Item, boostMode string, query Item) Item {
+	return Item{
+		"function_score": Item{
+			"functions":  functions,
+			"boost_mode": boostMode,
+			"query":      query,
 		},
 	}
 }
