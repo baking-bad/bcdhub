@@ -348,7 +348,7 @@ func (storage *Storage) RecentlyCalled(network types.Network, offset, size int64
 		ColumnExpr("account.address as account__address, account.alias as account__alias").
 		Where("contract.network = ?", network).
 		Offset(int(offset)).Limit(int(size)).
-		OrderExpr("contract.id desc, contract.tx_count desc").
+		OrderExpr("contract.last_action desc, contract.tx_count desc").
 		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
 		Select(&contracts)
 	return
