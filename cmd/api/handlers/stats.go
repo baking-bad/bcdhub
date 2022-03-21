@@ -281,3 +281,47 @@ func (ctx *Context) GetContractsStats(c *gin.Context) {
 
 	c.SecureJSON(http.StatusOK, stats)
 }
+
+// RecentlyCalledContracts godoc
+// @Summary Show recently called contracts
+// @Description Show recently called contracts
+// @Tags contract
+// @ID get-recenly-called-contracts
+// @Param network path string true "Network"
+// @Param size query integer false "Contracts count" mininum(1) maximum(10)
+// @Param offset query integer false "Offset" mininum(1)
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} RecentlyCalledContract
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/stats/{network}/recently_called_contracts [get]
+func (ctx *Context) RecentlyCalledContracts(c *gin.Context) {
+	var req getByNetwork
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	var page pageableRequest
+	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	if page.Size > 10 || page.Size == 0 {
+		page.Size = 10
+	}
+
+	contracts, err := ctx.Contracts.RecentlyCalled(req.NetworkID(), page.Offset, page.Size)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	response := make([]RecentlyCalledContract, len(contracts))
+	for i := range contracts {
+		var res RecentlyCalledContract
+		res.FromModel(contracts[i])
+		response[i] = res
+	}
+
+	c.SecureJSON(http.StatusOK, response)
+}
