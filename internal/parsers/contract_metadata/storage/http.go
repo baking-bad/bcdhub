@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -56,8 +57,8 @@ func NewHTTPStorage(opts ...HTTPStorageOption) HTTPStorage {
 }
 
 // Get -
-func (s HTTPStorage) Get(value string, output interface{}) error {
-	req, err := http.NewRequest("GET", value, nil)
+func (s HTTPStorage) Get(ctx context.Context, value string, output interface{}) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, value, nil)
 	if err != nil {
 		return err
 	}

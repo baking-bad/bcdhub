@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
@@ -61,7 +62,7 @@ func NewIPFSStorage(gateways []string, opts ...IPFSStorageOption) IPFSStorage {
 }
 
 // Get -
-func (s IPFSStorage) Get(value string, output interface{}) error {
+func (s IPFSStorage) Get(ctx context.Context, value string, output interface{}) error {
 	if len(s.gateways) == 0 {
 		return ErrEmptyIPFSGatewayList
 	}
@@ -90,7 +91,7 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 
 	for i := range s.gateways {
 		url := fmt.Sprintf("%s/ipfs/%s%s", s.gateways[i], ipfsURI.Host, ipfsURI.Path)
-		err := s.HTTPStorage.Get(url, output)
+		err := s.HTTPStorage.Get(ctx, url, output)
 		if err == nil {
 			s.cache.Set(value, output, MaxTTL)
 			return nil

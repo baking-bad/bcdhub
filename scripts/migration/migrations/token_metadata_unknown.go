@@ -57,7 +57,7 @@ func (m *TokenMetadataUnknown) Do(ctx *config.Context) error {
 		}
 
 		remoteMetadata := new(tokens.TokenMetadata)
-		if err := ipfs.Get(link, remoteMetadata); err != nil {
+		if err := ipfs.Get(context.Background(), link, remoteMetadata); err != nil {
 			if errors.Is(err, tzipStorage.ErrNoIPFSResponse) || errors.Is(err, tzipStorage.ErrInvalidIPFSHash) {
 				logger.Warning().Err(err).Str("url", link).Str("kind", "token_metadata").Msg("")
 				continue
