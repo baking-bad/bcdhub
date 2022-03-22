@@ -12,27 +12,27 @@ func setTags(ctx *config.Context, contract *contract.Contract, op *operation.Ope
 		return nil
 	}
 
+	var tags types.Tags
 	if contract == nil {
-		c, err := ctx.Cache.Contract(op.Network, op.Destination.Address)
+		c, err := ctx.Cache.ContractTags(op.Network, op.Destination.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				return nil
 			}
 			return err
 		}
-		if c == nil {
-			return nil
-		}
-		contract = c
+		tags = c
+	} else {
+		tags = contract.Tags
 	}
 
-	if contract.Tags.Has(types.FA12Tag) {
+	if tags.Has(types.FA12Tag) {
 		op.Tags.Set(types.FA12Tag)
 	}
-	if contract.Tags.Has(types.FA2Tag) {
+	if tags.Has(types.FA2Tag) {
 		op.Tags.Set(types.FA2Tag)
 	}
-	if contract.Tags.Has(types.LedgerTag) {
+	if tags.Has(types.LedgerTag) {
 		op.Tags.Set(types.LedgerTag)
 	}
 	return nil

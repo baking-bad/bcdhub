@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/handlers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -41,9 +42,14 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model
 			return errors.Errorf("[TokenMetadata.Handle] invalid type: expected *domains.BigMapDiff got %T", items[i])
 		}
 
-		storageType, err := tm.Cache.StorageType(bmd.Network, bmd.Contract, bmd.Protocol.SymLink)
+		storageTypeBytes, err := tm.Cache.StorageTypeBytes(bmd.Network, bmd.Contract, bmd.Protocol.SymLink)
 		if err != nil {
 			return errors.Errorf("[TokenMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
+		}
+
+		storageType, err := ast.NewTypedAstFromBytes(storageTypeBytes)
+		if err != nil {
+			return errors.Errorf("[TokenMetadata.Handle] can't parse storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
 		}
 
 		localWg.Add(1)
