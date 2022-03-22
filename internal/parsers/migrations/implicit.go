@@ -66,7 +66,6 @@ func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, 
 		PaidStorageSizeDiff: implicit.PaidStorageSizeDiff,
 		StorageSize:         implicit.StorageSize,
 		DeffatedStorage:     implicit.Storage,
-		Counter:             head.Level,
 	}
 
 	script, err := p.rpc.GetRawScript(origination.Destination.Address, origination.Level)
@@ -110,6 +109,7 @@ func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, 
 		DeffatedStorage: implicit.Storage,
 		Status:          types.OperationStatusApplied,
 		Tags:            types.NewTags([]string{types.ImplicitOperationStringTag}),
+		Counter:         head.Level,
 	}
 
 	for i := range implicit.BalanceUpdates {
