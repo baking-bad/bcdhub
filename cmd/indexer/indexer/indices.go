@@ -128,9 +128,27 @@ func (bi *BoostIndexer) createIndices() {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
+	if _, err := bi.Context.StorageDB.DB.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_protocol_idx ON ?TableName (protocol_id)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
 	// Contracts
 	if _, err := bi.Context.StorageDB.DB.Model((*contract.Contract)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_network_level_idx ON ?TableName (network, level)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	if _, err := bi.Context.StorageDB.DB.Model((*contract.Contract)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_alpha_id_idx ON ?TableName (alpha_id)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	if _, err := bi.Context.StorageDB.DB.Model((*contract.Contract)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_babylon_id_idx ON ?TableName (babylon_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
@@ -221,6 +239,12 @@ func (bi *BoostIndexer) createIndices() {
 	// Token metadata
 	if _, err := bi.Context.StorageDB.DB.Model((*tokenmetadata.TokenMetadata)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS token_metadata_network_level_idx ON ?TableName (network, level)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	if _, err := bi.Context.StorageDB.DB.Model((*bigmapaction.BigMapAction)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS token_metadata_name_idx ON ?TableName (name)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}

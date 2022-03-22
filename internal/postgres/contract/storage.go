@@ -1,6 +1,8 @@
 package contract
 
 import (
+	"math/rand"
+
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -41,18 +43,23 @@ func (storage *Storage) GetMany(network types.Network) (response []contract.Cont
 // GetRandom -
 func (storage *Storage) GetRandom(networks ...types.Network) (response contract.Contract, err error) {
 	var id int64
-	query := storage.DB.Model(&response).Column("contract.id")
 	if len(networks) > 0 {
+		query := storage.DB.Model(&response).Column("contract.id")
 		for i := range networks {
 			if networks[i] != types.Empty {
 				query.WhereOr("contract.network = ?", networks[i])
 			}
 		}
+		if err = query.OrderExpr("random()").Limit(1).Select(&id); err != nil {
+			return
+		}
+	} else {
+		if err = storage.DB.Model(&response).ColumnExpr("max(contract.id)").Select(&id); err != nil {
+			return
+		}
+		id = rand.Int63n(id)
 	}
 
-	if err = query.OrderExpr("random()").Limit(1).Select(&id); err != nil {
-		return
-	}
 	err = storage.DB.Model(&response).Where("contract.id = ?", id).
 		Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").First()
 	return
