@@ -115,6 +115,18 @@ func (bi *BoostIndexer) createIndices() {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
+	if _, err := bi.Context.StorageDB.DB.Model((*bigmapaction.BigMapAction)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_actions_source_ptr_idx ON ?TableName (source_ptr) where source_ptr is not null
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	if _, err := bi.Context.StorageDB.DB.Model((*bigmapaction.BigMapAction)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_actions_destination_ptr_idx ON ?TableName (destination_ptr) where destination_ptr is not null
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
 	// Big map diff
 	if _, err := bi.Context.StorageDB.DB.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_operation_id_idx ON ?TableName (operation_id)
