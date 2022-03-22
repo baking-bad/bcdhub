@@ -244,6 +244,12 @@ func (bi *BoostIndexer) createIndices() {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
+	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_status_idx ON ?TableName (status)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
 	// Scripts
 	if _, err := bi.Context.StorageDB.DB.Model((*contract.Script)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS scripts_project_id_idx ON ?TableName (project_id)

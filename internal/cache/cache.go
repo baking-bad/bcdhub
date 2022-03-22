@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -35,7 +34,7 @@ type Cache struct {
 // NewCache -
 func NewCache(rpc map[types.Network]noderpc.INode, blocks block.Repository, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository, cm contract_metadata.Repository, sanitizer *bluemonday.Policy) *Cache {
 	return &Cache{
-		ccache.New(ccache.Configure().MaxSize(100000)),
+		ccache.New(ccache.Configure().MaxSize(1000)),
 		rpc,
 		blocks,
 		accounts,
@@ -124,6 +123,26 @@ func (cache *Cache) Contract(network types.Network, address string) (*contract.C
 	return &cntr, nil
 }
 
+// ContractTags -
+func (cache *Cache) ContractTags(network types.Network, address string) (types.Tags, error) {
+	if !bcd.IsContract(address) {
+		return 0, nil
+	}
+
+	key := fmt.Sprintf("contract:%d:%s", network, address)
+	item, err := cache.Fetch(key, time.Minute*10, func() (interface{}, error) {
+		c, err := cache.contracts.Get(network, address)
+		if err != nil {
+			return 0, err
+		}
+		return c.Tags, nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return item.Value().(types.Tags), nil
+}
+
 // ProjectIDByHash -
 func (cache *Cache) ProjectIDByHash(hash string) string {
 	return fmt.Sprintf("project_id:%s", hash)
@@ -151,7 +170,6 @@ func (cache *Cache) TezosBalance(network types.Network, address string, level in
 
 	key := fmt.Sprintf("tezos_balance:%d:%s:%d", network, address, level)
 	item, err := cache.Fetch(key, 30*time.Second, func() (interface{}, error) {
-
 		return node.GetContractBalance(address, level)
 	})
 	if err != nil {
@@ -180,24 +198,20 @@ func (cache *Cache) ScriptBytes(network types.Network, address, symLink string) 
 	return item.Value().([]byte), nil
 }
 
-// StorageType -
-func (cache *Cache) StorageType(network types.Network, address, symLink string) (*ast.TypedAst, error) {
+// StorageTypeBytes -
+func (cache *Cache) StorageTypeBytes(network types.Network, address, symLink string) ([]byte, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
 
 	key := fmt.Sprintf("storage:%d:%s", network, address)
 	item, err := cache.Fetch(key, 5*time.Minute, func() (interface{}, error) {
-		data, err := cache.contracts.ScriptPart(network, address, symLink, consts.STORAGE)
-		if err != nil {
-			return nil, err
-		}
-		return ast.NewTypedAstFromBytes(data)
+		return cache.contracts.ScriptPart(network, address, symLink, consts.STORAGE)
 	})
 	if err != nil {
 		return nil, err
 	}
-	return item.Value().(*ast.TypedAst), nil
+	return item.Value().([]byte), nil
 }
 
 // ProtocolByID -
