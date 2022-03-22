@@ -232,9 +232,16 @@ func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err er
 	if c.BabylonID > 0 {
 		scriptsQuery.Where("id != ?", c.BabylonID)
 	}
+	var ids []int64
+	if err = scriptsQuery.Select(&ids); err != nil {
+		return
+	}
+	if len(ids) == 0 {
+		return
+	}
 
 	similarCount, err := storage.DB.Model((*contract.Contract)(nil)).
-		Where("(alpha_id is not null and alpha_id IN (?0)) OR (babylon_id is not null and babylon_id IN (?0))", scriptsQuery).
+		Where("(alpha_id is not null and alpha_id IN (?0)) OR (babylon_id is not null and babylon_id IN (?0))", ids).
 		Count()
 	if err != nil {
 		return
