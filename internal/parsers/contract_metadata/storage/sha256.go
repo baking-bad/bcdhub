@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"time"
 )
 
@@ -47,7 +48,7 @@ func NewSha256Storage(opts ...Sha256StorageOption) Sha256Storage {
 }
 
 // Get -
-func (s Sha256Storage) Get(value string, output interface{}) error {
+func (s Sha256Storage) Get(ctx context.Context, value string, output interface{}) error {
 	var uri Sha256URI
 	if err := uri.Parse(value); err != nil {
 		return err
@@ -56,7 +57,7 @@ func (s Sha256Storage) Get(value string, output interface{}) error {
 		return nil
 	}
 
-	return s.HTTPStorage.Get(uri.Link, output)
+	return s.HTTPStorage.Get(ctx, uri.Link, output)
 }
 
 func (s Sha256Storage) validate(uriHash string) bool {

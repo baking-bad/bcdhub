@@ -61,7 +61,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 
-		t, err := parser.Parse(tzipParsers.ParseContext{
+		t, err := parser.Parse(context.Background(), tzipParsers.ParseArgs{
 			BigMapDiff: bigmapdiff.BigMapDiff{
 				Contract:   bmd[i].Contract,
 				Network:    bmd[i].Network,

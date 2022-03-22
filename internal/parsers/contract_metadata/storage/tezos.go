@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -50,7 +51,7 @@ func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repositor
 }
 
 // Get -
-func (s TezosStorage) Get(value string, output interface{}) error {
+func (s TezosStorage) Get(ctx context.Context, value string, output interface{}) error {
 	var uri TezosStorageURI
 	if err := uri.Parse(value); err != nil {
 		return err

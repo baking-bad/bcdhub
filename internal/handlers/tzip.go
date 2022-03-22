@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -36,21 +38,20 @@ func NewContractMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repos
 }
 
 // Do -
-func (t *ContractMetadata) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error) {
+func (t *ContractMetadata) Do(ctx context.Context, bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error) {
 	if bmd.KeyHash != cm.EmptyStringKey {
 		return nil, nil
 	}
-	res, err := t.handle(bmd)
-	return res, err
+	return t.handle(ctx, bmd)
 }
 
-func (t *ContractMetadata) handle(bmd *domains.BigMapDiff) ([]models.Model, error) {
+func (t *ContractMetadata) handle(ctx context.Context, bmd *domains.BigMapDiff) ([]models.Model, error) {
 	tzipParser, ok := t.parsers[bmd.Network]
 	if !ok {
 		return nil, errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
 	}
 
-	model, err := tzipParser.Parse(cm.ParseContext{
+	model, err := tzipParser.Parse(ctx, cm.ParseArgs{
 		BigMapDiff: *bmd.BigMapDiff,
 	})
 	if err != nil {

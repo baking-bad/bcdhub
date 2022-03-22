@@ -58,7 +58,7 @@ func (u *Unknown) refresh(ctx context.Context) error {
 			}
 
 			remoteMetadata := new(tokens.TokenMetadata)
-			if err := ipfs.Get(link, remoteMetadata); err != nil {
+			if err := ipfs.Get(ctx, link, remoteMetadata); err != nil {
 				if errors.Is(err, cmStorage.ErrNoIPFSResponse) || errors.Is(err, cmStorage.ErrInvalidIPFSHash) {
 					continue
 				}

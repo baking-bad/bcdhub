@@ -32,6 +32,7 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model
 		return nil
 	}
 	var localWg sync.WaitGroup
+	var mx sync.Mutex
 
 	updates := make([]models.Model, 0)
 	for i := range items {
@@ -45,20 +46,21 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model
 			return errors.Errorf("[TokenMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
 		}
 
-		wg.Add(1)
 		localWg.Add(1)
-		func(wg *sync.WaitGroup) {
-			defer func() {
-				wg.Done()
-				localWg.Done()
-			}()
-			res, err := tm.handler.Do(bmd, storageType)
+		go func() {
+			defer localWg.Done()
+
+			res, err := tm.handler.Do(ctx, bmd, storageType)
 			if err != nil {
 				logger.Warning().Err(err).Msgf("TokenMetadata.Handle")
 				return
 			}
-			updates = append(updates, res...)
-		}(wg)
+			if len(res) > 0 {
+				mx.Lock()
+				updates = append(updates, res...)
+				mx.Unlock()
+			}
+		}()
 	}
 
 	localWg.Wait()

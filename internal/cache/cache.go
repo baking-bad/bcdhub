@@ -187,7 +187,7 @@ func (cache *Cache) StorageType(network types.Network, address, symLink string) 
 	}
 
 	key := fmt.Sprintf("storage:%d:%s", network, address)
-	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
+	item, err := cache.Fetch(key, 5*time.Minute, func() (interface{}, error) {
 		data, err := cache.contracts.ScriptPart(network, address, symLink, consts.STORAGE)
 		if err != nil {
 			return nil, err

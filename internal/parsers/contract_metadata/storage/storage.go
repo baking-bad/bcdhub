@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -20,7 +21,7 @@ const (
 
 // Storage -
 type Storage interface {
-	Get(value string, output interface{}) error
+	Get(ctx context.Context, value string, output interface{}) error
 }
 
 // Full -
@@ -42,7 +43,7 @@ func NewFull(bmdRepo bigmapdiff.Repository, contractRepo contract.Repository, bl
 }
 
 // Get -
-func (f Full) Get(network types.Network, address, url string, ptr int64, output interface{}) error {
+func (f Full) Get(ctx context.Context, network types.Network, address, url string, ptr int64, output interface{}) error {
 	var store Storage
 	switch {
 	case strings.HasPrefix(url, PrefixHTTPS), strings.HasPrefix(url, PrefixHTTP):
@@ -65,5 +66,5 @@ func (f Full) Get(network types.Network, address, url string, ptr int64, output 
 		return errors.Wrap(ErrUnknownStorageType, url)
 	}
 
-	return store.Get(url, output)
+	return store.Get(ctx, url, output)
 }

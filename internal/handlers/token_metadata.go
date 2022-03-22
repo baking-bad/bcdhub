@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -33,13 +35,13 @@ func NewTokenMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Reposito
 }
 
 // Do -
-func (t *TokenMetadata) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error) {
+func (t *TokenMetadata) Do(ctx context.Context, bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error) {
 	tokenParser, ok := t.parsers[bmd.Network]
 	if !ok {
 		return nil, errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
 	}
 
-	tokenMetadata, err := tokenParser.ParseBigMapDiff(bmd, storage)
+	tokenMetadata, err := tokenParser.ParseBigMapDiff(ctx, bmd, storage)
 	if err != nil {
 		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
 			logger.Err(err)

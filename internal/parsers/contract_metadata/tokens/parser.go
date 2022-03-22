@@ -1,6 +1,7 @@
 package tokens
 
 import (
+	"context"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -43,16 +44,16 @@ func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, contr
 }
 
 // Parse -
-func (t Parser) Parse(address string, level int64) ([]tokenmetadata.TokenMetadata, error) {
+func (t Parser) Parse(ctx context.Context, address string, level int64) ([]tokenmetadata.TokenMetadata, error) {
 	state, err := t.getState(level)
 	if err != nil {
 		return nil, err
 	}
-	return t.parse(address, state)
+	return t.parse(ctx, address, state)
 }
 
 // ParseBigMapDiff -
-func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storageAST *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
+func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, storageAST *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
 	storageType := ast.TypedAst{
 		Nodes: []ast.Node{ast.Copy(storageAST.Nodes[0])},
 	}
@@ -91,7 +92,7 @@ func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storageAST *ast.TypedAs
 		s := cmStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
 
 		remoteMetadata := new(TokenMetadata)
-		if err := s.Get(t.network, bmd.Contract, m.Link, ptr, remoteMetadata); err != nil {
+		if err := s.Get(ctx, t.network, bmd.Contract, m.Link, ptr, remoteMetadata); err != nil {
 			switch {
 			case errors.Is(err, cmStorage.ErrHTTPRequest):
 				logger.Warning().Str("url", m.Link).Str("kind", "token_metadata").Err(err).Msg("")
@@ -109,7 +110,7 @@ func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storageAST *ast.TypedAs
 	return []tokenmetadata.TokenMetadata{m.ToModel(bmd.Contract, t.network)}, nil
 }
 
-func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
+func (t Parser) parse(ctx context.Context, address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
 	ptr, err := storage.GetBigMapPtr(t.storage, t.contractsRepo, t.rpc, state.Network, address, TokenMetadataStorageKey, state.Protocol.Hash, state.Level)
 	if err != nil {
 		return nil, err
@@ -147,7 +148,7 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 			s := cmStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
 
 			remoteMetadata := &TokenMetadata{}
-			if err := s.Get(t.network, address, m.Link, ptr, remoteMetadata); err != nil {
+			if err := s.Get(ctx, t.network, address, m.Link, ptr, remoteMetadata); err != nil {
 				if errors.Is(err, cmStorage.ErrHTTPRequest) {
 					logger.Err(err)
 					return nil, nil

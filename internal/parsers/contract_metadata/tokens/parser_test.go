@@ -1,6 +1,7 @@
 package tokens
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -193,7 +194,7 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 				t.Errorf("NewTypedAstFromString() error = %v", err)
 				return
 			}
-			got, err := parser.ParseBigMapDiff(tt.bmd, storageAST)
+			got, err := parser.ParseBigMapDiff(context.Background(), tt.bmd, storageAST)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Parser.ParseBigMapDiff() error = %v, wantErr %v", err, tt.wantErr)
 				return
