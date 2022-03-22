@@ -83,6 +83,9 @@ func createStartIndices(db pg.DBI) error {
 		if _, err := db.Model((*tokenbalance.TokenBalance)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS token_balances_by_token_idx ON ?TableName (network, contract, token_id)`); err != nil {
 			return err
 		}
+		if _, err := db.Model((*tokenbalance.TokenBalance)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS token_balances_account_idx ON ?TableName (account_id)`); err != nil {
+			return err
+		}
 
 		// Contract Metadata
 		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS tzips_network_address_idx ON ?TableName (network, address)`); err != nil {
