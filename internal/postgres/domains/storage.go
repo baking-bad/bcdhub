@@ -81,10 +81,17 @@ func (storage *Storage) TokenBalances(network types.Network, contract string, ac
 }
 
 var transfersQuery = `
-	select o.hash, o.nonce, o.counter, t.*, tm.symbol, tm.decimals, tm."name"  from (
+	select o.hash, o.nonce, o.counter, t.*, tm.symbol, tm.decimals, tm."name",
+		"from".id as from__id, "from".address as from__address, "from".alias as from__alias, "from".network as from__network, "from".type as from__type,
+		"to".id as to__id, "to".address as to__address, "to".alias as to__alias, "to".network as to__network, "to".type as to__type,
+		"initiator".id as initiator__id, "initiator".address as initiator__address, "initiator".alias as initiator__alias, "initiator".network as initiator__network, "initiator".type as initiator__type
+	from (
 		(?) as t
 		left join operations as o on o.id  = t.operation_id
 		left join token_metadata tm on tm.network = t.network and tm.contract = t.contract and tm.token_id = t.token_id
+		left join "accounts" AS "from" ON "from"."id" = t."from_id" 
+		left join "accounts" AS "to" ON "to"."id" = t."to_id" 
+		left join "accounts" AS "initiator" ON "initiator"."id" = t."initiator_id" 	
 	)
 `
 
@@ -93,7 +100,7 @@ func (storage *Storage) Transfers(ctx transfer.GetContext) (domains.TransfersRes
 	response := domains.TransfersResponse{
 		Transfers: make([]domains.Transfer, 0),
 	}
-	query := storage.DB.Model((*transfer.Transfer)(nil)).Relation("From").Relation("To").Relation("Initiator")
+	query := storage.DB.Model((*transfer.Transfer)(nil))
 	storage.buildGetContext(query, ctx, true)
 
 	if _, err := storage.DB.Query(&response.Transfers, transfersQuery, query); err != nil {
