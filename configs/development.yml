@@ -55,6 +55,7 @@ api:
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
       hangzhou2net: https://rpc.tzkt.io/hangzhou2net
+      ithacanet: https://rpc.tzkt.io/ithacanet
   networks:
     - mainnet
     - hangzhou2net
