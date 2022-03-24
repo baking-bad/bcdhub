@@ -2,12 +2,11 @@ package domains
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Repository -
 type Repository interface {
-	TokenBalances(network types.Network, contract string, accountID int64, size, offset int64, sort string, hideZeroBalances bool) (TokenBalanceResponse, error)
+	TokenBalances(contract string, accountID int64, size, offset int64, sort string, hideZeroBalances bool) (TokenBalanceResponse, error)
 	Transfers(ctx transfer.GetContext) (TransfersResponse, error)
 	BigMapDiffs(lastID, size int64) ([]BigMapDiff, error)
 }

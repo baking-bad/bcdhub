@@ -118,10 +118,8 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 	}
 
 	tb := &tbModel.TokenBalance{
-		Network: bmd.Network,
 		Account: account.Account{
 			Address: balance[0].Address,
-			Network: bmd.Network,
 			Type:    types.NewAccountType(balance[0].Address),
 		},
 		TokenID:  balance[0].TokenID,
@@ -137,7 +135,7 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 		op.Transfers = append(op.Transfers, t)
 
 		if balance[0].IsExclusiveNFT {
-			holders, err := ledger.tokenBalances.GetHolders(tb.Network, tb.Contract, tb.TokenID)
+			holders, err := ledger.tokenBalances.GetHolders(tb.Contract, tb.TokenID)
 			if err != nil {
 				return nil, err
 			}
@@ -145,7 +143,6 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 				holders[i].Balance = decimal.Zero
 				holders[i].IsLedger = true
 				t.From = account.Account{
-					Network: bmd.Network,
 					Address: holders[i].Account.Address,
 					Type:    types.NewAccountType(holders[i].Account.Address),
 				}
@@ -158,7 +155,7 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 }
 
 func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, st *stacktrace.StackTrace, op *operation.Operation) *transfer.Transfer {
-	acc, err := ledger.accounts.Get(op.Network, tb.Address)
+	acc, err := ledger.accounts.Get(tb.Address)
 	if err != nil {
 		if !errors.Is(err, pg.ErrNoRows) {
 			logger.Err(err)
@@ -166,7 +163,7 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, st *stacktrace.
 		}
 	}
 
-	balance, err := ledger.tokenBalances.Get(op.Network, op.Destination.Address, acc.ID, tb.TokenID)
+	balance, err := ledger.tokenBalances.Get(op.Destination.Address, acc.ID, tb.TokenID)
 	if err != nil {
 		logger.Err(err)
 		return nil
@@ -179,7 +176,6 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, st *stacktrace.
 	t := op.EmptyTransfer()
 
 	account := account.Account{
-		Network: op.Network,
 		Address: tb.Address,
 		Type:    types.NewAccountType(tb.Address),
 	}

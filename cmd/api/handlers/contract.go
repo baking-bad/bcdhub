@@ -36,7 +36,7 @@ func GetContract() gin.HandlerFunc {
 			return
 		}
 
-		contract, err := ctx.Contracts.Get(req.NetworkID(), req.Address)
+		contract, err := ctx.Contracts.Get(req.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				c.SecureJSON(http.StatusNoContent, gin.H{})
@@ -101,6 +101,7 @@ func GetRandomContract() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
+		res.Network = ctx.Network.String()
 		c.SecureJSON(http.StatusOK, res)
 	}
 }
@@ -136,7 +137,7 @@ func GetSameContracts() gin.HandlerFunc {
 			return
 		}
 
-		contract, err := ctx.Contracts.Get(req.NetworkID(), req.Address)
+		contract, err := ctx.Contracts.Get(req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -160,7 +161,7 @@ func GetSameContracts() gin.HandlerFunc {
 			if found.Items[i].Value == req.Address && found.Items[i].Network == req.Network {
 				continue
 			}
-			item, err := ctx.Contracts.Get(types.NewNetwork(found.Items[i].Network), found.Items[i].Value)
+			item, err := ctx.Contracts.Get(found.Items[i].Value)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -182,6 +183,7 @@ func GetSameContracts() gin.HandlerFunc {
 func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Contract, error) {
 	var res Contract
 	res.FromModel(contract)
+	res.Network = ctx.Network.String()
 
 	if alias, err := ctx.Cache.ContractMetadata(contract.Account.Address); err == nil && alias != nil {
 		res.Slug = alias.Slug

@@ -39,7 +39,7 @@ func GetBigMap() gin.HandlerFunc {
 			return
 		}
 
-		stats, err := ctx.BigMapDiffs.GetStats(req.NetworkID(), req.Ptr)
+		stats, err := ctx.BigMapDiffs.GetStats(req.Ptr)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -53,7 +53,7 @@ func GetBigMap() gin.HandlerFunc {
 		}
 
 		if stats.Total == 0 {
-			actions, err := ctx.BigMapActions.Get(req.NetworkID(), req.Ptr)
+			actions, err := ctx.BigMapActions.Get(req.Ptr)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -61,13 +61,13 @@ func GetBigMap() gin.HandlerFunc {
 				res.Address = actions[0].Address
 			}
 		} else {
-			destination, err := ctx.Accounts.Get(req.NetworkID(), res.Address)
+			destination, err := ctx.Accounts.Get(res.Address)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 			res.ContractAlias = destination.Alias
 
-			script, err := ctx.Contracts.ScriptPart(req.NetworkID(), res.Address, bcd.SymLinkBabylon, consts.STORAGE)
+			script, err := ctx.Contracts.ScriptPart(res.Address, bcd.SymLinkBabylon, consts.STORAGE)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -90,7 +90,7 @@ func GetBigMap() gin.HandlerFunc {
 
 			var deffatedStorage []byte
 			if proto.SymLink == bcd.SymLinkAlpha {
-				deffatedStorage, err = ctx.RPC.GetScriptStorageRaw(res.Address, 0)
+				deffatedStorage, err = ctx.RPC.GetScriptStorageRaw(c, res.Address, 0)
 				if handleError(c, ctx.Storage, err, 0) {
 					return
 				}
@@ -119,7 +119,7 @@ func GetBigMap() gin.HandlerFunc {
 		}
 
 		if res.ContractAlias != "" {
-			alias, err := ctx.ContractMetadata.Get(req.NetworkID(), res.Address)
+			alias, err := ctx.ContractMetadata.Get(res.Address)
 			if err != nil {
 				if !ctx.Storage.IsRecordNotFound(err) {
 					handleError(c, ctx.Storage, err, 0)
@@ -157,7 +157,7 @@ func GetBigMapHistory() gin.HandlerFunc {
 			return
 		}
 
-		bm, err := ctx.BigMapActions.Get(req.NetworkID(), req.Ptr)
+		bm, err := ctx.BigMapActions.Get(req.Ptr)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -205,7 +205,6 @@ func GetBigMapKeys() gin.HandlerFunc {
 		if pageReq.Search == "" {
 			keys, err := ctx.BigMapDiffs.Keys(bigmapdiff.GetContext{
 				Ptr:      &req.Ptr,
-				Network:  req.NetworkID(),
 				Size:     pageReq.Size,
 				Offset:   pageReq.Offset,
 				MaxLevel: pageReq.MaxLevel,
@@ -232,7 +231,7 @@ func GetBigMapKeys() gin.HandlerFunc {
 
 			states = make([]bigmapdiff.BigMapState, len(searchResult))
 			for i := range searchResult {
-				state, err := ctx.BigMapDiffs.Current(req.NetworkID(), searchResult[i].Key, req.Ptr)
+				state, err := ctx.BigMapDiffs.Current(searchResult[i].Key, req.Ptr)
 				if handleError(c, ctx.Storage, err, 0) {
 					return
 				}
@@ -281,7 +280,7 @@ func GetBigMapByKeyHash() gin.HandlerFunc {
 			return
 		}
 
-		bm, total, err := ctx.BigMapDiffs.GetByPtrAndKeyHash(req.Ptr, types.NewNetwork(req.Network), req.KeyHash, pageReq.Size, pageReq.Offset)
+		bm, total, err := ctx.BigMapDiffs.GetByPtrAndKeyHash(req.Ptr, req.KeyHash, pageReq.Size, pageReq.Offset)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -322,7 +321,7 @@ func GetBigMapDiffCount() gin.HandlerFunc {
 			return
 		}
 
-		count, err := ctx.BigMapDiffs.Count(req.NetworkID(), req.Ptr)
+		count, err := ctx.BigMapDiffs.Count(req.Ptr)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				c.SecureJSON(http.StatusOK, CountResponse{})
@@ -404,7 +403,7 @@ func getBigMapType(ctx *config.Context, data bigmapdiff.BigMapDiff) (*ast.BigMap
 		return nil, err
 	}
 
-	contract, err := ctx.Accounts.Get(data.Network, data.Contract)
+	contract, err := ctx.Accounts.Get(data.Contract)
 	if err != nil {
 		return nil, err
 	}
@@ -481,7 +480,6 @@ func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHist
 	}
 	response := BigMapHistoryResponse{
 		Address: arr[0].Address,
-		Network: arr[0].Network.String(),
 		Ptr:     ptr,
 		Items:   make([]BigMapHistoryItem, len(arr)),
 	}

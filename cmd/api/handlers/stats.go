@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -26,9 +25,9 @@ func GetStats() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
 
-		stats := make([]block.Block, 0)
-		for _, ctx := range ctxs {
-			block, err := ctx.Blocks.Last(ctx.Network)
+		blocks := make([]Block, 0)
+		for network, ctx := range ctxs {
+			last, err := ctx.Blocks.Last()
 			if err != nil {
 				if ctx.Storage.IsRecordNotFound(err) {
 					continue
@@ -36,13 +35,9 @@ func GetStats() gin.HandlerFunc {
 				handleError(c, ctx.Storage, err, 0)
 				return
 			}
-			stats = append(stats, block)
-		}
-
-		blocks := make([]Block, 0)
-		for i := range stats {
 			var block Block
-			block.FromModel(stats[i])
+			block.FromModel(last)
+			block.Network = network.String()
 			blocks = append(blocks, block)
 		}
 
@@ -71,14 +66,14 @@ func GetNetworkStats() gin.HandlerFunc {
 		}
 
 		var stats NetworkStats
-		counts, err := ctx.Statistics.NetworkCountStats(req.NetworkID())
+		counts, err := ctx.Statistics.NetworkCountStats(ctx.Network)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 		stats.ContractsCount = counts[models.DocContracts]
 		stats.OperationsCount = counts[models.DocOperations]
 
-		protocols, err := ctx.Protocols.GetByNetworkWithSort(req.NetworkID(), "start_level", "desc")
+		protocols, err := ctx.Protocols.GetByNetworkWithSort("start_level", "desc")
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -88,7 +83,7 @@ func GetNetworkStats() gin.HandlerFunc {
 		}
 		stats.Protocols = ps
 
-		head, err := ctx.Statistics.NetworkStats(req.NetworkID())
+		head, err := ctx.Statistics.NetworkStats(ctx.Network)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -287,7 +282,7 @@ func GetContractsStats() gin.HandlerFunc {
 			handleError(c, ctx.Storage, errors.Errorf("Empty address list"), http.StatusBadRequest)
 			return
 		}
-		stats, err := ctx.Operations.GetDAppStats(req.NetworkID(), addresses, reqStats.Period)
+		stats, err := ctx.Operations.GetDAppStats(addresses, reqStats.Period)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -327,7 +322,7 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 			page.Size = 10
 		}
 
-		contracts, err := ctx.Contracts.RecentlyCalled(req.NetworkID(), page.Offset, page.Size)
+		contracts, err := ctx.Contracts.RecentlyCalled(page.Offset, page.Size)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // BigMapDiff -
@@ -66,7 +67,7 @@ func (b BigMapDiff) Parse(highlight map[string][]string, data []byte) (*Item, er
 }
 
 // Prepare -
-func (b *BigMapDiff) Prepare(model models.Model) {
+func (b *BigMapDiff) Prepare(network types.Network, model models.Model) {
 	bmd, ok := model.(*bigmapdiff.BigMapDiff)
 	if !ok {
 		return
@@ -89,7 +90,7 @@ func (b *BigMapDiff) Prepare(model models.Model) {
 	b.KeyHash = bmd.KeyHash
 	b.KeyStrings = bmd.KeyStrings
 	b.Level = bmd.Level
-	b.Network = bmd.Network.String()
+	b.Network = network.String()
 	b.Ptr = bmd.Ptr
 	b.Timestamp = bmd.Timestamp.UTC()
 	b.ValueStrings = bmd.ValueStrings

@@ -1,11 +1,8 @@
 package transfer
 
-import "github.com/baking-bad/bcdhub/internal/models/types"
-
 // GetContext -
 type GetContext struct {
 	Contracts []string
-	Network   types.Network
 	AccountID int64
 
 	Start       uint

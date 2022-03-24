@@ -68,7 +68,6 @@ type Operation struct {
 func (o *Operation) FromModel(operation operation.Operation) {
 	o.ID = operation.ID
 	o.Hash = operation.Hash
-	o.Network = operation.Network.String()
 	o.Internal = operation.Internal
 	o.Timestamp = operation.Timestamp.UTC()
 
@@ -100,13 +99,11 @@ func (o *Operation) ToModel() operation.Operation {
 	return operation.Operation{
 		ID:        o.ID,
 		Hash:      o.Hash,
-		Network:   types.NewNetwork(o.Network),
 		Internal:  o.Internal,
 		Timestamp: o.Timestamp,
 		Level:     o.Level,
 		Kind:      types.NewOperationKind(o.Kind),
 		Source: account.Account{
-			Network: types.NewNetwork(o.Network),
 			Address: o.Source,
 			Type:    types.NewAccountType(o.Source),
 		},
@@ -116,12 +113,10 @@ func (o *Operation) ToModel() operation.Operation {
 		StorageLimit: o.StorageLimit,
 		Amount:       o.Amount,
 		Destination: account.Account{
-			Network: types.NewNetwork(o.Network),
 			Address: o.Destination,
 			Type:    types.NewAccountType(o.Destination),
 		},
 		Delegate: account.Account{
-			Network: types.NewNetwork(o.Network),
 			Address: o.Delegate,
 			Type:    types.NewAccountType(o.Delegate),
 		},
@@ -177,7 +172,6 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Level = contract.Level
 	c.Manager = contract.Manager.Address
 	c.MigrationsCount = contract.MigrationsCount
-	c.Network = contract.Network.String()
 	c.Tags = contract.Tags.ToArray()
 	c.Timestamp = contract.Timestamp
 
@@ -216,7 +210,6 @@ func (c *RecentlyCalledContract) FromModel(contract contract.Contract) {
 	c.Alias = contract.Account.Alias
 	c.TxCount = contract.TxCount
 	c.LastAction = contract.LastAction
-	c.Network = contract.Network.String()
 	c.ID = contract.ID
 }
 
@@ -388,23 +381,20 @@ type Alias struct {
 func (a *Alias) FromModel(alias *contract_metadata.ContractMetadata) {
 	a.Alias = alias.Name
 	a.Address = alias.Address
-	a.Network = alias.Network.String()
 	a.Slug = alias.Slug
 }
 
 // Protocol -
 type Protocol struct {
 	Hash       string `json:"hash" example:"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"`
-	Network    string `json:"network" example:"mainnet"`
 	StartLevel int64  `json:"start_level" example:"851969"`
-	EndLevel   int64  `json:"end_level" example:"0"`
+	EndLevel   int64  `json:"end_level,omitempty" example:"0" extensions:"x-nullable"`
 	Alias      string `json:"alias" example:"Carthage"`
 }
 
 // FromModel -
 func (p *Protocol) FromModel(protocol protocol.Protocol) {
 	p.Hash = protocol.Hash
-	p.Network = protocol.Network.String()
 	p.StartLevel = protocol.StartLevel
 	p.EndLevel = protocol.EndLevel
 	p.Alias = protocol.Alias
@@ -423,7 +413,6 @@ type Block struct {
 
 // FromModel -
 func (b *Block) FromModel(block block.Block) {
-	b.Network = block.Network.String()
 	b.Hash = block.Hash
 	b.Level = block.Level
 	b.Protocol = block.Protocol.Hash
@@ -488,7 +477,6 @@ type Transfer struct {
 // TransferFromModel -
 func TransferFromModel(model domains.Transfer) (t Transfer) {
 	t.IndexedTime = model.ID
-	t.Network = model.Network.String()
 	t.Contract = model.Contract
 	t.Initiator = model.Initiator.Address
 	t.Status = model.Status.String()
@@ -622,7 +610,6 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 	tm.Decimals = model.Decimals
 	tm.Contract = model.Contract
 	tm.Level = model.Level
-	tm.Network = model.Network.String()
 	tm.Description = model.Description
 	tm.ArtifactURI = model.ArtifactURI
 	tm.DisplayURI = model.DisplayURI
@@ -702,7 +689,6 @@ func (t *TZIPResponse) FromModel(model *contract_metadata.ContractMetadata, with
 	t.DomainName = model.DomainName
 	t.Extras = model.Extras
 	t.Address = model.Address
-	t.Network = model.Network.String()
 	t.Name = model.Name
 	t.Description = model.Description
 	t.Version = model.Version
@@ -752,7 +738,6 @@ type GlobalConstant struct {
 // NewGlobalConstantFromModel -
 func NewGlobalConstantFromModel(gc global_constant.GlobalConstant) GlobalConstant {
 	return GlobalConstant{
-		Network:   gc.Network,
 		Timestamp: gc.Timestamp.UTC(),
 		Level:     gc.Level,
 		Address:   gc.Address,

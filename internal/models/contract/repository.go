@@ -1,22 +1,20 @@
 package contract
 
-import "github.com/baking-bad/bcdhub/internal/models/types"
-
 // Repository -
 type Repository interface {
-	Get(network types.Network, address string) (Contract, error)
-	GetMany(network types.Network) ([]Contract, error)
-	GetRandom(networks ...types.Network) (Contract, error)
-	GetTokens(network types.Network, tokenInterface string, offset, size int64) ([]Contract, int64, error)
-	RecentlyCalled(network types.Network, offset, size int64) ([]Contract, error)
+	Get(address string) (Contract, error)
+	GetMany() ([]Contract, error)
+	GetRandom() (Contract, error)
+	GetTokens(tokenInterface string, offset, size int64) ([]Contract, int64, error)
+	RecentlyCalled(offset, size int64) ([]Contract, error)
 
 	GetSameContracts(contact Contract, manager string, size, offset int64) (SameResponse, error)
 	Stats(c Contract) (int, error)
 
-	Script(network types.Network, address string, symLink string) (Script, error)
+	Script(address string, symLink string) (Script, error)
 
 	// ScriptPart - returns part of script type. Part can be `storage`, `parameter` or `code`.
-	ScriptPart(network types.Network, address string, symLink, part string) ([]byte, error)
+	ScriptPart(address string, symLink, part string) ([]byte, error)
 }
 
 // ScriptRepository -

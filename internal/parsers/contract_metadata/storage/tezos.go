@@ -36,8 +36,9 @@ type TezosStorage struct {
 	ptr     int64
 }
 
+// TODO: multi-network
 // NewTezosStorage -
-func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, contractRepo contract.Repository, storage models.GeneralRepository, rpc noderpc.INode, address string, network types.Network, ptr int64) TezosStorage {
+func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, contractRepo contract.Repository, storage models.GeneralRepository, rpc noderpc.INode, address string, ptr int64) TezosStorage {
 	return TezosStorage{
 		bigMapRepo:   bigMapRepo,
 		blockRepo:    blockRepo,
@@ -45,7 +46,6 @@ func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repositor
 		storage:      storage,
 		rpc:          rpc,
 		address:      address,
-		network:      network,
 		ptr:          ptr,
 	}
 }
@@ -73,7 +73,7 @@ func (s TezosStorage) Get(ctx context.Context, value string, output interface{})
 		return err
 	}
 
-	bmd, err := s.bigMapRepo.Current(s.network, key, s.ptr)
+	bmd, err := s.bigMapRepo.Current(key, s.ptr)
 	if err != nil {
 		if s.storage.IsRecordNotFound(err) {
 			return nil
@@ -96,12 +96,12 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 	if uri.Address != "" && uri.Address != s.address {
 		s.address = uri.Address
 
-		block, err := s.blockRepo.Last(s.network)
+		block, err := s.blockRepo.Last()
 		if err != nil {
 			return err
 		}
 
-		bmPtr, err := storage.GetBigMapPtr(s.storage, s.contractRepo, s.rpc, s.network, s.address, metadataAnnot, block.Protocol.Hash, block.Level)
+		bmPtr, err := storage.GetBigMapPtr(context.Background(), s.storage, s.contractRepo, s.rpc, s.address, metadataAnnot, block.Protocol.Hash, block.Level)
 		if err != nil {
 			return err
 		}

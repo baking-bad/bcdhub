@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -103,7 +102,6 @@ func GetDexTokens() gin.HandlerFunc {
 		for _, token := range dapp.DexTokens {
 			tokenMetadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
 				Contract: token.Contract,
-				Network:  types.Mainnet,
 				TokenID:  &token.TokenID,
 			})
 			if err != nil {
@@ -133,7 +131,7 @@ func GetDexTokens() gin.HandlerFunc {
 				entrypointsArr = append(entrypointsArr, entrypoint)
 			}
 
-			vol, err := ctx.Transfers.GetToken24HoursVolume(types.Mainnet, token.Contract, initiatorsArr, entrypointsArr, token.TokenID)
+			vol, err := ctx.Transfers.GetToken24HoursVolume(token.Contract, initiatorsArr, entrypointsArr, token.TokenID)
 			if err != nil {
 				if ctx.Storage.IsRecordNotFound(err) {
 					continue
@@ -183,7 +181,7 @@ func GetDexTezosVolume() gin.HandlerFunc {
 
 		var volume float64
 		for _, address := range dapp.Contracts {
-			vol, err := ctx.Operations.GetContract24HoursVolume(types.Mainnet, address.Address, address.Entrypoint)
+			vol, err := ctx.Operations.GetContract24HoursVolume(address.Address, address.Entrypoint)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -231,7 +229,7 @@ func appendDAppInfo(ctx *config.Context, dapp dapp.DApp, withDetails bool) (DApp
 			result.Contracts = make([]DAppContract, 0)
 
 			for _, address := range dapp.Contracts {
-				contract, err := ctx.Contracts.Get(types.Mainnet, address.Address)
+				contract, err := ctx.Contracts.Get(address.Address)
 				if err != nil {
 					if ctx.Storage.IsRecordNotFound(err) {
 						continue
@@ -239,7 +237,6 @@ func appendDAppInfo(ctx *config.Context, dapp dapp.DApp, withDetails bool) (DApp
 					return result, err
 				}
 				result.Contracts = append(result.Contracts, DAppContract{
-					Network:     contract.Network.String(),
 					Address:     contract.Account.Address,
 					Alias:       contract.Account.Alias,
 					ReleaseDate: contract.Timestamp.UTC(),
@@ -248,7 +245,6 @@ func appendDAppInfo(ctx *config.Context, dapp dapp.DApp, withDetails bool) (DApp
 				if address.WithTokens {
 					metadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
 						Contract: address.Address,
-						Network:  types.Mainnet,
 						TokenID:  nil,
 					})
 					if err != nil {

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	stdJSON "encoding/json"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -34,18 +35,18 @@ func NewBabylon(repo bigmapdiff.Repository, rpc noderpc.INode) *Babylon {
 }
 
 // ParseTransaction -
-func (b *Babylon) ParseTransaction(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
+func (b *Babylon) ParseTransaction(ctx context.Context, content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
 	result := content.GetResult()
 	if result == nil {
 		return nil, nil
 	}
 	operation.DeffatedStorage = result.Storage
 
-	return b.handleBigMapDiff(result, *content.Destination, operation, result.Storage)
+	return b.handleBigMapDiff(ctx, result, *content.Destination, operation, result.Storage)
 }
 
 // ParseOrigination -
-func (b *Babylon) ParseOrigination(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
+func (b *Babylon) ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
 	result := content.GetResult()
 	if result == nil {
 		return nil, nil
@@ -60,10 +61,10 @@ func (b *Babylon) ParseOrigination(content noderpc.Operation, operation *operati
 
 	operation.DeffatedStorage = scriptData.Storage
 
-	return b.handleBigMapDiff(result, result.Originated[0], operation, scriptData.Storage)
+	return b.handleBigMapDiff(ctx, result, result.Originated[0], operation, scriptData.Storage)
 }
 
-func (b *Babylon) initPointersTypes(result *noderpc.OperationResult, operation *operation.Operation, data []byte) error {
+func (b *Babylon) initPointersTypes(ctx context.Context, result *noderpc.OperationResult, operation *operation.Operation, data []byte) error {
 	level := operation.Level
 	if operation.IsTransaction() && operation.Level >= 2 {
 		level = operation.Level - 1
@@ -82,7 +83,7 @@ func (b *Babylon) initPointersTypes(result *noderpc.OperationResult, operation *
 		return nil
 	}
 
-	rawData, err := b.rpc.GetScriptStorageRaw(operation.Destination.Address, level)
+	rawData, err := b.rpc.GetScriptStorageRaw(ctx, operation.Destination.Address, level)
 	if err != nil {
 		return errors.Wrapf(err, "GetScriptStorageRaw %s %d", operation.Destination.Address, level)
 	}
@@ -134,12 +135,12 @@ func (b *Babylon) checkPointers(result *noderpc.OperationResult, storage *ast.Ty
 	return nil
 }
 
-func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address string, op *operation.Operation, storageData []byte) (*parsers.Result, error) {
+func (b *Babylon) handleBigMapDiff(ctx context.Context, result *noderpc.OperationResult, address string, op *operation.Operation, storageData []byte) (*parsers.Result, error) {
 	if len(result.BigMapDiffs) == 0 {
 		return nil, nil
 	}
 
-	if err := b.initPointersTypes(result, op, storageData); err != nil {
+	if err := b.initPointersTypes(ctx, result, op, storageData); err != nil {
 		return nil, nil
 	}
 
@@ -177,7 +178,6 @@ func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string
 		OperationID: operation.ID,
 		Level:       operation.Level,
 		Contract:    address,
-		Network:     operation.Network,
 		Timestamp:   operation.Timestamp,
 		ProtocolID:  operation.ProtocolID,
 		Value:       types.Bytes(item.Value),
@@ -218,7 +218,7 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 
 	b.ptrMap[destinationPtr] = sourcePtr
 
-	bmd, err := b.getCopyBigMapDiff(sourcePtr, address, operation.Network)
+	bmd, err := b.getCopyBigMapDiff(sourcePtr, address)
 	if err != nil {
 		return err
 	}
@@ -256,7 +256,7 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 	if ptr < 0 {
 		return nil
 	}
-	states, err := b.repo.GetByPtr(operation.Network, address, ptr)
+	states, err := b.repo.GetByPtr(address, ptr)
 	if err != nil {
 		return err
 	}
@@ -304,7 +304,6 @@ func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr 
 		OperationID: operation.ID,
 		Level:       operation.Level,
 		Address:     address,
-		Network:     operation.Network,
 		Timestamp:   operation.Timestamp,
 	}
 
@@ -355,9 +354,9 @@ func (b *Babylon) updateTemporaryPointers(src, dst int64) {
 	b.temporaryPointers[dst] = dstBigMap
 }
 
-func (b *Babylon) getCopyBigMapDiff(src int64, address string, network types.Network) (bmd []bigmapdiff.BigMapDiff, err error) {
+func (b *Babylon) getCopyBigMapDiff(src int64, address string) (bmd []bigmapdiff.BigMapDiff, err error) {
 	if src > -1 {
-		states, err := b.repo.GetByPtr(network, address, src)
+		states, err := b.repo.GetByPtr(address, src)
 		if err != nil {
 			return nil, err
 		}

@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -20,8 +21,7 @@ import (
 // Cache -
 type Cache struct {
 	*ccache.Cache
-	network types.Network
-	rpc     noderpc.INode
+	rpc noderpc.INode
 
 	blocks    block.Repository
 	accounts  account.Repository
@@ -32,10 +32,9 @@ type Cache struct {
 }
 
 // NewCache -
-func NewCache(network types.Network, rpc noderpc.INode, blocks block.Repository, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository, cm contract_metadata.Repository, sanitizer *bluemonday.Policy) *Cache {
+func NewCache(rpc noderpc.INode, blocks block.Repository, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository, cm contract_metadata.Repository, sanitizer *bluemonday.Policy) *Cache {
 	return &Cache{
 		ccache.New(ccache.Configure().MaxSize(1000)),
-		network,
 		rpc,
 		blocks,
 		accounts,
@@ -53,12 +52,12 @@ func (cache *Cache) Alias(address string) string {
 	}
 	key := fmt.Sprintf("alias:%s", address)
 	item, err := cache.Fetch(key, time.Minute*30, func() (interface{}, error) {
-		acc, err := cache.accounts.Get(cache.network, address)
+		acc, err := cache.accounts.Get(address)
 		if err == nil && acc.Alias != "" {
 			return acc.Alias, nil
 		}
 
-		cm, err := cache.tzip.Get(cache.network, address)
+		cm, err := cache.tzip.Get(address)
 		if err == nil {
 			return cm.Name, nil
 		}
@@ -82,7 +81,7 @@ func (cache *Cache) ContractMetadata(address string) (*contract_metadata.Contrac
 	}
 	key := fmt.Sprintf("contract_metadata:%s", address)
 	item, err := cache.Fetch(key, time.Minute*30, func() (interface{}, error) {
-		return cache.tzip.Get(cache.network, address)
+		return cache.tzip.Get(address)
 	})
 	if err != nil {
 		return nil, err
@@ -98,7 +97,7 @@ func (cache *Cache) Events(address string) (contract_metadata.Events, error) {
 	}
 	key := fmt.Sprintf("contract_metadata:%s", address)
 	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		return cache.tzip.Events(cache.network, address)
+		return cache.tzip.Events(address)
 	})
 	if err != nil {
 		return nil, err
@@ -115,7 +114,7 @@ func (cache *Cache) Contract(address string) (*contract.Contract, error) {
 
 	key := fmt.Sprintf("contract:%s", address)
 	item, err := cache.Fetch(key, time.Minute*10, func() (interface{}, error) {
-		return cache.contracts.Get(cache.network, address)
+		return cache.contracts.Get(address)
 	})
 	if err != nil {
 		return nil, err
@@ -132,7 +131,7 @@ func (cache *Cache) ContractTags(address string) (types.Tags, error) {
 
 	key := fmt.Sprintf("contract:%s", address)
 	item, err := cache.Fetch(key, time.Minute*10, func() (interface{}, error) {
-		c, err := cache.contracts.Get(cache.network, address)
+		c, err := cache.contracts.Get(address)
 		if err != nil {
 			return 0, err
 		}
@@ -152,7 +151,7 @@ func (cache *Cache) ProjectIDByHash(hash string) string {
 // CurrentBlock -
 func (cache *Cache) CurrentBlock() (block.Block, error) {
 	item, err := cache.Fetch("block", time.Second*15, func() (interface{}, error) {
-		return cache.blocks.Last(cache.network)
+		return cache.blocks.Last()
 	})
 	if err != nil {
 		return block.Block{}, err
@@ -162,10 +161,10 @@ func (cache *Cache) CurrentBlock() (block.Block, error) {
 
 //nolint
 // TezosBalance -
-func (cache *Cache) TezosBalance(address string, level int64) (int64, error) {
+func (cache *Cache) TezosBalance(ctx context.Context, address string, level int64) (int64, error) {
 	key := fmt.Sprintf("tezos_balance:%s:%d", address, level)
 	item, err := cache.Fetch(key, 30*time.Second, func() (interface{}, error) {
-		return cache.rpc.GetContractBalance(address, level)
+		return cache.rpc.GetContractBalance(ctx, address, level)
 	})
 	if err != nil {
 		return 0, err
@@ -181,7 +180,7 @@ func (cache *Cache) ScriptBytes(address, symLink string) ([]byte, error) {
 
 	key := fmt.Sprintf("script_bytes:%s", address)
 	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		script, err := cache.contracts.Script(cache.network, address, symLink)
+		script, err := cache.contracts.Script(address, symLink)
 		if err != nil {
 			return nil, err
 		}
@@ -201,7 +200,7 @@ func (cache *Cache) StorageTypeBytes(address, symLink string) ([]byte, error) {
 
 	key := fmt.Sprintf("storage:%s", address)
 	item, err := cache.Fetch(key, 5*time.Minute, func() (interface{}, error) {
-		return cache.contracts.ScriptPart(cache.network, address, symLink, consts.STORAGE)
+		return cache.contracts.ScriptPart(address, symLink, consts.STORAGE)
 	})
 	if err != nil {
 		return nil, err
@@ -225,7 +224,7 @@ func (cache *Cache) ProtocolByID(id int64) (protocol.Protocol, error) {
 func (cache *Cache) ProtocolByHash(hash string) (protocol.Protocol, error) {
 	key := fmt.Sprintf("protocol_hash:%s", hash)
 	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		return cache.protocols.Get(cache.network, hash, -1)
+		return cache.protocols.Get(hash, -1)
 	})
 	if err != nil {
 		return protocol.Protocol{}, err

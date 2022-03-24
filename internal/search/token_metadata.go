@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // TokenResponse -
@@ -67,7 +68,7 @@ func (t Token) Parse(highlight map[string][]string, data []byte) (*Item, error) 
 }
 
 // Prepare -
-func (t *Token) Prepare(model models.Model) {
+func (t *Token) Prepare(network types.Network, model models.Model) {
 	tm, ok := model.(*tokenmetadata.TokenMetadata)
 	if !ok {
 		return
@@ -79,7 +80,7 @@ func (t *Token) Prepare(model models.Model) {
 	t.Extras = tm.Extras
 	t.Level = tm.Level
 	t.Name = tm.Name
-	t.Network = tm.Network.String()
+	t.Network = network.String()
 	t.Symbol = tm.Symbol
 	t.Timestamp = tm.Timestamp.UTC()
 	t.TokenID = tm.TokenID

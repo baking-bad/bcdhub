@@ -39,7 +39,7 @@ func GetHead() gin.HandlerFunc {
 
 		body := make([]HeadResponse, 0)
 		for network, ctx := range ctxs {
-			block, err := ctx.Blocks.Last(network)
+			block, err := ctx.Blocks.Last()
 			if err != nil {
 				if ctx.Storage.IsRecordNotFound(err) {
 					continue
@@ -48,9 +48,9 @@ func GetHead() gin.HandlerFunc {
 				return
 			}
 
-			head, err := getHead(ctx, block, stats)
+			head, err := getHead(ctx, network, block, stats)
 			if err != nil {
-				logger.Warning().Str("network", block.Network.String()).Err(err).Msg("head API")
+				logger.Warning().Str("network", network.String()).Err(err).Msg("head API")
 				continue
 			}
 
@@ -76,7 +76,7 @@ func GetHeadByNetwork() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		block, err := ctx.Blocks.Last(ctx.Network)
+		block, err := ctx.Blocks.Last()
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -86,7 +86,7 @@ func GetHeadByNetwork() gin.HandlerFunc {
 			return
 		}
 
-		head, err := getHead(ctx, block, stats)
+		head, err := getHead(ctx, ctx.Network, block, stats)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -95,10 +95,10 @@ func GetHeadByNetwork() gin.HandlerFunc {
 	}
 }
 
-func getHead(ctx *config.Context, block block.Block, stats map[string]*models.NetworkStats) (HeadResponse, error) {
+func getHead(ctx *config.Context, network types.Network, block block.Block, stats map[string]*models.NetworkStats) (HeadResponse, error) {
 	var found bool
 	for j := range ctx.Config.API.Networks {
-		if block.Network.String() == ctx.Config.API.Networks[j] {
+		if network.String() == ctx.Config.API.Networks[j] {
 			found = true
 			break
 		}
@@ -109,15 +109,15 @@ func getHead(ctx *config.Context, block block.Block, stats map[string]*models.Ne
 	}
 
 	head := HeadResponse{
-		Network:   block.Network.String(),
+		Network:   network.String(),
 		Level:     block.Level,
 		Timestamp: block.Timestamp.UTC(),
 		Protocol:  block.Protocol.Hash,
 		Synced:    !block.Timestamp.UTC().Add(2 * time.Minute).Before(time.Now().UTC()),
 	}
-	networkStats, ok := stats[block.Network.String()]
+	networkStats, ok := stats[network.String()]
 	if !ok {
-		return head, errors.Errorf("can't get stats for %s", block.Network)
+		return head, errors.Errorf("can't get stats for %s", network.String())
 	}
 	head.ContractCalls = int64(networkStats.CallsCount)
 	head.FACount = int64(networkStats.FACount)

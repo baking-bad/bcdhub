@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -18,7 +20,7 @@ func NewAlpha() *Alpha {
 }
 
 // ParseTransaction -
-func (a *Alpha) ParseTransaction(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
+func (a *Alpha) ParseTransaction(ctx context.Context, content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
 	result := content.GetResult()
 	if result == nil {
 		return nil, nil
@@ -29,7 +31,7 @@ func (a *Alpha) ParseTransaction(content noderpc.Operation, operation *operation
 }
 
 // ParseOrigination -
-func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
+func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
 	if content.Script == nil {
 		return nil, nil
 	}
@@ -90,7 +92,6 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 					OperationID: operation.ID,
 					Level:       operation.Level,
 					Contract:    result.Originated[0],
-					Network:     operation.Network,
 					Timestamp:   operation.Timestamp,
 					ProtocolID:  operation.ProtocolID,
 					Ptr:         -1,
@@ -133,7 +134,6 @@ func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operat
 			OperationID: operation.ID,
 			Level:       operation.Level,
 			Contract:    address,
-			Network:     operation.Network,
 			Timestamp:   operation.Timestamp,
 			ProtocolID:  operation.ProtocolID,
 			Ptr:         -1,

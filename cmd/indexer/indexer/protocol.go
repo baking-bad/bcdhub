@@ -1,33 +1,31 @@
 package indexer
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
-func createProtocol(rpc noderpc.INode, network types.Network, hash string, level int64) (protocol protocol.Protocol, err error) {
-	logger.Info().Str("network", network.String()).Msgf("Creating new protocol %s starting at %d", hash, level)
+func createProtocol(ctx context.Context, rpc noderpc.INode, hash string, level int64) (protocol protocol.Protocol, err error) {
 	protocol.SymLink, err = bcd.GetProtoSymLink(hash)
 	if err != nil {
 		return
 	}
 
 	protocol.Alias = hash[:8]
-	protocol.Network = network
 	protocol.Hash = hash
 	protocol.StartLevel = level
 
-	err = setProtocolConstants(rpc, &protocol)
+	err = setProtocolConstants(ctx, rpc, &protocol)
 
 	return
 }
 
-func setProtocolConstants(rpc noderpc.INode, proto *protocol.Protocol) error {
+func setProtocolConstants(ctx context.Context, rpc noderpc.INode, proto *protocol.Protocol) error {
 	if proto.StartLevel > 0 {
-		resp, err := rpc.GetNetworkConstants(proto.StartLevel)
+		resp, err := rpc.GetNetworkConstants(ctx, proto.StartLevel)
 		if err != nil {
 			return err
 		}

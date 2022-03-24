@@ -36,9 +36,9 @@ func WithGasLimit(gasLimit int64) ParserOption {
 	}
 }
 
-// WithoutViews -
-func WithoutViews() ParserOption {
+// WithoutEvents -
+func WithoutEvents() ParserOption {
 	return func(dp *Parser) {
-		dp.withoutViews = true
+		dp.withoutEvents = true
 	}
 }

@@ -1,6 +1,7 @@
 package events
 
 import (
+	"context"
 	stdJSON "encoding/json"
 	"fmt"
 	"strings"
@@ -19,8 +20,8 @@ type Event interface {
 	Normalize(parameter *ast.TypedAst) []byte
 }
 
-// Context -
-type Context struct {
+// Args -
+type Args struct {
 	Network                  types.Network
 	Protocol                 string
 	Parameters               *ast.TypedAst
@@ -54,10 +55,10 @@ func (sections Sections) GetCode() ([]byte, error) {
 }
 
 // Execute -
-func Execute(rpc noderpc.INode, event Event, ctx Context) ([]tokenbalance.TokenBalance, error) {
-	parameter := event.Normalize(ctx.Parameters)
+func Execute(ctx context.Context, rpc noderpc.INode, event Event, args Args) ([]tokenbalance.TokenBalance, error) {
+	parameter := event.Normalize(args.Parameters)
 	if parameter == nil {
-		logger.Warning().Msgf("%s event failed", ctx.Network)
+		logger.Warning().Msgf("%s event failed", args.Network)
 		return nil, nil
 	}
 	storage := []byte(`[]`)
@@ -66,7 +67,7 @@ func Execute(rpc noderpc.INode, event Event, ctx Context) ([]tokenbalance.TokenB
 		return nil, err
 	}
 
-	response, err := rpc.RunCode(code, storage, parameter, ctx.ChainID, ctx.Source, ctx.Initiator, ctx.Entrypoint, ctx.Protocol, ctx.Amount, ctx.HardGasLimitPerOperation)
+	response, err := rpc.RunCode(ctx, code, storage, parameter, args.ChainID, args.Source, args.Initiator, args.Entrypoint, args.Protocol, args.Amount, args.HardGasLimitPerOperation)
 	if err != nil {
 		return nil, err
 	}

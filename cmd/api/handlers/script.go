@@ -21,7 +21,7 @@ func getScriptBytes(ctx *config.Context, address, symLink string) ([]byte, error
 		}
 		symLink = state.Protocol.SymLink
 	}
-	script, err := ctx.Contracts.Script(ctx.Network, address, symLink)
+	script, err := ctx.Contracts.Script(address, symLink)
 	if err != nil {
 		return nil, err
 	}

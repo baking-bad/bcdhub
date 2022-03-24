@@ -41,12 +41,12 @@ func GetFA() gin.HandlerFunc {
 		if err := c.BindQuery(&cursorReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		contracts, total, err := ctx.Contracts.GetTokens(req.NetworkID(), "", cursorReq.Offset, cursorReq.Size)
+		contracts, total, err := ctx.Contracts.GetTokens("", cursorReq.Offset, cursorReq.Size)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		tokens, err := contractToTokens(ctx, contracts, req.NetworkID(), "")
+		tokens, err := contractToTokens(ctx, contracts, "")
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -87,12 +87,12 @@ func GetFAByVersion() gin.HandlerFunc {
 		if req.Version == "fa12" {
 			req.Version = consts.FA12Tag
 		}
-		contracts, total, err := ctx.Contracts.GetTokens(req.NetworkID(), req.Version, cursorReq.Offset, cursorReq.Size)
+		contracts, total, err := ctx.Contracts.GetTokens(req.Version, cursorReq.Offset, cursorReq.Size)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		tokens, err := contractToTokens(ctx, contracts, req.NetworkID(), req.Version)
+		tokens, err := contractToTokens(ctx, contracts, req.Version)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -141,13 +141,12 @@ func GetFA12OperationsForAddress() gin.HandlerFunc {
 			contracts = strings.Split(ctxReq.Contracts, ",")
 		}
 
-		acc, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
+		acc, err := ctx.Accounts.Get(req.Address)
 		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
 		transfers, err := ctx.Domains.Transfers(transfer.GetContext{
-			Network:   req.NetworkID(),
 			AccountID: acc.ID,
 			Contracts: contracts,
 			Start:     ctxReq.Start,
@@ -200,7 +199,7 @@ func GetTokenVolumeSeries() gin.HandlerFunc {
 			return
 		}
 
-		series, err := ctx.Transfers.GetTokenVolumeSeries(req.NetworkID(), args.Period, []string{args.Contract}, dapp.Contracts, args.TokenID)
+		series, err := ctx.Transfers.GetTokenVolumeSeries(args.Period, []string{args.Contract}, dapp.Contracts, args.TokenID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -209,12 +208,11 @@ func GetTokenVolumeSeries() gin.HandlerFunc {
 	}
 }
 
-func contractToTokens(ctx *config.Context, contracts []contract.Contract, network types.Network, version string) (PageableTokenContracts, error) {
+func contractToTokens(ctx *config.Context, contracts []contract.Contract, version string) (PageableTokenContracts, error) {
 	tokens := make([]TokenContract, len(contracts))
 	addresses := make([]string, len(contracts))
 	for i := range contracts {
 		tokens[i] = TokenContract{
-			Network:       contracts[i].Network.String(),
 			Level:         contracts[i].Level,
 			Timestamp:     contracts[i].Timestamp,
 			Address:       contracts[i].Account.Address,
@@ -244,7 +242,7 @@ func contractToTokens(ctx *config.Context, contracts []contract.Contract, networ
 			return PageableTokenContracts{}, err
 		}
 
-		stats, err := ctx.Operations.GetTokensStats(network, addresses, methods)
+		stats, err := ctx.Operations.GetTokensStats(addresses, methods)
 		if err != nil {
 			return PageableTokenContracts{}, err
 		}
@@ -311,7 +309,6 @@ func GetContractTokens() gin.HandlerFunc {
 		}
 		metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{{
 			Contract: req.Address,
-			Network:  req.NetworkID(),
 			TokenID:  pageReq.TokenID,
 			MinLevel: pageReq.MinLevel,
 			MaxLevel: pageReq.MaxLevel,
@@ -352,7 +349,6 @@ func GetContractTokensCount() gin.HandlerFunc {
 		}
 		count, err := ctx.TokenMetadata.Count([]tokenmetadata.GetContext{{
 			Contract: req.Address,
-			Network:  req.NetworkID(),
 		}})
 		if handleError(c, ctx.Storage, err, 0) {
 			return
@@ -382,13 +378,13 @@ func addSupply(ctx *config.Context, metadata []tokenmetadata.TokenMetadata) ([]T
 			TokenMetadata: TokenMetadataFromElasticModel(token, true),
 		}
 
-		supply, err := ctx.TokenBalances.TokenSupply(token.Network, token.Contract, token.TokenID)
+		supply, err := ctx.TokenBalances.TokenSupply(token.Contract, token.TokenID)
 		if err != nil {
 			return nil, err
 		}
 		t.Supply = supply
 
-		transferred, err := ctx.Transfers.GetTransfered(token.Network, token.Contract, token.TokenID)
+		transferred, err := ctx.Transfers.GetTransfered(token.Contract, token.TokenID)
 		if err != nil {
 			return nil, err
 		}
@@ -428,7 +424,7 @@ func GetTokenHolders() gin.HandlerFunc {
 			return
 		}
 
-		balances, err := ctx.TokenBalances.GetHolders(req.NetworkID(), req.Address, *reqArgs.TokenID)
+		balances, err := ctx.TokenBalances.GetHolders(req.Address, *reqArgs.TokenID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -474,7 +470,6 @@ func GetTokenMetadata() gin.HandlerFunc {
 		}
 		tokens, err := getTokensWithSupply(ctx, tokenmetadata.GetContext{
 			Contract: queryParams.Contract,
-			Network:  req.NetworkID(),
 			MinLevel: queryParams.MinLevel,
 			MaxLevel: queryParams.MaxLevel,
 			Creator:  queryParams.Creator,

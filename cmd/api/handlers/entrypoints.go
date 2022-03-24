@@ -182,11 +182,10 @@ func GetEntrypointSchema() gin.HandlerFunc {
 
 			op, err := ctx.Operations.Last(
 				map[string]interface{}{
-					"operation.network": ctx.Network,
-					"destination_id":    account.ID,
-					"kind":              modelTypes.OperationKindTransaction,
-					"entrypoint":        esReq.EntrypointName,
-					"status":            modelTypes.OperationStatusApplied,
+					"destination_id": account.ID,
+					"kind":           modelTypes.OperationKindTransaction,
+					"entrypoint":     esReq.EntrypointName,
+					"status":         modelTypes.OperationStatusApplied,
 				}, 0)
 			if handleError(c, ctx.Storage, err, 0) {
 				return

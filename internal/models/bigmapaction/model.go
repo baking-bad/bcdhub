@@ -19,7 +19,6 @@ type BigMapAction struct {
 	OperationID    int64
 	Level          int64
 	Address        string
-	Network        types.Network `pg:",type:SMALLINT"`
 	Timestamp      time.Time
 }
 
@@ -43,7 +42,6 @@ func (b *BigMapAction) Save(tx pg.DBI) error {
 		operation_id = excluded.operation_id,
 		level = excluded.level,
 		address = excluded.address,
-		network = excluded.network,
 		timestamp = excluded.timestamp`).
 		Returning("id").Insert()
 	return err

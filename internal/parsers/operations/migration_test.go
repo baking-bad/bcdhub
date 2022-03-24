@@ -32,11 +32,9 @@ func TestMigration_Parse(t *testing.T) {
 		{
 			name: "test 1",
 			operation: &operation.Operation{
-				Network:    types.Mainnet,
 				Level:      123,
 				ProtocolID: 2,
 				Destination: account.Account{
-					Network: types.Mainnet,
 					Address: "destination",
 				},
 				Timestamp: timestamp,
@@ -47,11 +45,9 @@ func TestMigration_Parse(t *testing.T) {
 		}, {
 			name: "test 2",
 			operation: &operation.Operation{
-				Network:    types.Mainnet,
 				Level:      123,
 				ProtocolID: 2,
 				Destination: account.Account{
-					Network: types.Mainnet,
 					Address: "destination",
 				},
 				Timestamp: timestamp,
@@ -77,7 +73,7 @@ func TestMigration_Parse(t *testing.T) {
 
 			contractRepo.
 				EXPECT().
-				Get(gomock.Eq(tt.operation.Network), gomock.Eq(tt.operation.Destination.Address)).
+				Get(gomock.Eq(tt.operation.Destination.Address)).
 				Return(contract.Contract{}, nil).
 				AnyTimes()
 

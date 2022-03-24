@@ -83,32 +83,32 @@ func TestGroup_Parse(t *testing.T) {
 
 	rpc.
 		EXPECT().
-		GetScriptJSON("KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn", int64(0)).
+		GetScriptJSON(gomock.Any(), "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn", int64(0)).
 		DoAndReturn(readRPCScript).
 		AnyTimes()
 	rpc.
 		EXPECT().
-		GetScriptJSON("KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV", int64(0)).
+		GetScriptJSON(gomock.Any(), "KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV", int64(0)).
 		DoAndReturn(readRPCScript).
 		AnyTimes()
 	rpc.
 		EXPECT().
-		GetScriptJSON("KT19at7rQUvyjxnZ2fBv7D9zc8rkyG7gAoU8", int64(0)).
+		GetScriptJSON(gomock.Any(), "KT19at7rQUvyjxnZ2fBv7D9zc8rkyG7gAoU8", int64(0)).
 		DoAndReturn(readRPCScript).
 		AnyTimes()
 	rpc.
 		EXPECT().
-		GetScriptJSON("KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo", int64(0)).
+		GetScriptJSON(gomock.Any(), "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo", int64(0)).
 		DoAndReturn(readRPCScript).
 		AnyTimes()
 	rpc.
 		EXPECT().
-		GetScriptJSON("KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9", int64(0)).
+		GetScriptJSON(gomock.Any(), "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9", int64(0)).
 		DoAndReturn(readRPCScript).
 		AnyTimes()
 	rpc.
 		EXPECT().
-		GetScriptJSON("KT1S95Dyj2QrJpSnAbHRUSUZr7DhuFqssrog", int64(0)).
+		GetScriptJSON(gomock.Any(), "KT1S95Dyj2QrJpSnAbHRUSUZr7DhuFqssrog", int64(0)).
 		DoAndReturn(readRPCScript).
 		AnyTimes()
 
@@ -120,31 +120,31 @@ func TestGroup_Parse(t *testing.T) {
 
 	cmRepo.
 		EXPECT().
-		Events(gomock.Any(), gomock.Any()).
+		Events(gomock.Any()).
 		Return(make(cm.Events, 0), nil).
 		AnyTimes()
 
 	cmRepo.
 		EXPECT().
-		Get(gomock.Any(), gomock.Any()).
+		Get(gomock.Any()).
 		Return(nil, nil).
 		AnyTimes()
 
 	contractRepo.
 		EXPECT().
-		Get(gomock.Any(), gomock.Any()).
+		Get(gomock.Any()).
 		DoAndReturn(readTestContractModel).
 		AnyTimes()
 
 	contractRepo.
 		EXPECT().
-		Script(gomock.Any(), gomock.Any(), gomock.Any()).
+		Script(gomock.Any(), gomock.Any()).
 		DoAndReturn(readTestScriptModel).
 		AnyTimes()
 
 	contractRepo.
 		EXPECT().
-		ScriptPart(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		ScriptPart(gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(readTestScriptPart).
 		AnyTimes()
 
@@ -169,7 +169,6 @@ func TestGroup_Parse(t *testing.T) {
 	bmdRepo.
 		EXPECT().
 		GetByPtr(
-			gomock.Eq(types.Carthagenet),
 			gomock.Eq("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU"),
 			gomock.Eq(int64(2416))).
 		Return([]bigmapdiff.BigMapState{
@@ -180,7 +179,6 @@ func TestGroup_Parse(t *testing.T) {
 				Value:           []byte(`{"prim":"Pair","args":[[],{"int":"6000"}]}`),
 				LastUpdateLevel: 386026,
 				Contract:        "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-				Network:         types.Carthagenet,
 				LastUpdateTime:  timestamp,
 			},
 		}, nil).
@@ -190,7 +188,6 @@ func TestGroup_Parse(t *testing.T) {
 		bmdRepo.
 			EXPECT().
 			GetByPtr(
-				gomock.Eq(types.Edo2net),
 				gomock.Eq("KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264"),
 				gomock.Eq(int64(ptr))).
 			Return([]bigmapdiff.BigMapState{}, nil).
@@ -200,7 +197,6 @@ func TestGroup_Parse(t *testing.T) {
 	bmdRepo.
 		EXPECT().
 		GetByPtr(
-			gomock.Eq(types.Carthagenet),
 			gomock.Eq("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ"),
 			gomock.Eq(int64(2417))).
 		Return([]bigmapdiff.BigMapState{
@@ -211,7 +207,6 @@ func TestGroup_Parse(t *testing.T) {
 				Value:           nil,
 				LastUpdateLevel: 386026,
 				Contract:        "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
-				Network:         types.Carthagenet,
 				LastUpdateTime:  timestamp,
 			},
 		}, nil).
@@ -220,12 +215,10 @@ func TestGroup_Parse(t *testing.T) {
 	protoRepo.
 		EXPECT().
 		Get(
-			gomock.Eq(types.Delphinet),
 			gomock.Eq("PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"),
 			gomock.Eq(int64(-1))).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
-			Network: types.Delphinet,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      0,
 		}, nil).
@@ -234,12 +227,10 @@ func TestGroup_Parse(t *testing.T) {
 	protoRepo.
 		EXPECT().
 		Get(
-			gomock.Eq(types.Mainnet),
 			gomock.Eq("PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"),
 			gomock.Eq(int64(-1))).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
-			Network: types.Mainnet,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      1,
 		}, nil).
@@ -248,12 +239,10 @@ func TestGroup_Parse(t *testing.T) {
 	protoRepo.
 		EXPECT().
 		Get(
-			gomock.Eq(types.Mainnet),
 			gomock.Eq("PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP"),
 			gomock.Eq(int64(-1))).
 		Return(protocol.Protocol{
 			Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
-			Network: types.Mainnet,
 			SymLink: bcd.SymLinkAlpha,
 			ID:      2,
 		}, nil).
@@ -262,12 +251,10 @@ func TestGroup_Parse(t *testing.T) {
 	protoRepo.
 		EXPECT().
 		Get(
-			gomock.Eq(types.Edo2net),
 			gomock.Eq("PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA"),
 			gomock.Eq(int64(-1))).
 		Return(protocol.Protocol{
 			Hash:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
-			Network: types.Edo2net,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      3,
 		}, nil).
@@ -276,12 +263,10 @@ func TestGroup_Parse(t *testing.T) {
 	protoRepo.
 		EXPECT().
 		Get(
-			gomock.Eq(types.Mainnet),
 			gomock.Eq("PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i"),
 			gomock.Eq(int64(-1))).
 		Return(protocol.Protocol{
 			Hash:    "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
-			Network: types.Mainnet,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      4,
 		}, nil).
@@ -290,12 +275,10 @@ func TestGroup_Parse(t *testing.T) {
 	protoRepo.
 		EXPECT().
 		Get(
-			gomock.Eq(types.Hangzhounet),
 			gomock.Eq("PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r"),
 			gomock.Eq(int64(-1))).
 		Return(protocol.Protocol{
 			Hash:    "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
-			Network: types.Hangzhounet,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      5,
 		}, nil).
@@ -306,7 +289,6 @@ func TestGroup_Parse(t *testing.T) {
 		GetByID(gomock.Eq(int64(0))).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
-			Network: types.Delphinet,
 			SymLink: bcd.SymLinkBabylon,
 		}, nil).
 		AnyTimes()
@@ -316,7 +298,6 @@ func TestGroup_Parse(t *testing.T) {
 		GetByID(gomock.Eq(int64(1))).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
-			Network: types.Mainnet,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      1,
 		}, nil).
@@ -327,7 +308,6 @@ func TestGroup_Parse(t *testing.T) {
 		GetByID(gomock.Eq(int64(2))).
 		Return(protocol.Protocol{
 			Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
-			Network: types.Mainnet,
 			SymLink: bcd.SymLinkAlpha,
 			ID:      2,
 		}, nil).
@@ -338,7 +318,6 @@ func TestGroup_Parse(t *testing.T) {
 		GetByID(gomock.Eq(int64(3))).
 		Return(protocol.Protocol{
 			Hash:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
-			Network: types.Edo2net,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      3,
 		}, nil).
@@ -349,7 +328,6 @@ func TestGroup_Parse(t *testing.T) {
 		GetByID(gomock.Eq(int64(4))).
 		Return(protocol.Protocol{
 			Hash:    "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
-			Network: types.Mainnet,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      4,
 		}, nil).
@@ -360,7 +338,6 @@ func TestGroup_Parse(t *testing.T) {
 		GetByID(gomock.Eq(int64(5))).
 		Return(protocol.Protocol{
 			Hash:    "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
-			Network: types.Hangzhounet,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      5,
 		}, nil).
@@ -389,7 +366,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					types.Mainnet, rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -399,7 +376,6 @@ func TestGroup_Parse(t *testing.T) {
 					Level:     1068669,
 					ChainID:   "NetXdQprcVkpaWU",
 				}),
-				WithNetwork(types.Mainnet),
 				WithProtocol(&protocol.Protocol{
 					Constants: &protocol.Constants{
 						CostPerByte:                  1000,
@@ -408,7 +384,6 @@ func TestGroup_Parse(t *testing.T) {
 						TimeBetweenBlocks:            60,
 					},
 					Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
-					Network: types.Mainnet,
 					SymLink: bcd.SymLinkBabylon,
 				}),
 			},
@@ -428,7 +403,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					types.Mainnet, rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -446,11 +421,9 @@ func TestGroup_Parse(t *testing.T) {
 						TimeBetweenBlocks:            60,
 					},
 					Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
-					Network: types.Mainnet,
 					ID:      1,
 					SymLink: bcd.SymLinkBabylon,
 				}),
-				WithNetwork(types.Mainnet),
 			},
 			storage: map[string]int64{
 				"KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM": 1068668,
@@ -463,7 +436,6 @@ func TestGroup_Parse(t *testing.T) {
 					{
 						Kind: types.OperationKindTransaction,
 						Source: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
 						},
@@ -472,17 +444,13 @@ func TestGroup_Parse(t *testing.T) {
 						GasLimit:     369423,
 						StorageLimit: 90,
 						Destination: account.Account{
-							Network: types.Mainnet,
 							Address: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 							Type:    types.AccountTypeContract,
 						},
-						Delegate: account.Account{
-							Network: types.Mainnet,
-						},
-						Status:  types.OperationStatusApplied,
-						Level:   1068669,
-						Network: types.Mainnet,
-						Hash:    "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
+						Delegate: account.Account{},
+						Status:   types.OperationStatusApplied,
+						Level:    1068669,
+						Hash:     "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
 						Entrypoint: types.NullString{
 							Str:   "transfer",
 							Valid: true,
@@ -490,7 +458,6 @@ func TestGroup_Parse(t *testing.T) {
 						Timestamp: timestamp,
 						Burned:    70000,
 						Initiator: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
 						},
@@ -500,10 +467,8 @@ func TestGroup_Parse(t *testing.T) {
 						Tags:            types.FA12Tag,
 						Transfers: []*transfer.Transfer{
 							{
-								Network:  types.Mainnet,
 								Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 								Initiator: account.Account{
-									Network: types.Mainnet,
 									Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 									Type:    types.AccountTypeTz,
 								},
@@ -511,12 +476,10 @@ func TestGroup_Parse(t *testing.T) {
 								Timestamp: timestamp,
 								Level:     1068669,
 								From: account.Account{
-									Network: types.Mainnet,
 									Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 									Type:    types.AccountTypeTz,
 								},
 								To: account.Account{
-									Network: types.Mainnet,
 									Address: "tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV",
 									Type:    types.AccountTypeTz,
 								},
@@ -531,7 +494,6 @@ func TestGroup_Parse(t *testing.T) {
 								Key:        []byte(`{"bytes":"0000a2560a416161def96031630886abe950c4baf036"}`),
 								Value:      []byte(`{"int":"6141000"}`),
 								Level:      1068669,
-								Network:    types.Mainnet,
 								Contract:   "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 								ProtocolID: 1,
 								Timestamp:  timestamp,
@@ -542,7 +504,6 @@ func TestGroup_Parse(t *testing.T) {
 								Key:        []byte(`{"bytes":"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba"}`),
 								Value:      []byte(`{"int":"8010000"}`),
 								Level:      1068669,
-								Network:    types.Mainnet,
 								Contract:   "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 								ProtocolID: 1,
 								Timestamp:  timestamp,
@@ -552,24 +513,19 @@ func TestGroup_Parse(t *testing.T) {
 					}, {
 						Kind: types.OperationKindTransaction,
 						Source: account.Account{
-							Network: types.Mainnet,
 							Address: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 							Type:    types.AccountTypeContract,
 						},
 						Destination: account.Account{
-							Network: types.Mainnet,
 							Address: "KT19nHqEWZxFFbbDL1b7Y86escgEN7qUShGo",
 							Type:    types.AccountTypeContract,
 						},
-						Delegate: account.Account{
-							Network: types.Mainnet,
-						},
-						Status:  types.OperationStatusApplied,
-						Level:   1068669,
-						Counter: 5791164,
-						Network: types.Mainnet,
-						Hash:    "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
-						Nonce:   setInt64(0),
+						Delegate: account.Account{},
+						Status:   types.OperationStatusApplied,
+						Level:    1068669,
+						Counter:  5791164,
+						Hash:     "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
+						Nonce:    setInt64(0),
 						Entrypoint: types.NullString{
 							Str:   "validateAccounts",
 							Valid: true,
@@ -578,7 +534,6 @@ func TestGroup_Parse(t *testing.T) {
 						Timestamp:  timestamp,
 						ProtocolID: 1,
 						Initiator: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
 						},
@@ -587,24 +542,19 @@ func TestGroup_Parse(t *testing.T) {
 					}, {
 						Kind: types.OperationKindTransaction,
 						Source: account.Account{
-							Network: types.Mainnet,
 							Address: "KT19nHqEWZxFFbbDL1b7Y86escgEN7qUShGo",
 							Type:    types.AccountTypeContract,
 						},
 						Destination: account.Account{
-							Network: types.Mainnet,
 							Address: "KT1KemKUx79keZgFW756jQrqKcZJ21y4SPdS",
 							Type:    types.AccountTypeContract,
 						},
-						Delegate: account.Account{
-							Network: types.Mainnet,
-						},
-						Status:  types.OperationStatusApplied,
-						Level:   1068669,
-						Counter: 5791164,
-						Network: types.Mainnet,
-						Hash:    "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
-						Nonce:   setInt64(1),
+						Delegate: account.Account{},
+						Status:   types.OperationStatusApplied,
+						Level:    1068669,
+						Counter:  5791164,
+						Hash:     "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
+						Nonce:    setInt64(1),
 						Entrypoint: types.NullString{
 							Str:   "validateRules",
 							Valid: true,
@@ -613,7 +563,6 @@ func TestGroup_Parse(t *testing.T) {
 						Timestamp:  timestamp,
 						ProtocolID: 1,
 						Initiator: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
 						},
@@ -627,7 +576,6 @@ func TestGroup_Parse(t *testing.T) {
 						KeyHash:         "exprum2qtFLPHdeLWVasKCDw7YD5MrdiD4ra52PY2AUazaNGKyv6tx",
 						Key:             []byte(`{"bytes":"0000a2560a416161def96031630886abe950c4baf036"}`),
 						Value:           []byte(`{"int":"6141000"}`),
-						Network:         types.Mainnet,
 						Contract:        "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						LastUpdateLevel: 1068669,
 						LastUpdateTime:  timestamp,
@@ -636,7 +584,6 @@ func TestGroup_Parse(t *testing.T) {
 						KeyHash:         "exprv2snyFbF6EDZd2YAHnnmNBoFt7bbaXhGSWGXHv4a4wnxS359ob",
 						Key:             []byte(`{"bytes":"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba"}`),
 						Value:           []byte(`{"int":"8010000"}`),
-						Network:         types.Mainnet,
 						Contract:        "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						LastUpdateLevel: 1068669,
 						LastUpdateTime:  timestamp,
@@ -644,20 +591,16 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				TokenBalances: []*tokenbalance.TokenBalance{
 					{
-						Network:  types.Mainnet,
 						Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Account: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
 						},
 						TokenID: 0,
 						Balance: decimal.RequireFromString("-8010000"),
 					}, {
-						Network:  types.Mainnet,
 						Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Account: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV",
 							Type:    types.AccountTypeTz,
 						},
@@ -680,7 +623,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					types.Mainnet, rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -698,11 +641,9 @@ func TestGroup_Parse(t *testing.T) {
 						TimeBetweenBlocks:            60,
 					},
 					Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
-					Network: types.Mainnet,
 					ID:      1,
 					SymLink: bcd.SymLinkBabylon,
 				}),
-				WithNetwork(types.Mainnet),
 			},
 			storage: map[string]int64{
 				"KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr": 1151494,
@@ -713,7 +654,6 @@ func TestGroup_Parse(t *testing.T) {
 				Operations: []*operation.Operation{
 					{
 						ContentIndex: 0,
-						Network:      types.Mainnet,
 						ProtocolID:   1,
 						Hash:         "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 						Internal:     false,
@@ -723,24 +663,19 @@ func TestGroup_Parse(t *testing.T) {
 						Level:        1151495,
 						Kind:         types.OperationKindTransaction,
 						Initiator: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 							Type:    types.AccountTypeTz,
 						},
 						Source: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 							Type:    types.AccountTypeTz,
 						},
-						Delegate: account.Account{
-							Network: types.Mainnet,
-						},
+						Delegate:     account.Account{},
 						Fee:          43074,
 						Counter:      6909186,
 						GasLimit:     427673,
 						StorageLimit: 47,
 						Destination: account.Account{
-							Network: types.Mainnet,
 							Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 							Type:    types.AccountTypeContract,
 						},
@@ -757,14 +692,12 @@ func TestGroup_Parse(t *testing.T) {
 								KeyHash:    "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
 								Level:      1151495,
 								Contract:   "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-								Network:    types.Mainnet,
 								Timestamp:  timestamp,
 								ProtocolID: 1,
 							},
 						},
 					}, {
 						ContentIndex: 0,
-						Network:      types.Mainnet,
 						ProtocolID:   1,
 						Hash:         "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 						Internal:     true,
@@ -774,24 +707,19 @@ func TestGroup_Parse(t *testing.T) {
 						Level:        1151495,
 						Kind:         types.OperationKindTransaction,
 						Initiator: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 							Type:    types.AccountTypeTz,
 						},
 						Source: account.Account{
-							Network: types.Mainnet,
 							Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 							Type:    types.AccountTypeContract,
 						},
 						Counter: 6909186,
 						Destination: account.Account{
-							Network: types.Mainnet,
 							Address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 							Type:    types.AccountTypeContract,
 						},
-						Delegate: account.Account{
-							Network: types.Mainnet,
-						},
+						Delegate:   account.Account{},
 						Parameters: []byte("{\"entrypoint\":\"transfer\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"011871cfab6dafee00330602b4342b6500c874c93b00\"},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000c2473c617946ce7b9f6843f193401203851cb2ec\"},{\"int\":\"7874880\"}]}]}}"),
 						Entrypoint: types.NullString{
 							Str:   "transfer",
@@ -802,10 +730,8 @@ func TestGroup_Parse(t *testing.T) {
 						Tags:            types.FA12Tag,
 						Transfers: []*transfer.Transfer{
 							{
-								Network:  types.Mainnet,
 								Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 								Initiator: account.Account{
-									Network: types.Mainnet,
 									Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 									Type:    types.AccountTypeContract,
 								},
@@ -813,12 +739,10 @@ func TestGroup_Parse(t *testing.T) {
 								Timestamp: timestamp,
 								Level:     1151495,
 								From: account.Account{
-									Network: types.Mainnet,
 									Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 									Type:    types.AccountTypeContract,
 								},
 								To: account.Account{
-									Network: types.Mainnet,
 									Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 									Type:    types.AccountTypeTz,
 								},
@@ -834,7 +758,6 @@ func TestGroup_Parse(t *testing.T) {
 								Value:      []byte(`{"bytes":"050098e1e8d78a02"}`),
 								Level:      1151495,
 								Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-								Network:    types.Mainnet,
 								Timestamp:  timestamp,
 								ProtocolID: 1,
 								KeyStrings: []string{"totalSupply"},
@@ -845,7 +768,6 @@ func TestGroup_Parse(t *testing.T) {
 								Value:      []byte(`{"bytes":"0507070080a5c1070200000000"}`),
 								Level:      1151495,
 								Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-								Network:    types.Mainnet,
 								Timestamp:  timestamp,
 								ProtocolID: 1,
 								KeyStrings: []string{"ledger", "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE"},
@@ -856,7 +778,6 @@ func TestGroup_Parse(t *testing.T) {
 								Value:      []byte(`{"bytes":"05070700ba81bb090200000000"}`),
 								Level:      1151495,
 								Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-								Network:    types.Mainnet,
 								Timestamp:  timestamp,
 								ProtocolID: 1,
 								KeyStrings: []string{"ledger", "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr"},
@@ -870,7 +791,6 @@ func TestGroup_Parse(t *testing.T) {
 						Key:             []byte(`{"bytes":"80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
 						KeyHash:         "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
 						Contract:        "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-						Network:         types.Mainnet,
 						Removed:         true,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
@@ -880,7 +800,6 @@ func TestGroup_Parse(t *testing.T) {
 						KeyHash:         "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
 						Value:           []byte(`{"bytes":"050098e1e8d78a02"}`),
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         types.Mainnet,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
 					}, {
@@ -889,36 +808,35 @@ func TestGroup_Parse(t *testing.T) {
 						KeyHash:         "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
 						Value:           []byte(`{"bytes":"0507070080a5c1070200000000"}`),
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         types.Mainnet,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
 					}, {
-						Ptr:             31,
-						Key:             []byte(`{"bytes":"05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
-						KeyHash:         "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
-						Value:           []byte(`{"bytes":"05070700ba81bb090200000000"}`),
-						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         types.Mainnet,
+						Ptr:      31,
+						Key:      []byte(`{"bytes":"05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
+						KeyHash:  "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
+						Value:    []byte(`{"bytes":"05070700ba81bb090200000000"}`),
+						Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
 					},
 				},
 				TokenBalances: []*tokenbalance.TokenBalance{
 					{
-						Network:  types.Mainnet,
+
 						Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 						Account: account.Account{
-							Network: types.Mainnet,
+
 							Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 							Type:    types.AccountTypeContract,
 						},
 						TokenID: 0,
 						Balance: decimal.RequireFromString("-7874880"),
 					}, {
-						Network:  types.Mainnet,
+
 						Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 						Account: account.Account{
-							Network: types.Mainnet,
+
 							Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 							Type:    types.AccountTypeTz,
 						},
@@ -940,7 +858,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					types.Delphinet, rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -958,10 +876,8 @@ func TestGroup_Parse(t *testing.T) {
 						TimeBetweenBlocks:            30,
 					},
 					Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
-					Network: types.Delphinet,
 					SymLink: bcd.SymLinkBabylon,
 				}),
-				WithNetwork(types.Delphinet),
 			},
 			storage: map[string]int64{
 				"KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR": 86142,
@@ -971,7 +887,6 @@ func TestGroup_Parse(t *testing.T) {
 				Operations: []*operation.Operation{
 					{
 						ContentIndex: 0,
-						Network:      types.Delphinet,
 						ProtocolID:   0,
 						Hash:         "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
 						Internal:     false,
@@ -980,12 +895,10 @@ func TestGroup_Parse(t *testing.T) {
 						Level:        86142,
 						Kind:         types.OperationKindOrigination,
 						Initiator: account.Account{
-							Network: types.Delphinet,
 							Address: "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
 							Type:    types.AccountTypeTz,
 						},
 						Source: account.Account{
-							Network: types.Delphinet,
 							Address: "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
 							Type:    types.AccountTypeTz,
 						},
@@ -995,13 +908,10 @@ func TestGroup_Parse(t *testing.T) {
 						StorageLimit: 371,
 						Amount:       0,
 						Destination: account.Account{
-							Network: types.Delphinet,
 							Address: "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
 							Type:    types.AccountTypeContract,
 						},
-						Delegate: account.Account{
-							Network: types.Delphinet,
-						},
+						Delegate:                           account.Account{},
 						Burned:                             87750,
 						AllocatedDestinationContractBurned: 64250,
 						DeffatedStorage:                    []byte("{\"int\":\"0\"}\n"),
@@ -1009,22 +919,17 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				Contracts: []*modelContract.Contract{
 					{
-						Network:   types.Delphinet,
 						Level:     86142,
 						Timestamp: timestamp,
 						Account: account.Account{
-							Network: types.Delphinet,
 							Address: "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
 							Type:    types.AccountTypeContract,
 						},
 						Manager: account.Account{
-							Network: types.Delphinet,
 							Address: "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
 							Type:    types.AccountTypeTz,
 						},
-						Delegate: account.Account{
-							Network: types.Delphinet,
-						},
+						Delegate: account.Account{},
 						Babylon: modelContract.Script{
 							Entrypoints: []string{"decrement", "increment"},
 							Annotations: []string{"%decrement", "%increment"},
@@ -1049,7 +954,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					types.Mainnet, rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1066,12 +971,11 @@ func TestGroup_Parse(t *testing.T) {
 						HardStorageLimitPerOperation: 60000,
 						TimeBetweenBlocks:            60,
 					},
-					Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
-					Network: types.Mainnet,
+					Hash: "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
+
 					SymLink: bcd.SymLinkAlpha,
 					ID:      2,
 				}),
-				WithNetwork(types.Mainnet),
 			},
 			storage: map[string]int64{
 				"KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4": 301436,
@@ -1082,7 +986,7 @@ func TestGroup_Parse(t *testing.T) {
 					{
 						Kind: types.OperationKindOrigination,
 						Source: account.Account{
-							Network: types.Mainnet,
+
 							Address: "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
 							Type:    types.AccountTypeTz,
 						},
@@ -1091,21 +995,19 @@ func TestGroup_Parse(t *testing.T) {
 						GasLimit:     12251,
 						StorageLimit: 351,
 						Destination: account.Account{
-							Network: types.Mainnet,
+
 							Address: "KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4",
 							Type:    types.AccountTypeContract,
 						},
-						Delegate: account.Account{
-							Network: types.Mainnet,
-						},
-						Status:    types.OperationStatusApplied,
-						Level:     301436,
-						Network:   types.Mainnet,
+						Delegate: account.Account{},
+						Status:   types.OperationStatusApplied,
+						Level:    301436,
+
 						Hash:      "onv6Q1dNejAGEJeQzwRannWsDSGw85FuFdhLnBrY18TBcC9p8kC",
 						Timestamp: timestamp,
 						Burned:    331000,
 						Initiator: account.Account{
-							Network: types.Mainnet,
+
 							Address: "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
 							Type:    types.AccountTypeTz,
 						},
@@ -1116,22 +1018,20 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				Contracts: []*modelContract.Contract{
 					{
-						Network:   types.Mainnet,
+
 						Level:     301436,
 						Timestamp: timestamp,
 						Account: account.Account{
-							Network: types.Mainnet,
+
 							Address: "KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4",
 							Type:    types.AccountTypeContract,
 						},
 						Manager: account.Account{
-							Network: types.Mainnet,
+
 							Address: "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
 							Type:    types.AccountTypeTz,
 						},
-						Delegate: account.Account{
-							Network: types.Mainnet,
-						},
+						Delegate: account.Account{},
 						Alpha: modelContract.Script{
 							Hash:        "c4915a55dbe0a3dfc8feb77e46f3e32828f80730a506fab277d8d6c0d5e2f1ec",
 							Tags:        types.Tags(0),
@@ -1156,7 +1056,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					types.Edo2net, rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1173,12 +1073,11 @@ func TestGroup_Parse(t *testing.T) {
 						HardStorageLimitPerOperation: 60000,
 						TimeBetweenBlocks:            60,
 					},
-					Hash:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
-					Network: types.Edo2net,
+					Hash: "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+
 					SymLink: bcd.SymLinkBabylon,
 					ID:      3,
 				}),
-				WithNetwork(types.Edo2net),
 			},
 			storage: map[string]int64{
 				"KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264": 72206,
@@ -1190,7 +1089,6 @@ func TestGroup_Parse(t *testing.T) {
 					{
 						Kind: types.OperationKindTransaction,
 						Source: account.Account{
-							Network: types.Edo2net,
 							Address: "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 							Type:    types.AccountTypeTz,
 						},
@@ -1199,13 +1097,11 @@ func TestGroup_Parse(t *testing.T) {
 						GasLimit:     37831,
 						StorageLimit: 5265,
 						Destination: account.Account{
-							Network: types.Edo2net,
 							Address: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 							Type:    types.AccountTypeContract,
 						},
 						Status:    types.OperationStatusApplied,
 						Level:     72207,
-						Network:   types.Edo2net,
 						Hash:      "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
 						Timestamp: timestamp,
 						Entrypoint: types.NullString{
@@ -1213,13 +1109,10 @@ func TestGroup_Parse(t *testing.T) {
 							Valid: true,
 						},
 						Initiator: account.Account{
-							Network: types.Edo2net,
 							Address: "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 							Type:    types.AccountTypeTz,
 						},
-						Delegate: account.Account{
-							Network: types.Edo2net,
-						},
+						Delegate:        account.Account{},
 						Parameters:      []byte("{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Unit\"}]}}"),
 						ProtocolID:      3,
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000e527ed176ccf8f8297f674a9886a2ba8a55818d9\"},{\"prim\":\"Left\",\"args\":[{\"bytes\":\"016ebc941b2ae4e305470f392fa050e41ca1e52b4500\"}]}]}"),
@@ -1229,60 +1122,50 @@ func TestGroup_Parse(t *testing.T) {
 								SourcePtr: setInt64(25167),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-								Network:   types.Edo2net,
 								Timestamp: timestamp,
 							}, {
 								Action:    types.BigMapActionRemove,
 								SourcePtr: setInt64(25166),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-								Network:   types.Edo2net,
 								Timestamp: timestamp,
 							}, {
 								Action:    types.BigMapActionRemove,
 								SourcePtr: setInt64(25165),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-								Network:   types.Edo2net,
 								Timestamp: timestamp,
 							}, {
 								Action:    types.BigMapActionRemove,
 								SourcePtr: setInt64(25164),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-								Network:   types.Edo2net,
 								Timestamp: timestamp,
 							},
 						},
 					}, {
 						Kind: types.OperationKindOrigination,
 						Source: account.Account{
-							Network: types.Edo2net,
 							Address: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 							Type:    types.AccountTypeContract,
 						},
 						Nonce: setInt64(0),
 						Destination: account.Account{
-							Network: types.Edo2net,
 							Address: "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 							Type:    types.AccountTypeContract,
 						},
 						Status:    types.OperationStatusApplied,
 						Level:     72207,
-						Network:   types.Edo2net,
 						Hash:      "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
 						Timestamp: timestamp,
 						Burned:    5245000,
 						Counter:   155670,
 						Internal:  true,
 						Initiator: account.Account{
-							Network: types.Edo2net,
 							Address: "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 							Type:    types.AccountTypeTz,
 						},
-						Delegate: account.Account{
-							Network: types.Edo2net,
-						},
+						Delegate:                           account.Account{},
 						ProtocolID:                         3,
 						AllocatedDestinationContractBurned: 257000,
 						Tags:                               types.LedgerTag | types.FA2Tag,
@@ -1294,7 +1177,6 @@ func TestGroup_Parse(t *testing.T) {
 								DestinationPtr: setInt64(25171),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-								Network:        types.Edo2net,
 								Timestamp:      timestamp,
 							}, {
 								Action:         types.BigMapActionCopy,
@@ -1302,7 +1184,6 @@ func TestGroup_Parse(t *testing.T) {
 								DestinationPtr: setInt64(25170),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-								Network:        types.Edo2net,
 								Timestamp:      timestamp,
 							}, {
 								Action:         types.BigMapActionCopy,
@@ -1310,7 +1191,6 @@ func TestGroup_Parse(t *testing.T) {
 								DestinationPtr: setInt64(25169),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-								Network:        types.Edo2net,
 								Timestamp:      timestamp,
 							}, {
 								Action:         types.BigMapActionCopy,
@@ -1318,7 +1198,6 @@ func TestGroup_Parse(t *testing.T) {
 								DestinationPtr: setInt64(25168),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-								Network:        types.Edo2net,
 								Timestamp:      timestamp,
 							},
 						},
@@ -1326,22 +1205,17 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				Contracts: []*modelContract.Contract{
 					{
-						Network:   types.Edo2net,
 						Level:     72207,
 						Timestamp: timestamp,
 						Account: account.Account{
-							Network: types.Edo2net,
 							Address: "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 							Type:    types.AccountTypeContract,
 						},
 						Manager: account.Account{
-							Network: types.Edo2net,
 							Address: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 							Type:    types.AccountTypeContract,
 						},
-						Delegate: account.Account{
-							Network: types.Edo2net,
-						},
+						Delegate: account.Account{},
 						Babylon: modelContract.Script{
 							Hash:        "b82a20d0647f5ec74ef2daf404cd365a894f6868da0cd623ed07c6b85977b8db",
 							Tags:        types.LedgerTag | types.FA2Tag,
@@ -1369,7 +1243,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					types.Mainnet, rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1387,11 +1261,9 @@ func TestGroup_Parse(t *testing.T) {
 						TimeBetweenBlocks:            60,
 					},
 					Hash:    "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
-					Network: types.Mainnet,
 					ID:      4,
 					SymLink: bcd.SymLinkBabylon,
 				}),
-				WithNetwork(types.Mainnet),
 			},
 			storage: map[string]int64{
 				"KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy": 1516349,
@@ -1402,7 +1274,7 @@ func TestGroup_Parse(t *testing.T) {
 					{
 						Kind: types.OperationKindTransaction,
 						Source: account.Account{
-							Network: types.Mainnet,
+
 							Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
 							Type:    types.AccountTypeTz,
 						},
@@ -1410,13 +1282,12 @@ func TestGroup_Parse(t *testing.T) {
 						Counter:  9432992,
 						GasLimit: 18553,
 						Destination: account.Account{
-							Network: types.Mainnet,
 							Address: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
 							Type:    types.AccountTypeContract,
 						},
-						Status:    types.OperationStatusApplied,
-						Level:     1516349,
-						Network:   types.Mainnet,
+						Status: types.OperationStatusApplied,
+						Level:  1516349,
+
 						Hash:      "ooz1bkCQeYsZYP7vb4Dx7pYPRpWN11Z3G3yP1v4HAfdNXuHRv9c",
 						Timestamp: timestamp,
 						Entrypoint: types.NullString{
@@ -1425,13 +1296,10 @@ func TestGroup_Parse(t *testing.T) {
 						},
 						Tags: types.FA2Tag | types.LedgerTag,
 						Initiator: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
 							Type:    types.AccountTypeTz,
 						},
-						Delegate: account.Account{
-							Network: types.Mainnet,
-						},
+						Delegate:        account.Account{},
 						Parameters:      []byte(`{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb"},[{"prim":"Pair","args":[{"string":"tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi"},{"prim":"Pair","args":[{"int":"12"},{"int":"1"}]}]}]]}]}`),
 						ProtocolID:      4,
 						DeffatedStorage: []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"746"},{"int":"4992269"}]},{"prim":"Pair","args":[{"int":"747"},{"int":"748"}]}]},{"int":"749"}]}`),
@@ -1439,20 +1307,17 @@ func TestGroup_Parse(t *testing.T) {
 							{
 								TokenID: 12,
 								From: account.Account{
-									Network: types.Mainnet,
 									Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
 									Type:    types.AccountTypeTz,
 								},
 								To: account.Account{
-									Network: types.Mainnet,
 									Address: "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
 									Type:    types.AccountTypeTz,
 								},
-								Amount:   decimal.NewFromInt(1),
-								Network:  types.Mainnet,
+								Amount: decimal.NewFromInt(1),
+
 								Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
 								Initiator: account.Account{
-									Network: types.Mainnet,
 									Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
 									Type:    types.AccountTypeTz,
 								},
@@ -1470,7 +1335,6 @@ func TestGroup_Parse(t *testing.T) {
 								ValueStrings: []string{"tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi"},
 								Contract:     "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
 								Level:        1516349,
-								Network:      types.Mainnet,
 								Timestamp:    timestamp,
 								ProtocolID:   4,
 							},
@@ -1486,25 +1350,20 @@ func TestGroup_Parse(t *testing.T) {
 						Contract:        "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
 						LastUpdateLevel: 1516349,
 						LastUpdateTime:  timestamp,
-						Network:         types.Mainnet,
 					},
 				},
 				TokenBalances: []*tokenbalance.TokenBalance{
 					{
-						Network:  types.Mainnet,
 						Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
 						Account: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
 							Type:    types.AccountTypeTz,
 						},
 						TokenID: 12,
 						Balance: decimal.NewFromInt(-1),
 					}, {
-						Network:  types.Mainnet,
 						Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
 						Account: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
 							Type:    types.AccountTypeTz,
 						},
@@ -1526,7 +1385,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					types.Mainnet, rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1536,7 +1395,6 @@ func TestGroup_Parse(t *testing.T) {
 					Level:     1520888,
 					ChainID:   "NetXdQprcVkpaWU",
 				}),
-				WithNetwork(types.Mainnet),
 				WithProtocol(&protocol.Protocol{
 					Constants: &protocol.Constants{
 						CostPerByte:                  1000,
@@ -1544,8 +1402,8 @@ func TestGroup_Parse(t *testing.T) {
 						HardStorageLimitPerOperation: 60000,
 						TimeBetweenBlocks:            60,
 					},
-					Hash:    "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
-					Network: types.Mainnet,
+					Hash: "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
+
 					ID:      4,
 					SymLink: bcd.SymLinkBabylon,
 				}),
@@ -1558,7 +1416,7 @@ func TestGroup_Parse(t *testing.T) {
 			want: &parsers.Result{
 				BigMapState: []*bigmapdiff.BigMapState{
 					{
-						Network:         types.Mainnet,
+
 						Ptr:             1264,
 						Contract:        "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
 						LastUpdateLevel: 1520888,
@@ -1573,18 +1431,16 @@ func TestGroup_Parse(t *testing.T) {
 						Kind: types.OperationKindTransaction,
 						Hash: "oocFt4vkkgQGfoRH54328cJUbDdWvj3x6KEs5Arm4XhqwwJmnJ8",
 						Source: account.Account{
-							Network: types.Mainnet,
+
 							Address: "tz1WKygtstVY96oyc6Rmk945dMf33LeihgWT",
 							Type:    types.AccountTypeTz,
 						},
 						Initiator: account.Account{
-							Network: types.Mainnet,
+
 							Address: "tz1WKygtstVY96oyc6Rmk945dMf33LeihgWT",
 							Type:    types.AccountTypeTz,
 						},
-						Delegate: account.Account{
-							Network: types.Mainnet,
-						},
+						Delegate:     account.Account{},
 						Status:       types.OperationStatusApplied,
 						Fee:          5043,
 						Counter:      10671622,
@@ -1593,14 +1449,14 @@ func TestGroup_Parse(t *testing.T) {
 						Amount:       0,
 						Timestamp:    timestamp,
 						Level:        1520888,
-						Network:      types.Mainnet,
+
 						Entrypoint: types.NullString{
 							Str:   "update_record",
 							Valid: true,
 						},
 						ProtocolID: 4,
 						Destination: account.Account{
-							Network: types.Mainnet,
+
 							Address: "KT1H1MqmUM4aK9i1833EBmYCCEfkbt6ZdSBc",
 							Type:    types.AccountTypeContract,
 						},
@@ -1616,7 +1472,6 @@ func TestGroup_Parse(t *testing.T) {
 						Level:      1520888,
 						Nonce:      newInt64Ptr(0),
 						Counter:    10671622,
-						Network:    types.Mainnet,
 						ProtocolID: 4,
 						Burned:     27000,
 						Entrypoint: types.NullString{
@@ -1624,28 +1479,22 @@ func TestGroup_Parse(t *testing.T) {
 							Valid: true,
 						},
 						Initiator: account.Account{
-							Network: types.Mainnet,
 							Address: "tz1WKygtstVY96oyc6Rmk945dMf33LeihgWT",
 							Type:    types.AccountTypeTz,
 						},
 						Source: account.Account{
-							Network: types.Mainnet,
 							Address: "KT1H1MqmUM4aK9i1833EBmYCCEfkbt6ZdSBc",
 							Type:    types.AccountTypeContract,
 						},
 						Destination: account.Account{
-							Network: types.Mainnet,
 							Address: "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
 							Type:    types.AccountTypeContract,
 						},
-						Delegate: account.Account{
-							Network: types.Mainnet,
-						},
+						Delegate:        account.Account{},
 						Parameters:      []byte(`{"entrypoint":"execute","value":{"prim":"Pair","args":[{"string":"UpdateRecord"},{"prim":"Pair","args":[{"bytes":"0507070a0000000962616c6c732e74657a070705090a000000160000c0ca282a775946b5ecbe02e5cf73e25f6b62b70c07070a000000160000753f63893674b6d523f925f0d787bf9270b95c330200000000"},{"bytes":"0000753f63893674b6d523f925f0d787bf9270b95c33"}]}]}}`),
 						DeffatedStorage: []byte(`{"prim":"Pair","args":[[{"int":"1260"},{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"1261"},{"int":"1262"}]},{"prim":"Pair","args":[{"int":"1263"},{"int":"9824"}]}]},{"prim":"Pair","args":[{"bytes":"01ebb657570e494e8a7bd43ac3bf7cfd0267a32a9f00"},{"int":"1264"}]},{"int":"1265"},{"int":"1266"}],[{"bytes":"014796e76af90e6327adfab057bbbe0375cd2c8c1000"},{"bytes":"015c6799f783b8d118b704267f634c5d24d19e9a9f00"},{"bytes":"0168e9b7d86646e312c76dfbedcbcdb24320875a3600"},{"bytes":"019178a76f3c41a9541d2291cad37dd5fb96a6850500"},{"bytes":"01ac3638385caa4ad8126ea84e061f4f49baa44d3c00"},{"bytes":"01d2a0974172cf6fc8b1eefdebd5bea681616f7c6f00"}]]}`),
 						BigMapDiffs: []*bigmapdiff.BigMapDiff{
 							{
-								Network:    types.Mainnet,
 								ProtocolID: 4,
 								Contract:   "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
 								Ptr:        1264,
@@ -1678,7 +1527,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					types.Hangzhounet, rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1688,7 +1537,6 @@ func TestGroup_Parse(t *testing.T) {
 					Level:     15400,
 					ChainID:   "NetXuXoGoLxNK6o",
 				}),
-				WithNetwork(types.Hangzhounet),
 				WithProtocol(&protocol.Protocol{
 					Constants: &protocol.Constants{
 						CostPerByte:                  1000,
@@ -1697,7 +1545,6 @@ func TestGroup_Parse(t *testing.T) {
 						TimeBetweenBlocks:            60,
 					},
 					Hash:    "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
-					Network: types.Hangzhounet,
 					ID:      5,
 					SymLink: bcd.SymLinkBabylon,
 				}),
@@ -1709,12 +1556,10 @@ func TestGroup_Parse(t *testing.T) {
 						Kind: types.OperationKindRegisterGlobalConstant,
 						Hash: "ooffKPL6WmMgqzLGtRtLp2HdEbVL3K2fVzKQLyxsBFMC84wpjRt",
 						Source: account.Account{
-							Network: types.Hangzhounet,
 							Address: "tz1SMARcpWCydHsGgz4MRoK9NkbpBmmUAfNe",
 							Type:    types.AccountTypeTz,
 						},
 						Initiator: account.Account{
-							Network: types.Hangzhounet,
 							Address: "tz1SMARcpWCydHsGgz4MRoK9NkbpBmmUAfNe",
 							Type:    types.AccountTypeTz,
 						},
@@ -1727,13 +1572,11 @@ func TestGroup_Parse(t *testing.T) {
 						StorageLimit: 100,
 						Timestamp:    timestamp,
 						Level:        15400,
-						Network:      types.Hangzhounet,
 						ProtocolID:   5,
 					},
 				},
 				GlobalConstants: []*global_constant.GlobalConstant{
 					{
-						Network:   types.Hangzhounet,
 						Level:     15400,
 						Timestamp: timestamp,
 						Address:   "expru54tk2k4E81xQy63P6x3RijnTz51s2m7BV7pr3fDQH8YDqiYvR",
@@ -1749,9 +1592,9 @@ func TestGroup_Parse(t *testing.T) {
 			for address, level := range tt.storage {
 				rpc.
 					EXPECT().
-					GetScriptStorageRaw(address, level).
+					GetScriptStorageRaw(gomock.Any(), address, level).
 					DoAndReturn(
-						func(address string, level int64) ([]byte, error) {
+						func(_ context.Context, address string, level int64) ([]byte, error) {
 							storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", address, level)
 							return ioutil.ReadFile(storageFile)
 						},

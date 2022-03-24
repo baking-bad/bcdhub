@@ -125,14 +125,15 @@ func searchInMempool(ctxs config.Contexts, q string) *search.Item {
 
 func searchPostprocessing(ctxs config.Contexts, result *search.Result) {
 	for i := range result.Items {
-		ctx, err := ctxs.Get(types.NewNetwork(result.Items[i].Network))
+		network := types.NewNetwork(result.Items[i].Network)
+		ctx, err := ctxs.Get(network)
 		if err != nil {
 			continue
 		}
 
 		switch typ := result.Items[i].Body.(type) {
 		case *search.Contract:
-			enity, err := ctx.Contracts.Get(ctx.Network, typ.Address)
+			enity, err := ctx.Contracts.Get(typ.Address)
 			if err != nil {
 				continue
 			}

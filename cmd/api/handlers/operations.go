@@ -58,7 +58,7 @@ func GetContractOperations() gin.HandlerFunc {
 			return
 		}
 
-		account, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
+		account, err := ctx.Accounts.Get(req.Address)
 		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
@@ -230,7 +230,7 @@ func GetOperationDiff() gin.HandlerFunc {
 			}
 			result.Protocol = proto.Hash
 
-			storageBytes, err := ctx.Contracts.ScriptPart(operation.Network, operation.Destination.Address, proto.SymLink, consts.STORAGE)
+			storageBytes, err := ctx.Contracts.ScriptPart(operation.Destination.Address, proto.SymLink, consts.STORAGE)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -401,6 +401,7 @@ func PrepareOperations(ctx *config.Context, ops []operation.Operation, withStora
 		if err != nil {
 			return nil, err
 		}
+		op.Network = ctx.Network.String()
 		resp[i] = op
 	}
 	return resp, nil
@@ -457,9 +458,8 @@ func getStorageDiff(ctx *config.Context, destinationID int64, bmd []bigmapdiff.B
 
 	prev, err := ctx.Operations.Last(
 		map[string]interface{}{
-			"operation.network": modelTypes.NewNetwork(op.Network),
-			"destination_id":    destinationID,
-			"status":            modelTypes.OperationStatusApplied,
+			"destination_id": destinationID,
+			"status":         modelTypes.OperationStatusApplied,
 		}, op.ID)
 	if err == nil {
 		prevStorage = &ast.TypedAst{

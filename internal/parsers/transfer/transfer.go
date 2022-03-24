@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"context"
 	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -42,7 +43,7 @@ type Parser struct {
 	level    int64
 	init     sync.Once
 
-	withoutViews bool
+	withoutEvents bool
 }
 
 var globalEvents *TokenEvents
@@ -56,6 +57,7 @@ func NewParser(rpc noderpc.INode, cmRepo contract_metadata.Repository, blocks bl
 		cmRepo:        cmRepo,
 		blocks:        blocks,
 		accounts:      accounts,
+		network:       modelTypes.Empty,
 	}
 
 	for i := range opts {
@@ -71,7 +73,7 @@ func NewParser(rpc noderpc.INode, cmRepo contract_metadata.Repository, blocks bl
 
 func (p *Parser) initialize() {
 	if contractHandlers == nil && p.network == modelTypes.Mainnet {
-		ch, err := NewContractHandlers(p.rpc)
+		ch, err := NewContractHandlers(context.Background(), p.rpc)
 		if err != nil {
 			logger.Error().Err(err).Msg("create contract handlers")
 		} else {
@@ -80,22 +82,22 @@ func (p *Parser) initialize() {
 	}
 
 	switch {
-	case p.withoutViews && globalEvents == nil:
+	case p.withoutEvents && globalEvents == nil:
 		globalEvents = EmptyTokenEvents()
-	case p.withoutViews && globalEvents != nil:
-	case !p.withoutViews && globalEvents == nil:
+	case p.withoutEvents && globalEvents != nil:
+	case !p.withoutEvents && globalEvents == nil:
 		tokenEvents, err := NewTokenEvents(p.cmRepo)
 		if err != nil {
 			logger.Err(err)
 		}
 		globalEvents = tokenEvents
-	case !p.withoutViews && globalEvents != nil:
+	case !p.withoutEvents && globalEvents != nil:
 		if err := globalEvents.Update(p.cmRepo); err != nil {
 			logger.Err(err)
 		}
 	}
 	if p.network != modelTypes.Empty && p.chainID == "" {
-		state, err := p.blocks.Last(p.network)
+		state, err := p.blocks.Last()
 		if err != nil {
 			logger.Err(err)
 		}
@@ -157,7 +159,7 @@ func (p *Parser) executeEvents(impl contract_metadata.EventImplementation, name,
 		return nil
 	}
 
-	ctx := events.Context{
+	ctx := events.Args{
 		Network:                  p.network,
 		Protocol:                 protocol,
 		Source:                   operation.Source.Address,
@@ -215,10 +217,11 @@ func (p *Parser) executeEvents(impl contract_metadata.EventImplementation, name,
 	}
 }
 
-func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.Context, operation *operation.Operation, isDelta bool) error {
-	balances, err := events.Execute(p.rpc, event, ctx)
+// TODO: pass context
+func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.Args, operation *operation.Operation, isDelta bool) error {
+	balances, err := events.Execute(context.Background(), p.rpc, event, ctx)
 	if err != nil {
-		logger.Error().Msgf("Event of %s %s: %s", operation.Network, operation.Destination.Address, err.Error())
+		logger.Error().Msgf("Event of %s: %s", operation.Destination.Address, err.Error())
 		return nil
 	}
 
@@ -226,7 +229,7 @@ func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.C
 	if isDelta {
 		operation.Transfers, err = parser.Parse(balances, *operation)
 	} else {
-		operation.Transfers, err = parser.ParseBalances(p.network, operation.Destination.Address, balances, *operation)
+		operation.Transfers, err = parser.ParseBalances(operation.Destination.Address, balances, *operation)
 	}
 	if err != nil {
 		return err

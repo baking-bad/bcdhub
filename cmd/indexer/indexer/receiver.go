@@ -39,7 +39,7 @@ func NewReceiver(rpc noderpc.INode, queueSize, threadsCount int64) *Receiver {
 		rpc:     rpc,
 		queue:   make(chan int64, queueSize),
 		failed:  make(chan int64, queueSize),
-		blocks:  make(chan *Block, queueSize),
+		blocks:  make(chan *Block, queueSize*2),
 		threads: make(chan struct{}, threadsCount),
 		present: make(map[int64]struct{}),
 	}
@@ -83,29 +83,29 @@ func (r *Receiver) start(ctx context.Context) {
 			close(r.queue)
 			return
 		case level := <-r.failed:
-			r.job(level)
+			r.job(ctx, level)
 		case level := <-r.queue:
-			r.job(level)
+			r.job(ctx, level)
 		}
 	}
 }
 
-func (r *Receiver) get(level int64) (Block, error) {
-	header, err := r.rpc.GetHeader(level)
+func (r *Receiver) get(ctx context.Context, level int64) (Block, error) {
+	header, err := r.rpc.GetHeader(ctx, level)
 	if err != nil {
 		return Block{}, err
 	}
 	if level < 2 {
 		return Block{header, make([]noderpc.LightOperationGroup, 0)}, nil
 	}
-	opg, err := r.rpc.GetLightOPG(level)
+	opg, err := r.rpc.GetLightOPG(ctx, level)
 	if err != nil {
 		return Block{}, err
 	}
 	return Block{header, opg}, nil
 }
 
-func (r *Receiver) job(level int64) {
+func (r *Receiver) job(ctx context.Context, level int64) {
 	r.threads <- struct{}{}
 	r.wg.Add(1)
 	go func() {
@@ -114,10 +114,12 @@ func (r *Receiver) job(level int64) {
 			r.wg.Done()
 		}()
 
-		block, err := r.get(level)
+		block, err := r.get(ctx, level)
 		if err != nil {
-			logger.Error().Int64("block", level).Err(err).Msg("Receiver.get")
-			r.failed <- level
+			if ctx.Err() == nil {
+				logger.Error().Int64("block", level).Err(err).Msg("Receiver.get")
+				r.failed <- level
+			}
 			return
 		}
 		r.blocks <- &block

@@ -1,6 +1,7 @@
 package operations
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -48,11 +49,9 @@ func TestRichStorage_Parse(t *testing.T) {
 			operation: &operation.Operation{
 				Level: 1151463,
 				Destination: account.Account{
-					Network: types.Mainnet,
 					Address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 					Type:    types.AccountTypeContract,
 				},
-				Network:    types.Mainnet,
 				Timestamp:  timestamp,
 				ProtocolID: 2,
 				Kind:       types.OperationKindTransaction,
@@ -62,11 +61,9 @@ func TestRichStorage_Parse(t *testing.T) {
 			wantOperation: operation.Operation{
 				Level: 1151463,
 				Destination: account.Account{
-					Network: types.Mainnet,
 					Address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 					Type:    types.AccountTypeContract,
 				},
-				Network:    types.Mainnet,
 				Timestamp:  timestamp,
 				ProtocolID: 2,
 				Kind:       types.OperationKindTransaction,
@@ -78,7 +75,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						Value:      []byte(`{"bytes":"050098e1e8d78a02"}`),
 						Level:      1151463,
 						Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:    types.Mainnet,
 						Timestamp:  timestamp,
 						ProtocolID: 2,
 					}, {
@@ -88,7 +84,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						Value:      []byte(`{"bytes":"05070700bdf4160200000000"}`),
 						Level:      1151463,
 						Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:    types.Mainnet,
 						Timestamp:  timestamp,
 						ProtocolID: 2,
 					}, {
@@ -98,7 +93,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						Value:      []byte(`{"bytes":"0507070084a99c750200000000"}`),
 						Level:      1151463,
 						Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:    types.Mainnet,
 						Timestamp:  timestamp,
 						ProtocolID: 2,
 					},
@@ -113,7 +107,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						Value:           []byte(`{"bytes":"050098e1e8d78a02"}`),
 						LastUpdateLevel: 1151463,
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         types.Mainnet,
 						LastUpdateTime:  timestamp,
 					}, {
 						Ptr:             31,
@@ -122,7 +115,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						Value:           []byte(`{"bytes":"05070700bdf4160200000000"}`),
 						LastUpdateLevel: 1151463,
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         types.Mainnet,
 						LastUpdateTime:  timestamp,
 					}, {
 						Ptr:             31,
@@ -131,7 +123,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						Value:           []byte(`{"bytes":"0507070084a99c750200000000"}`),
 						LastUpdateLevel: 1151463,
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         types.Mainnet,
 						LastUpdateTime:  timestamp,
 					},
 				},
@@ -141,11 +132,9 @@ func TestRichStorage_Parse(t *testing.T) {
 			operation: &operation.Operation{
 				Level: 359942,
 				Destination: account.Account{
-					Network: types.Carthagenet,
 					Address: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
 					Type:    types.AccountTypeContract,
 				},
-				Network:    types.Carthagenet,
 				Timestamp:  timestamp,
 				ProtocolID: 2,
 				Kind:       types.OperationKindOrigination,
@@ -158,11 +147,9 @@ func TestRichStorage_Parse(t *testing.T) {
 			wantOperation: operation.Operation{
 				Level: 359942,
 				Destination: account.Account{
-					Network: types.Carthagenet,
 					Address: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
 					Type:    types.AccountTypeContract,
 				},
-				Network:     types.Carthagenet,
 				Timestamp:   timestamp,
 				ProtocolID:  2,
 				Kind:        types.OperationKindOrigination,
@@ -174,7 +161,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						DestinationPtr: setInt64(1509),
 						Level:          359942,
 						Address:        "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
-						Network:        types.Carthagenet,
 						Timestamp:      timestamp,
 					},
 				},
@@ -184,11 +170,9 @@ func TestRichStorage_Parse(t *testing.T) {
 			operation: &operation.Operation{
 				Level: 220,
 				Destination: account.Account{
-					Network: types.Edo2net,
 					Address: "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
 					Type:    types.AccountTypeContract,
 				},
-				Network:    types.Edo2net,
 				Timestamp:  timestamp,
 				ProtocolID: 3,
 				Kind:       types.OperationKindOrigination,
@@ -204,7 +188,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						Value:           []byte(`{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
 						LastUpdateLevel: 220,
 						Contract:        "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-						Network:         types.Edo2net,
 						LastUpdateTime:  timestamp,
 					},
 				},
@@ -212,11 +195,9 @@ func TestRichStorage_Parse(t *testing.T) {
 			wantOperation: operation.Operation{
 				Level: 220,
 				Destination: account.Account{
-					Network: types.Edo2net,
 					Address: "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
 					Type:    types.AccountTypeContract,
 				},
-				Network:    types.Edo2net,
 				Timestamp:  timestamp,
 				ProtocolID: 3,
 				Kind:       types.OperationKindOrigination,
@@ -228,7 +209,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						Value:      []byte(`{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
 						Level:      220,
 						Contract:   "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-						Network:    types.Edo2net,
 						Timestamp:  timestamp,
 						ProtocolID: 3,
 					},
@@ -239,7 +219,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						SourcePtr: setInt64(17),
 						Level:     220,
 						Address:   "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-						Network:   types.Edo2net,
 						Timestamp: timestamp,
 					},
 				},
@@ -250,13 +229,13 @@ func TestRichStorage_Parse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			rpc.
 				EXPECT().
-				GetScriptStorageRaw(gomock.Any(), gomock.Any()).
+				GetScriptStorageRaw(gomock.Any(), gomock.Any(), gomock.Any()).
 				DoAndReturn(readStorage).
 				AnyTimes()
 
 			bmdRepo.
 				EXPECT().
-				GetByPtr(tt.operation.Network, tt.operation.Destination.Address, tt.sourcePtr).
+				GetByPtr(tt.operation.Destination.Address, tt.sourcePtr).
 				Return([]bigmapdiff.BigMapState{}, nil).
 				AnyTimes()
 
@@ -277,7 +256,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			script, err := readTestScript(tt.operation.Network, tt.operation.Destination.Address, symLink)
+			script, err := readTestScript(tt.operation.Destination.Address, symLink)
 			if err != nil {
 				t.Errorf(`readTestScript= error %v`, err)
 				return
@@ -296,7 +275,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			got, err := parser.Parse(op, tt.operation)
+			got, err := parser.Parse(context.Background(), op, tt.operation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RichStorage.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return

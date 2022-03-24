@@ -29,7 +29,7 @@ func GetGlobalConstant() gin.HandlerFunc {
 			return
 		}
 
-		constant, err := ctx.GlobalConstants.Get(req.NetworkID(), req.Address)
+		constant, err := ctx.GlobalConstants.Get(req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

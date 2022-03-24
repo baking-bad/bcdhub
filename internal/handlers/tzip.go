@@ -48,7 +48,7 @@ func (t *ContractMetadata) handle(ctx context.Context, bmd *domains.BigMapDiff) 
 		return nil, nil
 	}
 
-	m, err := t.repo.Get(model.Network, model.Address)
+	m, err := t.repo.Get(model.Address)
 	if err == nil && m.OffChain {
 		return nil, nil
 	}

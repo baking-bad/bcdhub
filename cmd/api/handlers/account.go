@@ -39,11 +39,11 @@ func GetInfo() gin.HandlerFunc {
 			return
 		}
 
-		acc, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
+		acc, err := ctx.Accounts.Get(req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		stats, err := ctx.Statistics.ContractStats(acc.Network, acc.Address)
+		stats, err := ctx.Statistics.ContractStats(ctx.Network, acc.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -51,13 +51,12 @@ func GetInfo() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		balance, err := ctx.Cache.TezosBalance(acc.Address, block.Level)
+		balance, err := ctx.Cache.TezosBalance(c, acc.Address, block.Level)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 		c.SecureJSON(http.StatusOK, AccountInfo{
 			Address:    acc.Address,
-			Network:    acc.Network.String(),
 			Alias:      acc.Alias,
 			TxCount:    stats.Count,
 			Balance:    balance,
@@ -97,7 +96,7 @@ func GetBatchTokenBalances() gin.HandlerFunc {
 				return
 			}
 
-			acc, err := ctx.Accounts.Get(ctx.Network, address[i])
+			acc, err := ctx.Accounts.Get(address[i])
 			if handleError(c, ctx.Storage, err, http.StatusNotFound) {
 				return
 			}
@@ -110,7 +109,7 @@ func GetBatchTokenBalances() gin.HandlerFunc {
 			}
 		}
 
-		balances, err := ctx.TokenBalances.Batch(ctx.Network, accountIDs)
+		balances, err := ctx.TokenBalances.Batch(accountIDs)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -124,7 +123,6 @@ func GetBatchTokenBalances() gin.HandlerFunc {
 					TokenMetadata: TokenMetadata{
 						TokenID:  b[i].TokenID,
 						Contract: b[i].Contract,
-						Network:  b[i].Network.String(),
 					},
 				}
 			}
@@ -175,12 +173,12 @@ func GetAccountTokenBalances() gin.HandlerFunc {
 }
 
 func getAccountBalances(ctx *config.Context, address string, req tokenBalanceRequest) (*TokenBalances, error) {
-	acc, err := ctx.Accounts.Get(ctx.Network, address)
+	acc, err := ctx.Accounts.Get(address)
 	if err != nil {
 		return nil, err
 	}
 
-	balances, err := ctx.Domains.TokenBalances(ctx.Network, req.Contract, acc.ID, req.Size, req.Offset, req.SortBy, req.HideEmpty)
+	balances, err := ctx.Domains.TokenBalances(req.Contract, acc.ID, req.Size, req.Offset, req.SortBy, req.HideEmpty)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +197,6 @@ func getAccountBalances(ctx *config.Context, address string, req tokenBalanceReq
 			tb.TokenMetadata = tm
 		} else {
 			tb.TokenMetadata = TokenMetadata{
-				Network:  token.Network.String(),
 				Contract: token.Contract,
 				TokenID:  token.TokenID,
 			}
@@ -237,12 +234,11 @@ func GetAccountTokensCountByContract() gin.HandlerFunc {
 		if err := c.BindQuery(&queryParams); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		network := req.NetworkID()
-		acc, err := ctx.Accounts.Get(network, req.Address)
+		acc, err := ctx.Accounts.Get(req.Address)
 		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
-		res, err := ctx.TokenBalances.CountByContract(network, acc.ID, queryParams.HideEmpty)
+		res, err := ctx.TokenBalances.CountByContract(acc.ID, queryParams.HideEmpty)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -278,13 +274,12 @@ func GetAccountTokensCountByContractWithMetadata() gin.HandlerFunc {
 			return
 		}
 
-		network := req.NetworkID()
-		acc, err := ctx.Accounts.Get(network, req.Address)
+		acc, err := ctx.Accounts.Get(req.Address)
 		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
-		res, err := ctx.TokenBalances.CountByContract(network, acc.ID, queryParams.HideEmpty)
+		res, err := ctx.TokenBalances.CountByContract(acc.ID, queryParams.HideEmpty)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -297,7 +292,6 @@ func GetAccountTokensCountByContractWithMetadata() gin.HandlerFunc {
 					return
 				} else {
 					metadata = &contract_metadata.ContractMetadata{
-						Network: network,
 						Address: address,
 					}
 				}
@@ -342,7 +336,7 @@ func GetMetadata() gin.HandlerFunc {
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
-		tzip, err := ctx.ContractMetadata.Get(req.NetworkID(), req.Address)
+		tzip, err := ctx.ContractMetadata.Get(req.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				c.SecureJSON(http.StatusNoContent, gin.H{})

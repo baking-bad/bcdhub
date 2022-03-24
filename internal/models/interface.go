@@ -10,9 +10,9 @@ import (
 type GeneralRepository interface {
 	CreateTables() error
 	DeleteTables(indices []string) error
-	DeleteByContract(network types.Network, indices []string, address string) error
+	DeleteByContract(indices []string, address string) error
 	GetByID(output Model) error
-	GetByNetwork(network types.Network, index string) ([]Model, error)
+	GetAll(index string) ([]Model, error)
 	UpdateDoc(model Model) (err error)
 	IsRecordNotFound(err error) bool
 

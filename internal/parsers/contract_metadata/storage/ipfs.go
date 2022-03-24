@@ -2,7 +2,9 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"math/rand"
 	"net/url"
 	"os"
 	"strconv"
@@ -24,8 +26,7 @@ const (
 // IPFSStorage -
 type IPFSStorage struct {
 	HTTPStorage
-	gateways []string
-	cache    *ccache.Cache
+	cache *ccache.Cache
 }
 
 // IPFSStorageOption -
@@ -46,12 +47,24 @@ func WithTimeoutIPFS(timeout time.Duration) IPFSStorageOption {
 	}
 }
 
+var globalGateways = make(map[string]time.Time)
+
 // NewIPFSStorage -
 func NewIPFSStorage(gateways []string, opts ...IPFSStorageOption) IPFSStorage {
 	s := IPFSStorage{
 		HTTPStorage: NewHTTPStorage(),
-		gateways:    gateways,
 		cache:       ccache.New(ccache.Configure()),
+	}
+
+	if len(globalGateways) == 0 {
+		if len(gateways) > 1 {
+			rand.Seed(time.Now().UnixNano())
+			rand.Shuffle(len(gateways), func(i, j int) { gateways[i], gateways[j] = gateways[j], gateways[i] })
+		}
+
+		for i := range gateways {
+			globalGateways[gateways[i]] = time.Now()
+		}
 	}
 
 	for i := range opts {
@@ -63,7 +76,7 @@ func NewIPFSStorage(gateways []string, opts ...IPFSStorageOption) IPFSStorage {
 
 // Get -
 func (s IPFSStorage) Get(ctx context.Context, value string, output interface{}) error {
-	if len(s.gateways) == 0 {
+	if len(globalGateways) == 0 {
 		return ErrEmptyIPFSGatewayList
 	}
 
@@ -89,14 +102,22 @@ func (s IPFSStorage) Get(ctx context.Context, value string, output interface{}) 
 		return nil
 	}
 
-	for i := range s.gateways {
-		url := fmt.Sprintf("%s/ipfs/%s%s", s.gateways[i], ipfsURI.Host, ipfsURI.Path)
+	for baseURL, blockTime := range globalGateways {
+		if time.Now().Before(blockTime) {
+			continue
+		}
+		url := fmt.Sprintf("%s/ipfs/%s%s", baseURL, ipfsURI.Host, ipfsURI.Path)
 		err := s.HTTPStorage.Get(ctx, url, output)
 		if err == nil {
 			s.cache.Set(value, output, MaxTTL)
 			return nil
 		}
-		logger.Warning().Err(err).Str("url", url).Msg("")
+		if errors.Is(err, ErrTooManyRequests) {
+			globalGateways[baseURL] = time.Now().Add(3 * time.Minute)
+			logger.Warning().Str("hosting", baseURL).Msg("rate limit exceeded on IPFS hosting. sleep 3 minutes")
+		} else {
+			logger.Warning().Err(err).Str("url", url).Msg("")
+		}
 	}
 
 	s.cache.Set(value, BounceFlag, BounceTime)

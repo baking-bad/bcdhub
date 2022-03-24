@@ -69,13 +69,15 @@ func (s HTTPStorage) Get(ctx context.Context, value string, output interface{}) 
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	switch resp.StatusCode {
+	case http.StatusOK:
+		if err := json.NewDecoder(resp.Body).Decode(output); err != nil {
+			return errors.Wrap(ErrJSONDecoding, err.Error())
+		}
+		return nil
+	case http.StatusTooManyRequests:
+		return errors.Wrap(ErrTooManyRequests, value)
+	default:
 		return errors.Errorf("Invalid status code: %d", resp.StatusCode)
 	}
-
-	if err := json.NewDecoder(resp.Body).Decode(output); err != nil {
-		return errors.Wrap(ErrJSONDecoding, err.Error())
-	}
-
-	return nil
 }

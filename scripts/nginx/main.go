@@ -29,7 +29,7 @@ func main() {
 		return
 	}
 
-	aliases, err := ctx.ContractMetadata.GetAliases(types.Mainnet)
+	aliases, err := ctx.ContractMetadata.GetAliases()
 	if err != nil {
 		logger.Err(err)
 		return

@@ -87,7 +87,7 @@ func (o Operation) Parse(highlight map[string][]string, data []byte) (*Item, err
 }
 
 // Prepare -
-func (o *Operation) Prepare(model models.Model) {
+func (o *Operation) Prepare(network modelTypes.Network, model models.Model) {
 	op, ok := model.(*operation.Operation)
 	if !ok {
 		return
@@ -104,7 +104,7 @@ func (o *Operation) Prepare(model models.Model) {
 	o.Internal = op.Internal
 	o.Kind = op.Kind.String()
 	o.Level = op.Level
-	o.Network = op.Network.String()
+	o.Network = network.String()
 	o.Source = op.Source.Address
 	o.SourceAlias = op.Source.Alias
 	o.Status = op.Status.String()

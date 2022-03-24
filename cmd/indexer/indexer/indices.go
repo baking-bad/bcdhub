@@ -25,46 +25,42 @@ import (
 func createStartIndices(db pg.DBI) error {
 	return db.RunInTransaction(context.Background(), func(tx *pg.Tx) error {
 		// Accounts
-		if _, err := db.Model((*account.Account)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS accounts_network_address_idx ON ?TableName (network, address)`); err != nil {
+		if _, err := db.Model((*account.Account)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS accounts_address_idx ON ?TableName (address)`); err != nil {
 			return err
 		}
 
 		// Blocks
-		if _, err := db.Model((*block.Block)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS blocks_network_level_idx ON ?TableName (network, level)`); err != nil {
+		if _, err := db.Model((*block.Block)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS blocks_level_idx ON ?TableName (level)`); err != nil {
 			return err
 		}
 
 		// Big map diff
-		if _, err := db.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_idx ON ?TableName (network, contract, ptr)`); err != nil {
+		if _, err := db.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_idx ON ?TableName (contract, ptr)`); err != nil {
 			return err
 		}
 
-		if _, err := db.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_key_hash_idx ON ?TableName (key_hash, network, ptr)`); err != nil {
+		if _, err := db.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_key_hash_idx ON ?TableName (key_hash, ptr)`); err != nil {
 			return err
 		}
 
 		// Big map state
-		if _, err := db.Model((*bigmapdiff.BigMapState)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_state_ptr_idx ON ?TableName (network, ptr)`); err != nil {
+		if _, err := db.Model((*bigmapdiff.BigMapState)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_state_ptr_idx ON ?TableName (ptr)`); err != nil {
 			return err
 		}
 
-		if _, err := db.Model((*bigmapdiff.BigMapState)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_state_contract_idx ON ?TableName (network, contract)`); err != nil {
+		if _, err := db.Model((*bigmapdiff.BigMapState)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_state_contract_idx ON ?TableName (contract)`); err != nil {
 			return err
 		}
 
-		if _, err := db.Model((*bigmapdiff.BigMapState)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_state_key_hash_idx ON ?TableName (network, ptr, contract, key_hash)`); err != nil {
+		if _, err := db.Model((*bigmapdiff.BigMapState)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_state_key_hash_idx ON ?TableName (ptr, contract, key_hash)`); err != nil {
 			return err
 		}
 
-		if _, err := db.Model((*bigmapdiff.BigMapState)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_state_last_update_level_idx ON ?TableName (network, last_update_level)`); err != nil {
+		if _, err := db.Model((*bigmapdiff.BigMapState)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_state_last_update_level_idx ON ?TableName (last_update_level)`); err != nil {
 			return err
 		}
 
 		// Contracts
-		if _, err := db.Model((*contract.Contract)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_network_account_idx ON ?TableName (network, account_id)`); err != nil {
-			return err
-		}
-
 		if _, err := db.Model((*contract.Contract)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_account_id_idx ON ?TableName (account_id)`); err != nil {
 			return err
 		}
@@ -80,7 +76,7 @@ func createStartIndices(db pg.DBI) error {
 		}
 
 		// Token balances
-		if _, err := db.Model((*tokenbalance.TokenBalance)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS token_balances_by_token_idx ON ?TableName (network, contract, token_id)`); err != nil {
+		if _, err := db.Model((*tokenbalance.TokenBalance)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS token_balances_by_token_idx ON ?TableName (contract, token_id)`); err != nil {
 			return err
 		}
 		if _, err := db.Model((*tokenbalance.TokenBalance)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS token_balances_account_idx ON ?TableName (account_id)`); err != nil {
@@ -88,7 +84,7 @@ func createStartIndices(db pg.DBI) error {
 		}
 
 		// Contract Metadata
-		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS tzips_network_address_idx ON ?TableName (network, address)`); err != nil {
+		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS tzips_address_idx ON ?TableName (address)`); err != nil {
 			return err
 		}
 
@@ -96,7 +92,7 @@ func createStartIndices(db pg.DBI) error {
 			return err
 		}
 
-		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_network_address_idx ON ?TableName (updated_at)`); err != nil {
+		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_address_idx ON ?TableName (updated_at)`); err != nil {
 			return err
 		}
 
@@ -113,7 +109,7 @@ func (bi *BoostIndexer) createIndices() {
 
 	// Big map action
 	if _, err := bi.Context.StorageDB.DB.Model((*bigmapaction.BigMapAction)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_action_network_level_idx ON ?TableName (network, level)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_action_level_idx ON ?TableName (level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
@@ -138,7 +134,7 @@ func (bi *BoostIndexer) createIndices() {
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_network_level_idx ON ?TableName (network, level)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_level_idx ON ?TableName (level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
@@ -151,7 +147,7 @@ func (bi *BoostIndexer) createIndices() {
 
 	// Contracts
 	if _, err := bi.Context.StorageDB.DB.Model((*contract.Contract)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_network_level_idx ON ?TableName (network, level)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_level_idx ON ?TableName (level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
@@ -197,7 +193,7 @@ func (bi *BoostIndexer) createIndices() {
 
 	// Operations
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_network_level_idx ON ?TableName (network, level)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_level_idx ON ?TableName (level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
@@ -259,7 +255,7 @@ func (bi *BoostIndexer) createIndices() {
 
 	// Token metadata
 	if _, err := bi.Context.StorageDB.DB.Model((*tokenmetadata.TokenMetadata)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS token_metadata_network_level_idx ON ?TableName (network, level)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS token_metadata_level_idx ON ?TableName (level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
@@ -272,7 +268,7 @@ func (bi *BoostIndexer) createIndices() {
 
 	// Transfers
 	if _, err := bi.Context.StorageDB.DB.Model((*transfer.Transfer)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_network_level_idx ON ?TableName (network, level)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_level_idx ON ?TableName (level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
@@ -308,14 +304,14 @@ func (bi *BoostIndexer) createIndices() {
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*transfer.Transfer)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_by_token_idx ON ?TableName (network, contract, token_id)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_by_token_idx ON ?TableName (contract, token_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	// Contract Metadata
 	if _, err := bi.Context.StorageDB.DB.Model(new(contract_metadata.ContractMetadata)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS tzips_network_level_idx ON ?TableName (network, level)
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS tzips_level_idx ON ?TableName (level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}

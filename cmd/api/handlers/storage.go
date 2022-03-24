@@ -41,23 +41,21 @@ func GetContractStorage() gin.HandlerFunc {
 			return
 		}
 
-		network := req.NetworkID()
-
 		var header block.Block
 		var err error
 		if sReq.Level == 0 {
-			header, err = ctx.Blocks.Last(network)
+			header, err = ctx.Blocks.Last()
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 		} else {
-			header, err = ctx.Blocks.Get(network, int64(sReq.Level))
+			header, err = ctx.Blocks.Get(int64(sReq.Level))
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 		}
 
-		deffatedStorage, err := getDeffattedStorage(ctx, req.Address, int64(sReq.Level))
+		deffatedStorage, err := getDeffattedStorage(c, ctx, req.Address, int64(sReq.Level))
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -110,7 +108,7 @@ func GetContractStorageRaw() gin.HandlerFunc {
 		if err := c.BindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		storage, err := getDeffattedStorage(ctx, req.Address, int64(sReq.Level))
+		storage, err := getDeffattedStorage(c, ctx, req.Address, int64(sReq.Level))
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -151,7 +149,7 @@ func GetContractStorageRich() gin.HandlerFunc {
 		if err := c.BindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		storage, err := getDeffattedStorage(ctx, req.Address, int64(sReq.Level))
+		storage, err := getDeffattedStorage(c, ctx, req.Address, int64(sReq.Level))
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -159,7 +157,7 @@ func GetContractStorageRich() gin.HandlerFunc {
 		if sReq.Level == 0 {
 			symLink = bcd.GetCurrentSymLink()
 		} else {
-			block, err := ctx.Blocks.Get(req.NetworkID(), int64(sReq.Level))
+			block, err := ctx.Blocks.Get(int64(sReq.Level))
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -171,7 +169,7 @@ func GetContractStorageRich() gin.HandlerFunc {
 			return
 		}
 
-		states, err := ctx.BigMapDiffs.GetForAddress(ctx.Network, req.Address)
+		states, err := ctx.BigMapDiffs.GetForAddress(req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -241,7 +239,7 @@ func GetContractStorageSchema() gin.HandlerFunc {
 		}
 
 		if ssReq.FillType == "current" {
-			storage, err := getDeffattedStorage(ctx, req.Address, 0)
+			storage, err := getDeffattedStorage(c, ctx, req.Address, 0)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -258,16 +256,15 @@ func GetContractStorageSchema() gin.HandlerFunc {
 	}
 }
 
-func getDeffattedStorage(ctx *config.Context, address string, level int64) ([]byte, error) {
-	destination, err := ctx.Accounts.Get(ctx.Network, address)
+func getDeffattedStorage(c *gin.Context, ctx *config.Context, address string, level int64) ([]byte, error) {
+	destination, err := ctx.Accounts.Get(address)
 	if err != nil {
 		return nil, err
 	}
 
 	filters := map[string]interface{}{
-		"operation.network": ctx.Network,
-		"destination_id":    destination.ID,
-		"status":            types.OperationStatusApplied,
+		"destination_id": destination.ID,
+		"status":         types.OperationStatusApplied,
 	}
 	if level > 0 {
 		filters["level"] = level
@@ -277,7 +274,7 @@ func getDeffattedStorage(ctx *config.Context, address string, level int64) ([]by
 		return nil, err
 	}
 	if len(operation.DeffatedStorage) == 0 || ctx.Storage.IsRecordNotFound(err) {
-		return ctx.RPC.GetScriptStorageRaw(address, level)
+		return ctx.RPC.GetScriptStorageRaw(c, address, level)
 	}
 	return operation.DeffatedStorage, nil
 

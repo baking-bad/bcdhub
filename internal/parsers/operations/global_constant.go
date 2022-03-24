@@ -17,7 +17,6 @@ func NewGlobalConstant() GlobalConstant {
 // Parse -
 func (p GlobalConstant) Parse(data noderpc.Operation, operation operation.Operation) *global_constant.GlobalConstant {
 	gc := &global_constant.GlobalConstant{
-		Network:   operation.Network,
 		Timestamp: operation.Timestamp,
 		Level:     operation.Level,
 		Value:     data.Value,

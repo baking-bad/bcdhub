@@ -44,12 +44,12 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model
 
 		storageTypeBytes, err := tm.Cache.StorageTypeBytes(bmd.Contract, bmd.Protocol.SymLink)
 		if err != nil {
-			return errors.Errorf("[TokenMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
+			return errors.Errorf("[TokenMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, tm.Network.String(), err)
 		}
 
 		storageType, err := ast.NewTypedAstFromBytes(storageTypeBytes)
 		if err != nil {
-			return errors.Errorf("[TokenMetadata.Handle] can't parse storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
+			return errors.Errorf("[TokenMetadata.Handle] can't parse storage type for '%s' in %s: %s", bmd.Contract, tm.Network.String(), err)
 		}
 
 		localWg.Add(1)
@@ -75,7 +75,7 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model
 		return nil
 	}
 
-	logger.Info().Msgf("%3d token metadata are processed", len(updates))
+	logger.Info().Str("network", tm.Network.String()).Msgf("%3d token metadata are processed", len(updates))
 
 	if err := saveSearchModels(ctx, tm.Context, updates); err != nil {
 		return err

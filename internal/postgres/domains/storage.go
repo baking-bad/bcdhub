@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
 
@@ -22,9 +21,9 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 var balanceQuery = `
-	select tb.network, tb.contract, tb.token_id, tb.balance, tm.symbol, tm.name, tm.decimals, tm.description, tm.artifact_uri, tm.display_uri, tm.external_uri, tm.thumbnail_uri, tm.is_transferable, tm.is_boolean_amount, tm.should_prefer_symbol, tm.tags, tm.creators, tm.formats, tm.extras  from (
+	select tb.contract, tb.token_id, tb.balance, tm.symbol, tm.name, tm.decimals, tm.description, tm.artifact_uri, tm.display_uri, tm.external_uri, tm.thumbnail_uri, tm.is_transferable, tm.is_boolean_amount, tm.should_prefer_symbol, tm.tags, tm.creators, tm.formats, tm.extras  from (
 		(?) as tb
-		left join token_metadata as tm on tm.network  = tb.network and tm.token_id = tb.token_id and tm.contract = tb.contract
+		left join token_metadata as tm on tm.token_id = tb.token_id and tm.contract = tb.contract
 	)
 `
 
@@ -40,14 +39,12 @@ func (storage *Storage) getPageSizeForBalances(size int64) int {
 }
 
 // TokenBalances -
-func (storage *Storage) TokenBalances(network types.Network, contract string, accountID int64, size, offset int64, sort string, hideZeroBalances bool) (domains.TokenBalanceResponse, error) {
+func (storage *Storage) TokenBalances(contract string, accountID int64, size, offset int64, sort string, hideZeroBalances bool) (domains.TokenBalanceResponse, error) {
 	response := domains.TokenBalanceResponse{
 		Balances: make([]domains.TokenBalance, 0),
 	}
 
-	query := storage.DB.Model().Table(models.DocTokenBalances).
-		Where("network = ?", network).
-		Where("account_id = ?", accountID)
+	query := storage.DB.Model().Table(models.DocTokenBalances).Where("account_id = ?", accountID)
 
 	if contract != "" {
 		query.Where("contract = ?", contract)
@@ -82,13 +79,13 @@ func (storage *Storage) TokenBalances(network types.Network, contract string, ac
 
 var transfersQuery = `
 	select o.hash, o.nonce, o.counter, t.*, tm.symbol, tm.decimals, tm."name",
-		"from".id as from__id, "from".address as from__address, "from".alias as from__alias, "from".network as from__network, "from".type as from__type,
-		"to".id as to__id, "to".address as to__address, "to".alias as to__alias, "to".network as to__network, "to".type as to__type,
-		"initiator".id as initiator__id, "initiator".address as initiator__address, "initiator".alias as initiator__alias, "initiator".network as initiator__network, "initiator".type as initiator__type
+		"from".id as from__id, "from".address as from__address, "from".alias as from__alias, "from".type as from__type,
+		"to".id as to__id, "to".address as to__address, "to".alias as to__alias, "to".type as to__type,
+		"initiator".id as initiator__id, "initiator".address as initiator__address, "initiator".alias as initiator__alias, "initiator".type as initiator__type
 	from (
 		(?) as t
 		left join operations as o on o.id  = t.operation_id
-		left join token_metadata tm on tm.network = t.network and tm.contract = t.contract and tm.token_id = t.token_id
+		left join token_metadata tm on tm.contract = t.contract and tm.token_id = t.token_id
 		left join "accounts" AS "from" ON "from"."id" = t."from_id" 
 		left join "accounts" AS "to" ON "to"."id" = t."to_id" 
 		left join "accounts" AS "initiator" ON "initiator"."id" = t."initiator_id" 	

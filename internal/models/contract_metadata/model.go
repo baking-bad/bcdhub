@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -18,7 +17,6 @@ type ContractMetadata struct {
 	Level      int64  `pg:",use_zero"`
 	Timestamp  time.Time
 	Address    string
-	Network    types.Network `pg:",type:SMALLINT"`
 	Slug       string
 	DomainName string
 	OffChain   bool                   `pg:",use_zero"`
@@ -75,7 +73,6 @@ func (t *ContractMetadata) Save(tx pg.DBI) error {
 // LogFields -
 func (t *ContractMetadata) LogFields() map[string]interface{} {
 	return map[string]interface{}{
-		"network": t.Network,
 		"address": t.Address,
 		"level":   t.Level,
 	}

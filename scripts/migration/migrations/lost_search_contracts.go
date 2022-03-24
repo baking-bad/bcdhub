@@ -61,6 +61,6 @@ func (m *FixLostSearchContracts) saveSearchModels(internalContext *config.Contex
 			m.lastID = contracts[i].ID
 		}
 	}
-	data := search.Prepare(items)
+	data := search.Prepare(internalContext.Network, items)
 	return internalContext.Searcher.Save(context.Background(), data)
 }

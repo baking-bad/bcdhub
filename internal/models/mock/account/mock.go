@@ -6,7 +6,6 @@ package account
 
 import (
 	model "github.com/baking-bad/bcdhub/internal/models/account"
-	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,33 +34,33 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(network types.Network, address string) (model.Account, error) {
+func (m *MockRepository) Get(address string) (model.Account, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", network, address)
+	ret := m.ctrl.Call(m, "Get", address)
 	ret0, _ := ret[0].(model.Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockRepositoryMockRecorder) Get(network, address interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Get(address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), network, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), address)
 }
 
 // Alias mocks base method
-func (m *MockRepository) Alias(network types.Network, address string) (string, error) {
+func (m *MockRepository) Alias(address string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Alias", network, address)
+	ret := m.ctrl.Call(m, "Alias", address)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Alias indicates an expected call of Alias
-func (mr *MockRepositoryMockRecorder) Alias(network, address interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Alias(address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Alias", reflect.TypeOf((*MockRepository)(nil).Alias), network, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Alias", reflect.TypeOf((*MockRepository)(nil).Alias), address)
 }
 
 // UpdateAlias mocks base method

@@ -25,7 +25,7 @@ func (ch *ContractsHandler) Handle(ctx context.Context, items []models.Model, wg
 		return nil
 	}
 
-	logger.Info().Msgf("%3d contracts are processed", len(items))
+	logger.Info().Str("network", ch.Network.String()).Msgf("%3d contracts are processed", len(items))
 
 	return saveSearchModels(ctx, ch.Context, items)
 }

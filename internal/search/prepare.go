@@ -7,33 +7,34 @@ import (
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Prepare -
-func Prepare(items []models.Model) []Data {
+func Prepare(network types.Network, items []models.Model) []Data {
 	data := make([]Data, 0)
 
 	for i := range items {
 		switch val := items[i].(type) {
 		case *contract.Contract:
 			var c Contract
-			c.Prepare(val)
+			c.Prepare(network, val)
 			data = append(data, &c)
 		case *bigmapdiff.BigMapDiff:
 			var bmd BigMapDiff
-			bmd.Prepare(val)
+			bmd.Prepare(network, val)
 			data = append(data, &bmd)
 		case *operation.Operation:
 			var op Operation
-			op.Prepare(val)
+			op.Prepare(network, val)
 			data = append(data, &op)
 		case *tokenmetadata.TokenMetadata:
 			var token Token
-			token.Prepare(val)
+			token.Prepare(network, val)
 			data = append(data, &token)
 		case *cm.ContractMetadata:
 			var m Metadata
-			m.Prepare(val)
+			m.Prepare(network, val)
 			data = append(data, &m)
 		}
 	}

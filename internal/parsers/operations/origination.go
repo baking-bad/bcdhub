@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -30,13 +32,11 @@ var delegatorContract = []byte(`{"code":[{"prim":"parameter","args":[{"prim":"or
 // Parse -
 func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error {
 	source := account.Account{
-		Network: p.network,
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
 	}
 
 	origination := operation.Operation{
-		Network:      p.network,
 		Hash:         p.hash,
 		ProtocolID:   p.protocol.ID,
 		Level:        p.head.Level,
@@ -50,7 +50,6 @@ func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error
 		StorageLimit: data.StorageLimit,
 		Amount:       *data.Balance,
 		Delegate: account.Account{
-			Network: p.network,
 			Address: data.Delegate,
 			Type:    types.NewAccountType(data.Delegate),
 		},
@@ -96,7 +95,7 @@ func (p Origination) appliedHandler(item noderpc.Operation, origination *operati
 		return err
 	}
 
-	storageResult, err := p.storageParser.Parse(item, origination)
+	storageResult, err := p.storageParser.Parse(context.Background(), item, origination)
 	if err != nil {
 		return err
 	}
@@ -112,7 +111,7 @@ func (p Origination) appliedHandler(item noderpc.Operation, origination *operati
 		result.TokenBalances = append(result.TokenBalances, ledgerResult.TokenBalances...)
 	}
 
-	if origination.Network == types.Mainnet {
+	if p.withEvents {
 		if err := p.executeInitialStorageEvent(item.Script, origination, result); err != nil {
 			if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
 				logger.Err(err)
@@ -178,8 +177,7 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 				return err
 			}
 
-			balances, err := events.Execute(p.ctx.RPC, event, events.Context{
-				Network:                  origination.Network,
+			balances, err := events.Execute(context.Background(), p.ctx.RPC, event, events.Args{
 				Parameters:               storageType,
 				Source:                   origination.Source.Address,
 				Initiator:                origination.Initiator.Address,
@@ -202,10 +200,8 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 
 			for i := range balances {
 				result.TokenBalances = append(result.TokenBalances, &tbModel.TokenBalance{
-					Network: origination.Network,
 					Account: account.Account{
 						Address: balances[i].Address,
-						Network: origination.Network,
 						Type:    types.NewAccountType(balances[i].Address),
 					},
 					TokenID:  balances[i].TokenID,

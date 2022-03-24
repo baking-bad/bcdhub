@@ -45,12 +45,12 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Mo
 
 		storageTypeBytes, err := cm.Cache.StorageTypeBytes(bmd.Contract, bmd.Protocol.SymLink)
 		if err != nil {
-			return errors.Errorf("[ContractMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
+			return errors.Errorf("[ContractMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, cm.Network.String(), err)
 		}
 
 		storageType, err := ast.NewTypedAstFromBytes(storageTypeBytes)
 		if err != nil {
-			return errors.Errorf("[ContractMetadata.Handle] can't parse storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
+			return errors.Errorf("[ContractMetadata.Handle] can't parse storage type for '%s' in %s: %s", bmd.Contract, cm.Network.String(), err)
 		}
 
 		localWg.Add(1)
@@ -76,7 +76,7 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Mo
 		return nil
 	}
 
-	logger.Info().Msgf("%3d contract metadata are processed", len(updates))
+	logger.Info().Str("network", cm.Network.String()).Msgf("%3d contract metadata are processed", len(updates))
 
 	if err := saveSearchModels(ctx, cm.Context, updates); err != nil {
 		return err

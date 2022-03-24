@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/schollz/progressbar/v3"
 )
@@ -49,15 +48,15 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err := bar.Add(1); err != nil {
 			return err
 		}
-		protocol, err := ctx.Protocols.Get(operations[i].Network, "", -1)
+		protocol, err := ctx.Protocols.Get("", -1)
 		if err != nil {
 			return err
 		}
 
 		parser, err := transferParsers.NewParser(ctx.RPC, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
-			transferParsers.WithNetwork(operations[i].Network),
+			transferParsers.WithNetwork(ctx.Network),
 			transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
-			transferParsers.WithoutViews(),
+			transferParsers.WithoutEvents(),
 		)
 		if err != nil {
 			return err
@@ -66,7 +65,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		script, err := ctx.Contracts.Script(operations[i].Network, operations[i].Destination.Address, proto.SymLink)
+		script, err := ctx.Contracts.Script(operations[i].Destination.Address, proto.SymLink)
 		if err != nil {
 			return err
 		}
@@ -95,20 +94,11 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 }
 
 func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {
-	m.Network, err = ask("Enter network (empty if all):")
-	if err != nil {
+	if m.Address, err = ask("Enter KT address (empty if all):"); err != nil {
 		return
 	}
 
-	typ := types.Empty
-	if m.Network != "" {
-		if m.Address, err = ask("Enter KT address (empty if all):"); err != nil {
-			return
-		}
-		typ = types.NewNetwork(m.Network)
-	}
-
-	return ctx.Storage.DeleteByContract(typ, []string{models.DocTransfers}, m.Address)
+	return ctx.Storage.DeleteByContract([]string{models.DocTransfers}, m.Address)
 }
 
 func (m *CreateTransfersTags) getOperations(ctx *config.Context) ([]operation.Operation, error) {

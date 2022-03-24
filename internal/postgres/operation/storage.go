@@ -86,7 +86,7 @@ func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters m
 		return
 	}
 
-	query := storage.DB.Model((*operation.Operation)(nil)).Where("operation.network = ?", acc.Network).WhereGroup(func(q *orm.Query) (*orm.Query, error) {
+	query := storage.DB.Model((*operation.Operation)(nil)).WhereGroup(func(q *orm.Query) (*orm.Query, error) {
 		for i := range opg {
 			q.WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
 				if opg[i].Hash == nil {
@@ -169,8 +169,8 @@ func (storage *Storage) GetByHash(hash string) (operations []operation.Operation
 	addOperationSorting(query)
 	err = storage.DB.Model().TableExpr("(?) as operation", query).
 		ColumnExpr("operation.*").
-		ColumnExpr("source.address as source__address, source.alias as source__alias, source.type as source__type, source.network as source__network, source.id as source__id").
-		ColumnExpr("destination.address as destination__address, destination.alias as destination__alias, destination.type as destination__type, destination.network as destination__network, destination.id as destination__id").
+		ColumnExpr("source.address as source__address, source.alias as source__alias, source.type as source__type,source.id as source__id").
+		ColumnExpr("destination.address as destination__address, destination.alias as destination__alias, destination.type as destination__type, destination.id as destination__id").
 		Join("LEFT JOIN accounts as source ON source.id = operation.source_id").
 		Join("LEFT JOIN accounts as destination ON destination.id = operation.destination_id").
 		Select(&operations)
@@ -178,12 +178,11 @@ func (storage *Storage) GetByHash(hash string) (operations []operation.Operation
 }
 
 // GetContract24HoursVolume -
-func (storage *Storage) GetContract24HoursVolume(network types.Network, address string, entrypoints []string) (float64, error) {
+func (storage *Storage) GetContract24HoursVolume(address string, entrypoints []string) (float64, error) {
 	aDayAgo := time.Now().UTC().AddDate(0, 0, -1)
 	var destinationID int64
 	if err := storage.DB.Model((*account.Account)(nil)).
 		Column("id").
-		Where("network = ?", network).
 		Where("address = ?", address).
 		Select(&destinationID); err != nil {
 		return 0, err
@@ -193,7 +192,6 @@ func (storage *Storage) GetContract24HoursVolume(network types.Network, address 
 	query := storage.DB.Model((*operation.Operation)(nil)).
 		ColumnExpr("COALESCE(SUM(amount), 0)").
 		Where("destination_id = ?", destinationID).
-		Where("operation.network = ?", network).
 		Where("status = ?", types.OperationStatusApplied).
 		Where("timestamp > ?", aDayAgo)
 
@@ -218,11 +216,10 @@ type acc struct {
 }
 
 // GetTokensStats -
-func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
+func (storage *Storage) GetTokensStats(addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
 	var accs []acc
 	if err := storage.DB.Model((*account.Account)(nil)).
 		ColumnExpr("id, address").
-		Where("network = ?", network).
 		WhereIn("address IN (?)", addresses).
 		Select(&accs); err != nil {
 		return nil, err
@@ -235,8 +232,7 @@ func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypo
 
 	var stats []tokenStats
 	query := storage.DB.Model((*operation.Operation)(nil)).
-		ColumnExpr("destination_id, entrypoint, COUNT(*) as count, SUM(consumed_gas) AS gas").
-		Where("network = ?", network)
+		ColumnExpr("destination_id, entrypoint, COUNT(*) as count, SUM(consumed_gas) AS gas")
 
 	if len(accs) > 0 {
 		ids := make([]int64, len(accs))
@@ -288,7 +284,7 @@ func (storage *Storage) GetByID(id int64) (result operation.Operation, err error
 }
 
 // GetDAppStats -
-func (storage *Storage) GetDAppStats(network types.Network, addresses []string, period string) (stats operation.DAppStats, err error) {
+func (storage *Storage) GetDAppStats(addresses []string, period string) (stats operation.DAppStats, err error) {
 	var ids []int64
 	if len(addresses) > 0 {
 		if err = storage.DB.Model((*account.Account)(nil)).
@@ -299,7 +295,7 @@ func (storage *Storage) GetDAppStats(network types.Network, addresses []string, 
 		}
 	}
 
-	query, err := getDAppQuery(storage.DB, network, ids, period)
+	query, err := getDAppQuery(storage.DB, ids, period)
 	if err != nil {
 		return
 	}
@@ -308,7 +304,7 @@ func (storage *Storage) GetDAppStats(network types.Network, addresses []string, 
 		return
 	}
 
-	queryCount, err := getDAppQuery(storage.DB, network, ids, period)
+	queryCount, err := getDAppQuery(storage.DB, ids, period)
 	if err != nil {
 		return
 	}
@@ -321,9 +317,8 @@ func (storage *Storage) GetDAppStats(network types.Network, addresses []string, 
 	return
 }
 
-func getDAppQuery(db pg.DBI, network types.Network, ids []int64, period string) (*orm.Query, error) {
+func getDAppQuery(db pg.DBI, ids []int64, period string) (*orm.Query, error) {
 	query := db.Model((*operation.Operation)(nil)).
-		Where("network = ?", network).
 		Where("status = ?", types.OperationStatusApplied)
 
 	if len(ids) > 0 {

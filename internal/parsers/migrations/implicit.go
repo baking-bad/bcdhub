@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -18,18 +20,17 @@ import (
 // ImplicitParser -
 type ImplicitParser struct {
 	ctx      *config.Context
-	network  types.Network
 	rpc      noderpc.INode
 	protocol protocol.Protocol
 }
 
 // NewImplicitParser -
-func NewImplicitParser(ctx *config.Context, network types.Network, rpc noderpc.INode, protocol protocol.Protocol) *ImplicitParser {
-	return &ImplicitParser{ctx, network, rpc, protocol}
+func NewImplicitParser(ctx *config.Context, rpc noderpc.INode, protocol protocol.Protocol) *ImplicitParser {
+	return &ImplicitParser{ctx, rpc, protocol}
 }
 
 // Parse -
-func (p *ImplicitParser) Parse(metadata noderpc.Metadata, head noderpc.Header) (*parsers.Result, error) {
+func (p *ImplicitParser) Parse(ctx context.Context, metadata noderpc.Metadata, head noderpc.Header) (*parsers.Result, error) {
 	if len(metadata.ImplicitOperationsResults) == 0 {
 		return nil, nil
 	}
@@ -38,7 +39,7 @@ func (p *ImplicitParser) Parse(metadata noderpc.Metadata, head noderpc.Header) (
 	for i := range metadata.ImplicitOperationsResults {
 		switch metadata.ImplicitOperationsResults[i].Kind {
 		case consts.Origination:
-			if err := p.origination(metadata.ImplicitOperationsResults[i], head, p.protocol.ID, parserResult); err != nil {
+			if err := p.origination(ctx, metadata.ImplicitOperationsResults[i], head, p.protocol.ID, parserResult); err != nil {
 				return nil, err
 			}
 		case consts.Transaction:
@@ -50,15 +51,13 @@ func (p *ImplicitParser) Parse(metadata noderpc.Metadata, head noderpc.Header) (
 	return parserResult, nil
 }
 
-func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, result *parsers.Result) error {
+func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, result *parsers.Result) error {
 	origination := operation.Operation{
-		Network:    p.network,
 		ProtocolID: protocolID,
 		Level:      head.Level,
 		Timestamp:  head.Timestamp,
 		Kind:       types.OperationKindOrigination,
 		Destination: account.Account{
-			Network: p.network,
 			Address: implicit.OriginatedContracts[0],
 			Type:    types.AccountTypeContract,
 		},
@@ -68,7 +67,7 @@ func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, 
 		DeffatedStorage:     implicit.Storage,
 	}
 
-	script, err := p.rpc.GetRawScript(origination.Destination.Address, origination.Level)
+	script, err := p.rpc.GetRawScript(ctx, origination.Destination.Address, origination.Level)
 	if err != nil {
 		return err
 	}
@@ -80,7 +79,7 @@ func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, 
 	}
 
 	for i := range result.Contracts {
-		if result.Contracts[i].Network == p.network && result.Contracts[i].Account.Address == implicit.OriginatedContracts[0] {
+		if result.Contracts[i].Account.Address == implicit.OriginatedContracts[0] {
 			result.Migrations = append(result.Migrations, &migration.Migration{
 				ProtocolID: protocolID,
 				Level:      head.Level,
@@ -99,7 +98,6 @@ func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, 
 
 func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, result *parsers.Result) error {
 	tx := operation.Operation{
-		Network:         p.network,
 		ProtocolID:      protocolID,
 		Level:           head.Level,
 		Timestamp:       head.Timestamp,
@@ -115,7 +113,6 @@ func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, 
 	for i := range implicit.BalanceUpdates {
 		if implicit.BalanceUpdates[i].Kind == "contract" && implicit.BalanceUpdates[i].Origin == "subsidy" {
 			tx.Destination = account.Account{
-				Network: p.network,
 				Type:    types.NewAccountType(implicit.BalanceUpdates[i].Contract),
 				Address: implicit.BalanceUpdates[i].Contract,
 			}

@@ -67,7 +67,7 @@ func getDiffs(db pg.DBI, lastID int64, size int) (resp []bigmapdiff.BigMapDiff, 
 }
 
 func saveSearchModels(ctx context.Context, internalContext *config.Context, items []models.Model) error {
-	data := search.Prepare(items)
+	data := search.Prepare(internalContext.Network, items)
 
 	return internalContext.Searcher.Save(ctx, data)
 }

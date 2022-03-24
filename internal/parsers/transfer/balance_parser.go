@@ -1,15 +1,12 @@
 package transfer
 
 import (
-	"errors"
-
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	tbParser "github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
-	"github.com/go-pg/pg/v10"
 	"github.com/shopspring/decimal"
 )
 
@@ -31,13 +28,11 @@ func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, oper
 		transfer := operation.EmptyTransfer()
 		if balance.Value.Cmp(decimal.Zero) > 0 {
 			transfer.To = account.Account{
-				Network: operation.Network,
 				Address: balance.Address,
 				Type:    types.NewAccountType(balance.Address),
 			}
 		} else {
 			transfer.From = account.Account{
-				Network: operation.Network,
 				Address: balance.Address,
 				Type:    types.NewAccountType(balance.Address),
 			}
@@ -52,38 +47,32 @@ func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, oper
 }
 
 // ParseBalances -
-func (parser *DefaultBalanceParser) ParseBalances(network types.Network, contract string, balances []tbParser.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
+func (parser *DefaultBalanceParser) ParseBalances(contract string, balances []tbParser.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
 	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
 		transfer := operation.EmptyTransfer()
 
-		acc, err := parser.accounts.Get(network, balance.Address)
+		acc, err := parser.accounts.Get(balance.Address)
 		if err != nil {
-			if !errors.Is(err, pg.ErrNoRows) {
-				return nil, err
-			}
+			return nil, err
+		}
+
+		tb, err := parser.repo.Get(contract, acc.ID, balance.TokenID)
+		if err != nil {
+			return nil, err
+		}
+
+		delta := balance.Value.Sub(tb.Balance)
+		if delta.Cmp(decimal.Zero) > 0 {
 			transfer.To = account.Account{
 				Address: balance.Address,
 				Type:    types.NewAccountType(balance.Address),
 			}
 			transfer.Amount = balance.Value.Abs()
 		} else {
-			tb, err := parser.repo.Get(network, contract, acc.ID, balance.TokenID)
-			if err != nil {
-				return nil, err
-			}
-
-			delta := balance.Value.Sub(tb.Balance)
-			if delta.Cmp(decimal.Zero) > 0 {
-				transfer.To = account.Account{
-					Address: balance.Address,
-					Type:    types.NewAccountType(balance.Address),
-				}
-			} else {
-				transfer.From = account.Account{
-					Address: balance.Address,
-					Type:    types.NewAccountType(balance.Address),
-				}
+			transfer.From = account.Account{
+				Address: balance.Address,
+				Type:    types.NewAccountType(balance.Address),
 			}
 			transfer.Amount = delta.Abs()
 		}

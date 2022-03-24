@@ -27,19 +27,15 @@ func TestMakeFa2Transfers(t *testing.T) {
 			name: "FA2: test 1",
 			tree: GetFA2Transfer(),
 			operation: operation.Operation{
-				Network:    modelTypes.Mainnet,
 				Parameters: []byte(`{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS"},[{"prim":"Pair","args":[{"string":"tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2"},{"prim":"Pair","args":[{"int":"0"},{"int":"1000000000"}]}]}]]}]}`),
 			},
 			want: []*transfer.Transfer{
 				{
-					Network: modelTypes.Mainnet,
 					From: account.Account{
-						Network: modelTypes.Mainnet,
 						Address: "tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS",
 						Type:    modelTypes.AccountTypeTz,
 					},
 					To: account.Account{
-						Network: modelTypes.Mainnet,
 						Address: "tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2",
 						Type:    modelTypes.AccountTypeTz,
 					},
@@ -50,19 +46,15 @@ func TestMakeFa2Transfers(t *testing.T) {
 			name: "FA2: test 2",
 			tree: GetFA2Transfer(),
 			operation: operation.Operation{
-				Network:    modelTypes.Mainnet,
 				Parameters: []byte(`{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb"},[{"prim":"Pair","args":[{"string":"tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi"},{"prim":"Pair","args":[{"int":"12"},{"int":"1"}]}]}]]}]}`),
 			},
 			want: []*transfer.Transfer{
 				{
-					Network: modelTypes.Mainnet,
 					From: account.Account{
-						Network: modelTypes.Mainnet,
 						Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
 						Type:    modelTypes.AccountTypeTz,
 					},
 					To: account.Account{
-						Network: modelTypes.Mainnet,
 						Address: "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
 						Type:    modelTypes.AccountTypeTz,
 					},

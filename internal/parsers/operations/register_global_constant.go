@@ -21,13 +21,11 @@ func NewRegisterGlobalConstant(params *ParseParams) RegisterGlobalConstant {
 // Parse -
 func (p RegisterGlobalConstant) Parse(data noderpc.Operation, result *parsers.Result) error {
 	source := account.Account{
-		Network: p.network,
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
 	}
 
 	registerGlobalConstant := operation.Operation{
-		Network:      p.network,
 		Hash:         p.hash,
 		ProtocolID:   p.protocol.ID,
 		Level:        p.head.Level,

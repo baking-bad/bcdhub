@@ -48,7 +48,7 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation,
 		}
 
 		if tree[0].IsLambda() {
-			c, err := m.contracts.Get(operation.Network, operation.Destination.Address)
+			c, err := m.contracts.Get(operation.Destination.Address)
 			if err != nil {
 				return err
 			}

@@ -25,7 +25,6 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 	}
 	if len(result.Originated) > 0 {
 		tx.Destination = account.Account{
-			Network: tx.Network,
 			Address: result.Originated[0],
 			Type:    types.AccountTypeContract,
 		}

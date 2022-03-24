@@ -27,19 +27,15 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 			name: "FA 1.2",
 			tree: GetFA1_2Transfer(),
 			operation: operation.Operation{
-				Network:    modelTypes.Edo2net,
 				Parameters: []byte(`{"entrypoint":"transfer","value":{"prim":"Pair","args":[{"string":"tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm"},{"string":"tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV"},{"int":"100"}]}}`),
 			},
 			want: []*transfer.Transfer{
 				{
-					Network: modelTypes.Edo2net,
 					From: account.Account{
-						Network: modelTypes.Edo2net,
 						Address: "tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm",
 						Type:    modelTypes.AccountTypeTz,
 					},
 					To: account.Account{
-						Network: modelTypes.Edo2net,
 						Address: "tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV",
 						Type:    modelTypes.AccountTypeTz,
 					},
@@ -50,19 +46,15 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 			name: "test 2",
 			tree: GetFA1_2Transfer(),
 			operation: operation.Operation{
-				Network:    modelTypes.Mainnet,
 				Parameters: []byte("{\"entrypoint\":\"transfer\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"011871cfab6dafee00330602b4342b6500c874c93b00\"},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000c2473c617946ce7b9f6843f193401203851cb2ec\"},{\"int\":\"7874880\"}]}]}}"),
 			},
 			want: []*transfer.Transfer{
 				{
-					Network: modelTypes.Mainnet,
 					From: account.Account{
-						Network: modelTypes.Mainnet,
 						Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 						Type:    modelTypes.AccountTypeContract,
 					},
 					To: account.Account{
-						Network: modelTypes.Mainnet,
 						Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 						Type:    modelTypes.AccountTypeTz,
 					},
@@ -73,7 +65,6 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 			name: "test 3",
 			tree: GetFA1_2Transfer(),
 			operation: operation.Operation{
-				Network: modelTypes.Mainnet,
 				Parameters: []byte(`{
 					"entrypoint": "transfer",
 					"value": {
@@ -99,14 +90,11 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 			},
 			want: []*transfer.Transfer{
 				{
-					Network: modelTypes.Mainnet,
 					From: account.Account{
-						Network: modelTypes.Mainnet,
 						Address: "KT1ChJ6h8Crjdfds99DLpE5USynQTmCJtB3T",
 						Type:    modelTypes.AccountTypeContract,
 					},
 					To: account.Account{
-						Network: modelTypes.Mainnet,
 						Address: "tz1Mqnms73LqgBCYiM7e5k12VyWNQG8ytcGb",
 						Type:    modelTypes.AccountTypeTz,
 					},

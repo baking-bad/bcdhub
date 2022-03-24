@@ -17,9 +17,8 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(network types.Network, level int64) (block block.Block, err error) {
+func (storage *Storage) Get(level int64) (block block.Block, err error) {
 	err = storage.DB.Model(&block).
-		Where("block.network = ?", network).
 		Where("level = ?", level).
 		Limit(1).
 		Relation("Protocol").
@@ -28,17 +27,14 @@ func (storage *Storage) Get(network types.Network, level int64) (block block.Blo
 }
 
 // Last - returns current indexer state for network
-func (storage *Storage) Last(network types.Network) (block block.Block, err error) {
+func (storage *Storage) Last() (block block.Block, err error) {
 	err = storage.DB.Model(&block).
-		Where("block.network = ?", network).
 		Order("id desc").
 		Limit(1).
 		Relation("Protocol").
 		Select()
 	if storage.IsRecordNotFound(err) {
 		err = nil
-		block.Network = network
-		return
 	}
 	return
 }

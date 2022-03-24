@@ -17,7 +17,6 @@ type Transfer struct {
 	tableName struct{} `pg:"transfers"`
 
 	ID       int64
-	Network  types.Network `pg:",type:SMALLINT"`
 	Contract string
 
 	InitiatorID int64
@@ -59,7 +58,6 @@ func (t *Transfer) Save(tx pg.DBI) error {
 // LogFields -
 func (t *Transfer) LogFields() map[string]interface{} {
 	return map[string]interface{}{
-		"network":  t.Network.String(),
 		"contract": t.Contract,
 		"block":    t.Level,
 		"from":     t.From,
@@ -86,7 +84,6 @@ func (t *Transfer) GetToTokenBalanceID() string {
 // MakeTokenBalanceUpdate -
 func (t *Transfer) MakeTokenBalanceUpdate(from, rollback bool) *tokenbalance.TokenBalance {
 	tb := &tokenbalance.TokenBalance{
-		Network:  t.Network,
 		Contract: t.Contract,
 		TokenID:  t.TokenID,
 		Balance:  decimal.Zero,

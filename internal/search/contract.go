@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Contract -
@@ -82,7 +83,7 @@ func (c Contract) Parse(highlight map[string][]string, data []byte) (*Item, erro
 }
 
 // Prepare -
-func (c *Contract) Prepare(model models.Model) {
+func (c *Contract) Prepare(network types.Network, model models.Model) {
 	cont, ok := model.(*contract.Contract)
 	if !ok {
 		return
@@ -104,7 +105,7 @@ func (c *Contract) Prepare(model models.Model) {
 	c.Hash = script.Hash
 	c.Level = cont.Level
 	c.Manager = cont.Manager.Address
-	c.Network = cont.Network.String()
+	c.Network = network.String()
 	c.Tags = cont.Tags.ToArray()
 	c.Timestamp = cont.Timestamp.UTC()
 	c.LastAction = &cont.LastAction

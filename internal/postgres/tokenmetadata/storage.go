@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/go-pg/pg/v10"
 )
@@ -21,10 +20,10 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // GetOne -
-func (storage *Storage) GetOne(network types.Network, contract string, tokenID uint64) (*tokenmetadata.TokenMetadata, error) {
+func (storage *Storage) GetOne(contract string, tokenID uint64) (*tokenmetadata.TokenMetadata, error) {
 	var metadata tokenmetadata.TokenMetadata
 	query := storage.DB.Model(&tokenmetadata.TokenMetadata{})
-	core.Token(network, contract, tokenID)(query)
+	core.Token(contract, tokenID)(query)
 
 	if err := query.First(); err != nil {
 		if errors.Is(err, pg.ErrNoRows) {

@@ -31,7 +31,7 @@ func GetContractMigrations() gin.HandlerFunc {
 			return
 		}
 
-		contract, err := ctx.Contracts.Get(req.NetworkID(), req.Address)
+		contract, err := ctx.Contracts.Get(req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

@@ -45,24 +45,24 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 	logger.Info().Msg("Execution events...")
 	return ctx.StorageDB.DB.RunInTransaction(context.Background(), func(tx *pg.Tx) error {
 		for i := range tzips {
-			protocol, err := ctx.Protocols.Get(tzips[i].Network, "", -1)
+			protocol, err := ctx.Protocols.Get("", -1)
 			if err != nil {
 				return err
 			}
 			parser, err := transferParser.NewParser(ctx.RPC, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
-				transferParser.WithNetwork(tzips[i].Network),
+				transferParser.WithNetwork(ctx.Network),
 				transferParser.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 			)
 			if err != nil {
 				return err
 			}
 
-			script, err := ctx.Contracts.Script(tzips[i].Network, tzips[i].Address, protocol.SymLink)
+			script, err := ctx.Contracts.Script(tzips[i].Address, protocol.SymLink)
 			if err != nil {
 				return err
 			}
 
-			destination, err := ctx.Accounts.Get(tzips[i].Network, tzips[i].Address)
+			destination, err := ctx.Accounts.Get(tzips[i].Address)
 			if err != nil {
 				return err
 			}
@@ -75,7 +75,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 						continue
 					}
 					logger.Info().Msgf("%s...", tzips[i].Address)
-					m.contracts[tzips[i].Address] = tzips[i].Network
+					m.contracts[tzips[i].Address] = ctx.Network
 
 					var end bool
 					for !end {
@@ -118,7 +118,6 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 
 							for _, t := range op.Transfers {
 								if _, err := tx.Model((*transfer.Transfer)(nil)).
-									Where("network = ?", tzips[i].Network).
 									Where("token_id = ?", t.TokenID).
 									Where("operation_id = ?", op.ID).
 									Where("contract = ?", tzips[i].Address).

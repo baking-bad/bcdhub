@@ -30,7 +30,7 @@ func (initializer Initializer) Init(ctx context.Context) error {
 	}
 
 	if initializer.offchainBaseURL != "" && initializer.network == types.Mainnet {
-		count, err := initializer.db.Model((*dapp.DApp)(nil)).Count()
+		count, err := initializer.db.Model((*dapp.DApp)(nil)).Context(ctx).Count()
 		if err != nil {
 			return err
 		}
@@ -40,7 +40,7 @@ func (initializer Initializer) Init(ctx context.Context) error {
 			if err != nil {
 				return err
 			}
-			if _, err := initializer.db.Model(&dapps).Returning("id").Insert(); err != nil {
+			if _, err := initializer.db.Model(&dapps).Context(ctx).Returning("id").Insert(); err != nil {
 				return err
 			}
 
@@ -48,10 +48,10 @@ func (initializer Initializer) Init(ctx context.Context) error {
 			if err != nil {
 				return err
 			}
-			if _, err := initializer.db.Model(&metadata.Contracts).Returning("id").Insert(); err != nil {
+			if _, err := initializer.db.Model(&metadata.Contracts).Context(ctx).Returning("id").Insert(); err != nil {
 				return err
 			}
-			if _, err := initializer.db.Model(&metadata.Tokens).Returning("id").Insert(); err != nil {
+			if _, err := initializer.db.Model(&metadata.Tokens).Context(ctx).Returning("id").Insert(); err != nil {
 				return err
 			}
 		}

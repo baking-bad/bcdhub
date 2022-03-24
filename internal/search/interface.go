@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Searcher -
@@ -19,5 +20,5 @@ type Searcher interface {
 type Data interface {
 	GetID() string
 	GetIndex() string
-	Prepare(model models.Model)
+	Prepare(network types.Network, model models.Model)
 }

@@ -218,7 +218,6 @@ type contractUpdates struct {
 	//nolint
 	tableName struct{} `pg:"contracts"`
 
-	Network    types.Network
 	AccountID  int64
 	LastAction time.Time
 	TxCount    uint64
@@ -260,7 +259,6 @@ func (result *Result) updateContracts(tx pg.DBI) error {
 	contracts := make([]*contractUpdates, 0, len(count))
 	for accountID, txCount := range count {
 		contracts = append(contracts, &contractUpdates{
-			Network:    result.Operations[0].Network,
 			LastAction: result.Operations[0].Timestamp,
 			AccountID:  accountID,
 			TxCount:    txCount,
@@ -270,7 +268,6 @@ func (result *Result) updateContracts(tx pg.DBI) error {
 	_, err := tx.Model(&contracts).
 		Set("last_action = ?last_action, tx_count = contract_updates.tx_count + ?tx_count").
 		Where("contract_updates.account_id = ?account_id").
-		Where("contract_updates.network = ?network").
 		Update()
 	return err
 }

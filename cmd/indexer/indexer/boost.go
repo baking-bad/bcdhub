@@ -77,24 +77,26 @@ func (bi *BoostIndexer) init(ctx context.Context, db *core.Postgres) error {
 		return err
 	}
 
-	currentState, err := bi.Blocks.Last(bi.Network)
+	currentState, err := bi.Blocks.Last()
 	if err != nil {
 		return err
 	}
 	bi.state = currentState
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %d", currentState.Level)
 
-	currentProtocol, err := bi.Protocols.Get(bi.Network, "", currentState.Level)
+	currentProtocol, err := bi.Protocols.Get("", currentState.Level)
 	if err != nil {
 		if !bi.Storage.IsRecordNotFound(err) {
 			return err
 		}
 
-		header, err := bi.RPC.GetHeader(helpers.MaxInt64(1, currentState.Level))
+		header, err := bi.RPC.GetHeader(ctx, helpers.MaxInt64(1, currentState.Level))
 		if err != nil {
 			return err
 		}
-		currentProtocol, err = createProtocol(bi.RPC, bi.Network, header.Protocol, header.Level)
+
+		logger.Info().Str("network", bi.Network.String()).Msgf("Creating new protocol %s starting at %d", header.Protocol, header.Level)
+		currentProtocol, err = createProtocol(ctx, bi.RPC, header.Protocol, header.Level)
 		if err != nil {
 			return err
 		}
@@ -236,12 +238,12 @@ func (bi *BoostIndexer) handleBlock(ctx context.Context, block *Block) error {
 			if block.Header.Protocol != bi.currentProtocol.Hash || (bi.Network == types.Mainnet && block.Header.Level == 1) {
 				logger.Info().Str("network", bi.Network.String()).Msgf("New protocol detected: %s -> %s", bi.currentProtocol.Hash, block.Header.Protocol)
 
-				if err := bi.migrate(block.Header, tx); err != nil {
+				if err := bi.migrate(ctx, block.Header, tx); err != nil {
 					return err
 				}
 			}
 
-			if err := bi.implicitMigration(block.Header, bi.currentProtocol, tx); err != nil {
+			if err := bi.implicitMigration(ctx, block.Header, bi.currentProtocol, tx); err != nil {
 				return err
 			}
 
@@ -268,19 +270,19 @@ func (bi *BoostIndexer) handleBlock(ctx context.Context, block *Block) error {
 func (bi *BoostIndexer) Rollback(ctx context.Context) error {
 	logger.Warning().Str("network", bi.Network.String()).Msgf("Rollback from %7d", bi.state.Level)
 
-	lastLevel, err := bi.getLastRollbackBlock()
+	lastLevel, err := bi.getLastRollbackBlock(ctx)
 	if err != nil {
 		return err
 	}
 
 	manager := rollback.NewManager(bi.RPC, bi.Searcher, bi.Storage, bi.Blocks, bi.BigMapDiffs, bi.Transfers)
-	if err := manager.Rollback(ctx, bi.StorageDB.DB, bi.state, lastLevel); err != nil {
+	if err := manager.Rollback(ctx, bi.StorageDB.DB, bi.Network, bi.state, lastLevel); err != nil {
 		return err
 	}
 
 	helpers.CatchErrorSentry(errors.Errorf("[%s] Rollback from %7d to %7d", bi.Network, bi.state.Level, lastLevel))
 
-	newState, err := bi.Blocks.Last(bi.Network)
+	newState, err := bi.Blocks.Last()
 	if err != nil {
 		return err
 	}
@@ -290,17 +292,17 @@ func (bi *BoostIndexer) Rollback(ctx context.Context) error {
 	return nil
 }
 
-func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
+func (bi *BoostIndexer) getLastRollbackBlock(ctx context.Context) (int64, error) {
 	var lastLevel int64
 	level := bi.state.Level
 
 	for end := false; !end; level-- {
-		headAtLevel, err := bi.RPC.GetHeader(level)
+		headAtLevel, err := bi.RPC.GetHeader(ctx, level)
 		if err != nil {
 			return 0, err
 		}
 
-		block, err := bi.Blocks.Get(bi.Network, level)
+		block, err := bi.Blocks.Get(level)
 		if err != nil {
 			return 0, err
 		}
@@ -315,7 +317,7 @@ func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
 }
 
 func (bi *BoostIndexer) process(ctx context.Context) error {
-	head, err := bi.RPC.GetHead()
+	head, err := bi.RPC.GetHead(ctx)
 	if err != nil {
 		return err
 	}
@@ -347,7 +349,6 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 }
 func (bi *BoostIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
 	newBlock := block.Block{
-		Network:     bi.Network,
 		Hash:        head.Hash,
 		Predecessor: head.Predecessor,
 		ProtocolID:  bi.currentProtocol.ID,
@@ -372,7 +373,6 @@ func (bi *BoostIndexer) getDataFromBlock(block *Block) (*parsers.Result, error) 
 		bi.Context,
 		operations.WithProtocol(&bi.currentProtocol),
 		operations.WithHead(block.Header),
-		operations.WithNetwork(bi.Network),
 	)
 	if err != nil {
 		return nil, err
@@ -390,7 +390,7 @@ func (bi *BoostIndexer) getDataFromBlock(block *Block) (*parsers.Result, error) 
 	return result, nil
 }
 
-func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
+func (bi *BoostIndexer) migrate(ctx context.Context, head noderpc.Header, tx pg.DBI) error {
 	if bi.currentProtocol.EndLevel == 0 && head.Level > 1 {
 		logger.Info().Str("network", bi.Network.String()).Msgf("Finalizing the previous protocol: %s", bi.currentProtocol.Alias)
 		bi.currentProtocol.EndLevel = head.Level - 1
@@ -399,10 +399,10 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
 		}
 	}
 
-	newProtocol, err := bi.Protocols.Get(bi.Network, head.Protocol, head.Level)
+	newProtocol, err := bi.Protocols.Get(head.Protocol, head.Level)
 	if err != nil {
-		logger.Warning().Str("network", bi.Network.String()).Msgf("%s", err)
-		newProtocol, err = createProtocol(bi.RPC, bi.Network, head.Protocol, head.Level)
+		logger.Info().Str("network", bi.Network.String()).Msgf("Creating new protocol %s starting at %d", head.Protocol, head.Level)
+		newProtocol, err = createProtocol(ctx, bi.RPC, head.Protocol, head.Level)
 		if err != nil {
 			return err
 		}
@@ -412,7 +412,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
 	}
 
 	if bi.Network == types.Mainnet && head.Level == 1 {
-		if err := bi.vestingMigration(head, tx); err != nil {
+		if err := bi.vestingMigration(ctx, head, tx); err != nil {
 			return err
 		}
 	} else {
@@ -420,7 +420,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
 			return errors.Errorf("[%s] Protocol should be initialized", bi.Network)
 		}
 		if newProtocol.SymLink != bi.currentProtocol.SymLink {
-			if err := bi.standartMigration(newProtocol, head, tx); err != nil {
+			if err := bi.standartMigration(ctx, newProtocol, head, tx); err != nil {
 				return err
 			}
 		} else {
@@ -437,13 +437,13 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
 	return nil
 }
 
-func (bi *BoostIndexer) implicitMigration(head noderpc.Header, protocol protocol.Protocol, tx pg.DBI) error {
-	metadata, err := bi.RPC.GetBlockMetadata(head.Level)
+func (bi *BoostIndexer) implicitMigration(ctx context.Context, head noderpc.Header, protocol protocol.Protocol, tx pg.DBI) error {
+	metadata, err := bi.RPC.GetBlockMetadata(ctx, head.Level)
 	if err != nil {
 		return err
 	}
-	implicitParser := migrations.NewImplicitParser(bi.Context, bi.Network, bi.RPC, protocol)
-	implicitResult, err := implicitParser.Parse(metadata, head)
+	implicitParser := migrations.NewImplicitParser(bi.Context, bi.RPC, protocol)
+	implicitResult, err := implicitParser.Parse(ctx, metadata, head)
 	if err != nil {
 		return err
 	}
@@ -453,12 +453,11 @@ func (bi *BoostIndexer) implicitMigration(head noderpc.Header, protocol protocol
 	return nil
 }
 
-func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head noderpc.Header, tx pg.DBI) error {
+func (bi *BoostIndexer) standartMigration(ctx context.Context, newProtocol protocol.Protocol, head noderpc.Header, tx pg.DBI) error {
 	logger.Info().Str("network", bi.Network.String()).Msg("Try to find migrations...")
 	var contracts []contract.Contract
 	if err := bi.StorageDB.DB.Model((*contract.Contract)(nil)).
 		Relation("Account").
-		Where("contract.network = ?", bi.Network).
 		Where("tags & 4 = 0"). // except delegator contracts
 		Select(&contracts); err != nil {
 		return err
@@ -469,7 +468,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 
 	for i := range contracts {
 		logger.Info().Str("network", bi.Network.String()).Msgf("Migrate %s...", contracts[i].Account.Address)
-		script, err := bi.RPC.GetScriptJSON(contracts[i].Account.Address, newProtocol.StartLevel)
+		script, err := bi.RPC.GetScriptJSON(ctx, contracts[i].Account.Address, newProtocol.StartLevel)
 		if err != nil {
 			return err
 		}
@@ -488,14 +487,13 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 
 	_, err := bi.StorageDB.DB.Model((*contract.Contract)(nil)).
 		Set("babylon_id = alpha_id").
-		Where("network = ?", bi.Network).
 		Where("tags & 4 > 0"). // only delegator contracts
 		Update()
 	return err
 }
 
-func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx pg.DBI) error {
-	addresses, err := bi.RPC.GetContractsByBlock(head.Level)
+func (bi *BoostIndexer) vestingMigration(ctx context.Context, head noderpc.Header, tx pg.DBI) error {
+	addresses, err := bi.RPC.GetContractsByBlock(ctx, head.Level)
 	if err != nil {
 		return err
 	}
@@ -509,12 +507,12 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx pg.DBI) error {
 			continue
 		}
 
-		data, err := bi.RPC.GetContractData(address, head.Level)
+		data, err := bi.RPC.GetContractData(ctx, address, head.Level)
 		if err != nil {
 			return err
 		}
 
-		if err := p.Parse(data, head, bi.Network, address, bi.currentProtocol, result); err != nil {
+		if err := p.Parse(data, head, address, bi.currentProtocol, result); err != nil {
 			return err
 		}
 	}

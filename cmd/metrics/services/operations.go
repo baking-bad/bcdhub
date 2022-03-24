@@ -25,7 +25,7 @@ func (oh *OperationsHandler) Handle(ctx context.Context, items []models.Model, w
 		return nil
 	}
 
-	logger.Info().Msgf("%3d operations are processed", len(items))
+	logger.Info().Str("network", oh.Network.String()).Msgf("%3d operations are processed", len(items))
 
 	return saveSearchModels(ctx, oh.Context, items)
 }

@@ -34,8 +34,6 @@ func RunOperation() gin.HandlerFunc {
 			return
 		}
 
-		network := types.NewNetwork(req.Network)
-
 		state, err := ctx.Cache.CurrentBlock()
 		if handleError(c, ctx.Storage, err, 0) {
 			return
@@ -46,7 +44,7 @@ func RunOperation() gin.HandlerFunc {
 			return
 		}
 
-		counter, err := ctx.RPC.GetCounter(reqRunOp.Source)
+		counter, err := ctx.RPC.GetCounter(c, reqRunOp.Source)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -57,6 +55,7 @@ func RunOperation() gin.HandlerFunc {
 		}
 
 		response, err := ctx.RPC.RunOperationLight(
+			c,
 			state.ChainID,
 			state.Hash,
 			reqRunOp.Source,
@@ -85,7 +84,6 @@ func RunOperation() gin.HandlerFunc {
 			ctx,
 			operations.WithProtocol(&state.Protocol),
 			operations.WithHead(header),
-			operations.WithNetwork(network),
 		)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
@@ -157,7 +155,7 @@ func RunCode() gin.HandlerFunc {
 			return
 		}
 
-		storage, err := ctx.RPC.GetScriptStorageRaw(req.Address, 0)
+		storage, err := ctx.RPC.GetScriptStorageRaw(c, req.Address, 0)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -177,7 +175,7 @@ func RunCode() gin.HandlerFunc {
 			Entrypoint:  input.Entrypoint,
 		}
 
-		response, err := ctx.RPC.RunCode(scriptBytes, storage, input.Value, state.ChainID, reqRunCode.Source, reqRunCode.Sender, input.Entrypoint, state.Protocol.Hash, reqRunCode.Amount, reqRunCode.GasLimit)
+		response, err := ctx.RPC.RunCode(c, scriptBytes, storage, input.Value, state.ChainID, reqRunCode.Source, reqRunCode.Sender, input.Entrypoint, state.Protocol.Hash, reqRunCode.Amount, reqRunCode.GasLimit)
 		if err != nil {
 			var e noderpc.InvalidNodeResponse
 			if errors.As(err, &e) {
@@ -206,10 +204,10 @@ func RunCode() gin.HandlerFunc {
 		if err := setParatemetersWithType(input, script, &main); handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		if err := setSimulateStorageDiff(ctx, response, state.Protocol, script, &main); handleError(c, ctx.Storage, err, 0) {
+		if err := setSimulateStorageDiff(c, ctx, response, state.Protocol, script, &main); handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		operations, err := parseAppliedRunCode(ctx, response, script, &main, state.Protocol)
+		operations, err := parseAppliedRunCode(c, ctx, response, script, &main, state.Protocol)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -218,7 +216,7 @@ func RunCode() gin.HandlerFunc {
 	}
 }
 
-func parseAppliedRunCode(ctx *config.Context, response noderpc.RunCodeResponse, script *ast.Script, main *Operation, proto protocol.Protocol) ([]Operation, error) {
+func parseAppliedRunCode(c *gin.Context, ctx *config.Context, response noderpc.RunCodeResponse, script *ast.Script, main *Operation, proto protocol.Protocol) ([]Operation, error) {
 	operations := []Operation{*main}
 
 	for i := range response.Operations {
@@ -248,7 +246,7 @@ func parseAppliedRunCode(ctx *config.Context, response noderpc.RunCodeResponse, 
 		if err := setParameters(response.Operations[i].Parameters, s, &op); err != nil {
 			return nil, err
 		}
-		if err := setSimulateStorageDiff(ctx, response, proto, script, &op); err != nil {
+		if err := setSimulateStorageDiff(c, ctx, response, proto, script, &op); err != nil {
 			return nil, err
 		}
 		operations = append(operations, op)
@@ -256,7 +254,7 @@ func parseAppliedRunCode(ctx *config.Context, response noderpc.RunCodeResponse, 
 	return operations, nil
 }
 
-func parseBigMapDiffs(ctx *config.Context, response noderpc.RunCodeResponse, script *ast.Script, operation *Operation, proto protocol.Protocol) ([]bigmapdiff.BigMapDiff, error) {
+func parseBigMapDiffs(c *gin.Context, ctx *config.Context, response noderpc.RunCodeResponse, script *ast.Script, operation *Operation, proto protocol.Protocol) ([]bigmapdiff.BigMapDiff, error) {
 	model := operation.ToModel()
 	model.AST = script
 
@@ -288,9 +286,9 @@ func parseBigMapDiffs(ctx *config.Context, response noderpc.RunCodeResponse, scr
 	var result *parsers.Result
 	switch operation.Kind {
 	case types.OperationKindTransaction.String():
-		result, err = parser.ParseTransaction(nodeOperation, &model)
+		result, err = parser.ParseTransaction(c, nodeOperation, &model)
 	case types.OperationKindOrigination.String(), types.OperationKindOriginationNew.String():
-		result, err = parser.ParseOrigination(nodeOperation, &model)
+		result, err = parser.ParseOrigination(c, nodeOperation, &model)
 	}
 	if err != nil {
 		return nil, err
@@ -305,11 +303,11 @@ func parseBigMapDiffs(ctx *config.Context, response noderpc.RunCodeResponse, scr
 	return bmd, nil
 }
 
-func setSimulateStorageDiff(ctx *config.Context, response noderpc.RunCodeResponse, proto protocol.Protocol, script *ast.Script, main *Operation) error {
+func setSimulateStorageDiff(c *gin.Context, ctx *config.Context, response noderpc.RunCodeResponse, proto protocol.Protocol, script *ast.Script, main *Operation) error {
 	if len(response.Storage) == 0 || !bcd.IsContract(main.Destination) || main.Status != consts.Applied {
 		return nil
 	}
-	bmd, err := parseBigMapDiffs(ctx, response, script, main, proto)
+	bmd, err := parseBigMapDiffs(c, ctx, response, script, main, proto)
 	if err != nil {
 		return err
 	}
@@ -318,7 +316,7 @@ func setSimulateStorageDiff(ctx *config.Context, response noderpc.RunCodeRespons
 		return err
 	}
 
-	destination, err := ctx.Accounts.Get(types.NewNetwork(main.Network), main.Destination)
+	destination, err := ctx.Accounts.Get(main.Destination)
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Metadata -
@@ -65,7 +66,7 @@ func (m Metadata) Parse(highlight map[string][]string, data []byte) (*Item, erro
 }
 
 // Prepare -
-func (m *Metadata) Prepare(model models.Model) {
+func (m *Metadata) Prepare(network types.Network, model models.Model) {
 	t, ok := model.(*cm.ContractMetadata)
 	if !ok {
 		return
@@ -77,7 +78,7 @@ func (m *Metadata) Prepare(model models.Model) {
 	m.Homepage = t.Homepage
 	m.Level = t.Level
 	m.Name = t.Name
-	m.Network = t.Network.String()
+	m.Network = network.String()
 	m.Timestamp = t.Timestamp.UTC()
 
 }

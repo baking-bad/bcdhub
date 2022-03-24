@@ -23,19 +23,19 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		panic(err)
 	}
 
-	state, err := ctx.Blocks.Last(network)
+	state, err := ctx.Blocks.Last()
 	if err != nil {
 		panic(err)
 	}
 
-	logger.Warning().Msgf("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", state.Network.String(), state.Level, x.Level)
+	logger.Warning().Msgf("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", network.String(), state.Level, x.Level)
 	if !yes() {
 		logger.Info().Msg("Cancelled")
 		return nil
 	}
 
 	manager := rollback.NewManager(ctx.RPC, ctx.Searcher, ctx.Storage, ctx.Blocks, ctx.BigMapDiffs, ctx.Transfers)
-	if err = manager.Rollback(context.Background(), ctx.StorageDB.DB, state, x.Level); err != nil {
+	if err = manager.Rollback(context.Background(), ctx.StorageDB.DB, network, state, x.Level); err != nil {
 		return err
 	}
 	logger.Info().Msg("Done")

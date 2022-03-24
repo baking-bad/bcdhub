@@ -32,7 +32,6 @@ func (p *Parser) Parse(operation *operation.Operation, symLink string, result *p
 	}
 
 	contract := contract.Contract{
-		Network:    operation.Network,
 		Level:      operation.Level,
 		Timestamp:  operation.Timestamp,
 		Manager:    operation.Source,
@@ -71,7 +70,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, 
 		}
 
 		if len(constants) > 0 {
-			globalConstants, err := p.ctx.GlobalConstants.All(c.Network, constants...)
+			globalConstants, err := p.ctx.GlobalConstants.All(constants...)
 			if err != nil {
 				return err
 			}

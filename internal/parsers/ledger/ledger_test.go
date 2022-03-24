@@ -32,9 +32,8 @@ func TestLedger_Parse(t *testing.T) {
 
 	accountsRepo.
 		EXPECT().
-		Get(gomock.Eq(types.Mainnet), gomock.Eq("tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo")).
+		Get(gomock.Eq("tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo")).
 		Return(account.Account{
-			Network: types.Mainnet,
 			Address: "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 			Type:    types.AccountTypeTz,
 		}, nil).
@@ -43,15 +42,12 @@ func TestLedger_Parse(t *testing.T) {
 	tbRepo.
 		EXPECT().
 		Get(
-			gomock.Eq(types.Mainnet),
 			gomock.Eq("KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E"),
 			gomock.Eq(int64(0)),
 			gomock.Eq(uint64(0))).
 		Return(tbModel.TokenBalance{
 			Contract: "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-			Network:  types.Mainnet,
 			Account: account.Account{
-				Network: types.Mainnet,
 				Address: "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 				Type:    types.AccountTypeTz,
 			},
@@ -76,7 +72,6 @@ func TestLedger_Parse(t *testing.T) {
 					Str:   consts.TransferEntrypoint,
 					Valid: true,
 				},
-				Network:         types.Mainnet,
 				DeffatedStorage: []byte(`{"int":257}`),
 				BigMapDiffs: []*bigmapdiff.BigMapDiff{
 					{
@@ -88,7 +83,6 @@ func TestLedger_Parse(t *testing.T) {
 						OperationID: 1,
 						Level:       1269694,
 						Contract:    "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
-						Network:     types.Mainnet,
 						Timestamp:   time.Date(2020, 12, 22, 19, 19, 49, 0, time.UTC),
 						ProtocolID:  1,
 					},
@@ -103,7 +97,6 @@ func TestLedger_Parse(t *testing.T) {
 					Str:   consts.TransferEntrypoint,
 					Valid: true,
 				},
-				Network:         types.Mainnet,
 				DeffatedStorage: []byte(`{"int":257}`),
 				BigMapDiffs: []*bigmapdiff.BigMapDiff{
 					{
@@ -115,7 +108,6 @@ func TestLedger_Parse(t *testing.T) {
 						OperationID: 1,
 						Level:       1269694,
 						Contract:    "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
-						Network:     types.Mainnet,
 						Timestamp:   time.Date(2020, 12, 22, 19, 19, 49, 0, time.UTC),
 						ProtocolID:  1,
 					},
@@ -130,10 +122,8 @@ func TestLedger_Parse(t *testing.T) {
 					Str:   "burn",
 					Valid: true,
 				},
-				Kind:    types.OperationKindTransaction,
-				Network: types.Mainnet,
+				Kind: types.OperationKindTransaction,
 				Destination: account.Account{
-					Network: types.Mainnet,
 					Address: "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
 					Type:    types.AccountTypeContract,
 				},
@@ -150,7 +140,6 @@ func TestLedger_Parse(t *testing.T) {
 						OperationID: 1,
 						Level:       1455291,
 						Contract:    "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
-						Network:     types.Mainnet,
 						Timestamp:   time.Date(2021, 05, 03, 10, 03, 20, 0, time.UTC),
 						ProtocolID:  2,
 					},
@@ -160,12 +149,10 @@ func TestLedger_Parse(t *testing.T) {
 				TokenBalances: []*tbModel.TokenBalance{
 					{
 						Account: account.Account{
-							Network: types.Mainnet,
 							Address: "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 							Type:    types.AccountTypeTz,
 						},
 						Contract: "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
-						Network:  types.Mainnet,
 						Balance:  decimal.RequireFromString("0"),
 						TokenID:  0,
 						IsLedger: true,
@@ -175,12 +162,10 @@ func TestLedger_Parse(t *testing.T) {
 			wantTransfers: []*transfer.Transfer{
 				{
 					From: account.Account{
-						Network: types.Mainnet,
 						Address: "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 						Type:    types.AccountTypeTz,
 					},
 					Contract:   "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
-					Network:    types.Mainnet,
 					Amount:     decimal.RequireFromString("168000"),
 					TokenID:    0,
 					Entrypoint: "burn",

@@ -66,5 +66,5 @@ func (m *FixEntrypointSearch) saveSearchModels(internalContext *config.Context, 
 			m.lastID = operations[i].ID
 		}
 	}
-	return internalContext.Searcher.Save(context.Background(), search.Prepare(items))
+	return internalContext.Searcher.Save(context.Background(), search.Prepare(internalContext.Network, items))
 }

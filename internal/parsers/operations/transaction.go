@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -34,13 +36,11 @@ func NewTransaction(params *ParseParams) Transaction {
 // Parse -
 func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error {
 	source := account.Account{
-		Network: p.network,
 		Address: data.Source,
 		Type:    modelsTypes.NewAccountType(data.Source),
 	}
 
 	tx := operation.Operation{
-		Network:      p.network,
 		Hash:         p.hash,
 		ProtocolID:   p.protocol.ID,
 		Level:        p.head.Level,
@@ -54,12 +54,10 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 		StorageLimit: data.StorageLimit,
 		Amount:       *data.Amount,
 		Destination: account.Account{
-			Network: p.network,
 			Address: *data.Destination,
 			Type:    modelsTypes.NewAccountType(*data.Destination),
 		},
 		Delegate: account.Account{
-			Network: p.network,
 			Address: data.Delegate,
 			Type:    modelsTypes.NewAccountType(data.Delegate),
 		},
@@ -174,7 +172,7 @@ func (p Transaction) fillInternal(tx *operation.Operation) {
 }
 
 func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operation, result *parsers.Result) error {
-	storageResult, err := p.storageParser.Parse(item, tx)
+	storageResult, err := p.storageParser.Parse(context.Background(), item, tx)
 	if err != nil {
 		return err
 	}

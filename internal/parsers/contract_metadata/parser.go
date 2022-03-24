@@ -81,7 +81,7 @@ func (p *Parser) Parse(ctx context.Context, args ParseArgs) (*cm.ContractMetadat
 
 	data := new(bufTzip)
 	s := cmStorage.NewFull(p.bigMapRepo, p.contractRepo, p.blocksRepo, p.storage, p.rpc, p.cfg.IPFSGateways...)
-	if err := s.Get(ctx, args.BigMapDiff.Network, args.BigMapDiff.Contract, decoded, args.BigMapDiff.Ptr, data); err != nil {
+	if err := s.Get(ctx, args.BigMapDiff.Contract, decoded, args.BigMapDiff.Ptr, data); err != nil {
 		switch {
 		case errors.Is(err, cmStorage.ErrHTTPRequest) || errors.Is(err, cmStorage.ErrJSONDecoding) || errors.Is(err, cmStorage.ErrUnknownStorageType):
 			logger.Warning().Fields(args.BigMapDiff.LogFields()).Str("kind", "contract_metadata").Err(err).Msg("tzip.Parser.Parse")
@@ -102,7 +102,6 @@ func (p *Parser) Parse(ctx context.Context, args ParseArgs) (*cm.ContractMetadat
 	}
 
 	data.Address = args.BigMapDiff.Contract
-	data.Network = args.BigMapDiff.Network
 	data.Level = args.BigMapDiff.Level
 	data.Timestamp = args.BigMapDiff.Timestamp
 

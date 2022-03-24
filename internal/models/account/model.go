@@ -11,7 +11,6 @@ type Account struct {
 	tableName struct{} `pg:"accounts"`
 
 	ID      int64
-	Network types.Network     `pg:",type:SMALLINT,unique:account"`
 	Type    types.AccountType `pg:",type:SMALLINT"`
 	Address string            `pg:",type:varchar(36),unique:account"`
 	Alias   string
@@ -30,7 +29,6 @@ func (a *Account) GetIndex() string {
 // Save -
 func (a *Account) Save(tx pg.DBI) error {
 	_, err := tx.Model(a).
-		Where("network = ?", a.Network).
 		Where("address = ?", a.Address).
 		Returning("id").
 		SelectOrInsert(a)
@@ -39,5 +37,5 @@ func (a *Account) Save(tx pg.DBI) error {
 
 // IsEmpty -
 func (a *Account) IsEmpty() bool {
-	return a.Address == "" || a.Network == types.Empty || a.Type == types.AccountTypeUnknown
+	return a.Address == "" || a.Type == types.AccountTypeUnknown
 }

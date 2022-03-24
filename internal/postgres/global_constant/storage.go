@@ -3,7 +3,6 @@ package global_constant
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/global_constant"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/go-pg/pg/v10"
 )
@@ -19,22 +18,19 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(network types.Network, address string) (response global_constant.GlobalConstant, err error) {
+func (storage *Storage) Get(address string) (response global_constant.GlobalConstant, err error) {
 	query := storage.DB.Model(&response)
-	core.NetworkAndAddress(network, address)(query)
+	core.Address(address)(query)
 	err = query.First()
 	return
 }
 
 // All -
-func (storage *Storage) All(network types.Network, addresses ...string) (response []global_constant.GlobalConstant, err error) {
+func (storage *Storage) All(addresses ...string) (response []global_constant.GlobalConstant, err error) {
 	if len(addresses) == 0 {
 		return
 	}
 
-	query := storage.DB.Model().Table(models.DocGlobalConstants).Where("address IN (?)", pg.In(addresses))
-	core.Network(network)(query)
-
-	err = query.Select(&response)
+	err = storage.DB.Model().Table(models.DocGlobalConstants).Where("address IN (?)", pg.In(addresses)).Select(&response)
 	return
 }

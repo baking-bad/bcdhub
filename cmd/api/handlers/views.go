@@ -42,7 +42,7 @@ func GetViewsSchema() gin.HandlerFunc {
 			return
 		}
 
-		tzip, err := ctx.ContractMetadata.Get(req.NetworkID(), req.Address)
+		tzip, err := ctx.ContractMetadata.Get(req.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				c.SecureJSON(http.StatusOK, []ViewSchema{})
@@ -134,7 +134,7 @@ func ExecuteView() gin.HandlerFunc {
 			return
 		}
 
-		tzipValue, err := ctx.ContractMetadata.Get(req.NetworkID(), req.Address)
+		tzipValue, err := ctx.ContractMetadata.Get(req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -175,8 +175,7 @@ func ExecuteView() gin.HandlerFunc {
 		}
 
 		view := views.NewMichelsonStorageView(impl, execView.Name)
-		response, err := views.ExecuteWithoutParsing(ctx.RPC, view, views.Context{
-			Network:                  req.NetworkID(),
+		response, err := views.ExecuteWithoutParsing(c, ctx.RPC, view, views.Args{
 			Contract:                 req.Address,
 			Source:                   execView.Source,
 			Initiator:                execView.Sender,

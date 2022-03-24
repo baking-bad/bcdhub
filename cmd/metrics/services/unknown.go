@@ -42,7 +42,7 @@ func (u *Unknown) refresh(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	logger.Info().Msgf("Found %d unknown token metadata", len(metadata))
+	logger.Info().Str("network", u.ctx.Network.String()).Msgf("Found %d unknown token metadata", len(metadata))
 
 	ipfs := cmStorage.NewIPFSStorage(u.ctx.Config.IPFSGateways, cmStorage.WithTimeoutIPFS(u.timeout))
 

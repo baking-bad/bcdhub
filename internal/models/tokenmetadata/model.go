@@ -14,7 +14,6 @@ type TokenMetadata struct {
 	tableName struct{} `pg:"token_metadata"`
 
 	ID                 int64                  `pg:",notnull" json:"-"`
-	Network            types.Network          `pg:",type:SMALLINT,unique:token_metadata,use_zero" json:"network"`
 	Contract           string                 `pg:",unique:token_metadata" json:"contract"`
 	TokenID            uint64                 `pg:",type:numeric(50,0),unique:token_metadata,use_zero" json:"token_id"`
 	Level              int64                  `pg:",use_zero" json:"level"`
@@ -72,7 +71,7 @@ func (t *TokenMetadata) GetIndex() string {
 // Save -
 func (t *TokenMetadata) Save(tx pg.DBI) error {
 	_, err := tx.Model(t).
-		OnConflict("(network, contract, token_id) DO UPDATE").
+		OnConflict("(contract, token_id) DO UPDATE").
 		Set(`
 			symbol               = excluded.symbol,
 			name                 = excluded.name,
@@ -97,7 +96,6 @@ func (t *TokenMetadata) Save(tx pg.DBI) error {
 // LogFields -
 func (t *TokenMetadata) LogFields() map[string]interface{} {
 	return map[string]interface{}{
-		"network":  t.Network.String(),
 		"contract": t.Contract,
 		"token_id": t.TokenID,
 	}

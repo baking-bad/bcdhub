@@ -40,7 +40,6 @@ func GetContractTransfers() gin.HandlerFunc {
 		}
 
 		transfers, err := ctx.Domains.Transfers(transfer.GetContext{
-			Network:   contractRequest.NetworkID(),
 			Contracts: []string{contractRequest.Address},
 			Size:      req.Size,
 			Offset:    req.Offset,
@@ -63,7 +62,6 @@ func transfersPostprocessing(ctx *config.Context, transfers domains.TransfersRes
 
 	for i := range transfers.Transfers {
 		token := TokenMetadata{
-			Network:  transfers.Transfers[i].Network.String(),
 			Contract: transfers.Transfers[i].Contract,
 			TokenID:  transfers.Transfers[i].TokenID,
 			Symbol:   transfers.Transfers[i].Symbol,
