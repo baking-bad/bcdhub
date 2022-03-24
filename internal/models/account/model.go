@@ -12,7 +12,7 @@ type Account struct {
 
 	ID      int64
 	Type    types.AccountType `pg:",type:SMALLINT"`
-	Address string            `pg:",type:varchar(36),unique:account"`
+	Address string            `pg:",unique:account"`
 	Alias   string
 }
 

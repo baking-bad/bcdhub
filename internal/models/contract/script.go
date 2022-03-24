@@ -15,7 +15,7 @@ type Script struct {
 	tableName struct{} `pg:"scripts"`
 
 	ID          int64
-	Hash        string         `pg:",unique,type:varchar(64)"`
+	Hash        string         `pg:",unique"`
 	Code        []byte         `pg:",type:bytea"`
 	Parameter   []byte         `pg:",type:bytea"`
 	Storage     []byte         `pg:",type:bytea"`

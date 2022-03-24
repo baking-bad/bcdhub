@@ -1501,79 +1501,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/contract/{network}/{address}/similar": {
-            "get": {
-                "description": "Get similar contracts",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contract"
-                ],
-                "summary": "Get similar contracts",
-                "operationId": "get-contract-similar",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "type": "string",
-                        "description": "KT address",
-                        "name": "address",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Offset",
-                        "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 10,
-                        "type": "integer",
-                        "description": "Requested count",
-                        "name": "size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.SimilarContractsResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/v1/contract/{network}/{address}/storage": {
             "get": {
                 "description": "Get contract storage",
@@ -2297,53 +2224,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/diff": {
-            "post": {
-                "description": "Get diff between two contracts",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contract"
-                ],
-                "summary": "Get diff between two contracts",
-                "operationId": "get-diff",
-                "parameters": [
-                    {
-                        "description": "Request body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.CodeDiffRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.CodeDiffResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/v1/global_constants/{network}/{address}": {
             "get": {
                 "description": "Get global constant",
@@ -2473,7 +2353,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/operation/{id}/diff": {
+        "/v1/operation/{network}/{id}/diff": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -2487,6 +2367,13 @@ const docTemplate = `{
                 "summary": "Get operation storage diff",
                 "operationId": "get-operation-diff",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Internal BCD operation ID",
@@ -2517,7 +2404,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/operation/{id}/error_location": {
+        "/v1/operation/{network}/{id}/error_location": {
             "get": {
                 "description": "Get code line where operation failed",
                 "consumes": [
@@ -2532,6 +2419,13 @@ const docTemplate = `{
                 "summary": "Get code line where operation failed",
                 "operationId": "get-operation-error-location",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Internal BCD operation ID",
@@ -3815,49 +3709,6 @@ const docTemplate = `{
                 }
             }
         },
-        "formatter.DiffResult": {
-            "type": "object",
-            "properties": {
-                "added": {
-                    "type": "integer"
-                },
-                "changed": {
-                    "type": "integer"
-                },
-                "left": {
-                    "type": "array",
-                    "items": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/formatter.Item"
-                        }
-                    }
-                },
-                "removed": {
-                    "type": "integer"
-                },
-                "right": {
-                    "type": "array",
-                    "items": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/formatter.Item"
-                        }
-                    }
-                }
-            }
-        },
-        "formatter.Item": {
-            "type": "object",
-            "properties": {
-                "chunk": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "integer"
-                }
-            }
-        },
         "gin.H": {
             "type": "object",
             "additionalProperties": true
@@ -4043,56 +3894,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CodeDiffLeg": {
-            "type": "object",
-            "required": [
-                "address",
-                "network"
-            ],
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "network": {
-                    "type": "integer"
-                },
-                "protocol": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.CodeDiffRequest": {
-            "type": "object",
-            "required": [
-                "left",
-                "right"
-            ],
-            "properties": {
-                "left": {
-                    "$ref": "#/definitions/handlers.CodeDiffLeg"
-                },
-                "right": {
-                    "$ref": "#/definitions/handlers.CodeDiffLeg"
-                }
-            }
-        },
-        "handlers.CodeDiffResponse": {
-            "type": "object",
-            "properties": {
-                "diff": {
-                    "$ref": "#/definitions/formatter.DiffResult"
-                },
-                "left": {
-                    "$ref": "#/definitions/handlers.CodeDiffLeg"
-                },
-                "right": {
-                    "$ref": "#/definitions/handlers.CodeDiffLeg"
-                }
-            }
-        },
         "handlers.ContractWithStats": {
             "type": "object",
             "properties": {
@@ -4167,14 +3968,7 @@ const docTemplate = `{
                 "network": {
                     "type": "string"
                 },
-                "project_id": {
-                    "type": "string",
-                    "x-nullable": true
-                },
                 "same_count": {
-                    "type": "integer"
-                },
-                "similar_count": {
                     "type": "integer"
                 },
                 "slug": {
@@ -4577,15 +4371,12 @@ const docTemplate = `{
                 },
                 "end_level": {
                     "type": "integer",
+                    "x-nullable": true,
                     "example": 0
                 },
                 "hash": {
                     "type": "string",
                     "example": "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"
-                },
-                "network": {
-                    "type": "string",
-                    "example": "mainnet"
                 },
                 "start_level": {
                     "type": "integer",
@@ -4626,132 +4417,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/handlers.ContractWithStats"
-                    }
-                },
-                "count": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.SimilarContract": {
-            "type": "object",
-            "properties": {
-                "added": {
-                    "type": "integer",
-                    "x-nullable": true
-                },
-                "address": {
-                    "type": "string"
-                },
-                "alias": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "annotations": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "x-nullable": true
-                },
-                "delegate": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "delegate_alias": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "entrypoints": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "x-nullable": true
-                },
-                "fail_strings": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "x-nullable": true
-                },
-                "found_by": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "hardcoded": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "x-nullable": true
-                },
-                "hash": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "last_action": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "manager": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "migrations_count": {
-                    "type": "integer",
-                    "x-nullable": true
-                },
-                "network": {
-                    "type": "string"
-                },
-                "project_id": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "removed": {
-                    "type": "integer",
-                    "x-nullable": true
-                },
-                "same_count": {
-                    "type": "integer"
-                },
-                "similar_count": {
-                    "type": "integer"
-                },
-                "slug": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "x-nullable": true
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "tx_count": {
-                    "type": "integer",
-                    "x-nullable": true
-                }
-            }
-        },
-        "handlers.SimilarContractsResponse": {
-            "type": "object",
-            "properties": {
-                "contracts": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.SimilarContract"
                     }
                 },
                 "count": {
