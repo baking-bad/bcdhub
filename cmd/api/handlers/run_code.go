@@ -34,7 +34,11 @@ func RunOperation() gin.HandlerFunc {
 			return
 		}
 
-		state, err := ctx.Cache.CurrentBlock()
+		state, err := ctx.Blocks.Last()
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		predecessor, err := ctx.Blocks.Get(state.Level - 1)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -56,7 +60,7 @@ func RunOperation() gin.HandlerFunc {
 
 		response, err := ctx.RPC.RunOperationLight(
 			c,
-			state.ChainID,
+			state.Protocol.ChainID,
 			state.Hash,
 			reqRunOp.Source,
 			req.Address,
@@ -75,9 +79,9 @@ func RunOperation() gin.HandlerFunc {
 			Level:       state.Level,
 			Protocol:    state.Protocol.Hash,
 			Timestamp:   state.Timestamp,
-			ChainID:     state.ChainID,
+			ChainID:     state.Protocol.ChainID,
 			Hash:        state.Hash,
-			Predecessor: state.Predecessor,
+			Predecessor: predecessor.Hash,
 		}
 
 		parserParams, err := operations.NewParseParams(
@@ -175,7 +179,7 @@ func RunCode() gin.HandlerFunc {
 			Entrypoint:  input.Entrypoint,
 		}
 
-		response, err := ctx.RPC.RunCode(c, scriptBytes, storage, input.Value, state.ChainID, reqRunCode.Source, reqRunCode.Sender, input.Entrypoint, state.Protocol.Hash, reqRunCode.Amount, reqRunCode.GasLimit)
+		response, err := ctx.RPC.RunCode(c, scriptBytes, storage, input.Value, state.Protocol.ChainID, reqRunCode.Source, reqRunCode.Sender, input.Entrypoint, state.Protocol.Hash, reqRunCode.Amount, reqRunCode.GasLimit)
 		if err != nil {
 			var e noderpc.InvalidNodeResponse
 			if errors.As(err, &e) {

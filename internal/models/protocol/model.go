@@ -16,6 +16,7 @@ type Protocol struct {
 	EndLevel   int64  `pg:",use_zero"`
 	SymLink    string
 	Alias      string
+	ChainID    string
 	*Constants
 }
 
@@ -44,4 +45,12 @@ func (p *Protocol) Save(tx pg.DBI) error {
 		Set("end_level = ?", p.EndLevel).
 		Returning("id").Insert()
 	return err
+}
+
+// ValidateChainID -
+func (p *Protocol) ValidateChainID(chainID string) bool {
+	if p.ChainID == "" {
+		return p.StartLevel == 0
+	}
+	return p.ChainID == chainID
 }

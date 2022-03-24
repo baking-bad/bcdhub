@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -25,19 +26,31 @@ func GetStats() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
 
+		networks := make(types.Networks, 0)
+		for n := range ctxs {
+			networks = append(networks, n)
+		}
+
+		sort.Sort(networks)
+
 		blocks := make([]Block, 0)
-		for network, ctx := range ctxs {
-			last, err := ctx.Blocks.Last()
+		for _, network := range networks {
+			last, err := ctxs[network].Blocks.Last()
 			if err != nil {
-				if ctx.Storage.IsRecordNotFound(err) {
+				if ctxs[network].Storage.IsRecordNotFound(err) {
 					continue
 				}
-				handleError(c, ctx.Storage, err, 0)
+				handleError(c, ctxs[network].Storage, err, 0)
 				return
 			}
 			var block Block
 			block.FromModel(last)
+			predecessor, err := ctxs[network].Blocks.Get(last.Level)
+			if handleError(c, ctxs[network].Storage, err, 0) {
+				return
+			}
 			block.Network = network.String()
+			block.Predecessor = predecessor.Hash
 			blocks = append(blocks, block)
 		}
 

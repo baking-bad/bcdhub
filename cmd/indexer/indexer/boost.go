@@ -96,7 +96,7 @@ func (bi *BoostIndexer) init(ctx context.Context, db *core.Postgres) error {
 		}
 
 		logger.Info().Str("network", bi.Network.String()).Msgf("Creating new protocol %s starting at %d", header.Protocol, header.Level)
-		currentProtocol, err = createProtocol(ctx, bi.RPC, header.Protocol, header.Level)
+		currentProtocol, err = createProtocol(ctx, bi.RPC, header.ChainID, header.Protocol, header.Level)
 		if err != nil {
 			return err
 		}
@@ -302,15 +302,15 @@ func (bi *BoostIndexer) getLastRollbackBlock(ctx context.Context) (int64, error)
 			return 0, err
 		}
 
-		block, err := bi.Blocks.Get(level)
+		block, err := bi.Blocks.Get(level - 1)
 		if err != nil {
 			return 0, err
 		}
 
-		if block.Predecessor == headAtLevel.Predecessor {
+		if block.Hash == headAtLevel.Predecessor {
 			logger.Warning().Str("network", bi.Network.String()).Msgf("Found equal predecessors at level: %7d", block.Level)
 			end = true
-			lastLevel = block.Level - 1
+			lastLevel = block.Level
 		}
 	}
 	return lastLevel, nil
@@ -322,8 +322,8 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 		return err
 	}
 
-	if !bi.state.ValidateChainID(head.ChainID) {
-		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.ChainID, head.ChainID)
+	if !bi.state.Protocol.ValidateChainID(head.ChainID) {
+		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.Protocol.ChainID, head.ChainID)
 	}
 
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current node state: %7d", head.Level)
@@ -349,12 +349,10 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 }
 func (bi *BoostIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
 	newBlock := block.Block{
-		Hash:        head.Hash,
-		Predecessor: head.Predecessor,
-		ProtocolID:  bi.currentProtocol.ID,
-		ChainID:     head.ChainID,
-		Level:       head.Level,
-		Timestamp:   head.Timestamp,
+		Hash:       head.Hash,
+		ProtocolID: bi.currentProtocol.ID,
+		Level:      head.Level,
+		Timestamp:  head.Timestamp,
 	}
 	if err := newBlock.Save(tx); err != nil {
 		return err
@@ -402,7 +400,7 @@ func (bi *BoostIndexer) migrate(ctx context.Context, head noderpc.Header, tx pg.
 	newProtocol, err := bi.Protocols.Get(head.Protocol, head.Level)
 	if err != nil {
 		logger.Info().Str("network", bi.Network.String()).Msgf("Creating new protocol %s starting at %d", head.Protocol, head.Level)
-		newProtocol, err = createProtocol(ctx, bi.RPC, head.Protocol, head.Level)
+		newProtocol, err = createProtocol(ctx, bi.RPC, head.ChainID, head.Protocol, head.Level)
 		if err != nil {
 			return err
 		}

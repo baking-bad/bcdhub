@@ -84,3 +84,10 @@ func (network Network) MarshalJSON() ([]byte, error) {
 func NewNetwork(name string) Network {
 	return namesToNetwork[name]
 }
+
+// Networks -
+type Networks []Network
+
+func (n Networks) Len() int           { return len(n) }
+func (n Networks) Less(i, j int) bool { return n[i] < n[j] }
+func (n Networks) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }

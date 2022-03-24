@@ -101,7 +101,7 @@ func (p *Parser) initialize() {
 		if err != nil {
 			logger.Err(err)
 		}
-		p.chainID = state.ChainID
+		p.chainID = state.Protocol.ChainID
 	}
 }
 

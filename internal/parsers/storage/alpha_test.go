@@ -65,9 +65,6 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 						KeyStrings: []string{
 							"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6",
 						},
-						ValueStrings: []string{
-							"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6",
-						},
 					},
 				},
 			},

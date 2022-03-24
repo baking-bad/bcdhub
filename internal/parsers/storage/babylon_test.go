@@ -94,9 +94,6 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 						KeyStrings: []string{
 							"KT1KVJ4S53zE6E8oo8L8TyMgAh1ACpf9HweA",
 						},
-						ValueStrings: []string{
-							"KT1AmNwXex7jTpkcN8PVuENZyfVsuC1Lb3eW",
-						},
 					},
 				},
 			},

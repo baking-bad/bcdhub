@@ -401,16 +401,6 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 			return false
 		}
 	}
-	if len(one.ValueStrings) != len(two.ValueStrings) {
-		logger.Info().Msgf("ValueStrings: %v != %v", one.ValueStrings, two.ValueStrings)
-		return false
-	}
-	for i := range one.ValueStrings {
-		if one.ValueStrings[i] != two.ValueStrings[i] {
-			logger.Info().Msgf("ValueStrings[i]: %v != %v", one.ValueStrings[i], two.ValueStrings[i])
-			return false
-		}
-	}
 	return true
 }
 

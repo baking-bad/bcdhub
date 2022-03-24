@@ -416,8 +416,7 @@ func (b *Block) FromModel(block block.Block) {
 	b.Hash = block.Hash
 	b.Level = block.Level
 	b.Protocol = block.Protocol.Hash
-	b.Predecessor = block.Predecessor
-	b.ChainID = block.ChainID
+	b.ChainID = block.Protocol.ChainID
 	b.Timestamp = block.Timestamp
 }
 

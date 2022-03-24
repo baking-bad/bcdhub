@@ -84,7 +84,8 @@ func createBigMapAst(key, value []byte, ptr int64) (*ast.BigMap, error) {
 	return bigMap, nil
 }
 
-func getStrings(data []byte) ([]string, error) {
+// GetStrings -
+func GetStrings(data []byte) ([]string, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}
@@ -96,18 +97,11 @@ func getStrings(data []byte) ([]string, error) {
 }
 
 func setBigMapDiffsStrings(bmd *bigmapdiff.BigMapDiff) error {
-	keyStrings, err := getStrings(bmd.KeyBytes())
+	keyStrings, err := GetStrings(bmd.KeyBytes())
 	if err != nil {
 		return err
 	}
 	bmd.KeyStrings = keyStrings
 
-	if bmd.Value != nil {
-		valStrings, err := getStrings(bmd.ValueBytes())
-		if err != nil {
-			return err
-		}
-		bmd.ValueStrings = valStrings
-	}
 	return nil
 }

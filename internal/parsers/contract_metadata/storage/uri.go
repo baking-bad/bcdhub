@@ -61,6 +61,7 @@ func (uri *TezosStorageURI) networkByChainID(blockRepo block.Repository) error {
 		return nil
 	}
 
+	// TODO: get network by chain ID
 	network, err := blockRepo.GetNetworkAlias(uri.Network)
 	if err != nil {
 		return err

@@ -179,7 +179,7 @@ func ExecuteView() gin.HandlerFunc {
 			Contract:                 req.Address,
 			Source:                   execView.Source,
 			Initiator:                execView.Sender,
-			ChainID:                  state.ChainID,
+			ChainID:                  state.Protocol.ChainID,
 			HardGasLimitPerOperation: execView.GasLimit,
 			Amount:                   execView.Amount,
 			Protocol:                 state.Protocol.Hash,

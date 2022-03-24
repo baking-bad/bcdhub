@@ -24,8 +24,7 @@ type BigMapDiff struct {
 	ProtocolID  int64 `pg:",type:SMALLINT"`
 	OperationID int64
 
-	KeyStrings   pq.StringArray `pg:",type:text[]"`
-	ValueStrings pq.StringArray ` pg:",type:text[]"`
+	KeyStrings pq.StringArray `pg:",type:text[]"`
 }
 
 // GetID -
@@ -52,8 +51,7 @@ func (b *BigMapDiff) Save(tx pg.DBI) error {
 			timestamp = excluded.timestamp, 
 			protocol_id = excluded.protocol_id, 
 			operation_id = excluded.operation_id, 
-			key_strings = excluded.key_strings, 
-			value_strings = excluded.value_strings`).
+			key_strings = excluded.key_strings`).
 		Returning("id").
 		Insert()
 	return err

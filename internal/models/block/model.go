@@ -12,13 +12,11 @@ type Block struct {
 	// nolint
 	tableName struct{} `pg:"blocks"`
 
-	Hash        string
-	Predecessor string
-	ChainID     string
-	Timestamp   time.Time
-	ID          int64
-	Level       int64
-	ProtocolID  int64 `pg:",type:SMALLINT"`
+	Hash       string
+	Timestamp  time.Time
+	ID         int64
+	Level      int64
+	ProtocolID int64 `pg:",type:SMALLINT"`
 
 	Protocol protocol.Protocol `pg:",rel:has-one"`
 }
@@ -31,14 +29,6 @@ func (b *Block) GetID() int64 {
 // GetIndex -
 func (b *Block) GetIndex() string {
 	return "blocks"
-}
-
-// ValidateChainID -
-func (b Block) ValidateChainID(chainID string) bool {
-	if b.ChainID == "" {
-		return b.Level == 0
-	}
-	return b.ChainID == chainID
 }
 
 // Save -

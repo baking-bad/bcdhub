@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_getStrings(t *testing.T) {
+func Test_GetStrings(t *testing.T) {
 	tests := []struct {
 		name    string
 		data    []byte
@@ -34,13 +34,13 @@ func Test_getStrings(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getStrings(tt.data)
+			got, err := GetStrings(tt.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("getStrings() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetStrings() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("getStrings() = %v, want %v", got, tt.want)
+				t.Errorf("GetStrings() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -48,22 +48,15 @@ func Test_getStrings(t *testing.T) {
 
 func Test_setBigMapDiffsStrings(t *testing.T) {
 	tests := []struct {
-		name             string
-		bmd              *bigmapdiff.BigMapDiff
-		wantValueStrings pq.StringArray
-		wantKeyStrings   pq.StringArray
-		wantErr          bool
+		name           string
+		bmd            *bigmapdiff.BigMapDiff
+		wantKeyStrings pq.StringArray
+		wantErr        bool
 	}{
 		{
 			name: "test 1",
 			bmd: &bigmapdiff.BigMapDiff{
-				Value: []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Some","args":[{"bytes":"0000c0ca282a775946b5ecbe02e5cf73e25f6b62b70c"}]},[]]},{"prim":"Pair","args":[{"prim":"Some","args":[{"bytes":"62616c6c732e74657a"}]},[]]}]},{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"2"},{"bytes":"0000753f63893674b6d523f925f0d787bf9270b95c33"}]},{"prim":"Some","args":[{"int":"3223"}]}]}]}`),
-				Key:   []byte(`{"bytes":"62616c6c732e74657a"}`),
-			},
-			wantValueStrings: []string{
-				"tz1dDQc4KsTHEFe3USc66Wti2pBatZ3UDbD4",
-				"balls.tez",
-				"tz1WKygtstVY96oyc6Rmk945dMf33LeihgWT",
+				Key: []byte(`{"bytes":"62616c6c732e74657a"}`),
 			},
 			wantKeyStrings: []string{
 				"balls.tez",
@@ -76,7 +69,6 @@ func Test_setBigMapDiffsStrings(t *testing.T) {
 				t.Errorf("setBigMapDiffsStrings() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			assert.Equal(t, tt.wantKeyStrings, tt.bmd.KeyStrings)
-			assert.Equal(t, tt.wantValueStrings, tt.bmd.ValueStrings)
 		})
 	}
 }

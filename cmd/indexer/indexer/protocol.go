@@ -8,7 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
-func createProtocol(ctx context.Context, rpc noderpc.INode, hash string, level int64) (protocol protocol.Protocol, err error) {
+func createProtocol(ctx context.Context, rpc noderpc.INode, chainID, hash string, level int64) (protocol protocol.Protocol, err error) {
 	protocol.SymLink, err = bcd.GetProtoSymLink(hash)
 	if err != nil {
 		return
@@ -17,6 +17,7 @@ func createProtocol(ctx context.Context, rpc noderpc.INode, hash string, level i
 	protocol.Alias = hash[:8]
 	protocol.Hash = hash
 	protocol.StartLevel = level
+	protocol.ChainID = chainID
 
 	err = setProtocolConstants(ctx, rpc, &protocol)
 

@@ -6,9 +6,11 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 )
 
 // BigMapDiff -
@@ -93,5 +95,13 @@ func (b *BigMapDiff) Prepare(network types.Network, model models.Model) {
 	b.Network = network.String()
 	b.Ptr = bmd.Ptr
 	b.Timestamp = bmd.Timestamp.UTC()
-	b.ValueStrings = bmd.ValueStrings
+
+	if bmd.Value != nil {
+		valStrings, err := storage.GetStrings(bmd.ValueBytes())
+		if err != nil {
+			logger.Error().Err(err).Msg("storage.GetStrings")
+		} else {
+			b.ValueStrings = valStrings
+		}
+	}
 }
