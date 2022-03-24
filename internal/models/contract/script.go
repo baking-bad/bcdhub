@@ -14,21 +14,17 @@ type Script struct {
 	// nolint
 	tableName struct{} `pg:"scripts"`
 
-	ID                   int64
-	Hash                 string           `pg:",unique,type:varchar(64)"`
-	ProjectID            types.NullString `pg:",type:varchar(36)"`
-	Code                 []byte           `pg:",type:bytea"`
-	Parameter            []byte           `pg:",type:bytea"`
-	Storage              []byte           `pg:",type:bytea"`
-	Views                []byte           `pg:",type:bytea"`
-	FingerprintCode      []byte           `pg:",type:bytea"`
-	FingerprintParameter []byte           `pg:",type:bytea"`
-	FingerprintStorage   []byte           `pg:",type:bytea"`
-	Entrypoints          pq.StringArray   `pg:",type:text[]"`
-	FailStrings          pq.StringArray   `pg:",type:text[]"`
-	Annotations          pq.StringArray   `pg:",type:text[]"`
-	Hardcoded            pq.StringArray   `pg:",type:text[]"`
-	Tags                 types.Tags       `pg:",use_zero"`
+	ID          int64
+	Hash        string         `pg:",unique,type:varchar(64)"`
+	Code        []byte         `pg:",type:bytea"`
+	Parameter   []byte         `pg:",type:bytea"`
+	Storage     []byte         `pg:",type:bytea"`
+	Views       []byte         `pg:",type:bytea"`
+	Entrypoints pq.StringArray `pg:",type:text[]"`
+	FailStrings pq.StringArray `pg:",type:text[]"`
+	Annotations pq.StringArray `pg:",type:text[]"`
+	Hardcoded   pq.StringArray `pg:",type:text[]"`
+	Tags        types.Tags     `pg:",use_zero"`
 
 	Constants []global_constant.GlobalConstant `pg:",many2many:script_constants"`
 }

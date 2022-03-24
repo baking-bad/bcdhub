@@ -11,8 +11,7 @@ type Repository interface {
 	RecentlyCalled(network types.Network, offset, size int64) ([]Contract, error)
 
 	GetSameContracts(contact Contract, manager string, size, offset int64) (SameResponse, error)
-	GetSimilarContracts(Contract, int64, int64) ([]Similar, int, error)
-	Stats(c Contract) (Stats, error)
+	Stats(c Contract) (int, error)
 
 	Script(network types.Network, address string, symLink string) (Script, error)
 

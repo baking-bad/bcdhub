@@ -14,7 +14,7 @@ func setTags(ctx *config.Context, contract *contract.Contract, op *operation.Ope
 
 	var tags types.Tags
 	if contract == nil {
-		c, err := ctx.Cache.ContractTags(op.Network, op.Destination.Address)
+		c, err := ctx.Cache.ContractTags(op.Destination.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				return nil

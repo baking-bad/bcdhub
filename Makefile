@@ -51,22 +51,6 @@ else
 	docker-compose exec api bcdctl list_services
 endif
 
-s3-creds:
-	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
-	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
-ifeq ($(BCD_ENV), development)
-	cd scripts/bcdctl && go run . reload_secure_settings
-else
-	docker-compose exec api bcdctl reload_secure_settings
-endif
-
-s3-repo:
-ifeq ($(BCD_ENV), development)
-	cd scripts/bcdctl && go run . create_repository
-else
-	docker-compose exec api bcdctl create_repository
-endif
-
 s3-db-restore:
 	echo "Database restore..."
 ifeq (,$(wildcard $(LATEST_DUMP)))
@@ -85,34 +69,10 @@ else
 	docker-compose exec api bcdctl restore
 endif
 
-s3-contracts-restore:
-	echo "Contracts restore..."
-ifeq (,$(wildcard /tmp/contracts.tar.gz))
-	aws s3 cp --profile bcd s3://bcd-db-snaps/contracts.tar.gz /tmp/contracts.tar.gz
-endif	
-	rm -rf $(SHARE_PATH)/contracts/
-	mkdir $(SHARE_PATH)/contracts/
-	tar -C $(SHARE_PATH)/contracts/ -xzf /tmp/contracts.tar.gz
-	rm /tmp/contracts.tar.gz
-
 s3-db-snapshot:
 	echo "Database snapshot..."
 	docker-compose exec db pg_dump $(POSTGRES_DB) --create -U $(POSTGRES_USER) | gzip -c > $(LATEST_DUMP)	
 	aws s3 mv --profile bcd $(LATEST_DUMP) s3://bcd-db-snaps/dump_latest.gz
-
-s3-es-snapshot:
-	echo "Elasticsearch snapshot..."
-ifeq ($(BCD_ENV), development)
-	cd scripts/bcdctl && go run . snapshot
-else
-	docker-compose exec api bcdctl snapshot
-endif
-
-s3-contracts-snapshot:
-	echo "Packing contracts..."
-	cd $(SHARE_PATH)/contracts
-	tar -zcvf /tmp/contracts.tar.gz .
-	aws s3 mv --profile bcd /tmp/contracts.tar.gz s3://bcd-db-snaps/contracts.tar.gz
 
 s3-list:
 	echo "Database snapshots"

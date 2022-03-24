@@ -49,17 +49,12 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err := bar.Add(1); err != nil {
 			return err
 		}
-		rpc, err := ctx.GetRPC(operations[i].Network)
-		if err != nil {
-			return err
-		}
-
 		protocol, err := ctx.Protocols.Get(operations[i].Network, "", -1)
 		if err != nil {
 			return err
 		}
 
-		parser, err := transferParsers.NewParser(rpc, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
+		parser, err := transferParsers.NewParser(ctx.RPC, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
 			transferParsers.WithNetwork(operations[i].Network),
 			transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 			transferParsers.WithoutViews(),
@@ -67,7 +62,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		proto, err := ctx.Cache.ProtocolByID(operations[i].Network, operations[i].ProtocolID)
+		proto, err := ctx.Cache.ProtocolByID(operations[i].ProtocolID)
 		if err != nil {
 			return err
 		}

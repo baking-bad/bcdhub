@@ -12,18 +12,6 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
-func getScripts(db pg.DBI, lastID int64, size int) (resp []contract.Script, err error) {
-	query := db.Model((*contract.Script)(nil)).Order("id asc")
-	if lastID > 0 {
-		query.Where("id > ?", lastID)
-	}
-	if size == 0 || size > 1000 {
-		size = 10
-	}
-	err = query.Limit(size).Select(&resp)
-	return
-}
-
 func getContracts(db pg.DBI, lastID int64, size int) (resp []contract.Contract, err error) {
 	var ids []int64
 	query := db.Model((*contract.Contract)(nil)).Column("id").Order("id asc")

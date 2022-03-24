@@ -17,7 +17,13 @@ var rollbackCmd rollbackCommand
 
 // Execute
 func (x *rollbackCommand) Execute(_ []string) error {
-	state, err := ctx.Blocks.Last(types.NewNetwork(x.Network))
+	network := types.NewNetwork(x.Network)
+	ctx, err := ctxs.Get(network)
+	if err != nil {
+		panic(err)
+	}
+
+	state, err := ctx.Blocks.Last(network)
 	if err != nil {
 		panic(err)
 	}
@@ -28,12 +34,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		return nil
 	}
 
-	rpc, err := ctx.GetRPC(types.NewNetwork(x.Network))
-	if err != nil {
-		panic(err)
-	}
-
-	manager := rollback.NewManager(rpc, ctx.Searcher, ctx.Storage, ctx.Blocks, ctx.BigMapDiffs, ctx.Transfers)
+	manager := rollback.NewManager(ctx.RPC, ctx.Searcher, ctx.Storage, ctx.Blocks, ctx.BigMapDiffs, ctx.Transfers)
 	if err = manager.Rollback(context.Background(), ctx.StorageDB.DB, state, x.Level); err != nil {
 		return err
 	}

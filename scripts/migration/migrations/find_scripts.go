@@ -78,11 +78,7 @@ func (m *FindLostContracts) saveContracts(db pg.DBI, contracts []contract.Contra
 
 func (m *FindLostContracts) findScripts(ctx *config.Context, db pg.DBI, contracts []contract.Contract) error {
 	for i := range contracts {
-		rpc, err := ctx.GetRPC(contracts[i].Network)
-		if err != nil {
-			return err
-		}
-		scriptBytes, err := rpc.GetRawScript(contracts[i].Account.Address, 0)
+		scriptBytes, err := ctx.RPC.GetRawScript(contracts[i].Account.Address, 0)
 		if err != nil {
 			return err
 		}
@@ -129,9 +125,6 @@ func (m *FindLostContracts) findScripts(ctx *config.Context, db pg.DBI, contract
 					return err
 				}
 
-				contractScript.FingerprintParameter = script.Fingerprint.Parameter
-				contractScript.FingerprintCode = script.Fingerprint.Code
-				contractScript.FingerprintStorage = script.Fingerprint.Storage
 				contractScript.FailStrings = script.FailStrings.Values()
 				contractScript.Annotations = script.Annotations.Values()
 				contractScript.Tags = types.NewTags(script.Tags.Values())

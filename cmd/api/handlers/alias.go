@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,21 +20,25 @@ import (
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/slug/{slug} [get]
-func (ctx *Context) GetBySlug(c *gin.Context) {
-	var req getBySlugRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetBySlug() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	a, err := ctx.ContractMetadata.GetBySlug(req.Slug)
-	if ctx.handleError(c, err, 0) {
-		return
+		var req getBySlugRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		a, err := ctx.ContractMetadata.GetBySlug(req.Slug)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		if a == nil {
+			c.SecureJSON(http.StatusNoContent, gin.H{})
+			return
+		}
+		var alias Alias
+		alias.FromModel(a)
+		c.SecureJSON(http.StatusOK, alias)
 	}
-	if a == nil {
-		c.SecureJSON(http.StatusNoContent, gin.H{})
-		return
-	}
-	var alias Alias
-	alias.FromModel(a)
-	c.SecureJSON(http.StatusOK, alias)
 }

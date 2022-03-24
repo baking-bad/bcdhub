@@ -5,31 +5,43 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
 // ForkContract -
-func (ctx *Context) ForkContract(c *gin.Context) {
-	var req forkRequest
-	if err := c.BindJSON(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
+func ForkContract(ctxs config.Contexts) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		mainnet := ctxs.MustGet(types.Mainnet)
+
+		var req forkRequest
+		if err := c.BindJSON(&req); handleError(c, mainnet.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		ctx, err := ctxs.Get(req.NetworkID())
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, Error{Message: err.Error()})
+			return
+		}
+
+		response, err := buildStorageDataFromForkRequest(ctx, req)
+		if err != nil {
+			handleError(c, ctx.Storage, err, 0)
+			return
+		}
+		c.SecureJSON(http.StatusOK, response)
 	}
-	response, err := ctx.buildStorageDataFromForkRequest(req)
-	if err != nil {
-		ctx.handleError(c, err, 0)
-		return
-	}
-	c.SecureJSON(http.StatusOK, response)
 }
 
-func (ctx *Context) buildStorageDataFromForkRequest(req forkRequest) (*ForkResponse, error) {
+func buildStorageDataFromForkRequest(ctx *config.Context, req forkRequest) (*ForkResponse, error) {
 	var err error
 	var scriptData []byte
 
 	if req.Script != "" {
 		scriptData = []byte(req.Script)
 	} else {
-		scriptData, err = ctx.getScriptBytes(req.NetworkID(), req.Address, "")
+		scriptData, err = getScriptBytes(ctx, req.Address, "")
 		if err != nil {
 			return nil, err
 		}

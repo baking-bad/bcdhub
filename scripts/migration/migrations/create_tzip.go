@@ -48,11 +48,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			continue
 		}
 
-		rpc, err := ctx.GetRPC(bmd[i].Network)
-		if err != nil {
-			return err
-		}
-		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.Storage, rpc, tzipParsers.ParserConfig{
+		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.Storage, ctx.RPC, tzipParsers.ParserConfig{
 			IPFSGateways: ctx.Config.IPFSGateways,
 		})
 

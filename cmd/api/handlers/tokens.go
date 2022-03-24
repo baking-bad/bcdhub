@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast/interfaces"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -27,28 +28,32 @@ import (
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/tokens/{network} [get]
-func (ctx *Context) GetFA(c *gin.Context) {
-	var req getByNetwork
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetFA() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	var cursorReq pageableRequest
-	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	contracts, total, err := ctx.Contracts.GetTokens(req.NetworkID(), "", cursorReq.Offset, cursorReq.Size)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		var req getByNetwork
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	tokens, err := ctx.contractToTokens(contracts, req.NetworkID(), "")
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	tokens.Total = total
+		var cursorReq pageableRequest
+		if err := c.BindQuery(&cursorReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		contracts, total, err := ctx.Contracts.GetTokens(req.NetworkID(), "", cursorReq.Offset, cursorReq.Size)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, tokens)
+		tokens, err := contractToTokens(ctx, contracts, req.NetworkID(), "")
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		tokens.Total = total
+
+		c.SecureJSON(http.StatusOK, tokens)
+	}
 }
 
 // GetFAByVersion godoc
@@ -66,30 +71,34 @@ func (ctx *Context) GetFA(c *gin.Context) {
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/tokens/{network}/version/{faversion} [get]
-func (ctx *Context) GetFAByVersion(c *gin.Context) {
-	var req getTokensByVersion
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetFAByVersion() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	var cursorReq pageableRequest
-	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	if req.Version == "fa12" {
-		req.Version = consts.FA12Tag
-	}
-	contracts, total, err := ctx.Contracts.GetTokens(req.NetworkID(), req.Version, cursorReq.Offset, cursorReq.Size)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		var req getTokensByVersion
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	tokens, err := ctx.contractToTokens(contracts, req.NetworkID(), req.Version)
-	if ctx.handleError(c, err, 0) {
-		return
+		var cursorReq pageableRequest
+		if err := c.BindQuery(&cursorReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		if req.Version == "fa12" {
+			req.Version = consts.FA12Tag
+		}
+		contracts, total, err := ctx.Contracts.GetTokens(req.NetworkID(), req.Version, cursorReq.Offset, cursorReq.Size)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		tokens, err := contractToTokens(ctx, contracts, req.NetworkID(), req.Version)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		tokens.Total = total
+		c.SecureJSON(http.StatusOK, tokens)
 	}
-	tokens.Total = total
-	c.SecureJSON(http.StatusOK, tokens)
 }
 
 // GetFA12OperationsForAddress godoc
@@ -113,43 +122,47 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/tokens/{network}/transfers/{address} [get]
-func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
+func GetFA12OperationsForAddress() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	var ctxReq getTransfersRequest
-	if err := c.BindQuery(&ctxReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
 
-	var contracts []string
-	if ctxReq.Contracts != "" {
-		contracts = strings.Split(ctxReq.Contracts, ",")
-	}
+		var ctxReq getTransfersRequest
+		if err := c.BindQuery(&ctxReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	acc, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
-	if ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
+		var contracts []string
+		if ctxReq.Contracts != "" {
+			contracts = strings.Split(ctxReq.Contracts, ",")
+		}
 
-	transfers, err := ctx.Domains.Transfers(transfer.GetContext{
-		Network:   req.NetworkID(),
-		AccountID: acc.ID,
-		Contracts: contracts,
-		Start:     ctxReq.Start,
-		End:       ctxReq.End,
-		LastID:    ctxReq.LastID,
-		SortOrder: ctxReq.Sort,
-		Size:      ctxReq.Size,
-		TokenID:   ctxReq.TokenID,
-	})
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		acc, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
+		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, ctx.transfersPostprocessing(transfers, true))
+		transfers, err := ctx.Domains.Transfers(transfer.GetContext{
+			Network:   req.NetworkID(),
+			AccountID: acc.ID,
+			Contracts: contracts,
+			Start:     ctxReq.Start,
+			End:       ctxReq.End,
+			LastID:    ctxReq.LastID,
+			SortOrder: ctxReq.Sort,
+			Size:      ctxReq.Size,
+			TokenID:   ctxReq.TokenID,
+		})
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		c.SecureJSON(http.StatusOK, transfersPostprocessing(ctx, transfers, true))
+	}
 }
 
 // GetTokenVolumeSeries godoc
@@ -168,31 +181,35 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/tokens/{network}/series [get]
-func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
-	var req getByNetwork
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetTokenVolumeSeries() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	var args getTokenSeriesRequest
-	if err := c.BindQuery(&args); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+		var req getByNetwork
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	dapp, err := ctx.DApps.Get(args.Slug)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		var args getTokenSeriesRequest
+		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	series, err := ctx.Transfers.GetTokenVolumeSeries(req.NetworkID(), args.Period, []string{args.Contract}, dapp.Contracts, args.TokenID)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		dapp, err := ctx.DApps.Get(args.Slug)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, series)
+		series, err := ctx.Transfers.GetTokenVolumeSeries(req.NetworkID(), args.Period, []string{args.Contract}, dapp.Contracts, args.TokenID)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		c.SecureJSON(http.StatusOK, series)
+	}
 }
 
-func (ctx *Context) contractToTokens(contracts []contract.Contract, network types.Network, version string) (PageableTokenContracts, error) {
+func contractToTokens(ctx *config.Context, contracts []contract.Contract, network types.Network, version string) (PageableTokenContracts, error) {
 	tokens := make([]TokenContract, len(contracts))
 	addresses := make([]string, len(contracts))
 	for i := range contracts {
@@ -280,31 +297,35 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network type
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/tokens [get]
-func (ctx *Context) GetContractTokens(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
-	var pageReq tokenRequest
-	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{{
-		Contract: req.Address,
-		Network:  req.NetworkID(),
-		TokenID:  pageReq.TokenID,
-		MinLevel: pageReq.MinLevel,
-		MaxLevel: pageReq.MaxLevel,
-	}}, pageReq.Size, pageReq.Offset)
-	if err != nil {
-		if ctx.Storage.IsRecordNotFound(err) {
-			c.SecureJSON(http.StatusOK, []TokenMetadata{})
-		} else {
-			ctx.handleError(c, err, 0)
+func GetContractTokens() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
 		}
-		return
+		var pageReq tokenRequest
+		if err := c.BindQuery(&pageReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{{
+			Contract: req.Address,
+			Network:  req.NetworkID(),
+			TokenID:  pageReq.TokenID,
+			MinLevel: pageReq.MinLevel,
+			MaxLevel: pageReq.MaxLevel,
+		}}, pageReq.Size, pageReq.Offset)
+		if err != nil {
+			if ctx.Storage.IsRecordNotFound(err) {
+				c.SecureJSON(http.StatusOK, []TokenMetadata{})
+			} else {
+				handleError(c, ctx.Storage, err, 0)
+			}
+			return
+		}
+		c.SecureJSON(http.StatusOK, metadata)
 	}
-	c.SecureJSON(http.StatusOK, metadata)
 }
 
 // GetContractTokensCount godoc
@@ -321,24 +342,28 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/tokens/count [get]
-func (ctx *Context) GetContractTokensCount(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
+func GetContractTokensCount() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
+		count, err := ctx.TokenMetadata.Count([]tokenmetadata.GetContext{{
+			Contract: req.Address,
+			Network:  req.NetworkID(),
+		}})
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, CountResponse{
+			count,
+		})
 	}
-	count, err := ctx.TokenMetadata.Count([]tokenmetadata.GetContext{{
-		Contract: req.Address,
-		Network:  req.NetworkID(),
-	}})
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	c.SecureJSON(http.StatusOK, CountResponse{
-		count,
-	})
 }
 
-func (ctx *Context) getTokensWithSupply(getCtx tokenmetadata.GetContext, size, offset int64) ([]Token, error) {
+func getTokensWithSupply(ctx *config.Context, getCtx tokenmetadata.GetContext, size, offset int64) ([]Token, error) {
 	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{getCtx}, size, offset)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
@@ -347,10 +372,10 @@ func (ctx *Context) getTokensWithSupply(getCtx tokenmetadata.GetContext, size, o
 		return nil, err
 	}
 
-	return ctx.addSupply(metadata)
+	return addSupply(ctx, metadata)
 }
 
-func (ctx *Context) addSupply(metadata []tokenmetadata.TokenMetadata) ([]Token, error) {
+func addSupply(ctx *config.Context, metadata []tokenmetadata.TokenMetadata) ([]Token, error) {
 	tokens := make([]Token, 0)
 	for _, token := range metadata {
 		t := Token{
@@ -390,26 +415,30 @@ func (ctx *Context) addSupply(metadata []tokenmetadata.TokenMetadata) ([]Token, 
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/tokens/holders [get]
-func (ctx *Context) GetTokenHolders(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
-	var reqArgs byTokenIDRequest
-	if err := c.BindQuery(&reqArgs); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetTokenHolders() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	balances, err := ctx.TokenBalances.GetHolders(req.NetworkID(), req.Address, *reqArgs.TokenID)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	result := make(map[string]string)
-	for i := range balances {
-		result[balances[i].Account.Address] = balances[i].Balance.String()
-	}
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
+		var reqArgs byTokenIDRequest
+		if err := c.BindQuery(&reqArgs); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, result)
+		balances, err := ctx.TokenBalances.GetHolders(req.NetworkID(), req.Address, *reqArgs.TokenID)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		result := make(map[string]string)
+		for i := range balances {
+			result[balances[i].Account.Address] = balances[i].Balance.String()
+		}
+
+		c.SecureJSON(http.StatusOK, result)
+	}
 }
 
 // GetTokenMetadata godoc
@@ -431,25 +460,29 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/tokens/{network}/metadata [get]
-func (ctx *Context) GetTokenMetadata(c *gin.Context) {
-	var req getByNetwork
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
+func GetTokenMetadata() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getByNetwork
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		var queryParams tokenMetadataRequest
+		if err := c.BindQuery(&queryParams); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		tokens, err := getTokensWithSupply(ctx, tokenmetadata.GetContext{
+			Contract: queryParams.Contract,
+			Network:  req.NetworkID(),
+			MinLevel: queryParams.MinLevel,
+			MaxLevel: queryParams.MaxLevel,
+			Creator:  queryParams.Creator,
+			TokenID:  queryParams.TokenID,
+		}, queryParams.Size, queryParams.Offset)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, tokens)
 	}
-	var queryParams tokenMetadataRequest
-	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	tokens, err := ctx.getTokensWithSupply(tokenmetadata.GetContext{
-		Contract: queryParams.Contract,
-		Network:  req.NetworkID(),
-		MinLevel: queryParams.MinLevel,
-		MaxLevel: queryParams.MaxLevel,
-		Creator:  queryParams.Creator,
-		TokenID:  queryParams.TokenID,
-	}, queryParams.Size, queryParams.Offset)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	c.SecureJSON(http.StatusOK, tokens)
 }

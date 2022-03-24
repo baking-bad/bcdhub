@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata"
 	"github.com/go-pg/pg/v10"
 )
@@ -14,11 +15,12 @@ type Initializer struct {
 	repo            models.GeneralRepository
 	db              pg.DBI
 	offchainBaseURL string
+	network         types.Network
 }
 
 // NewInitializer -
-func NewInitializer(repo models.GeneralRepository, db pg.DBI, offchainBaseURL string) Initializer {
-	return Initializer{repo, db, offchainBaseURL}
+func NewInitializer(network types.Network, repo models.GeneralRepository, db pg.DBI, offchainBaseURL string) Initializer {
+	return Initializer{repo, db, offchainBaseURL, network}
 }
 
 // Init -
@@ -27,7 +29,7 @@ func (initializer Initializer) Init(ctx context.Context) error {
 		return err
 	}
 
-	if initializer.offchainBaseURL != "" {
+	if initializer.offchainBaseURL != "" && initializer.network == types.Mainnet {
 		count, err := initializer.db.Model((*dapp.DApp)(nil)).Count()
 		if err != nil {
 			return err

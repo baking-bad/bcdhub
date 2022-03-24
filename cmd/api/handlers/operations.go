@@ -12,6 +12,7 @@ import (
 	formattererror "github.com/baking-bad/bcdhub/internal/bcd/formatter/error"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -43,36 +44,40 @@ import (
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/operations [get]
-func (ctx *Context) GetContractOperations(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
+func GetContractOperations() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	var filtersReq operationsRequest
-	if err := c.BindQuery(&filtersReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
 
-	account, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
-	if ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
+		var filtersReq operationsRequest
+		if err := c.BindQuery(&filtersReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	filters := prepareFilters(filtersReq)
-	ops, err := ctx.Operations.GetByAccount(account, filtersReq.Size, filters)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		account, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
+		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
 
-	resp, err := ctx.PrepareOperations(ops.Operations, filtersReq.WithStorageDiff)
-	if ctx.handleError(c, err, 0) {
-		return
+		filters := prepareFilters(filtersReq)
+		ops, err := ctx.Operations.GetByAccount(account, filtersReq.Size, filters)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		resp, err := PrepareOperations(ctx, ops.Operations, filtersReq.WithStorageDiff)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, OperationResponse{
+			Operations: resp,
+			LastID:     ops.LastID,
+		})
 	}
-	c.SecureJSON(http.StatusOK, OperationResponse{
-		Operations: resp,
-		LastID:     ops.LastID,
-	})
 }
 
 // GetOperation godoc
@@ -89,47 +94,65 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/opg/{hash} [get]
-func (ctx *Context) GetOperation(c *gin.Context) {
-	var req OPGRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetOperation() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctxs := c.MustGet("contexts").(config.Contexts)
+		mainnet := ctxs.MustGet(modelTypes.Mainnet)
 
-	var queryReq opgRequest
-	if err := c.BindQuery(&queryReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	op, err := ctx.Operations.GetByHash(req.Hash)
-	if !ctx.Storage.IsRecordNotFound(err) && ctx.handleError(c, err, 0) {
-		return
-	}
-
-	if len(op) == 0 {
-		opg := make([]Operation, 0)
-
-		if queryReq.WithMempool {
-			operation := ctx.getOperationFromMempool(req.Hash)
-			if operation != nil {
-				opg = append(opg, *operation)
-			}
-		}
-
-		if len(op) == 0 {
-			c.SecureJSON(http.StatusNoContent, gin.H{})
+		var req OPGRequest
+		if err := c.BindUri(&req); handleError(c, mainnet.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
-		c.SecureJSON(http.StatusOK, opg)
-		return
-	}
+		var queryReq opgRequest
+		if err := c.BindQuery(&queryReq); handleError(c, mainnet.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	resp, err := ctx.PrepareOperations(op, true)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		operations := make([]operation.Operation, 0)
+		var foundContext *config.Context
+		for _, ctx := range ctxs {
+			op, err := ctx.Operations.GetByHash(req.Hash)
+			if err != nil {
+				if !ctx.Storage.IsRecordNotFound(err) {
+					handleError(c, ctx.Storage, err, 0)
+					return
+				}
+				continue
+			}
+			operations = append(operations, op...)
+			if len(operations) > 0 {
+				foundContext = ctx
+				break
+			}
+		}
 
-	c.SecureJSON(http.StatusOK, resp)
+		if foundContext == nil {
+			opg := make([]Operation, 0)
+
+			if queryReq.WithMempool {
+				operation := getOperationFromMempool(ctxs, req.Hash)
+				if operation != nil {
+					opg = append(opg, *operation)
+				}
+			}
+
+			if len(opg) == 0 {
+				c.SecureJSON(http.StatusNoContent, []gin.H{})
+				return
+			}
+
+			c.SecureJSON(http.StatusOK, opg)
+			return
+		}
+
+		resp, err := PrepareOperations(foundContext, operations, true)
+		if handleError(c, foundContext.Storage, err, 0) {
+			return
+		}
+
+		c.SecureJSON(http.StatusOK, resp)
+	}
 }
 
 // GetOperationErrorLocation godoc
@@ -137,33 +160,38 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 // @Description Get code line where operation failed
 // @Tags operations
 // @ID get-operation-error-location
+// @Param network path string true "Network"
 // @Param id path integer true "Internal BCD operation ID"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} GetErrorLocationResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /v1/operation/{id}/error_location [get]
-func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
-	var req getOperationByIDRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	operation := operation.Operation{ID: req.ID}
-	if err := ctx.Storage.GetByID(&operation); ctx.handleError(c, err, 0) {
-		return
-	}
+// @Router /v1/operation/{network}/{id}/error_location [get]
+func GetOperationErrorLocation() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	if !tezerrors.HasScriptRejectedError(operation.Errors) {
-		ctx.handleError(c, errors.Errorf("No reject script error in operation"), http.StatusBadRequest)
-		return
-	}
+		var req getOperationByIDRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		operation := operation.Operation{ID: req.ID}
+		if err := ctx.Storage.GetByID(&operation); handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	response, err := ctx.getErrorLocation(operation, 2)
-	if ctx.handleError(c, err, 0) {
-		return
+		if !tezerrors.HasScriptRejectedError(operation.Errors) {
+			handleError(c, ctx.Storage, errors.Errorf("No reject script error in operation"), http.StatusBadRequest)
+			return
+		}
+
+		response, err := getErrorLocation(ctx, operation, 2)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, response)
 	}
-	c.SecureJSON(http.StatusOK, response)
 }
 
 // GetOperationDiff godoc
@@ -171,69 +199,74 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 // @DescriptionGet Get operation storage diff
 // @Tags operations
 // @ID get-operation-diff
+// @Param network path string true "Network"
 // @Param id path integer true "Internal BCD operation ID"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} ast.MiguelNode
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /v1/operation/{id}/diff [get]
-func (ctx *Context) GetOperationDiff(c *gin.Context) {
-	var req getOperationByIDRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
+// @Router /v1/operation/{network}/{id}/diff [get]
+func GetOperationDiff() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getOperationByIDRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		operation, err := ctx.Operations.GetByID(req.ID)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		var result Operation
+		result.FromModel(operation)
+
+		if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
+			proto, err := ctx.Cache.ProtocolByID(operation.ProtocolID)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			result.Protocol = proto.Hash
+
+			storageBytes, err := ctx.Contracts.ScriptPart(operation.Network, operation.Destination.Address, proto.SymLink, consts.STORAGE)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+
+			storageType, err := ast.NewTypedAstFromBytes(storageBytes)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+
+			bmd, err := ctx.BigMapDiffs.GetForOperation(operation.ID)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+
+			if err := setStorageDiff(ctx, operation.DestinationID, operation.DeffatedStorage, &result, bmd, storageType); handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+		}
+		c.SecureJSON(http.StatusOK, result.StorageDiff)
 	}
-	operation, err := ctx.Operations.GetByID(req.ID)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	var result Operation
-	result.FromModel(operation)
-
-	if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
-		proto, err := ctx.Cache.ProtocolByID(operation.Network, operation.ProtocolID)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		result.Protocol = proto.Hash
-
-		storageBytes, err := ctx.Contracts.ScriptPart(operation.Network, operation.Destination.Address, proto.SymLink, consts.STORAGE)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-
-		storageType, err := ast.NewTypedAstFromBytes(storageBytes)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-
-		bmd, err := ctx.BigMapDiffs.GetForOperation(operation.ID)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-
-		if err := ctx.setStorageDiff(operation.DestinationID, operation.DeffatedStorage, &result, bmd, storageType); ctx.handleError(c, err, 0) {
-			return
-		}
-	}
-	c.SecureJSON(http.StatusOK, result.StorageDiff)
 }
 
-func (ctx *Context) getOperationFromMempool(hash string) *Operation {
+func getOperationFromMempool(ctxs config.Contexts, hash string) *Operation {
 	var wg sync.WaitGroup
-	var opCh = make(chan *Operation, len(ctx.MempoolServices))
+	var opCh = make(chan *Operation, len(ctxs))
 
 	defer close(opCh)
 
-	for network := range ctx.MempoolServices {
+	for _, ctx := range ctxs {
 		wg.Add(1)
-		go ctx.getOperation(network, hash, opCh, &wg)
+		go getOperation(ctx, hash, opCh, &wg)
 	}
 
 	wg.Wait()
 
-	for i := 0; i < len(ctx.MempoolServices); i++ {
+	for i := 0; i < len(ctxs); i++ {
 		if op := <-opCh; op != nil {
 			return op
 		}
@@ -242,16 +275,10 @@ func (ctx *Context) getOperationFromMempool(hash string) *Operation {
 	return nil
 }
 
-func (ctx *Context) getOperation(network modelTypes.Network, hash string, ops chan<- *Operation, wg *sync.WaitGroup) {
+func getOperation(ctx *config.Context, hash string, ops chan<- *Operation, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	api, err := ctx.GetMempoolService(network)
-	if err != nil {
-		ops <- nil
-		return
-	}
-
-	res, err := api.GetByHash(hash)
+	res, err := ctx.Mempool.GetByHash(hash)
 	if err != nil {
 		ops <- nil
 		return
@@ -259,9 +286,9 @@ func (ctx *Context) getOperation(network modelTypes.Network, hash string, ops ch
 
 	switch {
 	case len(res.Originations) > 0:
-		ops <- ctx.prepareMempoolOrigination(network, res.Originations[0])
+		ops <- prepareMempoolOrigination(ctx, res.Originations[0])
 	case len(res.Transactions) > 0:
-		ops <- ctx.prepareMempoolTransaction(network, res.Transactions[0])
+		ops <- prepareMempoolTransaction(ctx, res.Transactions[0])
 	default:
 		ops <- nil
 	}
@@ -307,14 +334,14 @@ func formatErrors(errs []*tezerrors.Error, op *Operation) error {
 	return nil
 }
 
-func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmapdiff.BigMapDiff, withStorageDiff bool) (Operation, error) {
+func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []bigmapdiff.BigMapDiff, withStorageDiff bool) (Operation, error) {
 	var op Operation
 	op.FromModel(operation)
 
 	op.SourceAlias = operation.Source.Alias
 	op.DestinationAlias = operation.Destination.Alias
 
-	proto, err := ctx.Cache.ProtocolByID(operation.Network, operation.ProtocolID)
+	proto, err := ctx.Cache.ProtocolByID(operation.ProtocolID)
 	if err != nil {
 		return op, err
 	}
@@ -325,7 +352,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 			return op, err
 		}
 
-		script, err := ctx.getScript(operation.Network, op.Destination, proto.SymLink)
+		script, err := getScript(ctx, op.Destination, proto.SymLink)
 		if err != nil {
 			return op, err
 		}
@@ -336,7 +363,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 				return op, err
 			}
 			if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination() || operation.Hash == "") && operation.IsApplied() {
-				if err := ctx.setStorageDiff(operation.DestinationID, operation.DeffatedStorage, &op, bmd, storageType); err != nil {
+				if err := setStorageDiff(ctx, operation.DestinationID, operation.DeffatedStorage, &op, bmd, storageType); err != nil {
 					return op, err
 				}
 			}
@@ -357,7 +384,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 }
 
 // PrepareOperations -
-func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff bool) ([]Operation, error) {
+func PrepareOperations(ctx *config.Context, ops []operation.Operation, withStorageDiff bool) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
 		var diffs []bigmapdiff.BigMapDiff
@@ -370,7 +397,7 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 			}
 		}
 
-		op, err := ctx.prepareOperation(ops[i], diffs, withStorageDiff)
+		op, err := prepareOperation(ctx, ops[i], diffs, withStorageDiff)
 		if err != nil {
 			return nil, err
 		}
@@ -413,8 +440,8 @@ func setParatemetersWithType(params *types.Parameters, script *ast.Script, op *O
 	return nil
 }
 
-func (ctx *Context) setStorageDiff(destinationID int64, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, storageType *ast.TypedAst) error {
-	storageDiff, err := ctx.getStorageDiff(destinationID, bmd, storage, storageType, op)
+func setStorageDiff(ctx *config.Context, destinationID int64, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, storageType *ast.TypedAst) error {
+	storageDiff, err := getStorageDiff(ctx, destinationID, bmd, storage, storageType, op)
 	if err != nil {
 		return err
 	}
@@ -422,7 +449,7 @@ func (ctx *Context) setStorageDiff(destinationID int64, storage []byte, op *Oper
 	return nil
 }
 
-func (ctx *Context) getStorageDiff(destinationID int64, bmd []bigmapdiff.BigMapDiff, storage []byte, storageType *ast.TypedAst, op *Operation) (*ast.MiguelNode, error) {
+func getStorageDiff(ctx *config.Context, destinationID int64, bmd []bigmapdiff.BigMapDiff, storage []byte, storageType *ast.TypedAst, op *Operation) (*ast.MiguelNode, error) {
 	currentStorage := &ast.TypedAst{
 		Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
 	}
@@ -489,12 +516,12 @@ func getEnrichStorage(storageType *ast.TypedAst, bmd []bigmapdiff.BigMapDiff) er
 	return storage.Enrich(storageType, bmd, false, true)
 }
 
-func (ctx *Context) getErrorLocation(operation operation.Operation, window int) (GetErrorLocationResponse, error) {
-	proto, err := ctx.Cache.ProtocolByID(operation.Network, operation.ProtocolID)
+func getErrorLocation(ctx *config.Context, operation operation.Operation, window int) (GetErrorLocationResponse, error) {
+	proto, err := ctx.Cache.ProtocolByID(operation.ProtocolID)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}
-	code, err := ctx.getScriptBytes(operation.Network, operation.Destination.Address, proto.SymLink)
+	code, err := getScriptBytes(ctx, operation.Destination.Address, proto.SymLink)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}

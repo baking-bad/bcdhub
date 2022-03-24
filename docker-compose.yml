@@ -21,12 +21,9 @@ services:
         max-file: "5"
 
   db:
-    image: ghcr.io/baking-bad/bcdhub-db:${TAG:-master}
+    image: postgres:14
     shm_size: 1g
     user: postgres
-    build:
-      context: .
-      dockerfile: build/db/Dockerfile
     restart: always
     env_file:
       - .env

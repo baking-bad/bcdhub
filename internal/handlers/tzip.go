@@ -4,36 +4,27 @@ import (
 	"context"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 	cmModel "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
-	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
 	cm "github.com/baking-bad/bcdhub/internal/parsers/contract_metadata"
-	"github.com/pkg/errors"
 )
 
 // ContractMetadata -
 type ContractMetadata struct {
 	repo    cmModel.Repository
 	storage models.GeneralRepository
-	parsers map[types.Network]cm.Parser
+	parser  cm.Parser
 }
 
 // NewContractMetadata -
-func NewContractMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, contractsRepo contract.Repository, storage models.GeneralRepository, repo cmModel.Repository, rpcs map[types.Network]noderpc.INode, ipfs []string) *ContractMetadata {
-	parsers := make(map[types.Network]cm.Parser)
-	for network, rpc := range rpcs {
-		parsers[network] = cm.NewParser(bigMapRepo, blockRepo, contractsRepo, storage, rpc, cm.ParserConfig{
-			IPFSGateways: ipfs,
-		})
-	}
+func NewContractMetadata(ctx *config.Context, ipfs []string) *ContractMetadata {
 	return &ContractMetadata{
-		repo, storage, parsers,
+		ctx.ContractMetadata, ctx.Storage, cm.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.Storage, ctx.RPC, cm.ParserConfig{
+			IPFSGateways: ipfs,
+		}),
 	}
 }
 
@@ -46,12 +37,7 @@ func (t *ContractMetadata) Do(ctx context.Context, bmd *domains.BigMapDiff, stor
 }
 
 func (t *ContractMetadata) handle(ctx context.Context, bmd *domains.BigMapDiff) ([]models.Model, error) {
-	tzipParser, ok := t.parsers[bmd.Network]
-	if !ok {
-		return nil, errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
-	}
-
-	model, err := tzipParser.Parse(ctx, cm.ParseArgs{
+	model, err := t.parser.Parse(ctx, cm.ParseArgs{
 		BigMapDiff: *bmd.BigMapDiff,
 	})
 	if err != nil {

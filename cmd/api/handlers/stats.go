@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -21,28 +22,32 @@ import (
 // @Success 200 {array} Block
 // @Failure 500 {object} Error
 // @Router /v1/stats [get]
-func (ctx *Context) GetStats(c *gin.Context) {
-	stats := make([]block.Block, 0)
-	for _, net := range ctx.Config.API.Networks {
-		block, err := ctx.Blocks.Last(types.NewNetwork(net))
-		if err != nil {
-			if ctx.Storage.IsRecordNotFound(err) {
-				continue
+func GetStats() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctxs := c.MustGet("contexts").(config.Contexts)
+
+		stats := make([]block.Block, 0)
+		for _, ctx := range ctxs {
+			block, err := ctx.Blocks.Last(ctx.Network)
+			if err != nil {
+				if ctx.Storage.IsRecordNotFound(err) {
+					continue
+				}
+				handleError(c, ctx.Storage, err, 0)
+				return
 			}
-			ctx.handleError(c, err, 0)
-			return
+			stats = append(stats, block)
 		}
-		stats = append(stats, block)
-	}
 
-	blocks := make([]Block, 0)
-	for i := range stats {
-		var block Block
-		block.FromModel(stats[i])
-		blocks = append(blocks, block)
-	}
+		blocks := make([]Block, 0)
+		for i := range stats {
+			var block Block
+			block.FromModel(stats[i])
+			blocks = append(blocks, block)
+		}
 
-	c.SecureJSON(http.StatusOK, blocks)
+		c.SecureJSON(http.StatusOK, blocks)
+	}
 }
 
 // GetNetworkStats godoc
@@ -57,42 +62,45 @@ func (ctx *Context) GetStats(c *gin.Context) {
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/stats/{network} [get]
-func (ctx *Context) GetNetworkStats(c *gin.Context) {
-	var req getByNetwork
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetNetworkStats() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+		var req getByNetwork
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	var stats NetworkStats
-	counts, err := ctx.Statistics.NetworkCountStats(req.NetworkID())
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	stats.ContractsCount = counts[models.DocContracts]
-	stats.OperationsCount = counts[models.DocOperations]
+		var stats NetworkStats
+		counts, err := ctx.Statistics.NetworkCountStats(req.NetworkID())
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		stats.ContractsCount = counts[models.DocContracts]
+		stats.OperationsCount = counts[models.DocOperations]
 
-	protocols, err := ctx.Protocols.GetByNetworkWithSort(req.NetworkID(), "start_level", "desc")
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	ps := make([]Protocol, len(protocols))
-	for i := range protocols {
-		ps[i].FromModel(protocols[i])
-	}
-	stats.Protocols = ps
+		protocols, err := ctx.Protocols.GetByNetworkWithSort(req.NetworkID(), "start_level", "desc")
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		ps := make([]Protocol, len(protocols))
+		for i := range protocols {
+			ps[i].FromModel(protocols[i])
+		}
+		stats.Protocols = ps
 
-	head, err := ctx.Statistics.NetworkStats(req.NetworkID())
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		head, err := ctx.Statistics.NetworkStats(req.NetworkID())
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	if networkHead, ok := head[req.Network]; ok {
-		stats.ContractCalls = networkHead.CallsCount
-		stats.UniqueContracts = networkHead.UniqueContractsCount
-		stats.FACount = networkHead.FACount
-	}
+		if networkHead, ok := head[req.Network]; ok {
+			stats.ContractCalls = networkHead.CallsCount
+			stats.UniqueContracts = networkHead.UniqueContractsCount
+			stats.FACount = networkHead.FACount
+		}
 
-	c.SecureJSON(http.StatusOK, stats)
+		c.SecureJSON(http.StatusOK, stats)
+	}
 }
 
 // GetSeries godoc
@@ -110,36 +118,39 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/stats/{network}/series [get]
-func (ctx *Context) GetSeries(c *gin.Context) {
-	var req getByNetwork
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetSeries() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+		var req getByNetwork
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	var reqArgs getSeriesRequest
-	if err := c.BindQuery(&reqArgs); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+		var reqArgs getSeriesRequest
+		if err := c.BindQuery(&reqArgs); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	var addresses []string
-	if reqArgs.Address != "" {
-		addresses = strings.Split(reqArgs.Address, ",")
-	}
+		var addresses []string
+		if reqArgs.Address != "" {
+			addresses = strings.Split(reqArgs.Address, ",")
+		}
 
-	options, err := ctx.getHistogramOptions(reqArgs.Name, req.NetworkID(), addresses...)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		options, err := getHistogramOptions(reqArgs.Name, req.NetworkID(), addresses...)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	series, err := ctx.Statistics.Histogram(reqArgs.Period, options...)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		series, err := ctx.Statistics.Histogram(reqArgs.Period, options...)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, series)
+		c.SecureJSON(http.StatusOK, series)
+	}
 }
 
-func (ctx *Context) getHistogramOptions(name string, network types.Network, addresses ...string) ([]models.HistogramOption, error) {
+func getHistogramOptions(name string, network types.Network, addresses ...string) ([]models.HistogramOption, error) {
 	filters := []models.HistogramFilter{
 		{
 			Field: "network",
@@ -260,26 +271,29 @@ func (ctx *Context) getHistogramOptions(name string, network types.Network, addr
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/stats/{network}/contracts [get]
-func (ctx *Context) GetContractsStats(c *gin.Context) {
-	var req getByNetwork
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	var reqStats GetTokenStatsRequest
-	if err := c.BindQuery(&reqStats); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	addresses := reqStats.Addresses()
-	if len(addresses) == 0 {
-		ctx.handleError(c, errors.Errorf("Empty address list"), http.StatusBadRequest)
-		return
-	}
-	stats, err := ctx.Operations.GetDAppStats(req.NetworkID(), addresses, reqStats.Period)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+func GetContractsStats() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+		var req getByNetwork
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		var reqStats GetTokenStatsRequest
+		if err := c.BindQuery(&reqStats); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		addresses := reqStats.Addresses()
+		if len(addresses) == 0 {
+			handleError(c, ctx.Storage, errors.Errorf("Empty address list"), http.StatusBadRequest)
+			return
+		}
+		stats, err := ctx.Operations.GetDAppStats(req.NetworkID(), addresses, reqStats.Period)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, stats)
+		c.SecureJSON(http.StatusOK, stats)
+	}
 }
 
 // RecentlyCalledContracts godoc
@@ -296,32 +310,35 @@ func (ctx *Context) GetContractsStats(c *gin.Context) {
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/stats/{network}/recently_called_contracts [get]
-func (ctx *Context) RecentlyCalledContracts(c *gin.Context) {
-	var req getByNetwork
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func RecentlyCalledContracts() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+		var req getByNetwork
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	var page pageableRequest
-	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+		var page pageableRequest
+		if err := c.BindQuery(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	if page.Size > 10 || page.Size == 0 {
-		page.Size = 10
-	}
+		if page.Size > 10 || page.Size == 0 {
+			page.Size = 10
+		}
 
-	contracts, err := ctx.Contracts.RecentlyCalled(req.NetworkID(), page.Offset, page.Size)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		contracts, err := ctx.Contracts.RecentlyCalled(req.NetworkID(), page.Offset, page.Size)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	response := make([]RecentlyCalledContract, len(contracts))
-	for i := range contracts {
-		var res RecentlyCalledContract
-		res.FromModel(contracts[i])
-		response[i] = res
-	}
+		response := make([]RecentlyCalledContract, len(contracts))
+		for i := range contracts {
+			var res RecentlyCalledContract
+			res.FromModel(contracts[i])
+			response[i] = res
+		}
 
-	c.SecureJSON(http.StatusOK, response)
+		c.SecureJSON(http.StatusOK, response)
+	}
 }

@@ -18,13 +18,6 @@ type contractData struct {
 	Storage stdJSON.RawMessage `json:"storage"`
 }
 
-// Fingerprint -
-type Fingerprint struct {
-	Parameter []byte
-	Storage   []byte
-	Code      []byte
-}
-
 // Parser -
 type Parser struct {
 	Code    *ast.Script
@@ -35,8 +28,6 @@ type Parser struct {
 	Annotations        types.Set
 	HardcodedAddresses types.Set
 	Constants          types.Set
-
-	Fingerprint Fingerprint
 
 	Hash string
 
@@ -84,7 +75,6 @@ func NewParser(data []byte) (*Parser, error) {
 		HardcodedAddresses: make(types.Set),
 		Tags:               tags,
 		Hash:               hash,
-		Fingerprint:        Fingerprint{},
 		CodeRaw:            cd.Code,
 	}, nil
 }
@@ -182,11 +172,6 @@ func (p *Parser) parseCode() error {
 	if len(p.Code.Code) == 0 {
 		return nil
 	}
-	f, err := p.Code.Code.Fingerprint(true)
-	if err != nil {
-		return err
-	}
-	p.Fingerprint.Code = f
 
 	return p.parse(p.Code.Code, p.handleCodeNode)
 }
@@ -195,12 +180,6 @@ func (p *Parser) parseParameter() error {
 	if len(p.Code.Parameter) == 0 {
 		return nil
 	}
-
-	f, err := p.Code.Parameter.Fingerprint(false)
-	if err != nil {
-		return err
-	}
-	p.Fingerprint.Parameter = f
 
 	typedParamTree, err := p.Code.Parameter.ToTypedAST()
 	if err != nil {
@@ -217,11 +196,6 @@ func (p *Parser) parseStorage() error {
 		return nil
 	}
 
-	f, err := p.Code.Storage.Fingerprint(false)
-	if err != nil {
-		return err
-	}
-	p.Fingerprint.Storage = f
 	return p.parse(p.Code.Storage, p.handleStorageNode)
 }
 

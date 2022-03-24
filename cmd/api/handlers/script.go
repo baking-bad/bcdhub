@@ -2,42 +2,42 @@ package handlers
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/config"
 )
 
-func (ctx *Context) getScript(network types.Network, address, symLink string) (*ast.Script, error) {
-	data, err := ctx.Cache.ScriptBytes(network, address, symLink)
+func getScript(ctx *config.Context, address, symLink string) (*ast.Script, error) {
+	data, err := ctx.Cache.ScriptBytes(address, symLink)
 	if err != nil {
 		return nil, err
 	}
 	return ast.NewScriptWithoutCode(data)
 }
 
-func (ctx *Context) getScriptBytes(network types.Network, address, symLink string) ([]byte, error) {
+func getScriptBytes(ctx *config.Context, address, symLink string) ([]byte, error) {
 	if symLink == "" {
-		state, err := ctx.Cache.CurrentBlock(network)
+		state, err := ctx.Cache.CurrentBlock()
 		if err != nil {
 			return nil, err
 		}
 		symLink = state.Protocol.SymLink
 	}
-	script, err := ctx.Contracts.Script(network, address, symLink)
+	script, err := ctx.Contracts.Script(ctx.Network, address, symLink)
 	if err != nil {
 		return nil, err
 	}
 	return script.Full()
 }
 
-func (ctx *Context) getParameterType(network types.Network, address, symLink string) (*ast.TypedAst, error) {
-	script, err := ctx.getScript(network, address, symLink)
+func getParameterType(ctx *config.Context, address, symLink string) (*ast.TypedAst, error) {
+	script, err := getScript(ctx, address, symLink)
 	if err != nil {
 		return nil, err
 	}
 	return script.ParameterType()
 }
 
-func (ctx *Context) getStorageType(network types.Network, address, symLink string) (*ast.TypedAst, error) {
-	script, err := ctx.getScript(network, address, symLink)
+func getStorageType(ctx *config.Context, address, symLink string) (*ast.TypedAst, error) {
+	script, err := getScript(ctx, address, symLink)
 	if err != nil {
 		return nil, err
 	}

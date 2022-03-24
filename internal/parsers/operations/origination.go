@@ -141,7 +141,7 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 		return nil
 	}
 
-	contractEvents, err := p.ctx.Cache.Events(origination.Network, origination.Destination.Address)
+	contractEvents, err := p.ctx.Cache.Events(origination.Destination.Address)
 	if err != nil {
 		if p.ctx.Storage.IsRecordNotFound(err) {
 			return nil
@@ -178,7 +178,7 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 				return err
 			}
 
-			balances, err := events.Execute(p.rpc, event, events.Context{
+			balances, err := events.Execute(p.ctx.RPC, event, events.Context{
 				Network:                  origination.Network,
 				Parameters:               storageType,
 				Source:                   origination.Source.Address,

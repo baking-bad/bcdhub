@@ -1,13 +1,11 @@
 package config
 
 import (
-	"fmt"
+	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/account"
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/postgres/contract"
@@ -23,6 +21,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/postgres/transfer"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
+	"github.com/go-pg/pg/v10"
 
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/postgres/block"
@@ -35,20 +34,21 @@ import (
 type ContextOption func(ctx *Context)
 
 // WithRPC -
-func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
+func WithRPC(rpcConfig map[string]RPCConfig, cache bool) ContextOption {
 	return func(ctx *Context) {
-		if len(rpcConfig) == 0 {
-			panic("RPC config is invalid")
+		if rpcProvider, ok := rpcConfig[ctx.Network.String()]; ok {
+			if rpcProvider.URI == "" {
+				return
+			}
+			opts := []noderpc.NodeOption{
+				noderpc.WithTimeout(time.Second * time.Duration(rpcProvider.Timeout)),
+			}
+			if cache {
+				opts = append(opts, noderpc.WithCache(ctx.Config.SharePath, ctx.Network.String()))
+			}
+
+			ctx.RPC = noderpc.NewPool([]string{rpcProvider.URI}, opts...)
 		}
-		rpc := make(map[types.Network]noderpc.INode)
-		for name, rpcProvider := range rpcConfig {
-			network := types.NewNetwork(name)
-			rpc[network] = noderpc.NewPool(
-				[]string{rpcProvider.URI},
-				noderpc.WithTimeout(time.Second*time.Duration(rpcProvider.Timeout)),
-			)
-		}
-		ctx.RPC = rpc
 	}
 }
 
@@ -58,8 +58,31 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		if len(cfg.Elastic) == 0 {
 			panic("Please set connection strings to storage in config")
 		}
+		defaultConnString := cfg.Postgres.ConnectionString()
+		defaultConn := pgCore.WaitNew(defaultConnString, appName, cfg.Timeout,
+			pgCore.WithPageSize(maxPageSize),
+			pgCore.WithIdleConnections(idleConnCount),
+			pgCore.WithMaxConnections(maxConnCount),
+			pgCore.WithQueryLogging(),
+		)
+		defer defaultConn.Close()
 
-		pg := pgCore.WaitNew(cfg.Postgres, appName, cfg.Timeout,
+		if _, err := defaultConn.DB.Exec("create database ?", pg.Ident(ctx.Network.String())); err != nil {
+			if !strings.Contains(err.Error(), "already exists") {
+				panic(err)
+			}
+		}
+
+		networkConfig := PostgresConfig{
+			Host:     cfg.Postgres.Host,
+			Port:     cfg.Postgres.Port,
+			User:     cfg.Postgres.User,
+			Password: cfg.Postgres.Password,
+			DBName:   ctx.Network.String(),
+			SslMode:  cfg.Postgres.SslMode,
+		}
+
+		pg := pgCore.WaitNew(networkConfig.ConnectionString(), appName, cfg.Timeout,
 			pgCore.WithPageSize(maxPageSize),
 			pgCore.WithIdleConnections(idleConnCount),
 			pgCore.WithMaxConnections(maxConnCount),
@@ -109,18 +132,12 @@ func WithConfigCopy(cfg Config) ContextOption {
 // WithMempool -
 func WithMempool(cfg map[string]ServiceConfig) ContextOption {
 	return func(ctx *Context) {
-		if len(cfg) == 0 {
-			return
-		}
-		svc := make(map[types.Network]*mempool.Mempool)
-		for network, svcCfg := range cfg {
+		if svcCfg, ok := cfg[ctx.Network.String()]; ok {
 			if svcCfg.MempoolURI == "" {
-				continue
+				return
 			}
-			typ := types.NewNetwork(network)
-			svc[typ] = mempool.NewMempool(svcCfg.MempoolURI)
+			ctx.Mempool = mempool.NewMempool(svcCfg.MempoolURI)
 		}
-		ctx.MempoolServices = svc
 	}
 }
 
@@ -129,27 +146,6 @@ func WithLoadErrorDescriptions() ContextOption {
 	return func(ctx *Context) {
 		if err := tezerrors.LoadErrorDescriptions(); err != nil {
 			panic(err)
-		}
-	}
-}
-
-// WithAWS -
-func WithAWS(cfg AWSConfig) ContextOption {
-	return func(ctx *Context) {
-		client, err := aws.New(cfg.AccessKeyID, cfg.SecretAccessKey, cfg.Region, cfg.BucketName)
-		if err != nil {
-			panic(fmt.Errorf("aws client init error: %s", err))
-		}
-		ctx.AWS = client
-	}
-}
-
-// WithDomains -
-func WithDomains(cfg TezosDomainsConfig) ContextOption {
-	return func(ctx *Context) {
-		ctx.TezosDomainsContracts = make(map[types.Network]string)
-		for network, address := range cfg {
-			ctx.TezosDomainsContracts[types.NewNetwork(network)] = address
 		}
 	}
 }

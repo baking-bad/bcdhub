@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"net/http"
-	"sort"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -23,45 +23,42 @@ import (
 // @Success 200 {array} HeadResponse
 // @Failure 500 {object} Error
 // @Router /v1/head [get]
-func (ctx *Context) GetHead(c *gin.Context) {
-	blocks := make([]block.Block, 0)
-	for _, net := range ctx.Config.API.Networks {
-		block, err := ctx.Blocks.Last(types.NewNetwork(net))
-		if err != nil {
-			if ctx.Storage.IsRecordNotFound(err) {
-				continue
-			}
-			ctx.handleError(c, err, 0)
+func GetHead() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctxs := c.MustGet("contexts").(config.Contexts)
+
+		ctx, err := ctxs.Get(types.Mainnet)
+		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		blocks = append(blocks, block)
-	}
 
-	var network types.Network
-	if len(blocks) == 1 {
-		network = blocks[0].Network
-	} else {
-		sort.Sort(block.ByNetwork(blocks))
-	}
-
-	stats, err := ctx.Statistics.NetworkStats(network)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	body := make([]HeadResponse, 0)
-	for i := range blocks {
-
-		head, err := ctx.getHead(blocks[i], stats)
-		if err != nil {
-			logger.Warning().Str("network", blocks[i].Network.String()).Err(err).Msg("head API")
-			continue
+		stats, err := ctx.Statistics.NetworkStats(types.Empty)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
 		}
 
-		body = append(body, head)
-	}
+		body := make([]HeadResponse, 0)
+		for network, ctx := range ctxs {
+			block, err := ctx.Blocks.Last(network)
+			if err != nil {
+				if ctx.Storage.IsRecordNotFound(err) {
+					continue
+				}
+				handleError(c, ctx.Storage, err, 0)
+				return
+			}
 
-	c.SecureJSON(http.StatusOK, body)
+			head, err := getHead(ctx, block, stats)
+			if err != nil {
+				logger.Warning().Str("network", block.Network.String()).Err(err).Msg("head API")
+				continue
+			}
+
+			body = append(body, head)
+		}
+
+		c.SecureJSON(http.StatusOK, body)
+	}
 }
 
 // GetHeadByNetwork godoc
@@ -75,31 +72,30 @@ func (ctx *Context) GetHead(c *gin.Context) {
 // @Success 200 {object} HeadResponse
 // @Failure 500 {object} Error
 // @Router /v1/head/{network} [get]
-func (ctx *Context) GetHeadByNetwork(c *gin.Context) {
-	var req getByNetwork
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetHeadByNetwork() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	block, err := ctx.Blocks.Last(req.NetworkID())
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		block, err := ctx.Blocks.Last(ctx.Network)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	stats, err := ctx.Statistics.NetworkStats(req.NetworkID())
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		stats, err := ctx.Statistics.NetworkStats(ctx.Network)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	head, err := ctx.getHead(block, stats)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		head, err := getHead(ctx, block, stats)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, head)
+		c.SecureJSON(http.StatusOK, head)
+	}
 }
 
-func (ctx *Context) getHead(block block.Block, stats map[string]*models.NetworkStats) (HeadResponse, error) {
+func getHead(ctx *config.Context, block block.Block, stats map[string]*models.NetworkStats) (HeadResponse, error) {
 	var found bool
 	for j := range ctx.Config.API.Networks {
 		if block.Network.String() == ctx.Config.API.Networks[j] {

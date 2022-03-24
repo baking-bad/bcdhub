@@ -49,11 +49,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 			if err != nil {
 				return err
 			}
-			rpc, err := ctx.GetRPC(tzips[i].Network)
-			if err != nil {
-				return err
-			}
-			parser, err := transferParser.NewParser(rpc, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
+			parser, err := transferParser.NewParser(ctx.RPC, ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
 				transferParser.WithNetwork(tzips[i].Network),
 				transferParser.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 			)
@@ -108,7 +104,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 							}
 							parser.SetStackTrace(st)
 
-							proto, err := ctx.Cache.ProtocolByID(operations[i].Network, operations[i].ProtocolID)
+							proto, err := ctx.Cache.ProtocolByID(operations[i].ProtocolID)
 							if err != nil {
 								return err
 							}

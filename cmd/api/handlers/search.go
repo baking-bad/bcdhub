@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/search"
@@ -31,34 +32,39 @@ import (
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/search [get]
-func (ctx *Context) Search(c *gin.Context) {
-	var req searchRequest
-	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func Search() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctxs := c.MustGet("contexts").(config.Contexts)
+		mainnet := ctxs.MustGet(types.Mainnet)
 
-	var fields []string
-	if req.Fields != "" {
-		fields = strings.Split(req.Fields, ",")
-	}
-	filters := getSearchFilters(req)
-
-	result, err := ctx.Searcher.ByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	if result.Count == 0 {
-		item := ctx.searchInMempool(req.Text)
-		if item != nil {
-			result.Items = append(result.Items, item)
-			result.Count++
+		var req searchRequest
+		if err := c.BindQuery(&req); handleError(c, mainnet.Storage, err, http.StatusBadRequest) {
+			return
 		}
-	} else {
-		ctx.searchPostprocessing(&result)
-	}
 
-	c.SecureJSON(http.StatusOK, result)
+		var fields []string
+		if req.Fields != "" {
+			fields = strings.Split(req.Fields, ",")
+		}
+		filters := getSearchFilters(req)
+
+		result, err := mainnet.Searcher.ByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
+		if handleError(c, mainnet.Storage, err, 0) {
+			return
+		}
+
+		if result.Count == 0 {
+			item := searchInMempool(ctxs, req.Text)
+			if item != nil {
+				result.Items = append(result.Items, item)
+				result.Count++
+			}
+		} else {
+			searchPostprocessing(ctxs, &result)
+		}
+
+		c.SecureJSON(http.StatusOK, result)
+	}
 }
 
 func getSearchFilters(req searchRequest) map[string]interface{} {
@@ -98,12 +104,12 @@ var indicesMap = map[string]string{
 	"token_metadata": models.DocTokenMetadata,
 }
 
-func (ctx *Context) searchInMempool(q string) *search.Item {
+func searchInMempool(ctxs config.Contexts, q string) *search.Item {
 	if _, err := forge.UnforgeOpgHash(q); err != nil {
 		return nil
 	}
 
-	if operation := ctx.getOperationFromMempool(q); operation != nil {
+	if operation := getOperationFromMempool(ctxs, q); operation != nil {
 		return &search.Item{
 			Type:  models.DocOperations,
 			Value: operation.Hash,
@@ -117,11 +123,16 @@ func (ctx *Context) searchInMempool(q string) *search.Item {
 	return nil
 }
 
-func (ctx *Context) searchPostprocessing(result *search.Result) {
+func searchPostprocessing(ctxs config.Contexts, result *search.Result) {
 	for i := range result.Items {
+		ctx, err := ctxs.Get(types.NewNetwork(result.Items[i].Network))
+		if err != nil {
+			continue
+		}
+
 		switch typ := result.Items[i].Body.(type) {
 		case *search.Contract:
-			enity, err := ctx.Contracts.Get(types.NewNetwork(typ.Network), typ.Address)
+			enity, err := ctx.Contracts.Get(ctx.Network, typ.Address)
 			if err != nil {
 				continue
 			}

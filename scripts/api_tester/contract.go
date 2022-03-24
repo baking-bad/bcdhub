@@ -114,9 +114,6 @@ func testContract(tasks chan contract.Contract, stop chan struct{}, counter *int
 			if err := request(fmt.Sprintf("%s/same", prefix)); err != nil {
 				logger.Err(err)
 			}
-			if err := request(fmt.Sprintf("%s/similar", prefix)); err != nil {
-				logger.Err(err)
-			}
 			if err := request(fmt.Sprintf("%s/entrypoints", prefix)); err != nil {
 				logger.Err(err)
 			}

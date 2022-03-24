@@ -86,7 +86,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 		}
 	}
 
-	script, err := p.ctx.Cache.ScriptBytes(tx.Network, tx.Destination.Address, p.protocol.SymLink)
+	script, err := p.ctx.Cache.ScriptBytes(tx.Destination.Address, p.protocol.SymLink)
 	if err != nil {
 		if !tx.Internal {
 			return nil

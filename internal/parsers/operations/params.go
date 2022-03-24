@@ -15,7 +15,6 @@ import (
 // ParseParams -
 type ParseParams struct {
 	ctx *config.Context
-	rpc noderpc.INode
 
 	contractParser *contract.Parser
 	transferParser *transfer.Parser
@@ -78,10 +77,9 @@ func WithMainOperation(main *operation.Operation) ParseParamsOption {
 }
 
 // NewParseParams -
-func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsOption) (*ParseParams, error) {
+func NewParseParams(ctx *config.Context, opts ...ParseParamsOption) (*ParseParams, error) {
 	params := &ParseParams{
 		ctx:        ctx,
-		rpc:        rpc,
 		stackTrace: stacktrace.New(),
 	}
 	for i := range opts {
@@ -97,7 +95,7 @@ func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsO
 	}
 
 	transferParser, err := transfer.NewParser(
-		rpc,
+		ctx.RPC,
 		ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
 		transfer.WithStackTrace(params.stackTrace),
 		transfer.WithNetwork(params.network),
@@ -110,7 +108,7 @@ func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsO
 	params.transferParser = transferParser
 
 	params.contractParser = contract.NewParser(params.ctx)
-	storageParser, err := NewRichStorage(ctx.BigMapDiffs, rpc, params.head.Protocol)
+	storageParser, err := NewRichStorage(ctx.BigMapDiffs, ctx.RPC, params.head.Protocol)
 	if err != nil {
 		return nil, err
 	}

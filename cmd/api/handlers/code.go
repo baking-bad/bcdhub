@@ -5,7 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
-	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -26,75 +26,51 @@ import (
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/code [get]
-func (ctx *Context) GetContractCode(c *gin.Context) {
-	var req getContractCodeRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetContractCode() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	network := types.NewNetwork(req.Network)
-
-	if req.Protocol == "" {
-		state, err := ctx.Cache.CurrentBlock(network)
-		if ctx.handleError(c, err, 0) {
+		var req getContractCodeRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		proto, err := ctx.Cache.ProtocolByID(state.Network, state.ProtocolID)
-		if ctx.handleError(c, err, 0) {
+
+		if err := c.BindQuery(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		req.Protocol = proto.Hash
-	}
 
-	code, err := ctx.getContractCodeJSON(network, req.Address, req.Protocol)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		if req.Protocol == "" {
+			state, err := ctx.Cache.CurrentBlock()
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			proto, err := ctx.Cache.ProtocolByID(state.ProtocolID)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			req.Protocol = proto.Hash
+		}
 
-	resp, err := formatter.MichelineToMichelson(code, false, formatter.DefLineSize)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		code, err := getContractCodeJSON(ctx, req.Address, req.Protocol)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, resp)
+		resp, err := formatter.MichelineToMichelson(code, false, formatter.DefLineSize)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		c.SecureJSON(http.StatusOK, resp)
+	}
 }
 
-// GetDiff godoc
-// @Summary Get diff between two contracts
-// @Description Get diff between two contracts
-// @Tags contract
-// @ID get-diff
-// @Param body body CodeDiffRequest true "Request body"
-// @Accept  json
-// @Produce  json
-// @Success 200 {object} CodeDiffResponse
-// @Failure 400 {object} Error
-// @Failure 500 {object} Error
-// @Router /v1/diff [post]
-func (ctx *Context) GetDiff(c *gin.Context) {
-	var req CodeDiffRequest
-	if err := c.BindJSON(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	resp, err := ctx.getContractCodeDiff(req.Left, req.Right)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	c.SecureJSON(http.StatusOK, resp)
-}
-
-func (ctx *Context) getContractCodeJSON(network types.Network, address string, protocol string) (res gjson.Result, err error) {
+func getContractCodeJSON(ctx *config.Context, address string, protocol string) (res gjson.Result, err error) {
 	symLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return res, err
 	}
-	script, err := ctx.Cache.ScriptBytes(network, address, symLink)
+	script, err := ctx.Cache.ScriptBytes(address, symLink)
 	if err != nil {
 		return res, err
 	}
@@ -104,44 +80,4 @@ func (ctx *Context) getContractCodeJSON(network types.Network, address string, p
 	}
 
 	return contract, nil
-}
-
-func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffResponse, err error) {
-	currentProtocols := make(map[types.Network]string, 2)
-	sides := make([]gjson.Result, 2)
-
-	for i, leg := range []*CodeDiffLeg{&left, &right} {
-		if leg.Protocol == "" {
-			protocol, ok := currentProtocols[leg.Network]
-			if !ok {
-				state, err := ctx.Cache.CurrentBlock(leg.Network)
-				if err != nil {
-					return res, err
-				}
-				proto, err := ctx.Cache.ProtocolByID(state.Network, state.ProtocolID)
-				if err != nil {
-					return res, err
-				}
-				leg.Protocol = proto.Hash
-				currentProtocols[leg.Network] = proto.Hash
-			} else {
-				leg.Protocol = protocol
-			}
-		}
-		code, err := ctx.getContractCodeJSON(leg.Network, leg.Address, leg.Protocol)
-		if err != nil {
-			return res, err
-		}
-		sides[i] = code
-	}
-
-	diff, err := formatter.Diff(sides[0], sides[1])
-	if err != nil {
-		return res, err
-	}
-
-	res.Left = left
-	res.Right = right
-	res.Diff = diff
-	return res, nil
 }

@@ -28,14 +28,7 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	internalCtx := config.NewContext(
-		config.WithConfigCopy(cfg),
-		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle),
-		config.WithSearch(cfg.Storage),
-	)
-	defer internalCtx.Close()
-
-	indexers, err := indexer.CreateIndexers(ctx, internalCtx, cfg)
+	indexers, err := indexer.CreateIndexers(ctx, cfg)
 	if err != nil {
 		cancel()
 		logger.Err(err)
@@ -56,5 +49,10 @@ func main() {
 	cancel()
 
 	wg.Wait()
+	for i := range indexers {
+		if err := indexers[i].Close(); err != nil {
+			panic(err)
+		}
+	}
 	logger.Info().Msg("Stopped")
 }

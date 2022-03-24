@@ -78,17 +78,14 @@ func readTestScriptModel(network types.Network, address, symLink string) (contra
 		return contract.Script{}, err
 	}
 	return contract.Script{
-		Code:                 s.Code,
-		Parameter:            s.Parameter,
-		Storage:              s.Storage,
-		Hash:                 script.Hash,
-		FingerprintParameter: script.Fingerprint.Parameter,
-		FingerprintCode:      script.Fingerprint.Code,
-		FingerprintStorage:   script.Fingerprint.Storage,
-		FailStrings:          script.FailStrings.Values(),
-		Annotations:          script.Annotations.Values(),
-		Tags:                 types.NewTags(script.Tags.Values()),
-		Hardcoded:            script.HardcodedAddresses.Values(),
+		Code:        s.Code,
+		Parameter:   s.Parameter,
+		Storage:     s.Storage,
+		Hash:        script.Hash,
+		FailStrings: script.FailStrings.Values(),
+		Annotations: script.Annotations.Values(),
+		Tags:        types.NewTags(script.Tags.Values()),
+		Hardcoded:   script.HardcodedAddresses.Values(),
 	}, nil
 }
 
@@ -494,9 +491,6 @@ func compareScript(t *testing.T, one, two contract.Script) bool {
 	if !assert.Equal(t, one.Hash, two.Hash) {
 		return false
 	}
-	if !assert.Equal(t, one.ProjectID, two.ProjectID) {
-		return false
-	}
 	if !assert.ElementsMatch(t, one.Entrypoints, two.Entrypoints) {
 		return false
 	}
@@ -510,15 +504,6 @@ func compareScript(t *testing.T, one, two contract.Script) bool {
 		return false
 	}
 	if !assert.ElementsMatch(t, one.Code, two.Code) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.FingerprintParameter, two.FingerprintParameter) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.FingerprintCode, two.FingerprintCode) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.FingerprintStorage, two.FingerprintStorage) {
 		return false
 	}
 	return true

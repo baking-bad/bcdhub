@@ -31,7 +31,6 @@ var errSameLevel = errors.New("Same level")
 type BoostIndexer struct {
 	*config.Context
 
-	rpc             noderpc.INode
 	receiver        *Receiver
 	state           block.Block
 	currentProtocol protocol.Protocol
@@ -44,28 +43,21 @@ type BoostIndexer struct {
 }
 
 // NewBoostIndexer -
-func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig config.RPCConfig, network types.Network, cfg config.IndexerConfig) (*BoostIndexer, error) {
-	logger.Info().Str("network", network.String()).Msg("Creating indexer object...")
-
-	rpcOpts := []noderpc.NodeOption{
-		noderpc.WithTimeout(time.Duration(rpcConfig.Timeout) * time.Second),
-	}
-
-	if internalCtx.Config.Indexer.Cache {
-		rpcOpts = append(rpcOpts, noderpc.WithCache(internalCtx.Config.SharePath, network.String()))
-	}
-
-	rpc := noderpc.NewWaitNodeRPC(
-		rpcConfig.URI,
-		rpcOpts...,
+func NewBoostIndexer(ctx context.Context, cfg config.Config, network types.Network, indexerConfig config.IndexerConfig) (*BoostIndexer, error) {
+	internalCtx := config.NewContext(
+		network,
+		config.WithConfigCopy(cfg),
+		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle),
+		config.WithSearch(cfg.Storage),
+		config.WithRPC(cfg.RPC, cfg.Indexer.Cache),
 	)
+	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 
 	bi := &BoostIndexer{
-		Context:  &internalCtx,
-		Network:  network,
-		rpc:      rpc,
-		receiver: NewReceiver(rpc, 100, cfg.ReceiverThreads),
+		Context:  internalCtx,
+		receiver: NewReceiver(internalCtx.RPC, 100, indexerConfig.ReceiverThreads),
 		blocks:   make(map[int64]*Block),
+		Network:  network,
 	}
 
 	if err := bi.init(ctx, bi.Context.StorageDB); err != nil {
@@ -75,7 +67,16 @@ func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig 
 	return bi, nil
 }
 
+// Close -
+func (bi *BoostIndexer) Close() error {
+	return bi.Context.Close()
+}
+
 func (bi *BoostIndexer) init(ctx context.Context, db *core.Postgres) error {
+	if err := NewInitializer(bi.Network, bi.Storage, db.DB, bi.Config.Indexer.OffchainBaseURL).Init(ctx); err != nil {
+		return err
+	}
+
 	currentState, err := bi.Blocks.Last(bi.Network)
 	if err != nil {
 		return err
@@ -89,11 +90,11 @@ func (bi *BoostIndexer) init(ctx context.Context, db *core.Postgres) error {
 			return err
 		}
 
-		header, err := bi.rpc.GetHeader(helpers.MaxInt64(1, currentState.Level))
+		header, err := bi.RPC.GetHeader(helpers.MaxInt64(1, currentState.Level))
 		if err != nil {
 			return err
 		}
-		currentProtocol, err = createProtocol(bi.rpc, bi.Network, header.Protocol, header.Level)
+		currentProtocol, err = createProtocol(bi.RPC, bi.Network, header.Protocol, header.Level)
 		if err != nil {
 			return err
 		}
@@ -272,7 +273,7 @@ func (bi *BoostIndexer) Rollback(ctx context.Context) error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.rpc, bi.Searcher, bi.Storage, bi.Blocks, bi.BigMapDiffs, bi.Transfers)
+	manager := rollback.NewManager(bi.RPC, bi.Searcher, bi.Storage, bi.Blocks, bi.BigMapDiffs, bi.Transfers)
 	if err := manager.Rollback(ctx, bi.StorageDB.DB, bi.state, lastLevel); err != nil {
 		return err
 	}
@@ -294,7 +295,7 @@ func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
 	level := bi.state.Level
 
 	for end := false; !end; level-- {
-		headAtLevel, err := bi.rpc.GetHeader(level)
+		headAtLevel, err := bi.RPC.GetHeader(level)
 		if err != nil {
 			return 0, err
 		}
@@ -314,7 +315,7 @@ func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
 }
 
 func (bi *BoostIndexer) process(ctx context.Context) error {
-	head, err := bi.rpc.GetHead()
+	head, err := bi.RPC.GetHead()
 	if err != nil {
 		return err
 	}
@@ -368,7 +369,6 @@ func (bi *BoostIndexer) getDataFromBlock(block *Block) (*parsers.Result, error) 
 		return result, nil
 	}
 	parserParams, err := operations.NewParseParams(
-		bi.rpc,
 		bi.Context,
 		operations.WithProtocol(&bi.currentProtocol),
 		operations.WithHead(block.Header),
@@ -402,7 +402,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
 	newProtocol, err := bi.Protocols.Get(bi.Network, head.Protocol, head.Level)
 	if err != nil {
 		logger.Warning().Str("network", bi.Network.String()).Msgf("%s", err)
-		newProtocol, err = createProtocol(bi.rpc, bi.Network, head.Protocol, head.Level)
+		newProtocol, err = createProtocol(bi.RPC, bi.Network, head.Protocol, head.Level)
 		if err != nil {
 			return err
 		}
@@ -438,11 +438,11 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
 }
 
 func (bi *BoostIndexer) implicitMigration(head noderpc.Header, protocol protocol.Protocol, tx pg.DBI) error {
-	metadata, err := bi.rpc.GetBlockMetadata(head.Level)
+	metadata, err := bi.RPC.GetBlockMetadata(head.Level)
 	if err != nil {
 		return err
 	}
-	implicitParser := migrations.NewImplicitParser(bi.Context, bi.Network, bi.rpc, protocol)
+	implicitParser := migrations.NewImplicitParser(bi.Context, bi.Network, bi.RPC, protocol)
 	implicitResult, err := implicitParser.Parse(metadata, head)
 	if err != nil {
 		return err
@@ -469,7 +469,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 
 	for i := range contracts {
 		logger.Info().Str("network", bi.Network.String()).Msgf("Migrate %s...", contracts[i].Account.Address)
-		script, err := bi.rpc.GetScriptJSON(contracts[i].Account.Address, newProtocol.StartLevel)
+		script, err := bi.RPC.GetScriptJSON(contracts[i].Account.Address, newProtocol.StartLevel)
 		if err != nil {
 			return err
 		}
@@ -495,7 +495,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 }
 
 func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx pg.DBI) error {
-	addresses, err := bi.rpc.GetContractsByBlock(head.Level)
+	addresses, err := bi.RPC.GetContractsByBlock(head.Level)
 	if err != nil {
 		return err
 	}
@@ -509,7 +509,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx pg.DBI) error {
 			continue
 		}
 
-		data, err := bi.rpc.GetContractData(address, head.Level)
+		data, err := bi.RPC.GetContractData(address, head.Level)
 		if err != nil {
 			return err
 		}

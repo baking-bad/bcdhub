@@ -156,7 +156,6 @@ type Contract struct {
 	Manager  string `json:"manager,omitempty" extensions:"x-nullable"`
 	Delegate string `json:"delegate,omitempty" extensions:"x-nullable"`
 
-	ProjectID       string    `json:"project_id,omitempty" extensions:"x-nullable"`
 	FoundBy         string    `json:"found_by,omitempty" extensions:"x-nullable"`
 	LastAction      time.Time `json:"last_action,omitempty" extensions:"x-nullable"`
 	TxCount         int64     `json:"tx_count,omitempty" extensions:"x-nullable"`
@@ -191,7 +190,6 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.FailStrings = script.FailStrings
 	c.Annotations = script.Annotations
 	c.Entrypoints = script.Entrypoints
-	c.ProjectID = script.ProjectID.String()
 	c.ID = contract.ID
 }
 
@@ -199,8 +197,7 @@ func (c *Contract) FromModel(contract contract.Contract) {
 type ContractWithStats struct {
 	Contract
 
-	SameCount    int64 `json:"same_count"`
-	SimilarCount int64 `json:"similar_count"`
+	SameCount int64 `json:"same_count"`
 }
 
 // RecentlyCalledContract -
@@ -435,46 +432,10 @@ func (b *Block) FromModel(block block.Block) {
 	b.Timestamp = block.Timestamp
 }
 
-// SimilarContractsResponse -
-type SimilarContractsResponse struct {
-	Count     int               `json:"count"`
-	Contracts []SimilarContract `json:"contracts"`
-}
-
-// SimilarContract -
-type SimilarContract struct {
-	*ContractWithStats
-	Added   int64 `json:"added,omitempty" extensions:"x-nullable"`
-	Removed int64 `json:"removed,omitempty" extensions:"x-nullable"`
-}
-
-// FromModel -
-func (c *SimilarContract) FromModel(similar contract.Similar, diff CodeDiffResponse) {
-	var contract ContractWithStats
-	contract.FromModel(*similar.Contract)
-	c.ContractWithStats = &contract
-
-	c.Added = diff.Diff.Added
-	c.Removed = diff.Diff.Removed
-}
-
 // SameContractsResponse -
 type SameContractsResponse struct {
 	Count     int64               `json:"count"`
 	Contracts []ContractWithStats `json:"contracts"`
-}
-
-// FromModel -
-func (c *SameContractsResponse) FromModel(same contract.SameResponse, ctx *Context) {
-	c.Count = same.Count
-
-	c.Contracts = make([]ContractWithStats, len(same.Contracts))
-	for i := range same.Contracts {
-		var contract ContractWithStats
-		contract.FromModel(same.Contracts[i])
-		contract.SameCount = same.Count
-		c.Contracts[i] = contract
-	}
 }
 
 // Series -

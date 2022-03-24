@@ -120,55 +120,6 @@ func (storage *Storage) GetSameContracts(c contract.Contract, manager string, si
 	return
 }
 
-// GetSimilarContracts -
-func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset int64) ([]contract.Similar, int, error) {
-	script := c.Alpha
-	if c.BabylonID > 0 {
-		script = c.Babylon
-	}
-
-	var ids []int64
-	if err := storage.DB.Model((*contract.Script)(nil)).Column("id").
-		Where("project_id = ?", script.ProjectID).
-		Where("hash != ?", script.Hash).
-		Select(&ids); err != nil {
-		return nil, 0, err
-	}
-
-	if len(ids) == 0 {
-		return []contract.Similar{}, 0, nil
-	}
-
-	limit := storage.GetPageSize(size)
-
-	var contracts []contract.Contract
-	if err := storage.DB.Model(&contracts).
-		WhereIn("alpha_id IN (?)", ids).
-		WhereIn("babylon_id IN (?)", ids).
-		Relation("Account.address").Relation("Manager.address").Relation("Delegate.address").Relation("Alpha").Relation("Babylon").
-		Order("last_action desc").
-		Limit(limit).
-		Offset(int(offset)).
-		Select(); err != nil {
-		return nil, 0, err
-	}
-
-	count, err := storage.DB.Model((*contract.Script)(nil)).
-		Column("id").
-		Where("project_id = ?", script.ProjectID).
-		Where("hash != ?", script.Hash).
-		Count()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	pcr := make([]contract.Similar, len(contracts))
-	for i := range contracts {
-		pcr[i].Contract = &contracts[i]
-	}
-	return pcr, count, nil
-}
-
 // GetTokens -
 func (storage *Storage) GetTokens(network types.Network, tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
 	tags := types.FA12Tag | types.FA1Tag | types.FA2Tag
@@ -202,8 +153,8 @@ func (storage *Storage) GetTokens(network types.Network, tokenInterface string, 
 }
 
 // Stats -
-func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err error) {
-	sameCount, err := storage.DB.Model((*contract.Contract)(nil)).
+func (storage *Storage) Stats(c contract.Contract) (stats int, err error) {
+	return storage.DB.Model((*contract.Contract)(nil)).
 		WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
 			if c.AlphaID > 0 {
 				q.WhereOr("alpha_id = ?", c.AlphaID)
@@ -214,40 +165,6 @@ func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err er
 			return q, err
 		}).
 		Count()
-	if err != nil {
-		return
-	}
-	stats.SameCount = int64(sameCount) - 1
-
-	projectID := c.Alpha.ProjectID
-	if c.BabylonID > 0 {
-		projectID = c.Babylon.ProjectID
-	}
-	scriptsQuery := storage.DB.Model((*contract.Script)(nil)).Column("id").
-		Where("project_id = (?)", projectID)
-
-	if c.AlphaID > 0 {
-		scriptsQuery.Where("id != ?", c.AlphaID)
-	}
-	if c.BabylonID > 0 {
-		scriptsQuery.Where("id != ?", c.BabylonID)
-	}
-	var ids []int64
-	if err = scriptsQuery.Select(&ids); err != nil {
-		return
-	}
-	if len(ids) == 0 {
-		return
-	}
-
-	similarCount, err := storage.DB.Model((*contract.Contract)(nil)).
-		Where("(alpha_id is not null and alpha_id IN (?0)) OR (babylon_id is not null and babylon_id IN (?0))", ids).
-		Count()
-	if err != nil {
-		return
-	}
-	stats.SimilarCount = int64(similarCount)
-	return
 }
 
 // ByHash -
@@ -281,7 +198,7 @@ func (storage *Storage) Script(network types.Network, address string, symLink st
 // GetScripts -
 func (storage *Storage) GetScripts(limit, offset int) (scripts []contract.Script, err error) {
 	err = storage.DB.Model(&scripts).
-		ColumnExpr("tags, hash, project_id, fail_strings, annotations, entrypoints, fingerprint_code, fingerprint_storage, fingerprint_parameter").
+		ColumnExpr("tags, hash, project_id, fail_strings, annotations, entrypoints").
 		Limit(limit).Offset(offset).Order("id asc").Select()
 	return
 }

@@ -8,12 +8,6 @@ type SameResponse struct {
 	Contracts []Contract `json:"contracts"`
 }
 
-// Similar -
-type Similar struct {
-	*Contract
-	Count int64 `json:"count"`
-}
-
 // Address -
 type Address struct {
 	Network types.Network
@@ -22,6 +16,5 @@ type Address struct {
 
 // Stats -
 type Stats struct {
-	SameCount    int64
-	SimilarCount int64
+	SameCount int64
 }

@@ -168,7 +168,6 @@
 									"    pm.expect(contract).to.have.property('hash');",
 									"    pm.expect(contract).to.have.property('address');",
 									"    pm.expect(contract).to.have.property('same_count');",
-									"    pm.expect(contract).to.have.property('similar_count');",
 									"    pm.expect(contract).to.have.property('tx_count');",
 									"    pm.expect(contract).to.have.property('last_action');",
 									"});"
@@ -1530,51 +1529,6 @@
 									"key": "token_id",
 									"value": "0"
 								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "contract/mainnet/tzbtc/similar",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const response = pm.response.json();",
-									"",
-									"    pm.expect(response).to.have.property('count');",
-									"",
-									"    for (const contract of response.contracts) {        ",
-									"        pm.expect(contract).to.have.property('network');",
-									"        pm.expect(contract).to.have.property('level');",
-									"        pm.expect(contract).to.have.property('timestamp');",
-									"        pm.expect(contract).to.have.property('hash');",
-									"        pm.expect(contract).to.have.property('address');",
-									"        pm.expect(contract).to.have.property('similar_count');",
-									"    }",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/similar",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"contract",
-								"mainnet",
-								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-								"similar"
 							]
 						}
 					},

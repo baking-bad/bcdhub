@@ -23,7 +23,7 @@ type ContractMetadataHandler struct {
 func NewContractMetadataHandler(ctx *config.Context) *ContractMetadataHandler {
 	return &ContractMetadataHandler{
 		ctx,
-		handlers.NewContractMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.Storage, ctx.ContractMetadata, ctx.RPC, ctx.Config.IPFSGateways),
+		handlers.NewContractMetadata(ctx, ctx.Config.IPFSGateways),
 	}
 }
 
@@ -43,7 +43,7 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Mo
 			return errors.Errorf("[ContractMetadata.Handle] invalid type: expected *bigmapdiff.BigMapDiff got %T", items[i])
 		}
 
-		storageTypeBytes, err := cm.Cache.StorageTypeBytes(bmd.Network, bmd.Contract, bmd.Protocol.SymLink)
+		storageTypeBytes, err := cm.Cache.StorageTypeBytes(bmd.Contract, bmd.Protocol.SymLink)
 		if err != nil {
 			return errors.Errorf("[ContractMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
 		}

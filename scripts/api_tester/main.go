@@ -7,6 +7,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 )
 
@@ -22,8 +23,9 @@ func main() {
 	}
 
 	ctx := config.NewContext(
+		types.Mainnet,
 		config.WithStorage(cfg.Storage, "api_tester", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle),
-		config.WithRPC(cfg.RPC),
+		config.WithRPC(cfg.RPC, false),
 		config.WithSearch(cfg.Storage),
 		config.WithLoadErrorDescriptions(),
 		config.WithConfigCopy(cfg),

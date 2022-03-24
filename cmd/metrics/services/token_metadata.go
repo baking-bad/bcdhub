@@ -23,7 +23,7 @@ type TokenMetadataHandler struct {
 func NewTokenMetadataHandler(ctx *config.Context) *TokenMetadataHandler {
 	return &TokenMetadataHandler{
 		Context: ctx,
-		handler: handlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.TokenMetadata, ctx.Storage, ctx.RPC, ctx.Config.IPFSGateways),
+		handler: handlers.NewTokenMetadata(ctx, ctx.Config.IPFSGateways),
 	}
 }
 
@@ -42,7 +42,7 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model
 			return errors.Errorf("[TokenMetadata.Handle] invalid type: expected *domains.BigMapDiff got %T", items[i])
 		}
 
-		storageTypeBytes, err := tm.Cache.StorageTypeBytes(bmd.Network, bmd.Contract, bmd.Protocol.SymLink)
+		storageTypeBytes, err := tm.Cache.StorageTypeBytes(bmd.Contract, bmd.Protocol.SymLink)
 		if err != nil {
 			return errors.Errorf("[TokenMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
 		}

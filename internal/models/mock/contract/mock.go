@@ -129,27 +129,11 @@ func (mr *MockRepositoryMockRecorder) GetSameContracts(contact, manager, size, o
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSameContracts", reflect.TypeOf((*MockRepository)(nil).GetSameContracts), contact, manager, size, offset)
 }
 
-// GetSimilarContracts mocks base method
-func (m *MockRepository) GetSimilarContracts(arg0 model.Contract, arg1, arg2 int64) ([]model.Similar, int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSimilarContracts", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]model.Similar)
-	ret1, _ := ret[1].(int)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetSimilarContracts indicates an expected call of GetSimilarContracts
-func (mr *MockRepositoryMockRecorder) GetSimilarContracts(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilarContracts", reflect.TypeOf((*MockRepository)(nil).GetSimilarContracts), arg0, arg1, arg2)
-}
-
 // Stats mocks base method
-func (m *MockRepository) Stats(c model.Contract) (model.Stats, error) {
+func (m *MockRepository) Stats(c model.Contract) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Stats", c)
-	ret0, _ := ret[0].(model.Stats)
+	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
