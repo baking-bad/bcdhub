@@ -187,7 +187,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 			main.Status = consts.Failed
 			errs, err := tezerrors.ParseArray(e.Raw)
 			if err != nil {
-				ctx.handleError(c, err, 0)
+				ctx.handleError(c, e, 0)
 				return
 			}
 			main.Errors = errs

@@ -1,9 +1,11 @@
 package ast
 
 import (
+	"encoding/hex"
 	"math/big"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/pkg/errors"
 )
 
 // Schema types
@@ -87,14 +89,19 @@ func setIntJSONSchema(d *Default, data map[string]interface{}) {
 	}
 }
 
-func setBytesJSONSchema(d *Default, data map[string]interface{}) {
+func setBytesJSONSchema(d *Default, data map[string]interface{}) error {
 	for key := range data {
 		if key == d.GetName() {
+			if _, err := hex.DecodeString(data[key].(string)); err != nil {
+				return errors.Errorf("invalid bytes string: %s=%v", key, data[key])
+			}
+
 			d.Value = data[key]
 			d.ValueKind = valueKindBytes
-			break
+			return nil
 		}
 	}
+	return nil
 }
 
 func setOptimizedJSONSchema(d *Default, data map[string]interface{}, optimizer func(string) (string, error)) {
