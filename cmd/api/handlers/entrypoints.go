@@ -175,7 +175,7 @@ func GetEntrypointSchema() gin.HandlerFunc {
 				break
 			}
 
-			account, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
+			account, err := ctx.Accounts.Get(req.Address)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
