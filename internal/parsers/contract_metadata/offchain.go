@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -41,17 +43,57 @@ func (o *Offchain) GetDApps(ctx context.Context) (dapps []dapp.DApp, err error) 
 	return
 }
 
+// Metadata
+type contractMetadataLegacy struct {
+	contract_metadata.ContractMetadata
+	Tokens struct {
+		Static []struct {
+			Name     string                 `json:"name"`
+			Symbol   string                 `json:"symbol,omitempty"`
+			Decimals *int64                 `json:"decimals,omitempty"`
+			TokenID  uint64                 `json:"token_id"`
+			Extras   map[string]interface{} `json:"extras"`
+		} `json:"static,omitempty"`
+	} `json:"tokens"`
+}
+
+// ContractMetadata -
+type ContractMetadata struct {
+	Contracts []contract_metadata.ContractMetadata
+	Tokens    []tokenmetadata.TokenMetadata
+}
+
 // GetContractMetadata -
-func (o *Offchain) GetContractMetadata(ctx context.Context) (metadata []contract_metadata.ContractMetadata, err error) {
-	if err = o.get(ctx, helpers.URLJoin(o.baseURL, "tzips_legacy.json"), &metadata); err != nil {
-		return
+func (o *Offchain) GetContractMetadata(ctx context.Context) (ContractMetadata, error) {
+	var contractMetadata []contractMetadataLegacy
+	if err := o.get(ctx, helpers.URLJoin(o.baseURL, "tzips_legacy.json"), &contractMetadata); err != nil {
+		return ContractMetadata{}, err
 	}
 
-	for i := range metadata {
-		metadata[i].OffChain = true
-		metadata[i].Network = types.Mainnet
+	result := ContractMetadata{
+		Tokens:    make([]tokenmetadata.TokenMetadata, 0),
+		Contracts: make([]contract_metadata.ContractMetadata, len(contractMetadata)),
 	}
-	return
+	for i := range contractMetadata {
+		result.Contracts[i] = contractMetadata[i].ContractMetadata
+		result.Contracts[i].OffChain = true
+		result.Contracts[i].Network = types.Mainnet
+
+		for _, token := range contractMetadata[i].Tokens.Static {
+			result.Tokens = append(result.Tokens, tokenmetadata.TokenMetadata{
+				Network:   types.Mainnet,
+				Contract:  result.Contracts[i].Address,
+				TokenID:   token.TokenID,
+				Decimals:  token.Decimals,
+				Symbol:    token.Symbol,
+				Extras:    token.Extras,
+				Timestamp: consts.BeginningOfTime,
+				Level:     0,
+				Name:      token.Name,
+			})
+		}
+	}
+	return result, nil
 }
 
 func (o *Offchain) get(ctx context.Context, url string, output interface{}) error {
