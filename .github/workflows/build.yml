@@ -52,22 +52,22 @@ jobs:
 
       # DB
 
-      - name: DB image tags & labels
-        id: meta-db
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_BASE }}-db
+      # - name: DB image tags & labels
+      #   id: meta-db
+      #   uses: docker/metadata-action@v3
+      #   with:
+      #     images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_BASE }}-db
 
-      - name: DB
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: build/db/Dockerfile
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: ${{ steps.meta-db.outputs.tags }}
-          labels: ${{ steps.meta-db.outputs.labels }}
+      # - name: DB
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: .
+      #     file: build/db/Dockerfile
+      #     push: true
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
+      #     tags: ${{ steps.meta-db.outputs.tags }}
+      #     labels: ${{ steps.meta-db.outputs.labels }}
 
       # API
 
