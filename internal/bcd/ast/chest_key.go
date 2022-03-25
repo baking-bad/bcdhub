@@ -48,8 +48,7 @@ func (c *ChestKey) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (c *ChestKey) FromJSONSchema(data map[string]interface{}) error {
-	setBytesJSONSchema(&c.Default, data)
-	return nil
+	return setBytesJSONSchema(&c.Default, data)
 }
 
 // FindByName -

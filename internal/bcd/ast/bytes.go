@@ -51,8 +51,7 @@ func (b *Bytes) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (b *Bytes) FromJSONSchema(data map[string]interface{}) error {
-	setBytesJSONSchema(&b.Default, data)
-	return nil
+	return setBytesJSONSchema(&b.Default, data)
 }
 
 // FindByName -
