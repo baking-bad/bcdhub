@@ -49,10 +49,6 @@ func parseConnectionString(connection string) (*pg.Options, error) {
 			port = values[1]
 		case "dbname":
 			opts.Database = values[1]
-		case "sslmode":
-			// if values[1] != "disable" {
-			// 	// TODO: init ssl mode
-			// }
 		}
 	}
 

@@ -3,12 +3,11 @@ package contract
 // Repository -
 type Repository interface {
 	Get(address string) (Contract, error)
-	GetMany() ([]Contract, error)
+	GetAll(filters map[string]interface{}) ([]Contract, error)
 	GetRandom() (Contract, error)
 	GetTokens(tokenInterface string, offset, size int64) ([]Contract, int64, error)
 	RecentlyCalled(offset, size int64) ([]Contract, error)
 
-	GetSameContracts(contact Contract, manager string, size, offset int64) (SameResponse, error)
 	Stats(c Contract) (int, error)
 
 	Script(address string, symLink string) (Script, error)

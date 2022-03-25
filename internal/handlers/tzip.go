@@ -22,7 +22,7 @@ type ContractMetadata struct {
 // NewContractMetadata -
 func NewContractMetadata(ctx *config.Context, ipfs []string) *ContractMetadata {
 	return &ContractMetadata{
-		ctx.ContractMetadata, ctx.Storage, cm.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.Storage, ctx.RPC, cm.ParserConfig{
+		ctx.ContractMetadata, ctx.Storage, cm.NewParser(ctx, cm.ParserConfig{
 			IPFSGateways: ipfs,
 		}),
 	}

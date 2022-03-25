@@ -26,7 +26,7 @@ func NewParser(ctx *config.Context) *Parser {
 }
 
 // Parse -
-func (p *Parser) Parse(operation *operation.Operation, symLink string, result *parsers.Result) error {
+func (p *Parser) Parse(operation *operation.Operation, symLink string, store parsers.Store) error {
 	if !operation.IsOrigination() {
 		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
@@ -43,7 +43,8 @@ func (p *Parser) Parse(operation *operation.Operation, symLink string, result *p
 	if err := p.computeMetrics(operation, symLink, &contract); err != nil {
 		return err
 	}
-	result.Contracts = append(result.Contracts, &contract)
+
+	store.AddContracts(&contract)
 	return nil
 }
 

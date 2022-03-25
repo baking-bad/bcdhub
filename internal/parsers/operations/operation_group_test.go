@@ -350,7 +350,7 @@ func TestGroup_Parse(t *testing.T) {
 		paramsOpts []ParseParamsOption
 		filename   string
 		storage    map[string]int64
-		want       *parsers.Result
+		want       *parsers.TestStore
 		wantErr    bool
 	}{
 		{
@@ -388,7 +388,7 @@ func TestGroup_Parse(t *testing.T) {
 				}),
 			},
 			filename: "./data/rpc/opg/opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5.json",
-			want:     parsers.NewResult(),
+			want:     parsers.NewTestStore(),
 		}, {
 			name: "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
 			ctx: &config.Context{
@@ -431,7 +431,7 @@ func TestGroup_Parse(t *testing.T) {
 				"KT1KemKUx79keZgFW756jQrqKcZJ21y4SPdS": 1068668,
 			},
 			filename: "./data/rpc/opg/opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9.json",
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				Operations: []*operation.Operation{
 					{
 						Kind: types.OperationKindTransaction,
@@ -650,7 +650,7 @@ func TestGroup_Parse(t *testing.T) {
 				"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn": 1151494,
 			},
 			filename: "./data/rpc/opg/opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt.json",
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				Operations: []*operation.Operation{
 					{
 						ContentIndex: 0,
@@ -883,7 +883,7 @@ func TestGroup_Parse(t *testing.T) {
 				"KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR": 86142,
 			},
 			filename: "./data/rpc/opg/onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt.json",
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				Operations: []*operation.Operation{
 					{
 						ContentIndex: 0,
@@ -981,7 +981,7 @@ func TestGroup_Parse(t *testing.T) {
 				"KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4": 301436,
 			},
 			filename: "./data/rpc/opg/onv6Q1dNejAGEJeQzwRannWsDSGw85FuFdhLnBrY18TBcC9p8kC.json",
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				Operations: []*operation.Operation{
 					{
 						Kind: types.OperationKindOrigination,
@@ -1084,7 +1084,7 @@ func TestGroup_Parse(t *testing.T) {
 				"KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU": 72207,
 			},
 			filename: "./data/rpc/opg/op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg.json",
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				Operations: []*operation.Operation{
 					{
 						Kind: types.OperationKindTransaction,
@@ -1269,7 +1269,7 @@ func TestGroup_Parse(t *testing.T) {
 				"KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy": 1516349,
 			},
 			filename: "./data/rpc/opg/ooz1bkCQeYsZYP7vb4Dx7pYPRpWN11Z3G3yP1v4HAfdNXuHRv9c.json",
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				Operations: []*operation.Operation{
 					{
 						Kind: types.OperationKindTransaction,
@@ -1412,7 +1412,7 @@ func TestGroup_Parse(t *testing.T) {
 				"KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS": 1520888,
 				"KT1H1MqmUM4aK9i1833EBmYCCEfkbt6ZdSBc": 1520888,
 			},
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				BigMapState: []*bigmapdiff.BigMapState{
 					{
 
@@ -1544,7 +1544,7 @@ func TestGroup_Parse(t *testing.T) {
 				}),
 			},
 			filename: "./data/rpc/opg/ooffKPL6WmMgqzLGtRtLp2HdEbVL3K2fVzKQLyxsBFMC84wpjRt.json",
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				Operations: []*operation.Operation{
 					{
 						Kind: types.OperationKindRegisterGlobalConstant,
@@ -1608,14 +1608,13 @@ func TestGroup_Parse(t *testing.T) {
 				return
 			}
 
-			opg := NewGroup(parseParams)
-			got, err := opg.Parse(op)
-			if (err != nil) != tt.wantErr {
+			store := parsers.NewTestStore()
+			if err := NewGroup(parseParams).Parse(op, store); (err != nil) != tt.wantErr {
 				t.Errorf("Group.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !compareParserResponse(t, got, tt.want) {
-				t.Errorf("Group.Parse() = %#v, want %#v", got, tt.want)
+			if !compareParserResponse(t, store, tt.want) {
+				t.Errorf("Group.Parse() = %#v, want %#v", store, tt.want)
 			}
 		})
 	}

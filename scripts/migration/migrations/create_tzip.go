@@ -48,7 +48,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			continue
 		}
 
-		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.Storage, ctx.RPC, tzipParsers.ParserConfig{
+		parser := tzipParsers.NewParser(ctx, tzipParsers.ParserConfig{
 			IPFSGateways: ctx.Config.IPFSGateways,
 		})
 

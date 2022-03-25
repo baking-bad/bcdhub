@@ -8,6 +8,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/global_constant"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
 	mock_accounts "github.com/baking-bad/bcdhub/internal/models/mock/account"
 	mock_token_balance "github.com/baking-bad/bcdhub/internal/models/mock/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -60,7 +63,7 @@ func TestLedger_Parse(t *testing.T) {
 		name          string
 		operation     *operation.Operation
 		st            *stacktrace.StackTrace
-		want          *parsers.Result
+		want          *parsers.TestStore
 		wantTransfers []*transfer.Transfer
 		wantErr       bool
 	}{
@@ -88,7 +91,7 @@ func TestLedger_Parse(t *testing.T) {
 					},
 				},
 			},
-			want: nil,
+			want: parsers.NewTestStore(),
 		}, {
 			name: "test 2",
 			operation: &operation.Operation{
@@ -113,7 +116,7 @@ func TestLedger_Parse(t *testing.T) {
 					},
 				},
 			},
-			want: nil,
+			want: parsers.NewTestStore(),
 		}, {
 			name: "test 3",
 			operation: &operation.Operation{
@@ -145,7 +148,12 @@ func TestLedger_Parse(t *testing.T) {
 					},
 				},
 			},
-			want: &parsers.Result{
+			want: &parsers.TestStore{
+				Contracts:       make([]*contract.Contract, 0),
+				BigMapState:     make([]*bigmapdiff.BigMapState, 0),
+				Migrations:      make([]*migration.Migration, 0),
+				Operations:      make([]*operation.Operation, 0),
+				GlobalConstants: make([]*global_constant.GlobalConstant, 0),
 				TokenBalances: []*tbModel.TokenBalance{
 					{
 						Account: account.Account{
@@ -190,13 +198,13 @@ func TestLedger_Parse(t *testing.T) {
 				tokenBalances: tbRepo,
 				accounts:      accountsRepo,
 			}
-			got, err := ledger.Parse(tt.operation, tt.st)
-			if (err != nil) != tt.wantErr {
+			store := parsers.NewTestStore()
+			if err := ledger.Parse(tt.operation, tt.st, store); (err != nil) != tt.wantErr {
 				t.Errorf("Ledger.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.want, store)
 
 			assert.Len(t, tt.operation.Transfers, len(tt.wantTransfers))
 			assert.Equal(t, tt.wantTransfers, tt.operation.Transfers)

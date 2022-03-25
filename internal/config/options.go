@@ -1,7 +1,7 @@
 package config
 
 import (
-	"strings"
+	"errors"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
@@ -58,17 +58,15 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		if len(cfg.Elastic) == 0 {
 			panic("Please set connection strings to storage in config")
 		}
-		defaultConnString := cfg.Postgres.ConnectionString()
-		defaultConn := pgCore.WaitNew(defaultConnString, appName, cfg.Timeout,
-			pgCore.WithPageSize(maxPageSize),
-			pgCore.WithIdleConnections(idleConnCount),
-			pgCore.WithMaxConnections(maxConnCount),
-			pgCore.WithQueryLogging(),
-		)
+		defaultConn := pgCore.WaitNew(cfg.Postgres.ConnectionString(), appName, cfg.Timeout)
 		defer defaultConn.Close()
 
-		if _, err := defaultConn.DB.Exec("create database ?", pg.Ident(ctx.Network.String())); err != nil {
-			if !strings.Contains(err.Error(), "already exists") {
+		if _, err := defaultConn.DB.Exec(`SELECT datname FROM pg_catalog.pg_database WHERE datname = ?`, ctx.Network.String()); err != nil {
+			if errors.Is(err, pg.ErrNoRows) {
+				if _, err := defaultConn.DB.Exec("create database ?", pg.Ident(ctx.Network.String())); err != nil {
+					panic(err)
+				}
+			} else {
 				panic(err)
 			}
 		}

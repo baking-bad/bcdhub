@@ -19,7 +19,7 @@ func NewRegisterGlobalConstant(params *ParseParams) RegisterGlobalConstant {
 }
 
 // Parse -
-func (p RegisterGlobalConstant) Parse(data noderpc.Operation, result *parsers.Result) error {
+func (p RegisterGlobalConstant) Parse(data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
@@ -43,9 +43,9 @@ func (p RegisterGlobalConstant) Parse(data noderpc.Operation, result *parsers.Re
 	parseOperationResult(data, &registerGlobalConstant)
 	p.stackTrace.Add(registerGlobalConstant)
 
-	result.Operations = append(result.Operations, &registerGlobalConstant)
+	store.AddOperations(&registerGlobalConstant)
 	if registerGlobalConstant.IsApplied() {
-		result.GlobalConstants = append(result.GlobalConstants, NewGlobalConstant().Parse(data, registerGlobalConstant))
+		store.AddGlobalConstants(NewGlobalConstant().Parse(data, registerGlobalConstant))
 	}
 	return nil
 }

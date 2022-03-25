@@ -13,6 +13,6 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Parser -
 type Parser interface {
-	ParseTransaction(ctx context.Context, content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error)
-	ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error)
+	ParseTransaction(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) error
+	ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) (bool, error)
 }

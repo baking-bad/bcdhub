@@ -13,9 +13,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
+	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -94,18 +94,19 @@ func RunOperation() gin.HandlerFunc {
 		}
 		parser := operations.NewGroup(parserParams)
 
-		parsedModels, err := parser.Parse(response)
-		if handleError(c, ctx.Storage, err, 0) {
+		store := postgres.NewStore(ctx.StorageDB.DB)
+		if err := parser.Parse(response, store); handleError(c, ctx.Storage, err, 0) {
 			return
 		}
+		operations := store.ListOperations()
 
-		resp := make([]Operation, len(parsedModels.Operations))
-		for i := range parsedModels.Operations {
+		resp := make([]Operation, len(operations))
+		for i := range operations {
 			bmd := make([]bigmapdiff.BigMapDiff, 0)
-			for j := range parsedModels.Operations[i].BigMapDiffs {
-				bmd = append(bmd, *parsedModels.Operations[i].BigMapDiffs[j])
+			for j := range operations[i].BigMapDiffs {
+				bmd = append(bmd, *operations[i].BigMapDiffs[j])
 			}
-			op, err := prepareOperation(ctx, *parsedModels.Operations[i], bmd, true)
+			op, err := prepareOperation(ctx, *operations[i], bmd, true)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -287,18 +288,15 @@ func parseBigMapDiffs(c *gin.Context, ctx *config.Context, response noderpc.RunC
 		},
 	}
 
-	var result *parsers.Result
+	store := postgres.NewStore(ctx.StorageDB.DB)
 	switch operation.Kind {
 	case types.OperationKindTransaction.String():
-		result, err = parser.ParseTransaction(c, nodeOperation, &model)
+		err = parser.ParseTransaction(c, nodeOperation, &model, store)
 	case types.OperationKindOrigination.String(), types.OperationKindOriginationNew.String():
-		result, err = parser.ParseOrigination(c, nodeOperation, &model)
+		_, err = parser.ParseOrigination(c, nodeOperation, &model, store)
 	}
 	if err != nil {
 		return nil, err
-	}
-	if result == nil {
-		return nil, nil
 	}
 	bmd := make([]bigmapdiff.BigMapDiff, len(model.BigMapDiffs))
 	for i := range model.BigMapDiffs {

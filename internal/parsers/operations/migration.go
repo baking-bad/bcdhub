@@ -22,7 +22,7 @@ func NewMigration(contracts contract.Repository) Migration {
 }
 
 // Parse -
-func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation, result *parsers.Result) error {
+func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	var bmd []noderpc.BigMapDiff
 	switch {
 	case data.Result != nil && data.Result.BigMapDiffs != nil:
@@ -60,7 +60,7 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation,
 				Hash:       operation.Hash,
 				Kind:       types.MigrationKindLambda,
 			}
-			result.Migrations = append(result.Migrations, migration)
+			store.AddMigrations(migration)
 			logger.Info().Fields(migration.LogFields()).Msg("Migration detected")
 			return nil
 		}

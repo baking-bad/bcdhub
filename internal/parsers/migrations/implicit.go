@@ -30,28 +30,27 @@ func NewImplicitParser(ctx *config.Context, rpc noderpc.INode, protocol protocol
 }
 
 // Parse -
-func (p *ImplicitParser) Parse(ctx context.Context, metadata noderpc.Metadata, head noderpc.Header) (*parsers.Result, error) {
+func (p *ImplicitParser) Parse(ctx context.Context, metadata noderpc.Metadata, head noderpc.Header, store parsers.Store) error {
 	if len(metadata.ImplicitOperationsResults) == 0 {
-		return nil, nil
+		return nil
 	}
 
-	parserResult := parsers.NewResult()
 	for i := range metadata.ImplicitOperationsResults {
 		switch metadata.ImplicitOperationsResults[i].Kind {
 		case consts.Origination:
-			if err := p.origination(ctx, metadata.ImplicitOperationsResults[i], head, p.protocol.ID, parserResult); err != nil {
-				return nil, err
+			if err := p.origination(ctx, metadata.ImplicitOperationsResults[i], head, p.protocol.ID, store); err != nil {
+				return err
 			}
 		case consts.Transaction:
-			if err := p.transaction(metadata.ImplicitOperationsResults[i], head, p.protocol.ID, parserResult); err != nil {
-				return nil, err
+			if err := p.transaction(metadata.ImplicitOperationsResults[i], head, p.protocol.ID, store); err != nil {
+				return err
 			}
 		}
 	}
-	return parserResult, nil
+	return nil
 }
 
-func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, result *parsers.Result) error {
+func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, store parsers.Store) error {
 	origination := operation.Operation{
 		ProtocolID: protocolID,
 		Level:      head.Level,
@@ -74,18 +73,19 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 	origination.Script = script
 
 	contractParser := contract.NewParser(p.ctx)
-	if err := contractParser.Parse(&origination, p.protocol.SymLink, result); err != nil {
+	if err := contractParser.Parse(&origination, p.protocol.SymLink, store); err != nil {
 		return err
 	}
 
-	for i := range result.Contracts {
-		if result.Contracts[i].Account.Address == implicit.OriginatedContracts[0] {
-			result.Migrations = append(result.Migrations, &migration.Migration{
+	contracts := store.ListContracts()
+	for i := range contracts {
+		if contracts[i].Account.Address == implicit.OriginatedContracts[0] {
+			store.AddMigrations(&migration.Migration{
 				ProtocolID: protocolID,
 				Level:      head.Level,
 				Timestamp:  head.Timestamp,
 				Kind:       types.MigrationKindBootstrap,
-				Contract:   result.Contracts[i],
+				Contract:   contracts[i],
 			})
 			break
 		}
@@ -96,7 +96,7 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 	return nil
 }
 
-func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, result *parsers.Result) error {
+func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, store parsers.Store) error {
 	tx := operation.Operation{
 		ProtocolID:      protocolID,
 		Level:           head.Level,
@@ -124,7 +124,7 @@ func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, 
 		return errors.Errorf("empty destination in implicit transaction at level %d", head.Level)
 	}
 
-	result.Operations = append(result.Operations, &tx)
+	store.AddOperations(&tx)
 
 	return nil
 }

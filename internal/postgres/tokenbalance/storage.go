@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/go-pg/pg/v10"
 	"github.com/shopspring/decimal"
 )
 
@@ -119,4 +120,20 @@ func (storage *Storage) TokenSupply(contract string, tokenID uint64) (supply str
 		Where("token_id = ?", tokenID).
 		Select(&supply)
 	return
+}
+
+// Save -
+func Save(tx pg.DBI, balances []*tokenbalance.TokenBalance) error {
+	for i := range balances {
+		if balances[i].AccountID == 0 {
+			if err := balances[i].Account.Save(tx); err != nil {
+				return err
+			}
+			balances[i].AccountID = balances[i].Account.ID
+		}
+		if err := balances[i].Save(tx); err != nil {
+			return err
+		}
+	}
+	return nil
 }

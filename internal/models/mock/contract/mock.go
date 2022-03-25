@@ -48,19 +48,19 @@ func (mr *MockRepositoryMockRecorder) Get(address interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), address)
 }
 
-// GetMany mocks base method
-func (m *MockRepository) GetMany() ([]model.Contract, error) {
+// GetAll mocks base method
+func (m *MockRepository) GetAll(filters map[string]interface{}) ([]model.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMany")
+	ret := m.ctrl.Call(m, "GetAll", filters)
 	ret0, _ := ret[0].([]model.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetMany indicates an expected call of GetMany
-func (mr *MockRepositoryMockRecorder) GetMany() *gomock.Call {
+// GetAll indicates an expected call of GetAll
+func (mr *MockRepositoryMockRecorder) GetAll(filters interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockRepository)(nil).GetMany))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll), filters)
 }
 
 // GetRandom mocks base method
@@ -107,21 +107,6 @@ func (m *MockRepository) RecentlyCalled(offset, size int64) ([]model.Contract, e
 func (mr *MockRepositoryMockRecorder) RecentlyCalled(offset, size interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecentlyCalled", reflect.TypeOf((*MockRepository)(nil).RecentlyCalled), offset, size)
-}
-
-// GetSameContracts mocks base method
-func (m *MockRepository) GetSameContracts(contact model.Contract, manager string, size, offset int64) (model.SameResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSameContracts", contact, manager, size, offset)
-	ret0, _ := ret[0].(model.SameResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetSameContracts indicates an expected call of GetSameContracts
-func (mr *MockRepositoryMockRecorder) GetSameContracts(contact, manager, size, offset interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSameContracts", reflect.TypeOf((*MockRepository)(nil).GetSameContracts), contact, manager, size, offset)
 }
 
 // Stats mocks base method

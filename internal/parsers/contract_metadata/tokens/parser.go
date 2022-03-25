@@ -6,15 +6,12 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
 	cmStorage "github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/storage"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/pkg/errors"
@@ -23,22 +20,15 @@ import (
 
 // Parser -
 type Parser struct {
-	bmdRepo       bigmapdiff.Repository
-	blocksRepo    block.Repository
-	contractsRepo contract.Repository
-	tmRepo        tokenmetadata.Repository
-	storage       models.GeneralRepository
-
-	rpc  noderpc.INode
+	ctx  *config.Context
 	ipfs []string
 }
 
 // NewParser -
-func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, contractsRepo contract.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, network types.Network, ipfs ...string) Parser {
+func NewParser(ctx *config.Context, ipfs ...string) Parser {
 	return Parser{
-		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage,
-		rpc: rpc, ipfs: ipfs, tmRepo: tmRepo,
-		contractsRepo: contractsRepo,
+		ctx:  ctx,
+		ipfs: ipfs,
 	}
 }
 
@@ -75,20 +65,20 @@ func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, st
 		ptr := bmd.Ptr
 		switch {
 		case strings.HasPrefix(m.Link, "ipfs://"):
-			if found, err := t.tmRepo.GetOne(bmd.Contract, m.TokenID); err == nil && found != nil {
+			if found, err := t.ctx.TokenMetadata.GetOne(bmd.Contract, m.TokenID); err == nil && found != nil {
 				if link, ok := found.Extras[""]; ok && link == m.Link {
 					return nil, nil
 				}
 			}
 		case strings.HasPrefix(m.Link, "tezos-storage:"):
-			bmPtr, err := storage.GetBigMapPtr(ctx, t.storage, t.contractsRepo, t.rpc, bmd.Contract, "metadata", bmd.Protocol.Hash, bmd.Level)
+			bmPtr, err := storage.GetBigMapPtr(ctx, t.ctx.Storage, t.ctx.Contracts, t.ctx.RPC, bmd.Contract, "metadata", bmd.Protocol.Hash, bmd.Level)
 			if err != nil {
 				return nil, err
 			}
 			ptr = bmPtr
 		}
 
-		s := cmStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
+		s := cmStorage.NewFull(t.ctx, t.ipfs...)
 
 		remoteMetadata := new(TokenMetadata)
 		if err := s.Get(ctx, bmd.Contract, m.Link, ptr, remoteMetadata); err != nil {
@@ -110,12 +100,12 @@ func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, st
 }
 
 func (t Parser) parse(ctx context.Context, address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
-	ptr, err := storage.GetBigMapPtr(ctx, t.storage, t.contractsRepo, t.rpc, address, TokenMetadataStorageKey, state.Protocol.Hash, state.Level)
+	ptr, err := storage.GetBigMapPtr(ctx, t.ctx.Storage, t.ctx.Contracts, t.ctx.RPC, address, TokenMetadataStorageKey, state.Protocol.Hash, state.Level)
 	if err != nil {
 		return nil, err
 	}
 
-	bmd, err := t.bmdRepo.Get(bigmapdiff.GetContext{
+	bmd, err := t.ctx.BigMapDiffs.Get(bigmapdiff.GetContext{
 		Ptr:          &ptr,
 		CurrentLevel: &state.Level,
 		Contract:     address,
@@ -143,7 +133,7 @@ func (t Parser) parse(ctx context.Context, address string, state block.Block) ([
 	result := make([]tokenmetadata.TokenMetadata, 0)
 	for _, m := range metadata {
 		if m.Link != "" {
-			s := cmStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
+			s := cmStorage.NewFull(t.ctx, t.ipfs...)
 
 			remoteMetadata := &TokenMetadata{}
 			if err := s.Get(ctx, address, m.Link, ptr, remoteMetadata); err != nil {
@@ -164,7 +154,7 @@ func (t Parser) parse(ctx context.Context, address string, state block.Block) ([
 
 func (t Parser) getState(level int64) (block.Block, error) {
 	if level > 0 {
-		return t.blocksRepo.Get(level)
+		return t.ctx.Blocks.Get(level)
 	}
-	return t.blocksRepo.Last()
+	return t.ctx.Blocks.Last()
 }

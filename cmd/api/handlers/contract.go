@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
@@ -142,26 +141,17 @@ func GetSameContracts() gin.HandlerFunc {
 			return
 		}
 
-		found, err := ctx.Searcher.ByText(contract.Babylon.Hash, page.Offset, []string{"hash"}, map[string]interface{}{
-			"indices": []string{models.DocContracts},
-		}, false)
+		same, err := ctx.Searcher.SameContracts(contract, ctx.Network.String(), page.Offset, page.Size)
 		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
-		if found.Count == 1 {
-			c.SecureJSON(http.StatusOK, SameContractsResponse{Count: 0, Contracts: make([]ContractWithStats, 0)})
 			return
 		}
 
 		response := SameContractsResponse{
-			Count:     found.Count - 1,
+			Count:     same.Count,
 			Contracts: make([]ContractWithStats, 0),
 		}
-		for i := range found.Items {
-			if found.Items[i].Value == req.Address && found.Items[i].Network == req.Network {
-				continue
-			}
-			item, err := ctx.Contracts.Get(found.Items[i].Value)
+		for i := range same.Contracts {
+			item, err := ctx.Contracts.Get(same.Contracts[i].Address)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -172,7 +162,7 @@ func GetSameContracts() gin.HandlerFunc {
 
 			response.Contracts = append(response.Contracts, ContractWithStats{
 				Contract:  itemContract,
-				SameCount: found.Count - 1,
+				SameCount: same.Count,
 			})
 		}
 

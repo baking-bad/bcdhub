@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
@@ -66,10 +67,6 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 		[]byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"5"},{"int":"5000000"}]},{"string":"tz1cJywnhho2iGwfrs5gHCQs7stAVFMnRHc1"},{"int":"3"},{"int":"66048"}]},{"prim":"Pair","args":[{"int":"66049"},{"int":"3"}]},{"int":"66050"},{"prim":"False"},{"int":"66051"}]}`),
 		nil,
 	).AnyTimes()
-
-	blocksRepo.EXPECT().GetNetworkAlias(
-		"NetXz969SFaFn8k",
-	).Return("granadanet", nil).AnyTimes()
 
 	bmdRepo.EXPECT().Current("expruc4MqoCyxFbogqrZumAraAzt3BXw7rZYeWkaXPLC27nfhMd7pt", int64(66049)).Return(bigmapdiff.BigMapState{
 		Ptr:             66049,
@@ -164,12 +161,14 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			parser := Parser{
-				bmdRepo:       bmdRepo,
-				blocksRepo:    blocksRepo,
-				tmRepo:        tmRepo,
-				contractsRepo: contractsRepo,
-				storage:       generalRepo,
-				rpc:           rpc,
+				ctx: &config.Context{
+					BigMapDiffs:   bmdRepo,
+					Blocks:        blocksRepo,
+					TokenMetadata: tmRepo,
+					Contracts:     contractsRepo,
+					Storage:       generalRepo,
+					RPC:           rpc,
+				},
 			}
 
 			generalRepo.

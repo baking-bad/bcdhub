@@ -4,5 +4,4 @@ package block
 type Repository interface {
 	Get(level int64) (Block, error)
 	Last() (Block, error)
-	GetNetworkAlias(chainID string) (string, error)
 }

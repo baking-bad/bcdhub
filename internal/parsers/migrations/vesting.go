@@ -25,7 +25,7 @@ func NewVestingParser(ctx *config.Context) *VestingParser {
 }
 
 // Parse -
-func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, address string, proto protocol.Protocol, result *parsers.Result) error {
+func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, address string, proto protocol.Protocol, store parsers.Store) error {
 	parser := contract.NewParser(p.ctx)
 	if err := parser.Parse(&operation.Operation{
 		ProtocolID: proto.ID,
@@ -48,18 +48,19 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ad
 		Level:     head.Level,
 		Timestamp: head.Timestamp,
 		Script:    data.RawScript,
-	}, proto.SymLink, result); err != nil {
+	}, proto.SymLink, store); err != nil {
 		return err
 	}
 
-	for i := range result.Contracts {
-		if result.Contracts[i].Account.Address == address {
-			result.Migrations = append(result.Migrations, &migration.Migration{
+	contracts := store.ListContracts()
+	for i := range contracts {
+		if contracts[i].Account.Address == address {
+			store.AddMigrations(&migration.Migration{
 				Level:      head.Level,
 				ProtocolID: proto.ID,
 				Timestamp:  head.Timestamp,
 				Kind:       types.MigrationKindBootstrap,
-				Contract:   result.Contracts[i],
+				Contract:   contracts[i],
 			})
 			break
 		}

@@ -77,16 +77,16 @@ func TestMigration_Parse(t *testing.T) {
 				Return(contract.Contract{}, nil).
 				AnyTimes()
 
-			result := parsers.NewResult()
-			if err := NewMigration(contractRepo).Parse(op, tt.operation, result); err != nil {
+			store := parsers.NewTestStore()
+			if err := NewMigration(contractRepo).Parse(op, tt.operation, store); err != nil {
 				t.Errorf("Migration.Parse() = %s", err)
 				return
 			}
 			if tt.want != nil {
-				tt.want.ID = result.Migrations[0].ID
-				assert.Equal(t, tt.want, result.Migrations[0])
+				tt.want.ID = store.Migrations[0].ID
+				assert.Equal(t, tt.want, store.Migrations[0])
 			} else {
-				assert.Len(t, result.Migrations, 0)
+				assert.Len(t, store.Migrations, 0)
 			}
 		})
 	}

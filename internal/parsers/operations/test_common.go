@@ -129,7 +129,7 @@ func readStorage(_ context.Context, address string, level int64) ([]byte, error)
 	return ioutil.ReadFile(storageFile)
 }
 
-func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
+func compareParserResponse(t *testing.T, got, want *parsers.TestStore) bool {
 	if !assert.Len(t, got.BigMapState, len(want.BigMapState)) {
 		return false
 	}

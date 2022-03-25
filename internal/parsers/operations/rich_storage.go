@@ -33,24 +33,24 @@ func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol stri
 }
 
 // Parse -
-func (p *RichStorage) Parse(ctx context.Context, data noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
+func (p *RichStorage) Parse(ctx context.Context, data noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	switch operation.Kind {
 	case types.OperationKindTransaction:
-		return p.parser.ParseTransaction(ctx, data, operation)
+		return p.parser.ParseTransaction(ctx, data, operation, store)
 	case types.OperationKindOrigination:
-		result, err := p.parser.ParseOrigination(ctx, data, operation)
+		parsed, err := p.parser.ParseOrigination(ctx, data, operation, store)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		if result != nil {
+		if parsed {
 			storage, err := p.rpc.GetScriptStorageRaw(context.Background(), operation.Destination.Address, operation.Level)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			operation.DeffatedStorage = storage
 		}
-		return result, nil
+		return nil
 	default:
-		return nil, nil
+		return nil
 	}
 }

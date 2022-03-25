@@ -75,16 +75,6 @@ func (e *Elastic) getResponse(resp *esapi.Response, result interface{}) error {
 	return json.NewDecoder(resp.Body).Decode(result)
 }
 
-func (e *Elastic) getTextResponse(resp *esapi.Response) (string, error) {
-	if resp.IsError() {
-		return "", errors.Errorf(resp.String())
-	}
-
-	buf := new(bytes.Buffer)
-	_, err := buf.ReadFrom(resp.Body)
-	return buf.String(), err
-}
-
 func (e *Elastic) query(indices []string, query map[string]interface{}, response interface{}) (err error) {
 	buf := bytes.NewBuffer([]byte{})
 	if err = json.NewEncoder(buf).Encode(query); err != nil {
@@ -203,17 +193,37 @@ func (e *Elastic) deleteWithQuery(indices []string, query map[string]interface{}
 	return
 }
 
-// ReloadSecureSettings -
-func (e *Elastic) ReloadSecureSettings() error {
-	resp, err := e.Nodes.ReloadSecureSettings()
+type countResponse struct {
+	Count int64 `json:"count"`
+}
+
+func (e *Elastic) count(indices []string, query map[string]interface{}) (int64, error) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(query); err != nil {
+		return 0, err
+	}
+
+	// logger.InterfaceToJSON(query)
+	// logger.InterfaceToJSON(indices)
+
+	var resp *esapi.Response
+	options := []func(*esapi.CountRequest){
+		e.Count.WithContext(context.Background()),
+		e.Count.WithIndex(indices...),
+		e.Count.WithBody(&buf),
+	}
+
+	resp, err := e.Count(
+		options...,
+	)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer resp.Body.Close()
 
-	if resp.IsError() {
-		return errors.Errorf(resp.Status())
+	var response countResponse
+	if err := e.getResponse(resp, &response); err != nil {
+		return 0, err
 	}
-
-	return nil
+	return response.Count, nil
 }

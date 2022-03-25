@@ -3,7 +3,6 @@ package protocol
 import (
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
@@ -35,13 +34,13 @@ func (storage *Storage) Get(hash string, level int64) (p protocol.Protocol, err 
 // GetByNetworkWithSort -
 func (storage *Storage) GetByNetworkWithSort(sortField, order string) (response []protocol.Protocol, err error) {
 	orderValue := fmt.Sprintf("%s %s", sortField, order)
-	err = storage.DB.Model().Table(models.DocProtocol).Order(orderValue).Select(&response)
+	err = storage.DB.Model((*protocol.Protocol)(nil)).Order(orderValue).Select(&response)
 	return
 }
 
 // GetAll - returns all protocol`s entities
 func (storage *Storage) GetAll() (response []protocol.Protocol, err error) {
-	err = storage.DB.Model().Table(models.DocProtocol).Select(&response)
+	err = storage.DB.Model((*protocol.Protocol)(nil)).Select(&response)
 	return
 }
 

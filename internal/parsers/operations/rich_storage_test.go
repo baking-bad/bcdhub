@@ -40,7 +40,7 @@ func TestRichStorage_Parse(t *testing.T) {
 		operation     *operation.Operation
 		filename      string
 		sourcePtr     int64
-		want          *parsers.Result
+		want          *parsers.TestStore
 		wantErr       bool
 		wantOperation operation.Operation
 	}{
@@ -98,7 +98,7 @@ func TestRichStorage_Parse(t *testing.T) {
 					},
 				},
 			},
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				BigMapState: []*bigmapdiff.BigMapState{
 					{
 						Ptr:             31,
@@ -141,7 +141,7 @@ func TestRichStorage_Parse(t *testing.T) {
 			},
 			sourcePtr: 1055,
 			filename:  "./data/rich_storage/test2.json",
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				BigMapState: []*bigmapdiff.BigMapState{},
 			},
 			wantOperation: operation.Operation{
@@ -179,7 +179,7 @@ func TestRichStorage_Parse(t *testing.T) {
 			},
 			sourcePtr: 17,
 			filename:  "./data/rich_storage/test3.json",
-			want: &parsers.Result{
+			want: &parsers.TestStore{
 				BigMapState: []*bigmapdiff.BigMapState{
 					{
 						Ptr:             17,
@@ -275,8 +275,8 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			got, err := parser.Parse(context.Background(), op, tt.operation)
-			if (err != nil) != tt.wantErr {
+			store := parsers.NewTestStore()
+			if err := parser.Parse(context.Background(), op, tt.operation, store); (err != nil) != tt.wantErr {
 				t.Errorf("RichStorage.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -284,12 +284,12 @@ func TestRichStorage_Parse(t *testing.T) {
 			if compareOperations(t, tt.operation, &tt.wantOperation) {
 				return
 			}
-			compareRichStorage(t, got, tt.want)
+			compareRichStorage(t, store, tt.want)
 		})
 	}
 }
 
-func compareRichStorage(t *testing.T, expected, got *parsers.Result) {
+func compareRichStorage(t *testing.T, expected, got *parsers.TestStore) {
 	assert.Len(t, got.BigMapState, len(expected.BigMapState))
 
 	for i := range expected.BigMapState {

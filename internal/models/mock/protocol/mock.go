@@ -92,3 +92,17 @@ func (mr *MockRepositoryMockRecorder) GetByID(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), id)
 }
+
+// CheckChainID mocks base method
+func (m *MockRepository) CheckChainID(chainID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckChainID", chainID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CheckChainID indicates an expected call of CheckChainID
+func (mr *MockRepositoryMockRecorder) CheckChainID(chainID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckChainID", reflect.TypeOf((*MockRepository)(nil).CheckChainID), chainID)
+}

@@ -18,6 +18,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/migrations"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
+	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 	"github.com/go-pg/pg/v10"
@@ -230,8 +231,7 @@ func (bi *BoostIndexer) Index(ctx context.Context, head noderpc.Header) error {
 }
 
 func (bi *BoostIndexer) handleBlock(ctx context.Context, block *Block) error {
-	result := parsers.NewResult()
-	err := bi.StorageDB.DB.RunInTransaction(ctx,
+	return bi.StorageDB.DB.RunInTransaction(ctx,
 		func(tx *pg.Tx) error {
 			logger.Info().Str("network", bi.Network.String()).Msgf("indexing %7d block", block.Header.Level)
 
@@ -243,27 +243,25 @@ func (bi *BoostIndexer) handleBlock(ctx context.Context, block *Block) error {
 				}
 			}
 
-			if err := bi.implicitMigration(ctx, block.Header, bi.currentProtocol, tx); err != nil {
+			store := postgres.NewStore(tx)
+			if err := bi.implicitMigration(ctx, block.Header, bi.currentProtocol, store); err != nil {
 				return err
 			}
 
-			res, err := bi.getDataFromBlock(block)
-			if err != nil {
+			if err := bi.getDataFromBlock(block, store); err != nil {
 				return err
 			}
 
-			if err := res.Save(tx); err != nil {
+			if err := store.Save(); err != nil {
 				return err
 			}
 
-			result.Merge(res)
 			if err := bi.createBlock(block.Header, tx); err != nil {
 				return err
 			}
 			return nil
 		},
 	)
-	return err
 }
 
 // Rollback -
@@ -362,10 +360,9 @@ func (bi *BoostIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
 	return nil
 }
 
-func (bi *BoostIndexer) getDataFromBlock(block *Block) (*parsers.Result, error) {
-	result := parsers.NewResult()
+func (bi *BoostIndexer) getDataFromBlock(block *Block, store parsers.Store) error {
 	if block.Header.Level <= 1 {
-		return result, nil
+		return nil
 	}
 	parserParams, err := operations.NewParseParams(
 		bi.Context,
@@ -373,19 +370,17 @@ func (bi *BoostIndexer) getDataFromBlock(block *Block) (*parsers.Result, error) 
 		operations.WithHead(block.Header),
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for i := range block.OPG {
 		parser := operations.NewGroup(parserParams)
-		opgResult, err := parser.Parse(block.OPG[i])
-		if err != nil {
-			return nil, err
+		if err := parser.Parse(block.OPG[i], store); err != nil {
+			return err
 		}
-		result.Merge(opgResult)
 	}
 
-	return result, nil
+	return nil
 }
 
 func (bi *BoostIndexer) migrate(ctx context.Context, head noderpc.Header, tx pg.DBI) error {
@@ -435,24 +430,18 @@ func (bi *BoostIndexer) migrate(ctx context.Context, head noderpc.Header, tx pg.
 	return nil
 }
 
-func (bi *BoostIndexer) implicitMigration(ctx context.Context, head noderpc.Header, protocol protocol.Protocol, tx pg.DBI) error {
+func (bi *BoostIndexer) implicitMigration(ctx context.Context, head noderpc.Header, protocol protocol.Protocol, store parsers.Store) error {
 	metadata, err := bi.RPC.GetBlockMetadata(ctx, head.Level)
 	if err != nil {
 		return err
 	}
 	implicitParser := migrations.NewImplicitParser(bi.Context, bi.RPC, protocol)
-	implicitResult, err := implicitParser.Parse(ctx, metadata, head)
-	if err != nil {
-		return err
-	}
-	if implicitResult != nil {
-		return implicitResult.Save(tx)
-	}
-	return nil
+	return implicitParser.Parse(ctx, metadata, head, store)
 }
 
 func (bi *BoostIndexer) standartMigration(ctx context.Context, newProtocol protocol.Protocol, head noderpc.Header, tx pg.DBI) error {
 	logger.Info().Str("network", bi.Network.String()).Msg("Try to find migrations...")
+
 	var contracts []contract.Contract
 	if err := bi.StorageDB.DB.Model((*contract.Contract)(nil)).
 		Relation("Account").
@@ -498,7 +487,7 @@ func (bi *BoostIndexer) vestingMigration(ctx context.Context, head noderpc.Heade
 
 	p := migrations.NewVestingParser(bi.Context)
 
-	result := parsers.NewResult()
+	store := postgres.NewStore(tx)
 
 	for _, address := range addresses {
 		if !bcd.IsContract(address) {
@@ -510,10 +499,10 @@ func (bi *BoostIndexer) vestingMigration(ctx context.Context, head noderpc.Heade
 			return err
 		}
 
-		if err := p.Parse(data, head, address, bi.currentProtocol, result); err != nil {
+		if err := p.Parse(data, head, address, bi.currentProtocol, store); err != nil {
 			return err
 		}
 	}
 
-	return result.Save(tx)
+	return store.Save()
 }

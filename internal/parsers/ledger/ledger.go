@@ -45,47 +45,46 @@ func New(tokenBalanceRepo tbModel.Repository, accounts account.Repository) *Ledg
 }
 
 // Do -
-func (ledger *Ledger) Parse(operation *operation.Operation, st *stacktrace.StackTrace) (*parsers.Result, error) {
+func (ledger *Ledger) Parse(operation *operation.Operation, st *stacktrace.StackTrace, store parsers.Store) error {
 	if operation == nil || len(operation.BigMapDiffs) == 0 || !operation.Tags.Has(types.LedgerTag) {
-		return nil, nil
+		return nil
 	}
 
 	isFATransfer := (operation.Tags.Has(types.FA2Tag) || operation.Tags.Has(types.FA12Tag)) && operation.IsEntrypoint(consts.TransferEntrypoint)
 	if isFATransfer {
-		return nil, nil
+		return nil
 	}
 
 	storage, err := operation.AST.Storage.ToTypedAST()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := storage.SettleFromBytes(operation.DeffatedStorage); err != nil {
-		return nil, err
+		return err
 	}
 
 	bigMap, err := ledger.getLedgerBigMap(storage)
 	switch {
 	case errors.Is(err, ErrNoLedgerKeyInStorage):
-		return nil, nil
+		return nil
 	case err != nil:
-		return nil, err
+		return err
 	case bigMap == nil:
-		return nil, nil
+		return nil
 	}
 
-	result := new(parsers.Result)
 	for _, bmd := range operation.BigMapDiffs {
 		if bmd.Ptr != *bigMap.Ptr {
 			continue
 		}
 		balances, err := ledger.handle(bmd, bigMap, st, operation)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		result.TokenBalances = append(result.TokenBalances, balances...)
+		store.AddTokenBalances(balances...)
 	}
-	return result, nil
+	return nil
 }
 
 func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap, st *stacktrace.StackTrace, op *operation.Operation) ([]*tbModel.TokenBalance, error) {

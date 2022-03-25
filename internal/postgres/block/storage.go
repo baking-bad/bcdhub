@@ -2,7 +2,6 @@ package block
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
 
@@ -37,16 +36,4 @@ func (storage *Storage) Last() (block block.Block, err error) {
 		err = nil
 	}
 	return
-}
-
-// GetNetworkAlias -
-func (storage *Storage) GetNetworkAlias(chainID string) (string, error) {
-	var network types.Network
-	err := storage.DB.Model((*block.Block)(nil)).
-		Column("block.network").
-		Where("block.chain_id = ?", chainID).
-		Limit(1).
-		Select(&network)
-
-	return network.String(), err
 }

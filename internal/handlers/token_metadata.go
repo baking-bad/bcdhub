@@ -21,7 +21,7 @@ type TokenMetadata struct {
 // NewTokenMetadata -
 func NewTokenMetadata(ctx *config.Context, ipfs []string) *TokenMetadata {
 	return &TokenMetadata{
-		ctx.Storage, tokens.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.TokenMetadata, ctx.Storage, ctx.RPC, ctx.Network, ipfs...),
+		ctx.Storage, tokens.NewParser(ctx, ipfs...),
 	}
 }
 
