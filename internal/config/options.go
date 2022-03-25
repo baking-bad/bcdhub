@@ -61,8 +61,8 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		defaultConn := pgCore.WaitNew(cfg.Postgres.ConnectionString(), appName, cfg.Timeout)
 		defer defaultConn.Close()
 
-		if _, err := defaultConn.DB.Exec(`SELECT datname FROM pg_catalog.pg_database WHERE datname = ?`, ctx.Network.String()); err != nil {
-			if errors.Is(err, pg.ErrNoRows) {
+		if result, err := defaultConn.DB.Exec(`SELECT datname FROM pg_catalog.pg_database WHERE datname = ?`, ctx.Network.String()); err != nil || result.RowsReturned() == 0 {
+			if errors.Is(err, pg.ErrNoRows) || result.RowsReturned() == 0 {
 				if _, err := defaultConn.DB.Exec("create database ?", pg.Ident(ctx.Network.String())); err != nil {
 					panic(err)
 				}
