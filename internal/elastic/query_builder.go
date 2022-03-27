@@ -99,6 +99,26 @@ func Match(key string, value interface{}) Item {
 	}
 }
 
+// Term -
+func Term(key string, value interface{}) Item {
+	return Item{
+		"term": Item{
+			key: value,
+		},
+	}
+}
+
+// Wildcard -
+func Wildcard(key string, value interface{}) Item {
+	return Item{
+		"wildcard": Item{
+			key: Item{
+				"value": value,
+			},
+		},
+	}
+}
+
 // MinimumShouldMatch -
 func MinimumShouldMatch(value int) Item {
 	return Item{
@@ -197,6 +217,12 @@ func (q Base) All() Base {
 // Zero -
 func (q Base) Zero() Base {
 	q["size"] = MinQuerySize
+	return q
+}
+
+// Size -
+func (q Base) Size(size int64) Base {
+	q["size"] = size
 	return q
 }
 

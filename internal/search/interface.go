@@ -14,6 +14,8 @@ type Searcher interface {
 	CreateIndexes() error
 	Rollback(network string, level int64) error
 
+	BigMapDiffs(args BigMapDiffSearchArgs) ([]BigMapDiffResult, error)
+
 	CreateAWSRepository(string, string, string) error
 	ListRepositories() ([]Repository, error)
 	CreateSnapshots(string, string, []string) error
