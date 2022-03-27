@@ -1,6 +1,10 @@
 package search
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/baking-bad/bcdhub/internal/models/types"
+)
 
 // Result -
 type Result struct {
@@ -49,4 +53,22 @@ type Repository struct {
 // String -
 func (repo Repository) String() string {
 	return fmt.Sprintf("%s (type: %s)", repo.ID, repo.Type)
+}
+
+// BigMapDiffSearchArgs -
+type BigMapDiffSearchArgs struct {
+	Network  types.Network
+	Contract string
+	Ptr      *int64
+	Query    string
+	Size     int64
+	Offset   int64
+	MinLevel *int64
+	MaxLevel *int64
+}
+
+// BigMapDiffResult -
+type BigMapDiffResult struct {
+	Key   string `json:"key"`
+	Count int64  `json:"doc_count"`
 }

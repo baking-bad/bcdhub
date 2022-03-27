@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/go-pg/pg/v10/orm"
 )
 
@@ -42,10 +41,13 @@ func (storage *Storage) buildGetContext(query *orm.Query, ctx transfer.GetContex
 			}
 		}
 	}
-	subQuery := core.OrStringArray(query, ctx.Contracts, "contract")
-	if subQuery != nil {
+	if len(ctx.Contracts) > 0 {
 		query.WhereGroup(func(q *orm.Query) (*orm.Query, error) {
-			return subQuery, nil
+			q.WhereOr("contract = ?", ctx.Contracts[0])
+			for i := 1; i < len(ctx.Contracts); i++ {
+				q.WhereOr("contract = ?", ctx.Contracts[i])
+			}
+			return q, nil
 		})
 	}
 	if ctx.TokenID != nil {

@@ -122,20 +122,6 @@ func (p *Postgres) IsRecordNotFound(err error) bool {
 	return err != nil && errors.Is(err, pg.ErrNoRows)
 }
 
-// OrStringArray
-func OrStringArray(db *orm.Query, arr []string, fieldName string) *orm.Query {
-	if len(arr) == 0 {
-		return nil
-	}
-
-	str := fmt.Sprintf("%s = ?", fieldName)
-	subQuery := db.Where(str, arr[0])
-	for i := 1; i < len(arr); i++ {
-		subQuery.WhereOr(str, arr[i])
-	}
-	return subQuery
-}
-
 // Execute -
 func (p *Postgres) Execute(rawSQL string) error {
 	_, err := p.DB.Exec(rawSQL)
