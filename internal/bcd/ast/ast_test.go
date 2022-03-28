@@ -1577,6 +1577,10 @@ func TestTypedAst_GetEntrypointsDocs(t *testing.T) {
 			name:   "ithacanet/KT1AJJLbnxLdwkzmjAdz3SJ64B2brYcjox5M/ticket",
 			tree:   `{"prim":"or","args":[{"prim":"unit","annots":["%auto_call"]},{"prim":"ticket","args":[{"prim":"int"}],"annots":["%run"]}]}`,
 			result: `[{"name":"auto_call","typedef":[{"name":"auto_call","type":"unit"}]},{"name":"run","typedef":[{"name":"run","type":"ticket(int)"}]}]`,
+		}, {
+			name:   "ithacanet/KT1AJJLbnxLdwkzmjAdz3SJ64B2brYcjox5M/storage",
+			tree:   `{"prim":"pair","args":[{"prim":"option","args":[{"prim":"ticket","args":[{"prim":"int"}]}],"annots":["%x"]},{"prim":"option","args":[{"prim":"ticket","args":[{"prim":"string"}]}],"annots":["%y"]}]}`,
+			result: `[{"name":"default","typedef":[{"name":"@pair_1","type":"pair","args":[{"key":"x","value":"option(ticket(int))"},{"key":"y","value":"option(ticket(string))"}]}]}]`,
 		},
 	}
 	for _, tt := range tests {

@@ -271,7 +271,7 @@ func (opt *Option) Docs(inferredName string) ([]Typedef, string, error) {
 	}
 
 	optName := fmt.Sprintf("option(%s)", varName)
-	if isSimpleDocType(docs[0].Type) {
+	if docs == nil || isSimpleDocType(docs[0].Type) {
 		return nil, optName, nil
 	}
 	return docs, optName, nil
