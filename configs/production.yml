@@ -23,7 +23,7 @@ services:
 
 storage:
   pg: 
-    host: ${DB_HOSTNAME:-127.0.0.1}
+    host: ${DB_HOSTNAME:-db}
     port: 5432
     user: ${POSTGRES_USER}
     # dbname: ${POSTGRES_DB:-indexer}
