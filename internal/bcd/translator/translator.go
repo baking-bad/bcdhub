@@ -157,8 +157,8 @@ func (t *MichelineTranslator) complexInstrTranslate(ast *peg.Ast) (string, error
 
 func sanitizeString(token string) string {
 	for from, to := range map[string]string{
-		"\\\"": "'",
-		"\"":   "",
+		`\"`: "'",
+		`"`:  "",
 	} {
 		token = strings.ReplaceAll(token, from, to)
 	}

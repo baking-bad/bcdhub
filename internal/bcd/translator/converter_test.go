@@ -20,6 +20,7 @@ func TestConverter_FromFile(t *testing.T) {
 		t.Errorf("Converter.NewConverter() error = %v", err)
 		return
 	}
+
 	for _, file := range files {
 		if !file.IsDir() {
 			continue
