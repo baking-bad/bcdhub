@@ -111,15 +111,6 @@ func (storage *Storage) GetForOperation(id int64) (response []bigmapdiff.BigMapD
 	return
 }
 
-// GetForOperations -
-func (storage *Storage) GetForOperations(ids ...int64) (response []bigmapdiff.BigMapDiff, err error) {
-	if len(ids) == 0 {
-		return nil, nil
-	}
-	err = storage.DB.Model().Table(models.DocBigMapDiff).WhereIn("operation_id IN (?)", ids).Select(&response)
-	return
-}
-
 // GetByPtrAndKeyHash -
 func (storage *Storage) GetByPtrAndKeyHash(ptr int64, network types.Network, keyHash string, size, offset int64) ([]bigmapdiff.BigMapDiff, int64, error) {
 	if ptr < 0 {

@@ -79,25 +79,6 @@ func (mr *MockRepositoryMockRecorder) GetForOperation(id interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForOperation", reflect.TypeOf((*MockRepository)(nil).GetForOperation), id)
 }
 
-// GetForOperations mocks base method
-func (m *MockRepository) GetForOperations(ids ...int64) ([]model.BigMapDiff, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{}
-	for _, a := range ids {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetForOperations", varargs...)
-	ret0, _ := ret[0].([]model.BigMapDiff)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetForOperations indicates an expected call of GetForOperations
-func (mr *MockRepositoryMockRecorder) GetForOperations(ids ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForOperations", reflect.TypeOf((*MockRepository)(nil).GetForOperations), ids...)
-}
-
 // GetByPtr mocks base method
 func (m *MockRepository) GetByPtr(network types.Network, contract string, ptr int64) ([]model.BigMapState, error) {
 	m.ctrl.T.Helper()

@@ -358,31 +358,16 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 
 // PrepareOperations -
 func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff bool) ([]Operation, error) {
-	ids := make([]int64, 0, len(ops))
-	for i := 0; i < len(ops); i++ {
-		ids = append(ids, ops[i].ID)
-	}
-	bmd := make(map[int64][]bigmapdiff.BigMapDiff)
-
-	if withStorageDiff {
-		data, err := ctx.BigMapDiffs.GetForOperations(ids...)
-		if err != nil {
-			return nil, err
-		}
-		for i := range data {
-			id := data[i].OperationID
-			if _, ok := bmd[id]; !ok {
-				bmd[id] = []bigmapdiff.BigMapDiff{}
-			}
-			bmd[id] = append(bmd[id], data[i])
-		}
-	}
-
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
-		diffs, ok := bmd[ops[i].ID]
-		if !ok {
-			diffs = nil
+		var diffs []bigmapdiff.BigMapDiff
+		var err error
+
+		if withStorageDiff {
+			diffs, err = ctx.BigMapDiffs.GetForOperation(ops[i].ID)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		op, err := ctx.prepareOperation(ops[i], diffs, withStorageDiff)
