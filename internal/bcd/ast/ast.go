@@ -261,8 +261,16 @@ func (a *TypedAst) Docs(entrypoint string) ([]Typedef, error) {
 
 	node := a.FindByName(entrypoint, true)
 	if node != nil {
-		docs, _, err := node.Docs(DocsFull)
-		return docs, err
+		docs, typName, err := node.Docs(DocsFull)
+		if docs != nil {
+			return docs, err
+		}
+		return []Typedef{
+			{
+				Name: entrypoint,
+				Type: typName,
+			},
+		}, nil
 	}
 	return nil, nil
 }
