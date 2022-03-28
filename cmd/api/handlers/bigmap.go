@@ -199,7 +199,6 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 		keys, err := ctx.BigMapDiffs.Keys(bigmapdiff.GetContext{
 			Ptr:      &req.Ptr,
 			Network:  req.NetworkID(),
-			Query:    pageReq.Search,
 			Size:     pageReq.Size,
 			Offset:   pageReq.Offset,
 			MaxLevel: pageReq.MaxLevel,

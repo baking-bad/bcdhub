@@ -1,8 +1,6 @@
 package bigmapdiff
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/go-pg/pg/v10/orm"
@@ -28,9 +26,6 @@ func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *orm.Query {
 	}
 	if ctx.CurrentLevel != nil {
 		query.Where("level = ?", *ctx.CurrentLevel)
-	}
-	if ctx.Query != "" {
-		query.Where("(key_hash LIKE ?0 OR array_to_string(key_strings, '|') LIKE ?0)", fmt.Sprintf("%%%s%%", ctx.Query))
 	}
 
 	query.Limit(storage.GetPageSize(ctx.Size))
@@ -62,9 +57,6 @@ func (storage *Storage) buildGetContextForState(ctx bigmapdiff.GetContext) *orm.
 	}
 	if ctx.CurrentLevel != nil {
 		query.Where("level = ?", *ctx.CurrentLevel)
-	}
-	if ctx.Query != "" {
-		query.Where("(key_hash LIKE ?0)", fmt.Sprintf("%%%s%%", ctx.Query))
 	}
 
 	query.Limit(storage.GetPageSize(ctx.Size))
