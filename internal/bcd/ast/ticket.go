@@ -123,11 +123,11 @@ func (t *Ticket) Docs(inferredName string) ([]Typedef, string, error) {
 		return nil, "", err
 	}
 
-	optName := fmt.Sprintf("ticket(%s)", varName)
-	if isSimpleDocType(docs[0].Type) {
-		return nil, optName, nil
+	ticketName := fmt.Sprintf("ticket(%s)", varName)
+	if docs == nil || isSimpleDocType(docs[0].Type) {
+		return nil, ticketName, nil
 	}
-	return docs, optName, nil
+	return docs, ticketName, nil
 }
 
 // Distinguish -
