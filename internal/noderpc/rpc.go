@@ -183,9 +183,11 @@ func (rpc *NodeRPC) makePostRequest(ctx context.Context, uri string, data interf
 func (rpc *NodeRPC) get(ctx context.Context, uri string, withCache bool, response interface{}) error {
 	if withCache && rpc.cached() {
 		if f, err := os.Open(rpc.cachePath(uri)); err == nil {
-			defer f.Close()
 			if err := json.NewDecoder(f).Decode(response); err == nil {
-				return nil
+				return f.Close()
+			}
+			if err := f.Close(); err != nil {
+				return err
 			}
 		}
 	}
