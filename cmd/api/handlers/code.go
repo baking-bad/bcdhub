@@ -40,7 +40,7 @@ func GetContractCode() gin.HandlerFunc {
 		}
 
 		if req.Protocol == "" {
-			state, err := ctx.Cache.CurrentBlock()
+			state, err := ctx.Blocks.Last()
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}

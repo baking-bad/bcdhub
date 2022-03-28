@@ -35,10 +35,10 @@ import (
 func Search() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
-		mainnet := ctxs.MustGet(types.Mainnet)
+		any := ctxs.Any()
 
 		var req searchRequest
-		if err := c.BindQuery(&req); handleError(c, mainnet.Storage, err, http.StatusBadRequest) {
+		if err := c.BindQuery(&req); handleError(c, any.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -48,8 +48,8 @@ func Search() gin.HandlerFunc {
 		}
 		filters := getSearchFilters(req)
 
-		result, err := mainnet.Searcher.ByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
-		if handleError(c, mainnet.Storage, err, 0) {
+		result, err := any.Searcher.ByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
+		if handleError(c, any.Storage, err, 0) {
 			return
 		}
 

@@ -97,15 +97,15 @@ func GetContractOperations() gin.HandlerFunc {
 func GetOperation() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
-		mainnet := ctxs.MustGet(modelTypes.Mainnet)
+		any := ctxs.Any()
 
 		var req OPGRequest
-		if err := c.BindUri(&req); handleError(c, mainnet.Storage, err, http.StatusBadRequest) {
+		if err := c.BindUri(&req); handleError(c, any.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
 		var queryReq opgRequest
-		if err := c.BindQuery(&queryReq); handleError(c, mainnet.Storage, err, http.StatusBadRequest) {
+		if err := c.BindQuery(&queryReq); handleError(c, any.Storage, err, http.StatusBadRequest) {
 			return
 		}
 

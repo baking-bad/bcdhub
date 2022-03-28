@@ -6,17 +6,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
 // ForkContract -
 func ForkContract(ctxs config.Contexts) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		mainnet := ctxs.MustGet(types.Mainnet)
-
 		var req forkRequest
-		if err := c.BindJSON(&req); handleError(c, mainnet.Storage, err, http.StatusBadRequest) {
+		if err := c.BindJSON(&req); handleError(c, ctxs.Any().Storage, err, http.StatusBadRequest) {
 			return
 		}
 		ctx, err := ctxs.Get(req.NetworkID())

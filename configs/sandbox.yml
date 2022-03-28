@@ -76,6 +76,8 @@ metrics:
   project_name: metrics
   sentry_enabled: false
   cache_aliases_seconds: 30
+  networks:
+    - sandboxnet
 
 scripts:
   networks:

@@ -11,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 var ctxs config.Contexts
@@ -41,8 +40,7 @@ func main() {
 	)
 	defer ctxs.Close()
 
-	mainnet := ctxs.MustGet(types.Mainnet)
-	if err := mainnet.Searcher.CreateIndexes(); err != nil {
+	if err := ctxs.Any().Searcher.CreateIndexes(); err != nil {
 		logger.Err(err)
 		return
 	}

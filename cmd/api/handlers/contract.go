@@ -68,10 +68,10 @@ func GetContract() gin.HandlerFunc {
 func GetRandomContract() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
-		mainnet := ctxs.MustGet(types.Mainnet)
+		anyContext := ctxs.Any()
 
 		var req networkQueryRequest
-		if err := c.BindQuery(&req); handleError(c, mainnet.Storage, err, http.StatusBadRequest) {
+		if err := c.BindQuery(&req); handleError(c, anyContext.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -82,7 +82,7 @@ func GetRandomContract() gin.HandlerFunc {
 		}
 
 		ctx, err := ctxs.Get(network)
-		if handleError(c, mainnet.Storage, err, 0) {
+		if handleError(c, anyContext.Storage, err, 0) {
 			return
 		}
 
@@ -175,8 +175,8 @@ func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Co
 	res.FromModel(contract)
 	res.Network = ctx.Network.String()
 
-	if alias, err := ctx.Cache.ContractMetadata(contract.Account.Address); err == nil && alias != nil {
-		res.Slug = alias.Slug
+	if contractMetadata, err := ctx.Cache.ContractMetadata(contract.Account.Address); err == nil && contractMetadata != nil {
+		res.Slug = contractMetadata.Slug
 	} else if !ctx.Storage.IsRecordNotFound(err) {
 		return res, err
 	}

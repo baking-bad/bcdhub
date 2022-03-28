@@ -155,7 +155,7 @@ func prepareMempoolOrigination(ctx *config.Context, origination mempool.PendingO
 }
 
 func buildMempoolOperationParameters(ctx *config.Context, data []byte, op *Operation) error {
-	proto, err := ctx.Cache.ProtocolByHash(op.Protocol)
+	proto, err := ctx.Protocols.Get(op.Protocol, -1)
 	if err != nil {
 		return err
 	}

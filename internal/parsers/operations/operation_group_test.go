@@ -366,7 +366,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -403,7 +403,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -623,7 +623,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -858,7 +858,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -954,7 +954,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1056,7 +1056,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1243,7 +1243,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1384,7 +1384,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1521,7 +1521,7 @@ func TestGroup_Parse(t *testing.T) {
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
-					rpc, blockRepo, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{

@@ -79,7 +79,7 @@ func NewContext(network types.Network, opts ...ContextOption) *Context {
 	}
 
 	ctx.Cache = cache.NewCache(
-		ctx.RPC, ctx.Blocks, ctx.Accounts, ctx.Contracts, ctx.Protocols, ctx.ContractMetadata, ctx.Sanitizer,
+		ctx.RPC, ctx.Accounts, ctx.Contracts, ctx.Protocols, ctx.ContractMetadata, ctx.Sanitizer,
 	)
 	return ctx
 }
@@ -99,7 +99,12 @@ type Contexts map[types.Network]*Context
 
 // NewContext -
 func NewContexts(cfg Config, networks []string, opts ...ContextOption) Contexts {
+	if len(networks) == 0 {
+		panic("empty networks list in config file")
+	}
+
 	ctxs := make(Contexts)
+
 	for i := range networks {
 		networkType := types.NewNetwork(networks[i])
 		if networkType == types.Empty {
@@ -120,12 +125,12 @@ func (ctxs Contexts) Get(network types.Network) (*Context, error) {
 	return nil, errors.Errorf("unknown network: %s", network.String())
 }
 
-// MustGet -
-func (ctxs Contexts) MustGet(network types.Network) *Context {
-	if ctx, ok := ctxs[network]; ok {
+// Any -
+func (ctxs Contexts) Any() *Context {
+	for _, ctx := range ctxs {
 		return ctx
 	}
-	panic(errors.Errorf("unknown network: %s", network.String()))
+	panic("empty contexts map")
 }
 
 // Close -

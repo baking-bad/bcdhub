@@ -47,7 +47,7 @@ func GetInfo() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		block, err := ctx.Cache.CurrentBlock()
+		block, err := ctx.Blocks.Last()
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -296,7 +296,7 @@ func GetAccountTokensCountByContractWithMetadata() gin.HandlerFunc {
 					}
 				}
 			}
-			contract, err := ctx.Cache.Contract(metadata.Address)
+			contract, err := ctx.Contracts.Get(metadata.Address)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}

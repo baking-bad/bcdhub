@@ -15,7 +15,7 @@ func getScript(ctx *config.Context, address, symLink string) (*ast.Script, error
 
 func getScriptBytes(ctx *config.Context, address, symLink string) ([]byte, error) {
 	if symLink == "" {
-		state, err := ctx.Cache.CurrentBlock()
+		state, err := ctx.Blocks.Last()
 		if err != nil {
 			return nil, err
 		}
