@@ -263,7 +263,7 @@ func (rpc *NodeRPC) GetScriptStorageRaw(ctx context.Context, address string, lev
 	var response struct {
 		Storage stdJSON.RawMessage `json:"storage"`
 	}
-	err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), level > 0, &response)
+	err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), false, &response)
 	return response.Storage, err
 }
 
