@@ -382,6 +382,7 @@ func (a *Alias) FromModel(alias *contract_metadata.ContractMetadata) {
 	a.Alias = alias.Name
 	a.Address = alias.Address
 	a.Slug = alias.Slug
+	a.Network = types.Mainnet.String()
 }
 
 // Protocol -

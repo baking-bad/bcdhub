@@ -177,6 +177,9 @@ func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Co
 
 	if contractMetadata, err := ctx.Cache.ContractMetadata(contract.Account.Address); err == nil && contractMetadata != nil {
 		res.Slug = contractMetadata.Slug
+		if res.Alias == "" {
+			res.Alias = contractMetadata.Name
+		}
 	} else if !ctx.Storage.IsRecordNotFound(err) {
 		return res, err
 	}

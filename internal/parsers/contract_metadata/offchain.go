@@ -7,9 +7,11 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -58,6 +60,7 @@ type contractMetadataLegacy struct {
 
 // ContractMetadata -
 type ContractMetadata struct {
+	Accounts  []account.Account
 	Contracts []contract_metadata.ContractMetadata
 	Tokens    []tokenmetadata.TokenMetadata
 }
@@ -72,10 +75,17 @@ func (o *Offchain) GetContractMetadata(ctx context.Context) (ContractMetadata, e
 	result := ContractMetadata{
 		Tokens:    make([]tokenmetadata.TokenMetadata, 0),
 		Contracts: make([]contract_metadata.ContractMetadata, len(contractMetadata)),
+		Accounts:  make([]account.Account, 0),
 	}
 	for i := range contractMetadata {
 		result.Contracts[i] = contractMetadata[i].ContractMetadata
 		result.Contracts[i].OffChain = true
+
+		result.Accounts = append(result.Accounts, account.Account{
+			Address: contractMetadata[i].Address,
+			Alias:   contractMetadata[i].Name,
+			Type:    types.NewAccountType(contractMetadata[i].Address),
+		})
 
 		for _, token := range contractMetadata[i].Tokens.Static {
 			result.Tokens = append(result.Tokens, tokenmetadata.TokenMetadata{

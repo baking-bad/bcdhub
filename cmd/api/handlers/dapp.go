@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -240,6 +241,7 @@ func appendDAppInfo(ctx *config.Context, dapp dapp.DApp, withDetails bool) (DApp
 					Address:     contract.Account.Address,
 					Alias:       contract.Account.Alias,
 					ReleaseDate: contract.Timestamp.UTC(),
+					Network:     modelTypes.Mainnet.String(),
 				})
 
 				if address.WithTokens {

@@ -51,6 +51,9 @@ func (initializer Initializer) Init(ctx context.Context) error {
 			if _, err := initializer.db.Model(&metadata.Contracts).Context(ctx).Returning("id").Insert(); err != nil {
 				return err
 			}
+			if _, err := initializer.db.Model(&metadata.Accounts).Context(ctx).Returning("id").Insert(); err != nil {
+				return err
+			}
 			if _, err := initializer.db.Model(&metadata.Tokens).Context(ctx).Returning("id").Insert(); err != nil {
 				return err
 			}

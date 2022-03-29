@@ -217,6 +217,10 @@ type acc struct {
 
 // GetTokensStats -
 func (storage *Storage) GetTokensStats(addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
+	if len(addresses) == 0 {
+		return map[string]operation.TokenUsageStats{}, nil
+	}
+
 	var accs []acc
 	if err := storage.DB.Model((*account.Account)(nil)).
 		ColumnExpr("id, address").
