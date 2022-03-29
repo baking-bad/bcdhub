@@ -94,11 +94,6 @@ func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation,
 					ProtocolID:  operation.ProtocolID,
 					Ptr:         -1,
 				}
-
-				if err := setBigMapDiffsStrings(b); err != nil {
-					return false, err
-				}
-
 				operation.BigMapDiffs = append(operation.BigMapDiffs, b)
 				state := b.ToState()
 				state.Ptr = -1
@@ -134,10 +129,6 @@ func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operat
 			Timestamp:   operation.Timestamp,
 			ProtocolID:  operation.ProtocolID,
 			Ptr:         -1,
-		}
-
-		if err := setBigMapDiffsStrings(b); err != nil {
-			return err
 		}
 
 		operation.BigMapDiffs = append(operation.BigMapDiffs, b)

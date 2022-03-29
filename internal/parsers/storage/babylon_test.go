@@ -91,9 +91,6 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 						Level:      186900,
 						Contract:   "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
 						ProtocolID: 2,
-						KeyStrings: []string{
-							"KT1KVJ4S53zE6E8oo8L8TyMgAh1ACpf9HweA",
-						},
 					},
 				},
 			},

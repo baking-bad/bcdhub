@@ -61,9 +61,6 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 						KeyHash:    "exprudn2kdsp9N7P4ZP6wu22AACpnLE5N1YdDW5zSCqb55fTwSnsdz",
 						Key:        []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
 						Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
-						KeyStrings: []string{
-							"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6",
-						},
 					},
 				},
 			},

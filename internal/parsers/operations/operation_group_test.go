@@ -497,7 +497,6 @@ func TestGroup_Parse(t *testing.T) {
 								Contract:   "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 								ProtocolID: 1,
 								Timestamp:  timestamp,
-								KeyStrings: []string{"tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq"},
 							}, {
 								Ptr:        63,
 								KeyHash:    "exprv2snyFbF6EDZd2YAHnnmNBoFt7bbaXhGSWGXHv4a4wnxS359ob",
@@ -507,7 +506,6 @@ func TestGroup_Parse(t *testing.T) {
 								Contract:   "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 								ProtocolID: 1,
 								Timestamp:  timestamp,
-								KeyStrings: []string{"tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV"},
 							},
 						},
 					}, {
@@ -760,7 +758,6 @@ func TestGroup_Parse(t *testing.T) {
 								Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 								Timestamp:  timestamp,
 								ProtocolID: 1,
-								KeyStrings: []string{"totalSupply"},
 							}, {
 								Ptr:        31,
 								Key:        []byte(`{"bytes":"05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
@@ -770,7 +767,6 @@ func TestGroup_Parse(t *testing.T) {
 								Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 								Timestamp:  timestamp,
 								ProtocolID: 1,
-								KeyStrings: []string{"ledger", "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE"},
 							}, {
 								Ptr:        31,
 								Key:        []byte(`{"bytes":"05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
@@ -780,7 +776,6 @@ func TestGroup_Parse(t *testing.T) {
 								Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 								Timestamp:  timestamp,
 								ProtocolID: 1,
-								KeyStrings: []string{"ledger", "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr"},
 							},
 						},
 					},
@@ -1502,7 +1497,6 @@ func TestGroup_Parse(t *testing.T) {
 								KeyHash:    "exprvKwnhi4q3tSmdvgqXACxfN6zARGkoikHv7rqohvQKg4cWdgsii",
 								Key:        []byte(`{"bytes":"62616c6c732e74657a"}`),
 								Value:      []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Some","args":[{"bytes":"0000c0ca282a775946b5ecbe02e5cf73e25f6b62b70c"}]},[]]},{"prim":"Pair","args":[{"prim":"Some","args":[{"bytes":"62616c6c732e74657a"}]},[]]}]},{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"2"},{"bytes":"0000753f63893674b6d523f925f0d787bf9270b95c33"}]},{"prim":"Some","args":[{"int":"3223"}]}]}]}`),
-								KeyStrings: []string{"balls.tez"},
 							},
 						},
 					},

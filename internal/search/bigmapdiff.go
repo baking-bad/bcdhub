@@ -90,11 +90,15 @@ func (b *BigMapDiff) Prepare(network types.Network, model models.Model) {
 
 	b.Key = key
 	b.KeyHash = bmd.KeyHash
-	b.KeyStrings = bmd.KeyStrings
 	b.Level = bmd.Level
 	b.Network = network.String()
 	b.Ptr = bmd.Ptr
 	b.Timestamp = bmd.Timestamp.UTC()
+
+	keyStrings, err := storage.GetStrings(bmd.KeyBytes())
+	if err == nil {
+		b.KeyStrings = keyStrings
+	}
 
 	if bmd.Value != nil {
 		valStrings, err := storage.GetStrings(bmd.ValueBytes())

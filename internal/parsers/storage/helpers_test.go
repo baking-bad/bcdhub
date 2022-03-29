@@ -3,10 +3,6 @@ package storage
 import (
 	"reflect"
 	"testing"
-
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/lib/pq"
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_GetStrings(t *testing.T) {
@@ -42,33 +38,6 @@ func Test_GetStrings(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetStrings() = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func Test_setBigMapDiffsStrings(t *testing.T) {
-	tests := []struct {
-		name           string
-		bmd            *bigmapdiff.BigMapDiff
-		wantKeyStrings pq.StringArray
-		wantErr        bool
-	}{
-		{
-			name: "test 1",
-			bmd: &bigmapdiff.BigMapDiff{
-				Key: []byte(`{"bytes":"62616c6c732e74657a"}`),
-			},
-			wantKeyStrings: []string{
-				"balls.tez",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := setBigMapDiffsStrings(tt.bmd); (err != nil) != tt.wantErr {
-				t.Errorf("setBigMapDiffsStrings() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			assert.Equal(t, tt.wantKeyStrings, tt.bmd.KeyStrings)
 		})
 	}
 }

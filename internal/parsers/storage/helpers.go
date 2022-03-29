@@ -95,13 +95,3 @@ func GetStrings(data []byte) ([]string, error) {
 	}
 	return tree.GetStrings(true)
 }
-
-func setBigMapDiffsStrings(bmd *bigmapdiff.BigMapDiff) error {
-	keyStrings, err := GetStrings(bmd.KeyBytes())
-	if err != nil {
-		return err
-	}
-	bmd.KeyStrings = keyStrings
-
-	return nil
-}

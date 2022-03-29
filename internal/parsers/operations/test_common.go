@@ -391,16 +391,6 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 	if !assert.JSONEq(t, string(one.KeyBytes()), string(two.KeyBytes())) {
 		return false
 	}
-	if len(one.KeyStrings) != len(two.KeyStrings) {
-		logger.Info().Msgf("KeyStrings: %v != %v", one.KeyStrings, two.KeyStrings)
-		return false
-	}
-	for i := range one.KeyStrings {
-		if one.KeyStrings[i] != two.KeyStrings[i] {
-			logger.Info().Msgf("KeyStrings[i]: %v != %v", one.KeyStrings[i], two.KeyStrings[i])
-			return false
-		}
-	}
 	return true
 }
 

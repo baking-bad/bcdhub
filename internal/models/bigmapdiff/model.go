@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
-	"github.com/lib/pq"
 )
 
 // BigMapDiff -
@@ -23,8 +22,6 @@ type BigMapDiff struct {
 	Timestamp   time.Time
 	ProtocolID  int64 `pg:",type:SMALLINT"`
 	OperationID int64
-
-	KeyStrings pq.StringArray `pg:",type:text[]"`
 }
 
 // GetID -
@@ -50,8 +47,7 @@ func (b *BigMapDiff) Save(tx pg.DBI) error {
 			contract = excluded.contract,
 			timestamp = excluded.timestamp, 
 			protocol_id = excluded.protocol_id, 
-			operation_id = excluded.operation_id, 
-			key_strings = excluded.key_strings`).
+			operation_id = excluded.operation_id`).
 		Returning("id").
 		Insert()
 	return err
