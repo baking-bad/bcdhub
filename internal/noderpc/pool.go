@@ -96,19 +96,26 @@ func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
 	}
 
 	response := mthd.Call(in)
-	if len(response) != 2 {
+
+	switch len(response) {
+	case 1:
+		if !response[0].IsNil() {
+			return reflect.Value{}, response[0].Interface().(error)
+		}
+		return reflect.Value{}, nil
+	case 2:
+		if !response[1].IsNil() {
+			if IsNodeUnavailiableError(response[1].Interface().(error)) {
+				node.block()
+				return p.call(method, args...)
+			}
+			return response[0], response[1].Interface().(error)
+		}
+		return response[0], nil
+	default:
 		node.block()
 		return reflect.Value{}, errors.Errorf("Invalid response length: %d", len(response))
 	}
-
-	if !response[1].IsNil() {
-		if IsNodeUnavailiableError(response[1].Interface().(error)) {
-			node.block()
-			return p.call(method, args...)
-		}
-		return response[0], response[1].Interface().(error)
-	}
-	return response[0], nil
 }
 
 // GetHead -
