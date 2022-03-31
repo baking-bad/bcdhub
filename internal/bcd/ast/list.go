@@ -118,7 +118,7 @@ func (list *List) ToJSONSchema() (*JSONSchema, error) {
 		Prim:    list.Prim,
 		Type:    JSONSchemaTypeArray,
 		Default: make([]interface{}, 0),
-		Items: &SchemaKey{
+		Items: &JSONSchema{
 			Type:       JSONSchemaTypeObject,
 			Required:   make([]string, 0),
 			Properties: make(map[string]*JSONSchema),

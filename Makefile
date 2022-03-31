@@ -130,7 +130,7 @@ test:
 	go test ./...
 
 lint:
-	golangci-lint run
+	golangci-lint run --go=1.18
 
 test-api:
 	# to install newman:

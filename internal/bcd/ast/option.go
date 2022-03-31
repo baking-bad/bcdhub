@@ -172,7 +172,7 @@ func (opt *Option) ToJSONSchema() (*JSONSchema, error) {
 			someSchema,
 		},
 		Default: &JSONSchema{
-			SchemaKey: (*SchemaKey)(noneSchema),
+			SchemaKey: noneSchema,
 		},
 	}, nil
 }

@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 #  The first stage container, for building the application
 # ---------------------------------------------------------------------
-FROM golang:1.15-alpine as builder
+FROM golang:1.18-alpine as builder
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on
@@ -20,7 +20,7 @@ COPY cmd/api cmd/api
 COPY internal internal
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/api/
-RUN go get github.com/swaggo/swag/cmd/swag@v1.7.0
+RUN go install github.com/swaggo/swag/cmd/swag@v1.8.1
 RUN swag init --parseDependency --parseInternal --parseDepth 2
 RUN go build -a -installsuffix cgo -o /go/bin/api .
 
