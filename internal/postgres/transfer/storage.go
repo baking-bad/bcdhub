@@ -86,7 +86,7 @@ const (
 			) as val
 		)
 		select
-			extract(epoch from f.val),
+			extract(epoch from f.val) as date_part,
 			sum(amount) as value
 		from f
 		left join transfers on date_trunc(?period, transfers.timestamp) = f.val where (transfers.from_id != transfers.to_id) and (status = 1) and token_id = ?token_id ?conditions
