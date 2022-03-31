@@ -70,7 +70,6 @@ indexer:
   sentry_enabled: true
   skip_delegator_blocks: false
   offchain_base_url: ${OFFCHAIN_BASE_URL}
-  cache: true
   networks:
     mainnet:
       receiver_threads: 20
