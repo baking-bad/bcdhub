@@ -6,12 +6,11 @@ definitions:
     properties:
       const:
         type: string
-      default:
-        type: object
+      default: {}
       format:
         type: string
       items:
-        $ref: '#/definitions/ast.SchemaKey'
+        $ref: '#/definitions/ast.JSONSchema'
       maxLength:
         type: integer
       minLength:
@@ -31,7 +30,7 @@ definitions:
           type: string
         type: array
       schemaKey:
-        $ref: '#/definitions/ast.SchemaKey'
+        $ref: '#/definitions/ast.JSONSchema'
       tag:
         type: string
       title:
@@ -52,18 +51,14 @@ definitions:
         type: array
       diff_type:
         type: string
-      from:
-        type: object
+      from: {}
       name:
         type: string
       prim:
         type: string
       type:
         type: string
-      value:
-        type: object
-    type: object
-  ast.SchemaKey:
+      value: {}
     type: object
   ast.Typedef:
     properties:
@@ -86,6 +81,117 @@ definitions:
         type: string
       value:
         type: string
+    type: object
+  contract_metadata.Event:
+    properties:
+      description:
+        type: string
+      implementations:
+        items:
+          $ref: '#/definitions/contract_metadata.EventImplementation'
+        type: array
+      name:
+        type: string
+    type: object
+  contract_metadata.EventImplementation:
+    properties:
+      michelsonExtendedStorageEvent:
+        $ref: '#/definitions/contract_metadata.MichelsonExtendedStorageEvent'
+      michelsonInitialStorageEvent:
+        $ref: '#/definitions/contract_metadata.MichelsonInitialStorageEvent'
+      michelsonParameterEvent:
+        $ref: '#/definitions/contract_metadata.MichelsonParameterEvent'
+    type: object
+  contract_metadata.License:
+    properties:
+      details:
+        type: string
+      name:
+        type: string
+    type: object
+  contract_metadata.MichelsonExtendedStorageEvent:
+    properties:
+      code:
+        items:
+          type: integer
+        type: array
+      entrypoints:
+        items:
+          type: string
+        type: array
+      parameter:
+        items:
+          type: integer
+        type: array
+      returnType:
+        items:
+          type: integer
+        type: array
+    type: object
+  contract_metadata.MichelsonInitialStorageEvent:
+    properties:
+      code:
+        items:
+          type: integer
+        type: array
+      parameter:
+        items:
+          type: integer
+        type: array
+      returnType:
+        items:
+          type: integer
+        type: array
+    type: object
+  contract_metadata.MichelsonParameterEvent:
+    properties:
+      code:
+        items:
+          type: integer
+        type: array
+      entrypoints:
+        items:
+          type: string
+        type: array
+      parameter:
+        items:
+          type: integer
+        type: array
+      returnType:
+        items:
+          type: integer
+        type: array
+    type: object
+  contract_metadata.Sections:
+    properties:
+      code:
+        items:
+          type: integer
+        type: array
+      parameter:
+        items:
+          type: integer
+        type: array
+      returnType:
+        items:
+          type: integer
+        type: array
+    type: object
+  contract_metadata.View:
+    properties:
+      description:
+        type: string
+      implementations:
+        items:
+          $ref: '#/definitions/contract_metadata.ViewImplementation'
+        type: array
+      name:
+        type: string
+    type: object
+  contract_metadata.ViewImplementation:
+    properties:
+      michelsonStorageView:
+        $ref: '#/definitions/contract_metadata.Sections'
     type: object
   formatter.DiffResult:
     properties:
@@ -152,7 +258,6 @@ definitions:
   handlers.BigMapDiffByKeyResponse:
     properties:
       key:
-        type: object
         x-nullable: true
       key_hash:
         type: string
@@ -170,8 +275,7 @@ definitions:
         type: integer
       timestamp:
         type: string
-      value:
-        type: object
+      value: {}
     type: object
   handlers.BigMapHistoryItem:
     properties:
@@ -202,8 +306,7 @@ definitions:
     type: object
   handlers.BigMapItem:
     properties:
-      key:
-        type: object
+      key: {}
       key_hash:
         type: string
       key_string:
@@ -212,8 +315,7 @@ definitions:
         type: integer
       timestamp:
         type: string
-      value:
-        type: object
+      value: {}
     type: object
   handlers.BigMapResponseItem:
     properties:
@@ -279,7 +381,7 @@ definitions:
       right:
         $ref: '#/definitions/handlers.CodeDiffLeg'
     type: object
-  handlers.Contract:
+  handlers.ContractWithStats:
     properties:
       address:
         type: string
@@ -342,9 +444,6 @@ definitions:
       slug:
         type: string
         x-nullable: true
-      subscription:
-        $ref: '#/definitions/handlers.Subscription'
-        x-nullable: true
       tags:
         items:
           type: string
@@ -352,8 +451,6 @@ definitions:
         x-nullable: true
       timestamp:
         type: string
-      total_subscribed:
-        type: integer
       tx_count:
         type: integer
         x-nullable: true
@@ -444,6 +541,8 @@ definitions:
         type: string
       protocol:
         type: string
+      synced:
+        type: boolean
       time:
         type: string
       total:
@@ -564,7 +663,6 @@ definitions:
         type: integer
         x-nullable: true
       parameters:
-        type: object
         x-nullable: true
       protocol:
         type: string
@@ -572,7 +670,6 @@ definitions:
         type: string
         x-nullable: true
       rawMempool:
-        type: object
         x-nullable: true
       source:
         type: string
@@ -633,11 +730,29 @@ definitions:
         example: 851969
         type: integer
     type: object
+  handlers.RecentlyCalledContract:
+    properties:
+      address:
+        type: string
+      alias:
+        type: string
+        x-nullable: true
+      id:
+        type: integer
+      last_action:
+        type: string
+        x-nullable: true
+      network:
+        type: string
+      tx_count:
+        type: integer
+        x-nullable: true
+    type: object
   handlers.SameContractsResponse:
     properties:
       contracts:
         items:
-          $ref: '#/definitions/handlers.Contract'
+          $ref: '#/definitions/handlers.ContractWithStats'
         type: array
       count:
         type: integer
@@ -657,8 +772,6 @@ definitions:
           type: string
         type: array
         x-nullable: true
-      count:
-        type: integer
       delegate:
         type: string
         x-nullable: true
@@ -713,9 +826,6 @@ definitions:
       slug:
         type: string
         x-nullable: true
-      subscription:
-        $ref: '#/definitions/handlers.Subscription'
-        x-nullable: true
       tags:
         items:
           type: string
@@ -723,8 +833,6 @@ definitions:
         x-nullable: true
       timestamp:
         type: string
-      total_subscribed:
-        type: integer
       tx_count:
         type: integer
         x-nullable: true
@@ -737,37 +845,6 @@ definitions:
         type: array
       count:
         type: integer
-    type: object
-  handlers.Subscription:
-    properties:
-      address:
-        type: string
-      alias:
-        type: string
-        x-nullable: true
-      network:
-        type: string
-      sentry_dsn:
-        type: string
-        x-nullable: true
-      sentry_enabled:
-        type: boolean
-      subscribed_at:
-        type: string
-      watch_calls:
-        type: boolean
-      watch_deployments:
-        type: boolean
-      watch_errors:
-        type: boolean
-      watch_mempool:
-        type: boolean
-      watch_migrations:
-        type: boolean
-      watch_same:
-        type: boolean
-      watch_similar:
-        type: boolean
     type: object
   handlers.TZIPResponse:
     properties:
@@ -783,7 +860,7 @@ definitions:
         type: string
       events:
         items:
-          $ref: '#/definitions/tzip.Event'
+          $ref: '#/definitions/contract_metadata.Event'
         type: array
       extras:
         additionalProperties: true
@@ -795,7 +872,7 @@ definitions:
           type: string
         type: array
       license:
-        $ref: '#/definitions/tzip.License'
+        $ref: '#/definitions/contract_metadata.License'
       name:
         type: string
       network:
@@ -804,7 +881,7 @@ definitions:
         type: string
       views:
         items:
-          $ref: '#/definitions/tzip.View'
+          $ref: '#/definitions/contract_metadata.View'
         type: array
     type: object
   handlers.Token:
@@ -844,6 +921,9 @@ definitions:
         x-nullable: true
       level:
         type: integer
+        x-nullable: true
+      minter:
+        type: string
         x-nullable: true
       name:
         type: string
@@ -920,6 +1000,9 @@ definitions:
         x-nullable: true
       level:
         type: integer
+        x-nullable: true
+      minter:
+        type: string
         x-nullable: true
       name:
         type: string
@@ -1036,6 +1119,9 @@ definitions:
       level:
         type: integer
         x-nullable: true
+      minter:
+        type: string
+        x-nullable: true
       name:
         type: string
         x-nullable: true
@@ -1095,7 +1181,7 @@ definitions:
         type: string
       events:
         items:
-          $ref: '#/definitions/tzip.Event'
+          $ref: '#/definitions/contract_metadata.Event'
         type: array
       extras:
         additionalProperties: true
@@ -1107,7 +1193,7 @@ definitions:
           type: string
         type: array
       license:
-        $ref: '#/definitions/tzip.License'
+        $ref: '#/definitions/contract_metadata.License'
       name:
         type: string
       network:
@@ -1116,7 +1202,7 @@ definitions:
         type: string
       views:
         items:
-          $ref: '#/definitions/tzip.View'
+          $ref: '#/definitions/contract_metadata.View'
         type: array
     type: object
   handlers.Transfer:
@@ -1187,9 +1273,10 @@ definitions:
   handlers.ViewSchema:
     properties:
       default_model:
-        type: object
         x-nullable: true
       description:
+        type: string
+      error:
         type: string
       implementation:
         type: integer
@@ -1276,8 +1363,7 @@ definitions:
     type: object
   search.Item:
     properties:
-      body:
-        type: object
+      body: {}
       group:
         $ref: '#/definitions/search.Group'
       highlights:
@@ -1311,6 +1397,7 @@ definitions:
     type: object
   tezerrors.Error:
     properties:
+      IError: {}
       descr:
         type: string
       id:
@@ -1319,117 +1406,6 @@ definitions:
         type: string
       title:
         type: string
-    type: object
-  tzip.Event:
-    properties:
-      description:
-        type: string
-      implementations:
-        items:
-          $ref: '#/definitions/tzip.EventImplementation'
-        type: array
-      name:
-        type: string
-    type: object
-  tzip.EventImplementation:
-    properties:
-      michelsonExtendedStorageEvent:
-        $ref: '#/definitions/tzip.MichelsonExtendedStorageEvent'
-      michelsonInitialStorageEvent:
-        $ref: '#/definitions/tzip.MichelsonInitialStorageEvent'
-      michelsonParameterEvent:
-        $ref: '#/definitions/tzip.MichelsonParameterEvent'
-    type: object
-  tzip.License:
-    properties:
-      details:
-        type: string
-      name:
-        type: string
-    type: object
-  tzip.MichelsonExtendedStorageEvent:
-    properties:
-      code:
-        items:
-          type: integer
-        type: array
-      entrypoints:
-        items:
-          type: string
-        type: array
-      parameter:
-        items:
-          type: integer
-        type: array
-      returnType:
-        items:
-          type: integer
-        type: array
-    type: object
-  tzip.MichelsonInitialStorageEvent:
-    properties:
-      code:
-        items:
-          type: integer
-        type: array
-      parameter:
-        items:
-          type: integer
-        type: array
-      returnType:
-        items:
-          type: integer
-        type: array
-    type: object
-  tzip.MichelsonParameterEvent:
-    properties:
-      code:
-        items:
-          type: integer
-        type: array
-      entrypoints:
-        items:
-          type: string
-        type: array
-      parameter:
-        items:
-          type: integer
-        type: array
-      returnType:
-        items:
-          type: integer
-        type: array
-    type: object
-  tzip.Sections:
-    properties:
-      code:
-        items:
-          type: integer
-        type: array
-      parameter:
-        items:
-          type: integer
-        type: array
-      returnType:
-        items:
-          type: integer
-        type: array
-    type: object
-  tzip.View:
-    properties:
-      description:
-        type: string
-      implementations:
-        items:
-          $ref: '#/definitions/tzip.ViewImplementation'
-        type: array
-      name:
-        type: string
-    type: object
-  tzip.ViewImplementation:
-    properties:
-      michelsonStorageView:
-        $ref: '#/definitions/tzip.Sections'
     type: object
 info:
   contact:
@@ -1985,7 +1961,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Contract'
+            $ref: '#/definitions/handlers.ContractWithStats'
         "204":
           description: No Content
           schema:
@@ -3087,6 +3063,32 @@ paths:
       summary: Show indexer head
       tags:
       - head
+  /v1/head/{network}:
+    get:
+      consumes:
+      - application/json
+      description: Get indexer head for the network
+      operationId: get-indexer-head-by-network
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HeadResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Show indexer head for the network
+      tags:
+      - head
   /v1/operation/{id}/diff:
     get:
       consumes:
@@ -3205,7 +3207,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Contract'
+            $ref: '#/definitions/handlers.ContractWithStats'
         "204":
           description: No Content
           schema:
@@ -3411,6 +3413,47 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Show contracts stats
+      tags:
+      - contract
+  /v1/stats/{network}/recently_called_contracts:
+    get:
+      consumes:
+      - application/json
+      description: Show recently called contracts
+      operationId: get-recenly-called-contracts
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Contracts count
+        in: query
+        maximum: 10
+        name: size
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.RecentlyCalledContract'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Show recently called contracts
       tags:
       - contract
   /v1/stats/{network}/series:

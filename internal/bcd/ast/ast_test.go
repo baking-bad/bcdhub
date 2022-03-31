@@ -123,7 +123,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 						Title:      "debit",
 						XItemTitle: "@address_2",
 						Default:    make([]interface{}, 0),
-						Items: &SchemaKey{
+						Items: &JSONSchema{
 							Type:     JSONSchemaTypeObject,
 							Required: []string{"@address_2", "@nat_3"},
 							Properties: map[string]*JSONSchema{
@@ -157,7 +157,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 						Prim:     "list",
 						Default:  []interface{}{},
 						Required: []string{},
-						Items: &SchemaKey{
+						Items: &JSONSchema{
 							Type:     JSONSchemaTypeObject,
 							Required: []string{},
 							Properties: map[string]*JSONSchema{
@@ -236,7 +236,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 				Prim:  "option",
 				Title: "@option_1",
 				Default: &JSONSchema{
-					SchemaKey: &SchemaKey{
+					SchemaKey: &JSONSchema{
 						Type:  JSONSchemaTypeString,
 						Const: "None",
 					},
@@ -332,7 +332,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 										Prim:  "option",
 										Title: "newPermCode",
 										Default: &JSONSchema{
-											SchemaKey: &SchemaKey{
+											SchemaKey: &JSONSchema{
 												Type:  "string",
 												Const: "None",
 											},
@@ -369,7 +369,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 										Prim:  "option",
 										Title: "newCode",
 										Default: &JSONSchema{
-											SchemaKey: &SchemaKey{
+											SchemaKey: &JSONSchema{
 												Type:  JSONSchemaTypeString,
 												Const: "None",
 											},
@@ -418,7 +418,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 						Title:      "debit",
 						XItemTitle: "@address_2",
 						Default:    make([]interface{}, 0),
-						Items: &SchemaKey{
+						Items: &JSONSchema{
 							Type:     JSONSchemaTypeObject,
 							Required: []string{"@address_2", "@nat_3"},
 							Properties: map[string]*JSONSchema{
@@ -452,7 +452,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 						Prim:     "set",
 						Default:  []interface{}{},
 						Required: []string{},
-						Items: &SchemaKey{
+						Items: &JSONSchema{
 							Type:     JSONSchemaTypeObject,
 							Required: []string{},
 							Properties: map[string]*JSONSchema{

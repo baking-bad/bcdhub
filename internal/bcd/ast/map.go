@@ -139,7 +139,7 @@ func (m *Map) ToJSONSchema() (*JSONSchema, error) {
 		Type:    JSONSchemaTypeArray,
 		Title:   m.GetName(),
 		Default: make([]interface{}, 0),
-		Items: &SchemaKey{
+		Items: &JSONSchema{
 			Type:       JSONSchemaTypeObject,
 			Required:   make([]string, 0),
 			Properties: make(map[string]*JSONSchema),

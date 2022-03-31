@@ -807,7 +807,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.Contract"
+                            "$ref": "#/definitions/handlers.ContractWithStats"
                         }
                     },
                     "204": {
@@ -2424,6 +2424,45 @@
                 }
             }
         },
+        "/v1/head/{network}": {
+            "get": {
+                "description": "Get indexer head for the network",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "head"
+                ],
+                "summary": "Show indexer head for the network",
+                "operationId": "get-indexer-head-by-network",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.HeadResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/operation/{id}/diff": {
             "get": {
                 "consumes": [
@@ -2601,7 +2640,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.Contract"
+                            "$ref": "#/definitions/handlers.ContractWithStats"
                         }
                     },
                     "204": {
@@ -2889,6 +2928,67 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/operation.DAppStats"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/stats/{network}/recently_called_contracts": {
+            "get": {
+                "description": "Show recently called contracts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Show recently called contracts",
+                "operationId": "get-recenly-called-contracts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Contracts count",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.RecentlyCalledContract"
+                            }
                         }
                     },
                     "400": {
@@ -3420,14 +3520,12 @@
                 "const": {
                     "type": "string"
                 },
-                "default": {
-                    "type": "object"
-                },
+                "default": {},
                 "format": {
                     "type": "string"
                 },
                 "items": {
-                    "$ref": "#/definitions/ast.SchemaKey"
+                    "$ref": "#/definitions/ast.JSONSchema"
                 },
                 "maxLength": {
                     "type": "integer"
@@ -3457,7 +3555,7 @@
                     }
                 },
                 "schemaKey": {
-                    "$ref": "#/definitions/ast.SchemaKey"
+                    "$ref": "#/definitions/ast.JSONSchema"
                 },
                 "tag": {
                     "type": "string"
@@ -3489,9 +3587,7 @@
                 "diff_type": {
                     "type": "string"
                 },
-                "from": {
-                    "type": "object"
-                },
+                "from": {},
                 "name": {
                     "type": "string"
                 },
@@ -3501,13 +3597,8 @@
                 "type": {
                     "type": "string"
                 },
-                "value": {
-                    "type": "object"
-                }
+                "value": {}
             }
-        },
-        "ast.SchemaKey": {
-            "type": "object"
         },
         "ast.Typedef": {
             "type": "object",
@@ -3540,6 +3631,177 @@
                 },
                 "value": {
                     "type": "string"
+                }
+            }
+        },
+        "contract_metadata.Event": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "implementations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/contract_metadata.EventImplementation"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "contract_metadata.EventImplementation": {
+            "type": "object",
+            "properties": {
+                "michelsonExtendedStorageEvent": {
+                    "$ref": "#/definitions/contract_metadata.MichelsonExtendedStorageEvent"
+                },
+                "michelsonInitialStorageEvent": {
+                    "$ref": "#/definitions/contract_metadata.MichelsonInitialStorageEvent"
+                },
+                "michelsonParameterEvent": {
+                    "$ref": "#/definitions/contract_metadata.MichelsonParameterEvent"
+                }
+            }
+        },
+        "contract_metadata.License": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "contract_metadata.MichelsonExtendedStorageEvent": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "entrypoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "parameter": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "returnType": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "contract_metadata.MichelsonInitialStorageEvent": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "parameter": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "returnType": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "contract_metadata.MichelsonParameterEvent": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "entrypoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "parameter": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "returnType": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "contract_metadata.Sections": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "parameter": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "returnType": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "contract_metadata.View": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "implementations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/contract_metadata.ViewImplementation"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "contract_metadata.ViewImplementation": {
+            "type": "object",
+            "properties": {
+                "michelsonStorageView": {
+                    "$ref": "#/definitions/contract_metadata.Sections"
                 }
             }
         },
@@ -3639,7 +3901,6 @@
             "type": "object",
             "properties": {
                 "key": {
-                    "type": "object",
                     "x-nullable": true
                 },
                 "key_hash": {
@@ -3666,9 +3927,7 @@
                 "timestamp": {
                     "type": "string"
                 },
-                "value": {
-                    "type": "object"
-                }
+                "value": {}
             }
         },
         "handlers.BigMapHistoryItem": {
@@ -3714,9 +3973,7 @@
         "handlers.BigMapItem": {
             "type": "object",
             "properties": {
-                "key": {
-                    "type": "object"
-                },
+                "key": {},
                 "key_hash": {
                     "type": "string"
                 },
@@ -3729,9 +3986,7 @@
                 "timestamp": {
                     "type": "string"
                 },
-                "value": {
-                    "type": "object"
-                }
+                "value": {}
             }
         },
         "handlers.BigMapResponseItem": {
@@ -3828,7 +4083,7 @@
                 }
             }
         },
-        "handlers.Contract": {
+        "handlers.ContractWithStats": {
             "type": "object",
             "properties": {
                 "address": {
@@ -3916,10 +4171,6 @@
                     "type": "string",
                     "x-nullable": true
                 },
-                "subscription": {
-                    "x-nullable": true,
-                    "$ref": "#/definitions/handlers.Subscription"
-                },
                 "tags": {
                     "type": "array",
                     "items": {
@@ -3929,9 +4180,6 @@
                 },
                 "timestamp": {
                     "type": "string"
-                },
-                "total_subscribed": {
-                    "type": "integer"
                 },
                 "tx_count": {
                     "type": "integer",
@@ -4068,6 +4316,9 @@
                 },
                 "protocol": {
                     "type": "string"
+                },
+                "synced": {
+                    "type": "boolean"
                 },
                 "time": {
                     "type": "string"
@@ -4236,7 +4487,6 @@
                     "example": 300
                 },
                 "parameters": {
-                    "type": "object",
                     "x-nullable": true
                 },
                 "protocol": {
@@ -4247,7 +4497,6 @@
                     "x-nullable": true
                 },
                 "rawMempool": {
-                    "type": "object",
                     "x-nullable": true
                 },
                 "source": {
@@ -4334,13 +4583,39 @@
                 }
             }
         },
+        "handlers.RecentlyCalledContract": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "alias": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_action": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "network": {
+                    "type": "string"
+                },
+                "tx_count": {
+                    "type": "integer",
+                    "x-nullable": true
+                }
+            }
+        },
         "handlers.SameContractsResponse": {
             "type": "object",
             "properties": {
                 "contracts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.Contract"
+                        "$ref": "#/definitions/handlers.ContractWithStats"
                     }
                 },
                 "count": {
@@ -4368,9 +4643,6 @@
                         "type": "string"
                     },
                     "x-nullable": true
-                },
-                "count": {
-                    "type": "integer"
                 },
                 "delegate": {
                     "type": "string",
@@ -4447,10 +4719,6 @@
                     "type": "string",
                     "x-nullable": true
                 },
-                "subscription": {
-                    "x-nullable": true,
-                    "$ref": "#/definitions/handlers.Subscription"
-                },
                 "tags": {
                     "type": "array",
                     "items": {
@@ -4460,9 +4728,6 @@
                 },
                 "timestamp": {
                     "type": "string"
-                },
-                "total_subscribed": {
-                    "type": "integer"
                 },
                 "tx_count": {
                     "type": "integer",
@@ -4481,52 +4746,6 @@
                 },
                 "count": {
                     "type": "integer"
-                }
-            }
-        },
-        "handlers.Subscription": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "alias": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "network": {
-                    "type": "string"
-                },
-                "sentry_dsn": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "sentry_enabled": {
-                    "type": "boolean"
-                },
-                "subscribed_at": {
-                    "type": "string"
-                },
-                "watch_calls": {
-                    "type": "boolean"
-                },
-                "watch_deployments": {
-                    "type": "boolean"
-                },
-                "watch_errors": {
-                    "type": "boolean"
-                },
-                "watch_mempool": {
-                    "type": "boolean"
-                },
-                "watch_migrations": {
-                    "type": "boolean"
-                },
-                "watch_same": {
-                    "type": "boolean"
-                },
-                "watch_similar": {
-                    "type": "boolean"
                 }
             }
         },
@@ -4551,7 +4770,7 @@
                 "events": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/tzip.Event"
+                        "$ref": "#/definitions/contract_metadata.Event"
                     }
                 },
                 "extras": {
@@ -4568,7 +4787,7 @@
                     }
                 },
                 "license": {
-                    "$ref": "#/definitions/tzip.License"
+                    "$ref": "#/definitions/contract_metadata.License"
                 },
                 "name": {
                     "type": "string"
@@ -4582,7 +4801,7 @@
                 "views": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/tzip.View"
+                        "$ref": "#/definitions/contract_metadata.View"
                     }
                 }
             }
@@ -4637,6 +4856,10 @@
                 },
                 "level": {
                     "type": "integer",
+                    "x-nullable": true
+                },
+                "minter": {
+                    "type": "string",
                     "x-nullable": true
                 },
                 "name": {
@@ -4742,6 +4965,10 @@
                 },
                 "level": {
                     "type": "integer",
+                    "x-nullable": true
+                },
+                "minter": {
+                    "type": "string",
                     "x-nullable": true
                 },
                 "name": {
@@ -4906,6 +5133,10 @@
                     "type": "integer",
                     "x-nullable": true
                 },
+                "minter": {
+                    "type": "string",
+                    "x-nullable": true
+                },
                 "name": {
                     "type": "string",
                     "x-nullable": true
@@ -4991,7 +5222,7 @@
                 "events": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/tzip.Event"
+                        "$ref": "#/definitions/contract_metadata.Event"
                     }
                 },
                 "extras": {
@@ -5008,7 +5239,7 @@
                     }
                 },
                 "license": {
-                    "$ref": "#/definitions/tzip.License"
+                    "$ref": "#/definitions/contract_metadata.License"
                 },
                 "name": {
                     "type": "string"
@@ -5022,7 +5253,7 @@
                 "views": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/tzip.View"
+                        "$ref": "#/definitions/contract_metadata.View"
                     }
                 }
             }
@@ -5125,10 +5356,12 @@
             "type": "object",
             "properties": {
                 "default_model": {
-                    "type": "object",
                     "x-nullable": true
                 },
                 "description": {
+                    "type": "string"
+                },
+                "error": {
                     "type": "string"
                 },
                 "implementation": {
@@ -5258,9 +5491,7 @@
         "search.Item": {
             "type": "object",
             "properties": {
-                "body": {
-                    "type": "object"
-                },
+                "body": {},
                 "group": {
                     "$ref": "#/definitions/search.Group"
                 },
@@ -5312,6 +5543,7 @@
         "tezerrors.Error": {
             "type": "object",
             "properties": {
+                "IError": {},
                 "descr": {
                     "type": "string"
                 },
@@ -5323,177 +5555,6 @@
                 },
                 "title": {
                     "type": "string"
-                }
-            }
-        },
-        "tzip.Event": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "implementations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tzip.EventImplementation"
-                    }
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "tzip.EventImplementation": {
-            "type": "object",
-            "properties": {
-                "michelsonExtendedStorageEvent": {
-                    "$ref": "#/definitions/tzip.MichelsonExtendedStorageEvent"
-                },
-                "michelsonInitialStorageEvent": {
-                    "$ref": "#/definitions/tzip.MichelsonInitialStorageEvent"
-                },
-                "michelsonParameterEvent": {
-                    "$ref": "#/definitions/tzip.MichelsonParameterEvent"
-                }
-            }
-        },
-        "tzip.License": {
-            "type": "object",
-            "properties": {
-                "details": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "tzip.MichelsonExtendedStorageEvent": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "entrypoints": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "parameter": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "returnType": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "tzip.MichelsonInitialStorageEvent": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "parameter": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "returnType": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "tzip.MichelsonParameterEvent": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "entrypoints": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "parameter": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "returnType": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "tzip.Sections": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "parameter": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "returnType": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
-        "tzip.View": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "implementations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tzip.ViewImplementation"
-                    }
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "tzip.ViewImplementation": {
-            "type": "object",
-            "properties": {
-                "michelsonStorageView": {
-                    "$ref": "#/definitions/tzip.Sections"
                 }
             }
         }

@@ -35,13 +35,10 @@ type JSONSchema struct {
 	Required   []string               `json:"required,omitempty"`
 	XItemTitle string                 `json:"x-itemTitle,omitempty"`
 	Const      string                 `json:"const,omitempty"`
-	SchemaKey  *SchemaKey             `json:"schemaKey,omitempty"`
-	Items      *SchemaKey             `json:"items,omitempty"`
+	SchemaKey  *JSONSchema            `json:"schemaKey,omitempty"`
+	Items      *JSONSchema            `json:"items,omitempty"`
 	XOptions   map[string]interface{} `json:"x-options,omitempty"`
 }
-
-// SchemaKey -
-type SchemaKey JSONSchema
 
 func getStringJSONSchema(d Default) *JSONSchema {
 	return wrapObject(&JSONSchema{
