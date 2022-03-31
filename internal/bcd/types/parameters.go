@@ -15,12 +15,22 @@ type Parameters struct {
 	Value      stdJSON.RawMessage `json:"value"`
 }
 
+type params struct {
+	Entrypoint *string            `json:"entrypoint,omitempty"`
+	Value      stdJSON.RawMessage `json:"value,omitempty"`
+}
+
 // NewParameters -
 func NewParameters(data []byte) *Parameters {
-	var p Parameters
-	if err := json.Unmarshal(data, &p); err != nil || p.Entrypoint == "" {
-		p.Entrypoint = consts.DefaultEntrypoint
-		p.Value = data
+	var p params
+	if err := json.Unmarshal(data, &p); err != nil || p.Entrypoint == nil {
+		return &Parameters{
+			Entrypoint: consts.DefaultEntrypoint,
+			Value:      data,
+		}
 	}
-	return &p
+	return &Parameters{
+		Entrypoint: *p.Entrypoint,
+		Value:      p.Value,
+	}
 }
