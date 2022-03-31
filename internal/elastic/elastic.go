@@ -86,8 +86,8 @@ func (e *Elastic) getTextResponse(resp *esapi.Response) (string, error) {
 }
 
 func (e *Elastic) query(indices []string, query map[string]interface{}, response interface{}) (err error) {
-	var buf bytes.Buffer
-	if err = json.NewEncoder(&buf).Encode(query); err != nil {
+	buf := bytes.NewBuffer([]byte{})
+	if err = json.NewEncoder(buf).Encode(query); err != nil {
 		return
 	}
 
@@ -98,7 +98,7 @@ func (e *Elastic) query(indices []string, query map[string]interface{}, response
 	options := []func(*esapi.SearchRequest){
 		e.Search.WithContext(context.Background()),
 		e.Search.WithIndex(indices...),
-		e.Search.WithBody(&buf),
+		e.Search.WithBody(buf),
 	}
 
 	resp, err = e.Search(
