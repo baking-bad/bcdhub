@@ -12,6 +12,7 @@ rpc:
 tzkt:
   mainnet:
     uri: https://api.tzkt.io/v1
+    base_uri: https://api.tzkt.io
   
 services:
   mainnet:
