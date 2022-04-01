@@ -55,16 +55,16 @@ func (s *Script) Save(tx pg.DBI) error {
 // Full -
 func (s *Script) Full() ([]byte, error) {
 	var buf bytes.Buffer
-	buf.WriteString(`[{"prim":"code","args":`)
-	if _, err := buf.Write(s.Code); err != nil {
-		return nil, err
-	}
-	buf.WriteString(`},{"prim":"parameter","args":`)
+	buf.WriteString(`[{"prim":"parameter","args":`)
 	if _, err := buf.Write(s.Parameter); err != nil {
 		return nil, err
 	}
 	buf.WriteString(`},{"prim":"storage","args":`)
 	if _, err := buf.Write(s.Storage); err != nil {
+		return nil, err
+	}
+	buf.WriteString(`},{"prim":"code","args":`)
+	if _, err := buf.Write(s.Code); err != nil {
 		return nil, err
 	}
 	buf.WriteByte('}')
