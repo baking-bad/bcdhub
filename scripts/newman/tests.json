@@ -302,10 +302,13 @@
 									"",
 									"    for (const proto of stats.protocols) {",
 									"        pm.expect(proto).to.have.property('hash');",
-									"        pm.expect(proto).to.have.property('network');",
 									"        pm.expect(proto).to.have.property('start_level');",
-									"        pm.expect(proto).to.have.property('end_level');",
 									"        pm.expect(proto).to.have.property('alias');",
+									"",
+									"        var endLevel = _.get(proto, 'end_level')",
+									"        if (endLevel) {",
+									"            pm.expect(endLevel).to.be.gt(0);",
+									"        }",
 									"    }",
 									"});"
 								],
@@ -1370,9 +1373,7 @@
 									"pm.test(\"The response has all properties\", () => {",
 									"    const response = pm.response.json();",
 									"",
-									"    for (const token of response) {        ",
-									"        pm.expect(token.network).to.be.eql('mainnet');",
-									"",
+									"    for (const token of response) {",
 									"        pm.expect(token).to.have.property('contract');",
 									"        pm.expect(token).to.have.property('token_id');",
 									"    }",
@@ -1458,8 +1459,6 @@
 									"    const response = pm.response.json();",
 									"",
 									"    for (const token of response) {        ",
-									"        pm.expect(token.network).to.be.eql('mainnet');",
-									"",
 									"        pm.expect(token).to.have.property('contract');",
 									"        pm.expect(token).to.have.property('token_id');",
 									"    }",
@@ -1667,7 +1666,6 @@
 									"    const account = pm.response.json();",
 									"",
 									"    pm.expect(account.address).to.eql('KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn');",
-									"    pm.expect(account.network).to.eql('mainnet');",
 									"    pm.expect(account.alias).to.eql('tzBTC');",
 									"",
 									"    pm.expect(account).to.have.property('balance');",
@@ -1709,7 +1707,6 @@
 									"    const account = pm.response.json();",
 									"",
 									"    pm.expect(account.address).to.eql('KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9');",
-									"    pm.expect(account.network).to.eql('mainnet');",
 									"    pm.expect(account.alias).to.eql('USDtz');",
 									"",
 									"    pm.expect(account).to.have.property('balance');",
@@ -1741,50 +1738,6 @@
 					"response": []
 				},
 				{
-					"name": "account/mainnet/tzbtc/metadata",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const metadata = pm.response.json();",
-									"",
-									"    pm.expect(metadata.address).to.eql('KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn');",
-									"    pm.expect(metadata.network).to.eql('mainnet');",
-									"    pm.expect(metadata.name).to.eql('tzBTC');",
-									"",
-									"    pm.expect(metadata).to.have.property('description');",
-									"    pm.expect(metadata).to.have.property('version');",
-									"    pm.expect(metadata).to.have.property('license');",
-									"    pm.expect(metadata).to.have.property('interfaces');",
-									"    pm.expect(metadata).to.have.property('events');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/account/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/metadata",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"account",
-								"mainnet",
-								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-								"metadata"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "account/mainnet/usdtz/metadata",
 					"event": [
 						{
@@ -1795,7 +1748,6 @@
 									"    const metadata = pm.response.json();",
 									"",
 									"    pm.expect(metadata.address).to.eql('KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9');",
-									"    pm.expect(metadata.network).to.eql('mainnet');",
 									"    pm.expect(metadata.name).to.eql('USDtz');",
 									"",
 									"    pm.expect(metadata).to.have.property('description');",
@@ -1876,7 +1828,6 @@
 									"    const metadata = pm.response.json();",
 									"",
 									"    pm.expect(metadata.address).to.eql(\"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn\");",
-									"    pm.expect(metadata.network).to.eql(\"mainnet\");",
 									"    pm.expect(metadata.name).to.eql(\"tzBTC\");",
 									"    pm.expect(metadata.description).to.eql(\"Wrapped Bitcon\");",
 									"    pm.expect(metadata.version).to.eql(\"0.1.0\");",
@@ -2129,7 +2080,6 @@
 									"    pm.expect(response.transfers.length).to.be.eql(10);",
 									"",
 									"    for (const transfer of response.transfers) {",
-									"        pm.expect(transfer.network).to.be.eql('mainnet');",
 									"        pm.expect(transfer.alias).to.be.eql('tzBTC');",
 									"        pm.expect(transfer.token_id).to.be.eql(0);",
 									"",
@@ -2200,7 +2150,6 @@
 									"    pm.expect(response).to.have.property(\"last_id\");",
 									"",
 									"    for (const transfer of response.transfers) {",
-									"        pm.expect(transfer.network).to.be.eql('mainnet');",
 									"        pm.expect(transfer.token_id).to.be.eql(0);",
 									"",
 									"        pm.expect(transfer).to.have.property('alias');",
@@ -2263,7 +2212,6 @@
 									"    pm.expect(response.transfers.length).to.be.eql(10);",
 									"",
 									"    for (const transfer of response.transfers) {",
-									"        pm.expect(transfer.network).to.be.eql('mainnet');",
 									"        pm.expect(transfer.alias).to.be.eql('USDtz');",
 									"        pm.expect(transfer.token_id).to.be.eql(0);",
 									"",
@@ -2625,7 +2573,6 @@
 									"            {",
 									"                \"network\": \"mainnet\",",
 									"                \"address\": \"KT1XjcRq5MLAzMKQ3UHsrue2SeU2NbxUrzmU\",",
-									"                \"alias\": \"objkt.bid English\",",
 									"                \"release_date\": \"2021-07-05T16:44:02Z\"",
 									"            },",
 									"            {",
@@ -2827,7 +2774,7 @@
 									"    {",
 									"        \"network\": \"mainnet\",",
 									"        \"address\": \"KT1AEfeckNbdEYwaMKkytBwPJPycz7jdSGea\",",
-									"         \"alias\": \"STKR \",",
+									"        \"alias\": \"STKR \",",
 									"        \"release_date\": \"2021-03-01T04:28:06Z\"",
 									"    }",
 									"  ],",
