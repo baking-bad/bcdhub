@@ -374,8 +374,10 @@ func getTokensWithSupply(ctx *config.Context, getCtx tokenmetadata.GetContext, s
 func addSupply(ctx *config.Context, metadata []tokenmetadata.TokenMetadata) ([]Token, error) {
 	tokens := make([]Token, 0)
 	for _, token := range metadata {
+		tokenMetadata := TokenMetadataFromElasticModel(token, true)
+		tokenMetadata.Network = ctx.Network.String()
 		t := Token{
-			TokenMetadata: TokenMetadataFromElasticModel(token, true),
+			TokenMetadata: tokenMetadata,
 		}
 
 		supply, err := ctx.TokenBalances.TokenSupply(token.Contract, token.TokenID)
