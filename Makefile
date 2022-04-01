@@ -15,7 +15,7 @@ api-tester:
 	cd scripts/api_tester && go run .
 
 indexer:
-	docker-compose up -d elastic
+	docker-compose up -d elastic db
 	cd cmd/indexer && go run .
 
 metrics:

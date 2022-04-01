@@ -74,7 +74,13 @@ func (bi *BoostIndexer) Close() error {
 }
 
 func (bi *BoostIndexer) init(ctx context.Context, db *core.Postgres) error {
-	if err := NewInitializer(bi.Network, bi.Storage, db.DB, bi.Config.Indexer.OffchainBaseURL).Init(ctx); err != nil {
+	var tzktURI string
+	if bi.Network == types.Mainnet {
+		if tzktConfig, ok := bi.Config.TzKT[bi.Network.String()]; ok {
+			tzktURI = tzktConfig.URI
+		}
+	}
+	if err := NewInitializer(bi.Network, bi.Storage, db.DB, bi.Config.Indexer.OffchainBaseURL, tzktURI).Init(ctx); err != nil {
 		return err
 	}
 
