@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/pkg/errors"
 )
 
@@ -47,7 +46,7 @@ func (uri *TezosStorageURI) Parse(value string) (err error) {
 
 func (uri *TezosStorageURI) parseHost(host string) {
 	parts := strings.Split(host, ".")
-	if helpers.IsAddress(parts[0]) {
+	if bcd.IsAddress(parts[0]) {
 		uri.Address = parts[0]
 	}
 

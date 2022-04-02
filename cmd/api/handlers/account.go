@@ -91,7 +91,7 @@ func GetBatchTokenBalances() gin.HandlerFunc {
 		accountIDs := make([]int64, 0)
 		address := strings.Split(queryParams.Address, ",")
 		for i := range address {
-			if !bcd.IsAddress(address[i]) {
+			if !bcd.IsAddressLazy(address[i]) {
 				handleError(c, ctx.Storage, errors.Errorf("Invalid address: %s", address[i]), http.StatusBadRequest)
 				return
 			}

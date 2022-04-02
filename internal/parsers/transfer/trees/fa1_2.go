@@ -46,7 +46,7 @@ func MakeFa1_2Transfers(tree ast.Node, operation operation.Operation) ([]*transf
 }
 
 func getAddress(address string) (string, error) {
-	if bcd.IsAddress(address) {
+	if bcd.IsAddressLazy(address) {
 		return address, nil
 	}
 	return forge.UnforgeAddress(address)

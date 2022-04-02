@@ -546,8 +546,8 @@ func getErrorLocation(ctx *config.Context, operation operation.Operation, window
 		return GetErrorLocationResponse{}, err
 	}
 	rows := strings.Split(michelson, "\n")
-	start := helpers.MaxInt(0, row-window)
-	end := helpers.MinInt(len(rows), row+window+1)
+	start := helpers.Max(0, row-window)
+	end := helpers.Min(len(rows), row+window+1)
 
 	rows = rows[start:end]
 	return GetErrorLocationResponse{

@@ -1,6 +1,7 @@
 package bcd
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -25,7 +26,14 @@ func IsContract(address string) bool {
 	return len(address) == 36 && strings.HasPrefix(address, "KT")
 }
 
-// IsAddress -
-func IsAddress(address string) bool {
+// IsAddressLazy -
+func IsAddressLazy(address string) bool {
 	return len(address) == 36 && (strings.HasPrefix(address, "KT") || strings.HasPrefix(address, "tz"))
+}
+
+// IsAddress -
+func IsAddress(str string) bool {
+	regexString := "(tz|KT)[0-9A-Za-z]{34}"
+	re := regexp.MustCompile(regexString)
+	return re.MatchString(str)
 }

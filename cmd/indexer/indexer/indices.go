@@ -16,7 +16,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -80,11 +79,7 @@ func createStartIndices(db pg.DBI) error {
 }
 
 func (bi *BoostIndexer) createIndices() {
-	if bi.Network != types.Mainnet && bi.Network != types.Sandboxnet {
-		return
-	}
-
-	logger.Info().Msg("creating database indices...")
+	logger.Info().Str("network", bi.Network.String()).Msg("creating database indices...")
 
 	// Big map action
 	if _, err := bi.Context.StorageDB.DB.Model((*bigmapaction.BigMapAction)(nil)).Exec(`

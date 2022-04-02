@@ -97,7 +97,7 @@ func (bi *BoostIndexer) init(ctx context.Context, db *core.Postgres) error {
 			return err
 		}
 
-		header, err := bi.RPC.GetHeader(ctx, helpers.MaxInt64(1, currentState.Level))
+		header, err := bi.RPC.GetHeader(ctx, helpers.Max(1, currentState.Level))
 		if err != nil {
 			return err
 		}
