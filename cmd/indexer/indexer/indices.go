@@ -220,13 +220,6 @@ func (bi *BoostIndexer) createIndices() {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
-	// Scripts
-	if _, err := bi.Context.StorageDB.DB.Model((*contract.Script)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS scripts_project_id_idx ON ?TableName (project_id)
-	`); err != nil {
-		logger.Error().Err(err).Msg("can't create index")
-	}
-
 	// Token metadata
 	if _, err := bi.Context.StorageDB.DB.Model((*tokenmetadata.TokenMetadata)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS token_metadata_level_idx ON ?TableName (level)
@@ -255,12 +248,6 @@ func (bi *BoostIndexer) createIndices() {
 
 	if _, err := bi.Context.StorageDB.DB.Model((*transfer.Transfer)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_to_idx ON ?TableName ("to_id")
-	`); err != nil {
-		logger.Error().Err(err).Msg("can't create index")
-	}
-
-	if _, err := bi.Context.StorageDB.DB.Model((*transfer.Transfer)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_level_idx ON ?TableName (level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
