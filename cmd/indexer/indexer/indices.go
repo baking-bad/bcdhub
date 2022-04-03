@@ -227,7 +227,7 @@ func (bi *BoostIndexer) createIndices() {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
-	if _, err := bi.Context.StorageDB.DB.Model((*bigmapaction.BigMapAction)(nil)).Exec(`
+	if _, err := bi.Context.StorageDB.DB.Model((*tokenmetadata.TokenMetadata)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS token_metadata_name_idx ON ?TableName (name)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
