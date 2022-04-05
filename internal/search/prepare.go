@@ -4,7 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -32,7 +32,7 @@ func Prepare(network types.Network, items []models.Model) []Data {
 			var token Token
 			token.Prepare(network, val)
 			data = append(data, &token)
-		case *cm.ContractMetadata:
+		case *contract_metadata.ContractMetadata:
 			var m Metadata
 			m.Prepare(network, val)
 			data = append(data, &m)

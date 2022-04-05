@@ -265,3 +265,60 @@ func (mr *MockScriptRepositoryMockRecorder) Storage(id interface{}) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Storage", reflect.TypeOf((*MockScriptRepository)(nil).Storage), id)
 }
+
+// MockConstantRepository is a mock of ConstantRepository interface
+type MockConstantRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockConstantRepositoryMockRecorder
+}
+
+// MockConstantRepositoryMockRecorder is the mock recorder for MockConstantRepository
+type MockConstantRepositoryMockRecorder struct {
+	mock *MockConstantRepository
+}
+
+// NewMockConstantRepository creates a new mock instance
+func NewMockConstantRepository(ctrl *gomock.Controller) *MockConstantRepository {
+	mock := &MockConstantRepository{ctrl: ctrl}
+	mock.recorder = &MockConstantRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockConstantRepository) EXPECT() *MockConstantRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method
+func (m *MockConstantRepository) Get(address string) (model.GlobalConstant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", address)
+	ret0, _ := ret[0].(model.GlobalConstant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get
+func (mr *MockConstantRepositoryMockRecorder) Get(address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockConstantRepository)(nil).Get), address)
+}
+
+// All mocks base method
+func (m *MockConstantRepository) All(addresses ...string) ([]model.GlobalConstant, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range addresses {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "All", varargs...)
+	ret0, _ := ret[0].([]model.GlobalConstant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// All indicates an expected call of All
+func (mr *MockConstantRepositoryMockRecorder) All(addresses ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockConstantRepository)(nil).All), addresses...)
+}

@@ -10,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -146,7 +145,7 @@ func (bi *BoostIndexer) createIndices() {
 	}
 
 	// Global constants
-	if _, err := bi.Context.StorageDB.DB.Model((*global_constant.GlobalConstant)(nil)).Exec(`
+	if _, err := bi.Context.StorageDB.DB.Model((*contract.GlobalConstant)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS global_constants_address_idx ON ?TableName (address)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")

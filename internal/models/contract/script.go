@@ -3,7 +3,6 @@ package contract
 import (
 	"bytes"
 
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
 	"github.com/lib/pq"
@@ -26,7 +25,7 @@ type Script struct {
 	Hardcoded   pq.StringArray `pg:",type:text[]"`
 	Tags        types.Tags     `pg:",use_zero"`
 
-	Constants []global_constant.GlobalConstant `pg:",many2many:script_constants"`
+	Constants []GlobalConstant `pg:",many2many:script_constants"`
 }
 
 // GetID -

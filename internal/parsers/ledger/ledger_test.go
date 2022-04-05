@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	mock_accounts "github.com/baking-bad/bcdhub/internal/models/mock/account"
 	mock_token_balance "github.com/baking-bad/bcdhub/internal/models/mock/tokenbalance"
@@ -150,7 +149,7 @@ func TestLedger_Parse(t *testing.T) {
 				BigMapState:     make([]*bigmapdiff.BigMapState, 0),
 				Migrations:      make([]*migration.Migration, 0),
 				Operations:      make([]*operation.Operation, 0),
-				GlobalConstants: make([]*global_constant.GlobalConstant, 0),
+				GlobalConstants: make([]*contract.GlobalConstant, 0),
 				TokenBalances: []*tbModel.TokenBalance{
 					{
 						Account: account.Account{

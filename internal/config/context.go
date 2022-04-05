@@ -12,7 +12,6 @@ import (
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -48,7 +47,7 @@ type Context struct {
 	Blocks           block.Repository
 	Contracts        contract.Repository
 	DApps            dapp.Repository
-	GlobalConstants  global_constant.Repository
+	GlobalConstants  contract.ConstantRepository
 	Migrations       migration.Repository
 	Operations       operation.Repository
 	Protocols        protocol.Repository

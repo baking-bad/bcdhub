@@ -95,18 +95,16 @@ func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, 
 		}
 
 		operation.Script = script.CodeRaw
-		contractScript = contract.Script{
-			Hash:        script.Hash,
-			Code:        s.Code,
-			Parameter:   s.Parameter,
-			Storage:     s.Storage,
-			Views:       s.Views,
-			FailStrings: script.FailStrings.Values(),
-			Annotations: script.Annotations.Values(),
-			Tags:        types.NewTags(script.Tags.Values()),
-			Hardcoded:   script.HardcodedAddresses.Values(),
-			Entrypoints: params.GetEntrypoints(),
-		}
+		contractScript.Hash = script.Hash
+		contractScript.Code = s.Code
+		contractScript.Parameter = s.Parameter
+		contractScript.Storage = s.Storage
+		contractScript.Views = s.Views
+		contractScript.FailStrings = script.FailStrings.Values()
+		contractScript.Annotations = script.Annotations.Values()
+		contractScript.Tags = types.NewTags(script.Tags.Values())
+		contractScript.Hardcoded = script.HardcodedAddresses.Values()
+		contractScript.Entrypoints = params.GetEntrypoints()
 
 		switch symLink {
 		case bcd.SymLinkAlpha:

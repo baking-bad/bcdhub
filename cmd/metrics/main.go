@@ -2,10 +2,14 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/baking-bad/bcdhub/cmd/metrics/services"
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -20,6 +24,10 @@ const (
 )
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		logger.Err(err)

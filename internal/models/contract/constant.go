@@ -1,4 +1,4 @@
-package global_constant
+package contract
 
 import (
 	"time"
@@ -16,6 +16,8 @@ type GlobalConstant struct {
 	Level     int64     `json:"level"`
 	Address   string    `json:"address"`
 	Value     []byte    `json:"value,omitempty"`
+
+	Scripts []Script `pg:",many2many:script_constants"`
 }
 
 // GetID -

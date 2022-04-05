@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -23,7 +22,7 @@ type Store struct {
 	Migrations      []*migration.Migration
 	Operations      []*operation.Operation
 	TokenBalances   []*tokenbalance.TokenBalance
-	GlobalConstants []*global_constant.GlobalConstant
+	GlobalConstants []*contract.GlobalConstant
 
 	tx pg.DBI
 }
@@ -36,7 +35,7 @@ func NewStore(tx pg.DBI) *Store {
 		Migrations:      make([]*migration.Migration, 0),
 		Operations:      make([]*operation.Operation, 0),
 		TokenBalances:   make([]*tokenbalance.TokenBalance, 0),
-		GlobalConstants: make([]*global_constant.GlobalConstant, 0),
+		GlobalConstants: make([]*contract.GlobalConstant, 0),
 
 		tx: tx,
 	}
@@ -68,7 +67,7 @@ func (store *Store) AddTokenBalances(balances ...*tokenbalance.TokenBalance) {
 }
 
 // AddGlobalConstants -
-func (store *Store) AddGlobalConstants(constants ...*global_constant.GlobalConstant) {
+func (store *Store) AddGlobalConstants(constants ...*contract.GlobalConstant) {
 	store.GlobalConstants = append(store.GlobalConstants, constants...)
 }
 
@@ -214,6 +213,19 @@ func (store *Store) saveContracts(tx pg.DBI) error {
 					return err
 				}
 				store.Contracts[i].BabylonID = store.Contracts[i].Babylon.ID
+
+				if len(store.Contracts[i].Babylon.Constants) > 0 {
+					for j := range store.Contracts[i].Babylon.Constants {
+						relation := contract.ScriptConstants{
+							ScriptId:         store.Contracts[i].BabylonID,
+							GlobalConstantId: store.Contracts[i].Babylon.Constants[j].ID,
+						}
+						if _, err := tx.Model(&relation).Insert(); err != nil {
+							return err
+						}
+					}
+				}
+
 			} else {
 				store.Contracts[i].BabylonID = store.Contracts[i].Alpha.ID
 			}

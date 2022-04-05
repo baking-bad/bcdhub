@@ -26,3 +26,9 @@ type ScriptRepository interface {
 	Parameter(id int64) ([]byte, error)
 	Storage(id int64) ([]byte, error)
 }
+
+// ConstantRepository -
+type ConstantRepository interface {
+	Get(address string) (GlobalConstant, error)
+	All(addresses ...string) ([]GlobalConstant, error)
+}

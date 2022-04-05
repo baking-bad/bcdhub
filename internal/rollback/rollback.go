@@ -11,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -130,7 +129,7 @@ func (rm Manager) rollbackAll(tx pg.DBI, level int64) error {
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
 		&bigmapaction.BigMapAction{}, &cm.ContractMetadata{},
 		&transfer.Transfer{}, &tokenmetadata.TokenMetadata{},
-		&global_constant.GlobalConstant{},
+		&contract.GlobalConstant{},
 	} {
 		if _, err := tx.Model(index).
 			Where("level = ?", level).

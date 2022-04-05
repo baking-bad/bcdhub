@@ -14,9 +14,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	modelContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
 	mock_accounts "github.com/baking-bad/bcdhub/internal/models/mock/account"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
@@ -1563,7 +1563,7 @@ func TestGroup_Parse(t *testing.T) {
 						ProtocolID:   5,
 					},
 				},
-				GlobalConstants: []*global_constant.GlobalConstant{
+				GlobalConstants: []*contract.GlobalConstant{
 					{
 						Level:     15400,
 						Timestamp: timestamp,

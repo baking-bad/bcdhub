@@ -12,7 +12,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
@@ -736,7 +735,7 @@ type GlobalConstant struct {
 }
 
 // NewGlobalConstantFromModel -
-func NewGlobalConstantFromModel(gc global_constant.GlobalConstant) GlobalConstant {
+func NewGlobalConstantFromModel(gc contract.GlobalConstant) GlobalConstant {
 	return GlobalConstant{
 		Timestamp: gc.Timestamp.UTC(),
 		Level:     gc.Level,

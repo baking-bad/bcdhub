@@ -81,6 +81,8 @@ services:
     depends_on:
       - elastic
       - db
+    ports:
+      - 127.0.0.1:6060:6060
     volumes:
       - ${SHARE_PATH}:/etc/bcd
     logging: *bcd-logging
