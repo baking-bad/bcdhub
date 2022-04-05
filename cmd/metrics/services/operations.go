@@ -6,7 +6,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/search"
 )
 
 // OperationsHandler -
@@ -20,26 +21,17 @@ func NewOperationsHandler(ctx *config.Context) *OperationsHandler {
 }
 
 // Handle -
-func (oh *OperationsHandler) Handle(ctx context.Context, items []models.Model, wg *sync.WaitGroup) error {
+func (oh *OperationsHandler) Handle(ctx context.Context, items []*operation.Operation, wg *sync.WaitGroup) error {
 	if len(items) == 0 {
 		return nil
 	}
 
 	logger.Info().Str("network", oh.Network.String()).Msgf("%3d operations are processed", len(items))
 
-	return saveSearchModels(ctx, oh.Context, items)
+	return search.Save(ctx, oh.Searcher, oh.Network, items)
 }
 
 // Chunk -
-func (oh *OperationsHandler) Chunk(lastID int64, size int) ([]models.Model, error) {
-	operations, err := getOperations(oh.StorageDB.DB, lastID, size)
-	if err != nil {
-		return nil, err
-	}
-
-	data := make([]models.Model, len(operations))
-	for i := range operations {
-		data[i] = &operations[i]
-	}
-	return data, nil
+func (oh *OperationsHandler) Chunk(lastID int64, size int) ([]*operation.Operation, error) {
+	return getOperations(oh.StorageDB.DB, lastID, size)
 }

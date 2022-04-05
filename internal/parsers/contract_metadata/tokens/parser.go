@@ -33,7 +33,7 @@ func NewParser(ctx *config.Context, ipfs ...string) Parser {
 }
 
 // Parse -
-func (t Parser) Parse(ctx context.Context, address string, level int64) ([]tokenmetadata.TokenMetadata, error) {
+func (t Parser) Parse(ctx context.Context, address string, level int64) ([]*tokenmetadata.TokenMetadata, error) {
 	state, err := t.getState(level)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (t Parser) Parse(ctx context.Context, address string, level int64) ([]token
 }
 
 // ParseBigMapDiff -
-func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, storageAST *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
+func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, storageAST *ast.TypedAst) ([]*tokenmetadata.TokenMetadata, error) {
 	storageType := ast.TypedAst{
 		Nodes: []ast.Node{ast.Copy(storageAST.Nodes[0])},
 	}
@@ -96,10 +96,10 @@ func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, st
 		m.Merge(remoteMetadata)
 	}
 
-	return []tokenmetadata.TokenMetadata{m.ToModel(bmd.Contract)}, nil
+	return []*tokenmetadata.TokenMetadata{m.ToModel(bmd.Contract)}, nil
 }
 
-func (t Parser) parse(ctx context.Context, address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
+func (t Parser) parse(ctx context.Context, address string, state block.Block) ([]*tokenmetadata.TokenMetadata, error) {
 	ptr, err := storage.GetBigMapPtr(ctx, t.ctx.Storage, t.ctx.Contracts, t.ctx.RPC, address, TokenMetadataStorageKey, state.Protocol.Hash, state.Level)
 	if err != nil {
 		return nil, err
@@ -130,7 +130,7 @@ func (t Parser) parse(ctx context.Context, address string, state block.Block) ([
 		metadata = append(metadata, m)
 	}
 
-	result := make([]tokenmetadata.TokenMetadata, 0)
+	result := make([]*tokenmetadata.TokenMetadata, 0)
 	for _, m := range metadata {
 		if m.Link != "" {
 			s := cmStorage.NewFull(t.ctx, t.ipfs...)

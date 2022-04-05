@@ -27,13 +27,29 @@ type Token struct {
 	Extras    map[string]interface{} `json:"extras,omitempty"`
 }
 
+// NewToken -
+func NewToken(network types.Network, model *tokenmetadata.TokenMetadata) Token {
+	var t Token
+	t.ID = helpers.GenerateID()
+	t.Contract = model.Contract
+	t.Decimals = model.Decimals
+	t.Extras = model.Extras
+	t.Level = model.Level
+	t.Name = model.Name
+	t.Network = network.String()
+	t.Symbol = model.Symbol
+	t.Timestamp = model.Timestamp.UTC()
+	t.TokenID = model.TokenID
+	return t
+}
+
 // GetID -
-func (t *Token) GetID() string {
+func (t Token) GetID() string {
 	return t.ID
 }
 
 // GetIndex -
-func (t *Token) GetIndex() string {
+func (t Token) GetIndex() string {
 	return models.DocTokenMetadata
 }
 
@@ -65,23 +81,4 @@ func (t Token) Parse(highlight map[string][]string, data []byte) (*Item, error) 
 		Highlights: highlight,
 		Network:    t.Network,
 	}, nil
-}
-
-// Prepare -
-func (t *Token) Prepare(network types.Network, model models.Model) {
-	tm, ok := model.(*tokenmetadata.TokenMetadata)
-	if !ok {
-		return
-	}
-
-	t.ID = helpers.GenerateID()
-	t.Contract = tm.Contract
-	t.Decimals = tm.Decimals
-	t.Extras = tm.Extras
-	t.Level = tm.Level
-	t.Name = tm.Name
-	t.Network = network.String()
-	t.Symbol = tm.Symbol
-	t.Timestamp = tm.Timestamp.UTC()
-	t.TokenID = tm.TokenID
 }

@@ -10,8 +10,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/cenkalti/backoff"
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v7/esutil"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 )
@@ -21,6 +22,8 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 // Elastic -
 type Elastic struct {
 	*elasticsearch.Client
+
+	bulkIndexer esutil.BulkIndexer
 }
 
 // New -
@@ -42,7 +45,17 @@ func New(addresses []string) (*Elastic, error) {
 		return nil, err
 	}
 
-	e := &Elastic{es}
+	bi, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
+		Client:        es,               // The Elasticsearch client
+		NumWorkers:    2,                // The number of worker goroutines
+		FlushBytes:    1024 * 512,       // The flush threshold in bytes
+		FlushInterval: 10 * time.Second, // The periodic flush interval
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	e := &Elastic{es, bi}
 	return e, e.ping()
 }
 
@@ -52,12 +65,12 @@ func WaitNew(addresses []string, timeout int) *Elastic {
 	var err error
 
 	for es == nil {
-		es, err = New(addresses)
-		if err != nil {
+		if es, err = New(addresses); err != nil {
 			logger.Warning().Msgf("Waiting elastic up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))
 		}
 	}
+
 	return es
 }
 

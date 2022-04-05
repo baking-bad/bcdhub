@@ -29,14 +29,14 @@ func NewContractMetadata(ctx *config.Context, ipfs []string) *ContractMetadata {
 }
 
 // Do -
-func (t *ContractMetadata) Do(ctx context.Context, bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error) {
+func (t *ContractMetadata) Do(ctx context.Context, bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]*cmModel.ContractMetadata, error) {
 	if bmd.KeyHash != cm.EmptyStringKey {
 		return nil, nil
 	}
 	return t.handle(ctx, bmd)
 }
 
-func (t *ContractMetadata) handle(ctx context.Context, bmd *domains.BigMapDiff) ([]models.Model, error) {
+func (t *ContractMetadata) handle(ctx context.Context, bmd *domains.BigMapDiff) ([]*cmModel.ContractMetadata, error) {
 	model, err := t.parser.Parse(ctx, cm.ParseArgs{
 		BigMapDiff: *bmd.BigMapDiff,
 	})
@@ -53,5 +53,5 @@ func (t *ContractMetadata) handle(ctx context.Context, bmd *domains.BigMapDiff) 
 		return nil, nil
 	}
 
-	return []models.Model{model}, nil
+	return []*cmModel.ContractMetadata{model}, nil
 }

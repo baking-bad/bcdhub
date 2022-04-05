@@ -7,6 +7,6 @@ import (
 )
 
 // Handler -
-type Handler interface {
-	Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error)
+type Handler[M models.Constraint] interface {
+	Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]M, error)
 }

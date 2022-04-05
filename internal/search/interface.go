@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // SameContracts -
@@ -28,5 +27,11 @@ type Searcher interface {
 type Data interface {
 	GetID() string
 	GetIndex() string
-	Prepare(network types.Network, model models.Model)
+}
+
+// Constraint -
+type Constraint[M models.Constraint] interface {
+	BigMapDiff | Contract | Token | Metadata | Operation
+
+	Data
 }

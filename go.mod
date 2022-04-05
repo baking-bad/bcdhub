@@ -7,7 +7,7 @@ require (
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/ebellocchia/go-base58 v0.1.0
-	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
+	github.com/elastic/go-elasticsearch/v7 v7.17.1
 	github.com/fatih/color v1.10.0
 	github.com/getsentry/sentry-go v0.5.1
 	github.com/gin-contrib/cache v1.1.0
@@ -35,7 +35,7 @@ require (
 	github.com/swaggo/swag v1.8.1
 	github.com/tidwall/gjson v1.9.3
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -103,8 +103,8 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/wsxiaoys/terminal v0.0.0-20160513160801-0940f3fc43a0 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
-	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
-	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
+	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.10 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect

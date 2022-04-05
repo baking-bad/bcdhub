@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/tokens"
 	"github.com/pkg/errors"
 )
@@ -26,7 +27,7 @@ func NewTokenMetadata(ctx *config.Context, ipfs []string) *TokenMetadata {
 }
 
 // Do -
-func (t *TokenMetadata) Do(ctx context.Context, bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error) {
+func (t *TokenMetadata) Do(ctx context.Context, bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]*tokenmetadata.TokenMetadata, error) {
 	tokenMetadata, err := t.parser.ParseBigMapDiff(ctx, bmd, storage)
 	if err != nil {
 		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
@@ -38,9 +39,5 @@ func (t *TokenMetadata) Do(ctx context.Context, bmd *domains.BigMapDiff, storage
 		return nil, nil
 	}
 
-	models := make([]models.Model, 0, len(tokenMetadata))
-	for i := range tokenMetadata {
-		models = append(models, &tokenMetadata[i])
-	}
-	return models, nil
+	return tokenMetadata, nil
 }

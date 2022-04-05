@@ -91,7 +91,7 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 		network    types.Network
 		bmd        *domains.BigMapDiff
 		storageAST string
-		want       []tokenmetadata.TokenMetadata
+		want       []*tokenmetadata.TokenMetadata
 		wantErr    bool
 	}{
 		{
@@ -117,7 +117,7 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 				},
 			},
 			storageAST: `{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%MAX_SUPPLY"]},{"prim":"mutez","annots":["%PURCHASE_PRICE_MUTEZ"]}]},{"prim":"pair","args":[{"prim":"address","annots":["%administrator"]},{"prim":"pair","args":[{"prim":"nat","annots":["%all_tokens"]},{"prim":"big_map","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}],"annots":["%ledger"]}]}]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%metadata"]},{"prim":"nat","annots":["%next_id"]}]},{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"unit"}],"annots":["%operators"]},{"prim":"pair","args":[{"prim":"bool","annots":["%paused"]},{"prim":"big_map","args":[{"prim":"nat"},{"prim":"pair","args":[{"prim":"nat","annots":["%token_id"]},{"prim":"map","args":[{"prim":"string"},{"prim":"bytes"}],"annots":["%token_info"]}]}],"annots":["%token_metadata"]}]}]}]}]}`,
-			want: []tokenmetadata.TokenMetadata{
+			want: []*tokenmetadata.TokenMetadata{
 				{
 					Contract:        "KT1QaDvkDe1sLXGL9rqmDMtNCmvNyPfUTYWK",
 					TokenID:         2,

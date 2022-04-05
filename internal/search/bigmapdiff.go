@@ -28,13 +28,46 @@ type BigMapDiff struct {
 	FoundBy      string    `json:"found_by,omitempty"`
 }
 
+// NewBigMapDiff -
+func NewBigMapDiff(network types.Network, model *bigmapdiff.BigMapDiff) BigMapDiff {
+	var b BigMapDiff
+	b.ID = helpers.GenerateID()
+	b.Address = model.Contract
+	b.KeyHash = model.KeyHash
+	b.Level = model.Level
+	b.Network = network.String()
+	b.Ptr = model.Ptr
+	b.Timestamp = model.Timestamp.UTC()
+
+	var data ast.UntypedAST
+	if err := json.Unmarshal(model.Key, &data); err == nil {
+		if key, err := data.Stringify(); err == nil {
+			b.Key = key
+		}
+	}
+
+	if keyStrings, err := storage.GetStrings(model.KeyBytes()); err == nil {
+		b.KeyStrings = keyStrings
+	}
+
+	if model.Value != nil {
+		valStrings, err := storage.GetStrings(model.ValueBytes())
+		if err != nil {
+			logger.Error().Err(err).Msg("storage.GetStrings")
+		} else {
+			b.ValueStrings = valStrings
+		}
+	}
+	return b
+}
+
 // GetID -
-func (b *BigMapDiff) GetID() string {
+func (b BigMapDiff) GetID() string {
 	return b.ID
 }
 
 // GetIndex -
-func (b *BigMapDiff) GetIndex() string {
+func (b BigMapDiff) GetIndex() string {
 	return models.DocBigMapDiff
 }
 
@@ -66,46 +99,4 @@ func (b BigMapDiff) Parse(highlight map[string][]string, data []byte) (*Item, er
 		Highlights: highlight,
 		Network:    b.Network,
 	}, nil
-}
-
-// Prepare -
-func (b *BigMapDiff) Prepare(network types.Network, model models.Model) {
-	bmd, ok := model.(*bigmapdiff.BigMapDiff)
-	if !ok {
-		return
-	}
-
-	b.ID = helpers.GenerateID()
-	b.Address = bmd.Contract
-
-	var data ast.UntypedAST
-	if err := json.Unmarshal(bmd.Key, &data); err != nil {
-		return
-	}
-
-	key, err := data.Stringify()
-	if err != nil {
-		return
-	}
-
-	b.Key = key
-	b.KeyHash = bmd.KeyHash
-	b.Level = bmd.Level
-	b.Network = network.String()
-	b.Ptr = bmd.Ptr
-	b.Timestamp = bmd.Timestamp.UTC()
-
-	keyStrings, err := storage.GetStrings(bmd.KeyBytes())
-	if err == nil {
-		b.KeyStrings = keyStrings
-	}
-
-	if bmd.Value != nil {
-		valStrings, err := storage.GetStrings(bmd.ValueBytes())
-		if err != nil {
-			logger.Error().Err(err).Msg("storage.GetStrings")
-		} else {
-			b.ValueStrings = valStrings
-		}
-	}
 }

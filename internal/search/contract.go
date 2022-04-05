@@ -34,8 +34,34 @@ type Contract struct {
 	LastAction *time.Time `json:"last_action,omitempty"`
 }
 
+// NewContract -
+func NewContract(network types.Network, model *contract.Contract) Contract {
+	var c Contract
+	script := model.Alpha
+	if model.BabylonID > 0 {
+		script = model.Babylon
+	}
+
+	c.Address = model.Account.Address
+	c.Alias = model.Account.Alias
+	c.Annotations = script.Annotations
+	c.Delegate = model.Delegate.Address
+	c.DelegateAlias = model.Delegate.Alias
+	c.Entrypoints = script.Entrypoints
+	c.FailStrings = script.FailStrings
+	c.Hardcoded = script.Hardcoded
+	c.Hash = script.Hash
+	c.Level = model.Level
+	c.Manager = model.Manager.Address
+	c.Network = network.String()
+	c.Tags = model.Tags.ToArray()
+	c.Timestamp = model.Timestamp.UTC()
+	c.LastAction = &model.LastAction
+	return c
+}
+
 // GetID -
-func (c *Contract) GetID() string {
+func (c Contract) GetID() string {
 	return fmt.Sprintf("%s_%s", c.Network, c.Address)
 }
 
@@ -80,33 +106,4 @@ func (c Contract) Parse(highlight map[string][]string, data []byte) (*Item, erro
 		Highlights: highlight,
 		Network:    c.Network,
 	}, nil
-}
-
-// Prepare -
-func (c *Contract) Prepare(network types.Network, model models.Model) {
-	cont, ok := model.(*contract.Contract)
-	if !ok {
-		return
-	}
-
-	script := cont.Alpha
-	if cont.BabylonID > 0 {
-		script = cont.Babylon
-	}
-
-	c.Address = cont.Account.Address
-	c.Alias = cont.Account.Alias
-	c.Annotations = script.Annotations
-	c.Delegate = cont.Delegate.Address
-	c.DelegateAlias = cont.Delegate.Alias
-	c.Entrypoints = script.Entrypoints
-	c.FailStrings = script.FailStrings
-	c.Hardcoded = script.Hardcoded
-	c.Hash = script.Hash
-	c.Level = cont.Level
-	c.Manager = cont.Manager.Address
-	c.Network = network.String()
-	c.Tags = cont.Tags.ToArray()
-	c.Timestamp = cont.Timestamp.UTC()
-	c.LastAction = &cont.LastAction
 }

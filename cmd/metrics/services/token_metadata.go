@@ -8,8 +8,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/handlers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
 )
 
@@ -28,32 +29,27 @@ func NewTokenMetadataHandler(ctx *config.Context) *TokenMetadataHandler {
 }
 
 // Handle -
-func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model, wg *sync.WaitGroup) error {
+func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []domains.BigMapDiff, wg *sync.WaitGroup) error {
 	if len(items) == 0 {
 		return nil
 	}
 	var localWg sync.WaitGroup
 	var mx sync.Mutex
 
-	updates := make([]models.Model, 0)
+	updates := make([]*tokenmetadata.TokenMetadata, 0)
 	for i := range items {
-		bmd, ok := items[i].(*domains.BigMapDiff)
-		if !ok {
-			return errors.Errorf("[TokenMetadata.Handle] invalid type: expected *domains.BigMapDiff got %T", items[i])
-		}
-
-		storageTypeBytes, err := tm.Cache.StorageTypeBytes(bmd.Contract, bmd.Protocol.SymLink)
+		storageTypeBytes, err := tm.Cache.StorageTypeBytes(items[i].Contract, items[i].Protocol.SymLink)
 		if err != nil {
-			return errors.Errorf("[TokenMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, tm.Network.String(), err)
+			return errors.Errorf("[TokenMetadata.Handle] can't get storage type for '%s' in %s: %s", items[i].Contract, tm.Network.String(), err)
 		}
 
 		storageType, err := ast.NewTypedAstFromBytes(storageTypeBytes)
 		if err != nil {
-			return errors.Errorf("[TokenMetadata.Handle] can't parse storage type for '%s' in %s: %s", bmd.Contract, tm.Network.String(), err)
+			return errors.Errorf("[TokenMetadata.Handle] can't parse storage type for '%s' in %s: %s", items[i].Contract, tm.Network.String(), err)
 		}
 
 		localWg.Add(1)
-		go func() {
+		go func(bmd *domains.BigMapDiff) {
 			defer localWg.Done()
 
 			res, err := tm.handler.Do(ctx, bmd, storageType)
@@ -66,7 +62,7 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model
 				updates = append(updates, res...)
 				mx.Unlock()
 			}
-		}()
+		}(&items[i])
 	}
 
 	localWg.Wait()
@@ -77,22 +73,13 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model
 
 	logger.Info().Str("network", tm.Network.String()).Msgf("%3d token metadata are processed", len(updates))
 
-	if err := saveSearchModels(ctx, tm.Context, updates); err != nil {
+	if err := search.Save(ctx, tm.Searcher, tm.Network, updates); err != nil {
 		return err
 	}
-	return tm.Storage.Save(ctx, updates)
+	return save(ctx, tm.StorageDB.DB, updates)
 }
 
 // Chunk -
-func (tm *TokenMetadataHandler) Chunk(lastID int64, size int) ([]models.Model, error) {
-	diff, err := tm.Domains.BigMapDiffs(lastID, int64(size))
-	if err != nil {
-		return nil, err
-	}
-
-	data := make([]models.Model, len(diff))
-	for i := range diff {
-		data[i] = &diff[i]
-	}
-	return data, nil
+func (tm *TokenMetadataHandler) Chunk(lastID int64, size int) ([]domains.BigMapDiff, error) {
+	return tm.Domains.BigMapDiffs(lastID, int64(size))
 }
