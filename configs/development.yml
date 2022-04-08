@@ -1,6 +1,6 @@
 rpc:
   mainnet:
-    uri: https://pcr.tzkt.io/tezedge
+    uri: https://rpc.tzkt.io/mainnet
     timeout: 20
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
@@ -22,7 +22,7 @@ services:
 storage:
   pg: 
     host: ${DB_HOSTNAME:-127.0.0.1}
-    port: 5433
+    port: 5432
     user: ${POSTGRES_USER}
     # dbname: ${POSTGRES_DB:-indexer}
     password: ${POSTGRES_PASSWORD}
@@ -79,10 +79,10 @@ indexer:
   networks:
     mainnet:
       receiver_threads: 2
-    # hangzhou2net:
-    #   receiver_threads: 2
-    # ithacanet:
-    #   receiver_threads: 2
+    hangzhou2net:
+      receiver_threads: 2
+    ithacanet:
+      receiver_threads: 2
   connections:
     max: 5
     idle: 5
