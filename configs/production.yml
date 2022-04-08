@@ -79,7 +79,7 @@ indexer:
   offchain_base_url: ${OFFCHAIN_BASE_URL}
   networks:
     mainnet:
-      receiver_threads: 2
+      receiver_threads: 10
     hangzhou2net:
       receiver_threads: 2
     ithacanet:
