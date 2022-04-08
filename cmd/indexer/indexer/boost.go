@@ -206,10 +206,10 @@ func (bi *BoostIndexer) indexBlock(ctx context.Context, wg *sync.WaitGroup) {
 							logger.Error().Err(err).Msg("Rollback")
 						}
 					}
-				}
-
-				if err := bi.handleBlock(ctx, block); err != nil {
-					logger.Error().Err(err).Msg("handleBlock")
+				} else {
+					if err := bi.handleBlock(ctx, block); err != nil {
+						logger.Error().Err(err).Msg("handleBlock")
+					}
 				}
 
 				delete(bi.blocks, block.Header.Level)
