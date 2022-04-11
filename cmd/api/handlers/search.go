@@ -46,7 +46,7 @@ func Search() gin.HandlerFunc {
 		if req.Fields != "" {
 			fields = strings.Split(req.Fields, ",")
 		}
-		filters := getSearchFilters(req)
+		filters := getSearchFilters(req, any.Config.API.Networks)
 
 		result, err := any.Searcher.ByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
 		if handleError(c, any.Storage, err, 0) {
@@ -67,7 +67,7 @@ func Search() gin.HandlerFunc {
 	}
 }
 
-func getSearchFilters(req searchRequest) map[string]interface{} {
+func getSearchFilters(req searchRequest, networks []string) map[string]interface{} {
 	filters := map[string]interface{}{}
 
 	if req.DateFrom > 0 {
@@ -80,6 +80,8 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 
 	if req.Networks != "" {
 		filters["networks"] = strings.Split(req.Networks, ",")
+	} else {
+		filters["network"] = networks
 	}
 
 	if req.Indices != "" {

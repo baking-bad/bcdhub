@@ -37,7 +37,7 @@ func main() {
 
 	ctxs = config.NewContexts(
 		cfg, cfg.Metrics.Networks,
-		config.WithStorage(cfg.Storage, cfg.Metrics.ProjectName, 0, cfg.Metrics.Connections.Open, cfg.Metrics.Connections.Idle),
+		config.WithStorage(cfg.Storage, cfg.Metrics.ProjectName, 0, cfg.Metrics.Connections.Open, cfg.Metrics.Connections.Idle, false),
 		config.WithRPC(cfg.RPC, false),
 		config.WithSearch(cfg.Storage),
 		config.WithConfigCopy(cfg),

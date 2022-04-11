@@ -41,7 +41,7 @@ func newApp() *app {
 
 	api := &app{
 		Contexts: config.NewContexts(cfg, cfg.API.Networks,
-			config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize), cfg.API.Connections.Open, cfg.API.Connections.Idle),
+			config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize), cfg.API.Connections.Open, cfg.API.Connections.Idle, false),
 			config.WithRPC(cfg.RPC, false),
 			config.WithSearch(cfg.Storage),
 			config.WithMempool(cfg.Services),

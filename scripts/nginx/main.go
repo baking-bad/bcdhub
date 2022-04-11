@@ -18,7 +18,7 @@ func main() {
 
 	ctx := config.NewContext(
 		types.Mainnet,
-		config.WithStorage(cfg.Storage, "nginx", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle),
+		config.WithStorage(cfg.Storage, "nginx", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle, false),
 		config.WithConfigCopy(cfg),
 	)
 	defer ctx.Close()

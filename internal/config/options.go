@@ -53,21 +53,24 @@ func WithRPC(rpcConfig map[string]RPCConfig, cache bool) ContextOption {
 }
 
 // WithStorage -
-func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCount, idleConnCount int) ContextOption {
+func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCount, idleConnCount int, createDatabaseIfNotExists bool) ContextOption {
 	return func(ctx *Context) {
 		if len(cfg.Postgres.Host) == 0 {
 			panic("Please set connection strings to storage in config")
 		}
-		defaultConn := pgCore.WaitNew(cfg.Postgres.ConnectionString(), appName, cfg.Timeout)
-		defer defaultConn.Close()
 
-		if result, err := defaultConn.DB.Exec(`SELECT datname FROM pg_catalog.pg_database WHERE datname = ?`, ctx.Network.String()); err != nil || result.RowsReturned() == 0 {
-			if errors.Is(err, pg.ErrNoRows) || result.RowsReturned() == 0 {
-				if _, err := defaultConn.DB.Exec("create database ?", pg.Ident(ctx.Network.String())); err != nil {
+		if createDatabaseIfNotExists {
+			defaultConn := pgCore.WaitNew(cfg.Postgres.ConnectionString(), appName, cfg.Timeout)
+			defer defaultConn.Close()
+
+			if result, err := defaultConn.DB.Exec(`SELECT datname FROM pg_catalog.pg_database WHERE datname = ?`, ctx.Network.String()); err != nil || result.RowsReturned() == 0 {
+				if errors.Is(err, pg.ErrNoRows) || result.RowsReturned() == 0 {
+					if _, err := defaultConn.DB.Exec("create database ?", pg.Ident(ctx.Network.String())); err != nil {
+						panic(err)
+					}
+				} else {
 					panic(err)
 				}
-			} else {
-				panic(err)
 			}
 		}
 

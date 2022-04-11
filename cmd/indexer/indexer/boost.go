@@ -48,7 +48,7 @@ func NewBoostIndexer(ctx context.Context, cfg config.Config, network types.Netwo
 	internalCtx := config.NewContext(
 		network,
 		config.WithConfigCopy(cfg),
-		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle),
+		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle, true),
 		config.WithSearch(cfg.Storage),
 		config.WithRPC(cfg.RPC, cfg.Indexer.Cache),
 	)
