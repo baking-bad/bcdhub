@@ -113,7 +113,9 @@ func (b *Babylon) checkPointers(result *noderpc.OperationResult, storage *ast.Ty
 		case bmd.BigMap != nil:
 			ptr := *bmd.BigMap
 			if typ, ok := bigMaps[ptr]; ok {
-				b.temporaryPointers[ptr] = typ
+				if _, ok := b.temporaryPointers[ptr]; !ok {
+					b.temporaryPointers[ptr] = typ
+				}
 				continue
 			}
 			if ptr < 0 {
@@ -123,7 +125,9 @@ func (b *Babylon) checkPointers(result *noderpc.OperationResult, storage *ast.Ty
 		case bmd.SourceBigMap != nil:
 			ptr := *bmd.SourceBigMap
 			if typ, ok := bigMaps[ptr]; ok {
-				b.temporaryPointers[ptr] = typ
+				if _, ok := b.temporaryPointers[ptr]; !ok {
+					b.temporaryPointers[ptr] = typ
+				}
 				continue
 			}
 			if ptr < 0 {
@@ -307,18 +311,13 @@ func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr 
 
 func (b *Babylon) addDiff(bmd *bigmapdiff.BigMapDiff, ptr int64) error {
 	if bm, ok := b.temporaryPointers[ptr]; ok {
-		return bm.EnrichBigMap(prepareBigMapDiffsToEnrich([]bigmapdiff.BigMapDiff{*bmd}, false))
+		diffs := prepareBigMapDiffsToEnrich([]bigmapdiff.BigMapDiff{*bmd}, false)
+		bm.AddDiffs(diffs...)
+		b.temporaryPointers[bmd.Ptr] = bm
+		return nil
 	}
 
-	bigMap, ok := b.temporaryPointers[ptr]
-	if !ok {
-		return errors.Errorf("Can't find big map pointer: %d", ptr)
-	}
-
-	diffs := prepareBigMapDiffsToEnrich([]bigmapdiff.BigMapDiff{*bmd}, false)
-	bigMap.AddDiffs(diffs...)
-	b.temporaryPointers[bmd.Ptr] = bigMap
-	return nil
+	return errors.Wrapf(ErrUnknownTemporaryPointer, "%d", ptr)
 }
 
 func (b *Babylon) getSourcePtr(ptr int64) (int64, error) {

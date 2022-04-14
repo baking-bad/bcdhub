@@ -13,7 +13,6 @@ type BigMapDiff struct {
 	OperationID int64
 	Level       int64
 	Address     string
-	Network     string
 	IndexedTime int64
 	Timestamp   time.Time
 	Protocol    int64

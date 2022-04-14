@@ -388,6 +388,10 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 		logger.Info().Msgf("Protocol: %d != %d", one.ProtocolID, two.ProtocolID)
 		return false
 	}
+	if one.Ptr != two.Ptr {
+		logger.Info().Msgf("Ptr: %d != %d", one.Ptr, two.Ptr)
+		return false
+	}
 	if !assert.JSONEq(t, string(one.KeyBytes()), string(two.KeyBytes())) {
 		return false
 	}
