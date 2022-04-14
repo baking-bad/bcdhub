@@ -111,7 +111,9 @@ func (b *Babylon) checkPointers(result *noderpc.OperationResult, storage *ast.Ty
 		case bmd.BigMap != nil:
 			ptr := *bmd.BigMap
 			if typ, ok := bigMaps[ptr]; ok {
-				b.temporaryPointers[ptr] = typ
+				if _, ok := b.temporaryPointers[ptr]; !ok {
+					b.temporaryPointers[ptr] = typ
+				}
 				continue
 			}
 			if ptr < 0 {
@@ -121,7 +123,9 @@ func (b *Babylon) checkPointers(result *noderpc.OperationResult, storage *ast.Ty
 		case bmd.SourceBigMap != nil:
 			ptr := *bmd.SourceBigMap
 			if typ, ok := bigMaps[ptr]; ok {
-				b.temporaryPointers[ptr] = typ
+				if _, ok := b.temporaryPointers[ptr]; !ok {
+					b.temporaryPointers[ptr] = typ
+				}
 				continue
 			}
 			if ptr < 0 {
