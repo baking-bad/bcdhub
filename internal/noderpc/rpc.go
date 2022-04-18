@@ -24,6 +24,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const (
 	headBlock = "head"
+	userAgent = "BetterCallDev"
 )
 
 func getBlockString(level int64) string {
@@ -40,6 +41,7 @@ type NodeRPC struct {
 
 	timeout    time.Duration
 	cacheDir   string
+	userAgent  string
 	retryCount int
 	rateLimit  *rate.Limiter
 }
@@ -50,6 +52,11 @@ func NewNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 		baseURL:    baseURL,
 		timeout:    time.Second * 10,
 		retryCount: 3,
+		userAgent:  userAgent,
+	}
+
+	if bcdUserAgent := os.Getenv("BCD_USER_AGENT"); bcdUserAgent != "" {
+		node.userAgent = bcdUserAgent
 	}
 
 	for _, opt := range opts {
@@ -142,6 +149,8 @@ func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode, withCach
 }
 
 func (rpc *NodeRPC) makeRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
+	req.Header.Set("User-Agent", rpc.userAgent)
+
 	for count := 0; count < rpc.retryCount; count++ {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
