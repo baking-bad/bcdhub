@@ -17,6 +17,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
+	"golang.org/x/time/rate"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -40,6 +41,7 @@ type NodeRPC struct {
 	timeout    time.Duration
 	cacheDir   string
 	retryCount int
+	rateLimit  *rate.Limiter
 }
 
 // NewNodeRPC -
@@ -181,6 +183,12 @@ func (rpc *NodeRPC) makePostRequest(ctx context.Context, uri string, data interf
 }
 
 func (rpc *NodeRPC) get(ctx context.Context, uri string, withCache bool, response interface{}) error {
+	if rpc.rateLimit != nil {
+		if err := rpc.rateLimit.Wait(ctx); err != nil {
+			return err
+		}
+	}
+
 	if withCache && rpc.cached() {
 		if f, err := os.Open(rpc.cachePath(uri)); err == nil {
 			if err := json.NewDecoder(f).Decode(response); err == nil {

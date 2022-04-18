@@ -2,12 +2,15 @@ rpc:
   mainnet:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
+    requests_per_second: 10
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
     timeout: 20  
+    requests_per_second: 10
   ithacanet:
     uri: https://rpc.tzkt.io/ithacanet
     timeout: 20
+    requests_per_second: 10
 
 tzkt:
   mainnet:

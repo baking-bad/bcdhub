@@ -39,7 +39,7 @@ func NewReceiver(rpc noderpc.INode, queueSize, threadsCount int64) *Receiver {
 		rpc:     rpc,
 		queue:   make(chan int64, queueSize),
 		failed:  make(chan int64, queueSize),
-		blocks:  make(chan *Block, queueSize/2),
+		blocks:  make(chan *Block, queueSize),
 		threads: make(chan struct{}, threadsCount),
 		present: make(map[int64]struct{}),
 	}

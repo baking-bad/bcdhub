@@ -63,9 +63,10 @@ type IndexerConfig struct {
 
 // RPCConfig -
 type RPCConfig struct {
-	URI     string `yaml:"uri"`
-	Timeout int    `yaml:"timeout"`
-	Cache   string `yaml:"cache"`
+	URI               string `yaml:"uri"`
+	Timeout           int    `yaml:"timeout"`
+	Cache             string `yaml:"cache"`
+	RequestsPerSecond int    `yaml:"requests_per_second"`
 }
 
 // TzKTConfig -

@@ -56,7 +56,7 @@ func NewBoostIndexer(ctx context.Context, cfg config.Config, network types.Netwo
 
 	bi := &BoostIndexer{
 		Context:  internalCtx,
-		receiver: NewReceiver(internalCtx.RPC, 100, indexerConfig.ReceiverThreads),
+		receiver: NewReceiver(internalCtx.RPC, 20, indexerConfig.ReceiverThreads),
 		blocks:   make(map[int64]*Block),
 		Network:  network,
 	}

@@ -36,6 +36,7 @@ require (
 	github.com/tidwall/gjson v1.9.3
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
+	golang.org/x/time v0.0.0-20220411224347-583f2d630306
 	gopkg.in/yaml.v2 v2.4.0
 )
 

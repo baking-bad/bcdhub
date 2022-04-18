@@ -1,13 +1,16 @@
 rpc:
   mainnet:
-    uri: https://rpc.tzkt.io/mainnet
+    uri: https://rpc.tzkt.io/archive
     timeout: 20
+    requests_per_second: 10
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
     timeout: 20
+    requests_per_second: 10
   ithacanet:
     uri: https://rpc.tzkt.io/ithacanet
     timeout: 20
+    requests_per_second: 10
 
 tzkt:
   mainnet:
@@ -79,10 +82,10 @@ indexer:
   networks:
     mainnet:
       receiver_threads: 2
-    hangzhou2net:
-      receiver_threads: 2
-    ithacanet:
-      receiver_threads: 2
+    # hangzhou2net:
+    #   receiver_threads: 2
+    # ithacanet:
+    #   receiver_threads: 2
   connections:
     max: 5
     idle: 5
