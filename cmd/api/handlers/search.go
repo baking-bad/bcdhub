@@ -81,7 +81,7 @@ func getSearchFilters(req searchRequest, networks []string) map[string]interface
 	if req.Networks != "" {
 		filters["networks"] = strings.Split(req.Networks, ",")
 	} else {
-		filters["network"] = networks
+		filters["networks"] = networks
 	}
 
 	if req.Indices != "" {
