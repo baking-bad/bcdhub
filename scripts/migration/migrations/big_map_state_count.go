@@ -23,12 +23,12 @@ func (m *BigMapStateCount) Description() string {
 
 // Do - migrate function
 func (m *BigMapStateCount) Do(ctx *config.Context) error {
-	var offset int
+	var lastID int64
 	var end bool
 	for !end {
 		if err := ctx.StorageDB.DB.RunInTransaction(context.Background(), func(tx *pg.Tx) error {
 			var states []bigmapdiff.BigMapState
-			if err := tx.Model(&bigmapdiff.BigMapState{}).Order("id asc").Limit(10000).Offset(offset).Select(&states); err != nil {
+			if err := tx.Model(&bigmapdiff.BigMapState{}).Where("id > ?", lastID).Order("id asc").Limit(10000).Select(&states); err != nil {
 				return err
 			}
 
@@ -44,9 +44,9 @@ func (m *BigMapStateCount) Do(ctx *config.Context) error {
 				if _, err := tx.Model(&state).Set("count = ?count").Where("id = ?id").Update(); err != nil {
 					return err
 				}
-			}
 
-			offset += len(states)
+				lastID = state.ID
+			}
 			end = len(states)%10000 != 0
 
 			return nil

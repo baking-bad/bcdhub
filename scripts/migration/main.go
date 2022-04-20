@@ -1,16 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"math"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
-	"github.com/pkg/errors"
 )
 
 var migrationsList = []migrations.Migration{
@@ -68,26 +63,27 @@ func main() {
 }
 
 func chooseMigration() (migrations.Migration, error) {
-	fmt.Println("Available migrations:")
-	for i, migration := range migrationsList {
-		spaces := 30 - len(migration.Key()) - int(math.Log10(float64(i)+0.1))
-		desc := migration.Description()
+	// fmt.Println("Available migrations:")
+	// for i, migration := range migrationsList {
+	// 	spaces := 30 - len(migration.Key()) - int(math.Log10(float64(i)+0.1))
+	// 	desc := migration.Description()
 
-		fmt.Printf("[%d] %s%s| %s\n", i, migration.Key(), strings.Repeat(" ", spaces), desc)
-	}
+	// 	fmt.Printf("[%d] %s%s| %s\n", i, migration.Key(), strings.Repeat(" ", spaces), desc)
+	// }
 
-	var input string
-	fmt.Println("\nEnter migration #:")
-	fmt.Scanln(&input)
+	// var input string
+	// fmt.Println("\nEnter migration #:")
+	// fmt.Scanln(&input)
 
-	index, err := strconv.Atoi(input)
-	if err != nil {
-		return nil, err
-	}
+	// index, err := strconv.Atoi(input)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if index < 0 || index > len(migrationsList)-1 {
-		return nil, errors.Errorf("Invalid # of migration: %s", input)
-	}
+	index := 14
+	// if index < 0 || index > len(migrationsList)-1 {
+	// 	return nil, errors.Errorf("Invalid # of migration: %s", input)
+	// }
 
 	return migrationsList[index], nil
 }
