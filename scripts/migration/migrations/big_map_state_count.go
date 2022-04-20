@@ -23,17 +23,17 @@ func (m *BigMapStateCount) Description() string {
 
 // Do - migrate function
 func (m *BigMapStateCount) Do(ctx *config.Context) error {
-	return ctx.StorageDB.DB.RunInTransaction(context.Background(), func(tx *pg.Tx) error {
-		var offset int
-		var end bool
-		for !end {
+	var offset int
+	var end bool
+	for !end {
+		if err := ctx.StorageDB.DB.RunInTransaction(context.Background(), func(tx *pg.Tx) error {
 			var states []bigmapdiff.BigMapState
-			if err := ctx.StorageDB.DB.Model(&bigmapdiff.BigMapState{}).Order("id asc").Limit(1000).Offset(offset).Select(&states); err != nil {
+			if err := tx.Model(&bigmapdiff.BigMapState{}).Order("id asc").Limit(10000).Offset(offset).Select(&states); err != nil {
 				return err
 			}
 
 			for _, state := range states {
-				count, err := ctx.StorageDB.DB.Model(&bigmapdiff.BigMapDiff{}).
+				count, err := tx.Model(&bigmapdiff.BigMapDiff{}).
 					Where("ptr = ?", state.Ptr).Where("key_hash = ?", state.KeyHash).Where("contract = ?", state.Contract).
 					Count()
 				if err != nil {
@@ -41,15 +41,18 @@ func (m *BigMapStateCount) Do(ctx *config.Context) error {
 				}
 				state.Count = int64(count)
 
-				if _, err := ctx.StorageDB.DB.Model(&state).Set("count = ?count").Where("id = ?id").Update(); err != nil {
+				if _, err := tx.Model(&state).Set("count = ?count").Where("id = ?id").Update(); err != nil {
 					return err
 				}
 			}
 
 			offset += len(states)
-			end = len(states)%1000 != 0
-		}
+			end = len(states)%10000 != 0
 
-		return nil
-	})
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
