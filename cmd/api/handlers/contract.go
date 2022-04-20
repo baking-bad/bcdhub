@@ -150,12 +150,19 @@ func GetSameContracts() gin.HandlerFunc {
 			Count:     same.Count,
 			Contracts: make([]ContractWithStats, 0),
 		}
+
+		ctxs := c.MustGet("contexts").(config.Contexts)
 		for i := range same.Contracts {
-			item, err := ctx.Contracts.Get(same.Contracts[i].Address)
+			currentContext, ok := ctxs[types.NewNetwork(same.Contracts[i].Network)]
+			if !ok {
+				continue
+			}
+
+			item, err := currentContext.Contracts.Get(same.Contracts[i].Address)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
-			itemContract, err := contractPostprocessing(ctx, item)
+			itemContract, err := contractPostprocessing(currentContext, item)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}

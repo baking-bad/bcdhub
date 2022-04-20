@@ -161,7 +161,7 @@ func (api *app) makeRouter() {
 			}
 
 			contract.GET("mempool", handlers.GetMempool())
-			contract.GET("same", handlers.GetSameContracts())
+			contract.GET("same", handlers.ContextsMiddleware(api.Contexts), handlers.GetSameContracts())
 			entrypoints := contract.Group("entrypoints")
 			{
 				entrypoints.GET("", handlers.GetEntrypoints())
