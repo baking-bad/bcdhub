@@ -41,7 +41,7 @@ func (b *BigMapState) Save(tx pg.DBI) error {
 	_, err := tx.
 		Model(b).
 		OnConflict("(contract, ptr, key_hash) DO UPDATE").
-		Set("removed = EXCLUDED.removed, last_update_level = EXCLUDED.last_update_level, last_update_time = EXCLUDED.last_update_time, count = EXCLUDED.count + 1, value = CASE WHEN EXCLUDED.removed THEN big_map_state.value ELSE EXCLUDED.value END").
+		Set("removed = EXCLUDED.removed, last_update_level = EXCLUDED.last_update_level, last_update_time = EXCLUDED.last_update_time, count = big_map_state.count + 1, value = CASE WHEN EXCLUDED.removed THEN big_map_state.value ELSE EXCLUDED.value END").
 		Returning("id").
 		Insert(b)
 	return err

@@ -80,12 +80,12 @@ indexer:
   offchain_base_url: ${OFFCHAIN_BASE_URL}
   cache: true
   networks:
-    mainnet:
+    # mainnet:
+    #   receiver_threads: 5
+    hangzhou2net:
       receiver_threads: 2
-    # hangzhou2net:
-    #   receiver_threads: 2
-    # ithacanet:
-    #   receiver_threads: 2
+    ithacanet:
+      receiver_threads: 2
   connections:
     max: 5
     idle: 5
