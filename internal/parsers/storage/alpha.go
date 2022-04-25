@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -18,38 +20,36 @@ func NewAlpha() *Alpha {
 }
 
 // ParseTransaction -
-func (a *Alpha) ParseTransaction(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
+func (a *Alpha) ParseTransaction(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	result := content.GetResult()
 	if result == nil {
-		return nil, nil
+		return nil
 	}
 	operation.DeffatedStorage = result.Storage
 
-	return a.getBigMapDiff(result.BigMapDiffs, *content.Destination, operation)
+	return a.getBigMapDiff(result.BigMapDiffs, *content.Destination, operation, store)
 }
 
 // ParseOrigination -
-func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
+func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) (bool, error) {
 	if content.Script == nil {
-		return nil, nil
+		return false, nil
 	}
 	storage, err := operation.AST.StorageType()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-
-	res := parsers.NewResult()
 
 	var storageData struct {
 		Storage ast.UntypedAST `json:"storage"`
 	}
 
 	if err := json.Unmarshal(content.Script, &storageData); err != nil {
-		return nil, err
+		return false, err
 	}
 
 	if err := storage.Settle(storageData.Storage); err != nil {
-		return nil, err
+		return false, err
 	}
 
 	pair, ok := storage.Nodes[0].(*ast.Pair)
@@ -58,7 +58,7 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 		if ok {
 			result := content.GetResult()
 			if result == nil {
-				return nil, nil
+				return false, nil
 			}
 
 			operation.BigMapDiffs = make([]*bigmapdiff.BigMapDiff, 0)
@@ -90,23 +90,17 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 					OperationID: operation.ID,
 					Level:       operation.Level,
 					Contract:    result.Originated[0],
-					Network:     operation.Network,
 					Timestamp:   operation.Timestamp,
 					ProtocolID:  operation.ProtocolID,
 					Ptr:         -1,
 				}
-
-				if err := setBigMapDiffsStrings(b); err != nil {
-					return false, err
-				}
-
 				operation.BigMapDiffs = append(operation.BigMapDiffs, b)
 				state := b.ToState()
 				state.Ptr = -1
-				res.BigMapState = append(res.BigMapState, state)
+				store.AddBigMapStates(state)
 				return false, nil
 			}); err != nil {
-				return nil, err
+				return false, err
 			}
 
 			if len(operation.BigMapDiffs) > 0 {
@@ -117,14 +111,13 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 
 	b, err := storage.ToParameters(ast.DocsFull)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	operation.DeffatedStorage = b
-	return res, nil
+	return true, nil
 }
 
-func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation *operation.Operation) (*parsers.Result, error) {
-	res := parsers.NewResult()
+func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation *operation.Operation, store parsers.Store) error {
 	for i := range diffs {
 		b := &bigmapdiff.BigMapDiff{
 			Key:         types.Bytes(diffs[i].Key),
@@ -133,20 +126,15 @@ func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operat
 			OperationID: operation.ID,
 			Level:       operation.Level,
 			Contract:    address,
-			Network:     operation.Network,
 			Timestamp:   operation.Timestamp,
 			ProtocolID:  operation.ProtocolID,
 			Ptr:         -1,
 		}
 
-		if err := setBigMapDiffsStrings(b); err != nil {
-			return nil, err
-		}
-
 		operation.BigMapDiffs = append(operation.BigMapDiffs, b)
 		state := b.ToState()
 		state.Ptr = -1
-		res.BigMapState = append(res.BigMapState, state)
+		store.AddBigMapStates(state)
 	}
-	return res, nil
+	return nil
 }

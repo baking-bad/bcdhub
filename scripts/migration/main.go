@@ -28,6 +28,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.FixLostSearchContracts{},
 	&migrations.FixEntrypointSearch{},
 	&migrations.FindLostContracts{},
+	&migrations.BigMapStateCount{},
 }
 
 func main() {
@@ -45,20 +46,22 @@ func main() {
 
 	start := time.Now()
 
-	ctx := config.NewContext(
-		config.WithStorage(cfg.Storage, "migrations", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle),
-		config.WithRPC(cfg.RPC),
+	ctxs := config.NewContexts(
+		cfg, cfg.Scripts.Networks,
+		config.WithStorage(cfg.Storage, "migrations", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle, false),
+		config.WithRPC(cfg.RPC, false),
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions(),
 		config.WithSearch(cfg.Storage),
 	)
-	defer ctx.Close()
+	defer ctxs.Close()
 
-	logger.Info().Msgf("Starting %v migration...", migration.Key())
-
-	if err := migration.Do(ctx); err != nil {
-		logger.Err(err)
-		return
+	for _, ctx := range ctxs {
+		logger.Info().Msgf("Starting %v migration for %s...", migration.Key(), ctx.Network.String())
+		if err := migration.Do(ctx); err != nil {
+			logger.Err(err)
+			return
+		}
 	}
 
 	logger.Info().Msgf("%s migration done. Spent: %v", migration.Key(), time.Since(start))

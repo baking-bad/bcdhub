@@ -6,12 +6,10 @@ import (
 
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Item -
 type Item struct {
-	Network  types.Network
 	Address  string
 	Metadata []byte
 }
@@ -39,7 +37,6 @@ func (item Item) ToModel() (*Metadata, error) {
 	}
 
 	model := new(Metadata)
-	model.Network = item.Network
 	model.Address = item.Address
 	model.Timestamp = t.UTC()
 	model.OffChain = true

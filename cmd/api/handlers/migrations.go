@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,38 +22,42 @@ import (
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/migrations [get]
-func (ctx *Context) GetContractMigrations(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
+func GetContractMigrations() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	contract, err := ctx.Contracts.Get(req.NetworkID(), req.Address)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
 
-	migrations, err := ctx.Migrations.Get(contract.ID)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		contract, err := ctx.Contracts.Get(req.Address)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	result, err := prepareMigrations(ctx, req.NetworkID(), migrations)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		migrations, err := ctx.Migrations.Get(contract.ID)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, result)
+		result, err := prepareMigrations(ctx, migrations)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		c.SecureJSON(http.StatusOK, result)
+	}
 }
 
-func prepareMigrations(ctx *Context, network types.Network, data []migration.Migration) ([]Migration, error) {
+func prepareMigrations(ctx *config.Context, data []migration.Migration) ([]Migration, error) {
 	result := make([]Migration, len(data))
 	for i := range data {
-		proto, err := ctx.Cache.ProtocolByID(network, data[i].ProtocolID)
+		proto, err := ctx.Cache.ProtocolByID(data[i].ProtocolID)
 		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}
-		prevProto, err := ctx.Cache.ProtocolByID(network, data[i].PrevProtocolID)
+		prevProto, err := ctx.Cache.ProtocolByID(data[i].PrevProtocolID)
 		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}

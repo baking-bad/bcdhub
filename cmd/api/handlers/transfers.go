@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/gin-gonic/gin"
@@ -25,31 +26,34 @@ import (
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/transfers [get]
-func (ctx *Context) GetContractTransfers(c *gin.Context) {
-	var contractRequest getContractRequest
-	if err := c.BindUri(&contractRequest); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
-	var req getContractTransfers
-	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetContractTransfers() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	transfers, err := ctx.Domains.Transfers(transfer.GetContext{
-		Network:   contractRequest.NetworkID(),
-		Contracts: []string{contractRequest.Address},
-		Size:      req.Size,
-		Offset:    req.Offset,
-		TokenID:   req.TokenID,
-		AccountID: -1,
-	})
-	if ctx.handleError(c, err, 0) {
-		return
+		var contractRequest getContractRequest
+		if err := c.BindUri(&contractRequest); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
+		var req getContractTransfers
+		if err := c.BindQuery(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		transfers, err := ctx.Domains.Transfers(transfer.GetContext{
+			Contracts: []string{contractRequest.Address},
+			Size:      req.Size,
+			Offset:    req.Offset,
+			TokenID:   req.TokenID,
+			AccountID: -1,
+		})
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, transfersPostprocessing(ctx, transfers, false))
 	}
-	c.SecureJSON(http.StatusOK, ctx.transfersPostprocessing(transfers, false))
 }
 
-func (ctx *Context) transfersPostprocessing(transfers domains.TransfersResponse, withLastID bool) (response TransferResponse) {
+func transfersPostprocessing(ctx *config.Context, transfers domains.TransfersResponse, withLastID bool) (response TransferResponse) {
 	response.Total = transfers.Total
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
 	if withLastID {
@@ -58,7 +62,6 @@ func (ctx *Context) transfersPostprocessing(transfers domains.TransfersResponse,
 
 	for i := range transfers.Transfers {
 		token := TokenMetadata{
-			Network:  transfers.Transfers[i].Network.String(),
 			Contract: transfers.Transfers[i].Contract,
 			TokenID:  transfers.Transfers[i].TokenID,
 			Symbol:   transfers.Transfers[i].Symbol,
@@ -68,7 +71,7 @@ func (ctx *Context) transfersPostprocessing(transfers domains.TransfersResponse,
 
 		response.Transfers[i] = TransferFromModel(transfers.Transfers[i])
 		response.Transfers[i].Token = &token
-		response.Transfers[i].Alias = ctx.Cache.Alias(transfers.Transfers[i].Network, transfers.Transfers[i].Contract)
+		response.Transfers[i].Alias = ctx.Cache.Alias(transfers.Transfers[i].Contract)
 		response.Transfers[i].InitiatorAlias = transfers.Transfers[i].Initiator.Alias
 		response.Transfers[i].FromAlias = transfers.Transfers[i].From.Alias
 		response.Transfers[i].ToAlias = transfers.Transfers[i].To.Alias

@@ -13,8 +13,7 @@ type TimeBased struct {
 	handler func(ctx context.Context) error
 	period  time.Duration
 
-	stop chan struct{}
-	wg   sync.WaitGroup
+	wg sync.WaitGroup
 }
 
 // NewTimeBased -
@@ -22,7 +21,6 @@ func NewTimeBased(handler func(ctx context.Context) error, period time.Duration)
 	return &TimeBased{
 		period:  period,
 		handler: handler,
-		stop:    make(chan struct{}, 1),
 	}
 }
 
@@ -39,10 +37,8 @@ func (s *TimeBased) Start(ctx context.Context) {
 
 // Close -
 func (s *TimeBased) Close() error {
-	s.stop <- struct{}{}
 	s.wg.Wait()
 
-	close(s.stop)
 	return nil
 }
 
@@ -59,7 +55,7 @@ func (s *TimeBased) work(ctx context.Context) {
 
 	for {
 		select {
-		case <-s.stop:
+		case <-ctx.Done():
 			return
 		case <-ticker.C:
 			if err := s.handler(ctx); err != nil {

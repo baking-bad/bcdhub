@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/cache"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -12,7 +12,6 @@ import (
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -31,16 +30,14 @@ import (
 
 // Context -
 type Context struct {
-	AWS             *aws.Client
-	RPC             map[types.Network]noderpc.INode
-	MempoolServices map[types.Network]*mempool.Mempool
+	Network types.Network
+	RPC     noderpc.INode
+	Mempool *mempool.Mempool
 
 	StorageDB *core.Postgres
 
 	Config     Config
 	TzipSchema string
-
-	TezosDomainsContracts map[types.Network]string
 
 	Storage          models.GeneralRepository
 	Accounts         account.Repository
@@ -50,7 +47,7 @@ type Context struct {
 	Blocks           block.Repository
 	Contracts        contract.Repository
 	DApps            dapp.Repository
-	GlobalConstants  global_constant.Repository
+	GlobalConstants  contract.ConstantRepository
 	Migrations       migration.Repository
 	Operations       operation.Repository
 	Protocols        protocol.Repository
@@ -69,9 +66,10 @@ type Context struct {
 }
 
 // NewContext -
-func NewContext(opts ...ContextOption) *Context {
+func NewContext(network types.Network, opts ...ContextOption) *Context {
 	ctx := &Context{
 		Sanitizer: bluemonday.UGCPolicy(),
+		Network:   network,
 	}
 	ctx.Sanitizer.AllowAttrs("em")
 
@@ -80,30 +78,66 @@ func NewContext(opts ...ContextOption) *Context {
 	}
 
 	ctx.Cache = cache.NewCache(
-		ctx.RPC, ctx.Blocks, ctx.Accounts, ctx.Contracts, ctx.Protocols, ctx.ContractMetadata, ctx.Sanitizer,
+		ctx.RPC, ctx.Accounts, ctx.Contracts, ctx.Protocols, ctx.ContractMetadata, ctx.Sanitizer,
 	)
 	return ctx
 }
 
-// GetRPC -
-func (ctx *Context) GetRPC(network types.Network) (noderpc.INode, error) {
-	if rpc, ok := ctx.RPC[network]; ok {
-		return rpc, nil
+// Close -
+func (ctx *Context) Close() error {
+	if ctx.StorageDB != nil {
+		if err := ctx.StorageDB.Close(); err != nil {
+			return err
+		}
 	}
-	return nil, errors.Errorf("unknown rpc: %s", network)
+	return nil
 }
 
-// GetMempoolService -
-func (ctx *Context) GetMempoolService(network types.Network) (*mempool.Mempool, error) {
-	if rpc, ok := ctx.MempoolServices[network]; ok {
-		return rpc, nil
+// Contexts -
+type Contexts map[types.Network]*Context
+
+// NewContext -
+func NewContexts(cfg Config, networks []string, opts ...ContextOption) Contexts {
+	if len(networks) == 0 {
+		panic("empty networks list in config file")
 	}
-	return nil, errors.Errorf("unknown mempool service: %s", network)
+
+	ctxs := make(Contexts)
+
+	for i := range networks {
+		networkType := types.NewNetwork(networks[i])
+		if networkType == types.Empty {
+			logger.Warning().Msgf("unknown network: %s", networks[i])
+			continue
+		}
+		ctxs[networkType] = NewContext(networkType, opts...)
+	}
+
+	return ctxs
+}
+
+// Get -
+func (ctxs Contexts) Get(network types.Network) (*Context, error) {
+	if ctx, ok := ctxs[network]; ok {
+		return ctx, nil
+	}
+	return nil, errors.Errorf("unknown network: %s", network.String())
+}
+
+// Any -
+func (ctxs Contexts) Any() *Context {
+	for _, ctx := range ctxs {
+		return ctx
+	}
+	panic("empty contexts map")
 }
 
 // Close -
-func (ctx *Context) Close() {
-	if ctx.StorageDB != nil {
-		ctx.StorageDB.Close()
+func (ctxs Contexts) Close() error {
+	for _, c := range ctxs {
+		if err := c.Close(); err != nil {
+			return err
+		}
 	}
+	return nil
 }

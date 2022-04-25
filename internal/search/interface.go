@@ -2,10 +2,16 @@ package search
 
 import (
 	"context"
-	"io"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
+
+// SameContracts -
+type SameContracts struct {
+	Count     int64
+	Contracts []Contract
+}
 
 // Searcher -
 type Searcher interface {
@@ -13,24 +19,19 @@ type Searcher interface {
 	Save(ctx context.Context, items []Data) error
 	CreateIndexes() error
 	Rollback(network string, level int64) error
-
 	BigMapDiffs(args BigMapDiffSearchArgs) ([]BigMapDiffResult, error)
-
-	CreateAWSRepository(string, string, string) error
-	ListRepositories() ([]Repository, error)
-	CreateSnapshots(string, string, []string) error
-	RestoreSnapshots(string, string, []string) error
-	ListSnapshots(string) (string, error)
-	SetSnapshotPolicy(string, string, string, string, int64) error
-	GetAllPolicies() ([]string, error)
-	GetMappings([]string) (map[string]string, error)
-	CreateMapping(string, io.Reader) error
-	ReloadSecureSettings() error
+	SameContracts(contract contract.Contract, network string, offset, size int64) (SameContracts, error)
 }
 
 // Data -
 type Data interface {
 	GetID() string
 	GetIndex() string
-	Prepare(model models.Model)
+}
+
+// Constraint -
+type Constraint[M models.Constraint] interface {
+	BigMapDiff | Contract | Token | Metadata | Operation
+
+	Data
 }

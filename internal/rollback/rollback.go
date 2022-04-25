@@ -11,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -42,7 +41,7 @@ func NewManager(rpc noderpc.INode, searcher search.Searcher, storage models.Gene
 }
 
 // Rollback - rollback indexer state to level
-func (rm Manager) Rollback(ctx context.Context, db pg.DBI, fromState block.Block, toLevel int64) error {
+func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network, fromState block.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
 		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
@@ -50,7 +49,7 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, fromState block.Block
 	for level := fromState.Level; level > toLevel; level-- {
 		logger.Info().Msgf("Rollback to %d block", level)
 
-		if _, err := rm.blockRepo.Get(fromState.Network, level); err != nil {
+		if _, err := rm.blockRepo.Get(level); err != nil {
 			if rm.storage.IsRecordNotFound(err) {
 				continue
 			}
@@ -58,22 +57,22 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, fromState block.Block
 		}
 
 		err := db.RunInTransaction(ctx, func(tx *pg.Tx) error {
-			if err := rm.rollbackTokenBalances(tx, fromState.Network, level); err != nil {
+			if err := rm.rollbackTokenBalances(tx, level); err != nil {
 				return err
 			}
-			if err := rm.rollbackAll(tx, fromState.Network, level); err != nil {
+			if err := rm.rollbackAll(tx, level); err != nil {
 				return err
 			}
-			if err := rm.rollbackOperations(tx, fromState.Network, level); err != nil {
+			if err := rm.rollbackOperations(tx, level); err != nil {
 				return err
 			}
-			if err := rm.rollbackMigrations(tx, fromState.Network, level); err != nil {
+			if err := rm.rollbackMigrations(tx, level); err != nil {
 				return err
 			}
-			if err := rm.rollbackBigMapState(tx, fromState.Network, level); err != nil {
+			if err := rm.rollbackBigMapState(tx, level); err != nil {
 				return err
 			}
-			return rm.searcher.Rollback(fromState.Network.String(), toLevel)
+			return rm.searcher.Rollback(network.String(), toLevel)
 		})
 		if err != nil {
 			return err
@@ -86,8 +85,8 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, fromState block.Block
 	return nil
 }
 
-func (rm Manager) rollbackTokenBalances(tx pg.DBI, network types.Network, level int64) error {
-	transfers, err := rm.transfersRepo.GetAll(network, level)
+func (rm Manager) rollbackTokenBalances(tx pg.DBI, level int64) error {
+	transfers, err := rm.transfersRepo.GetAll(level)
 	if err != nil {
 		return err
 	}
@@ -125,31 +124,29 @@ func (rm Manager) rollbackTokenBalances(tx pg.DBI, network types.Network, level 
 	return nil
 }
 
-func (rm Manager) rollbackAll(tx pg.DBI, network types.Network, level int64) error {
+func (rm Manager) rollbackAll(tx pg.DBI, level int64) error {
 	for _, index := range []models.Model{
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
 		&bigmapaction.BigMapAction{}, &cm.ContractMetadata{},
 		&transfer.Transfer{}, &tokenmetadata.TokenMetadata{},
-		&global_constant.GlobalConstant{},
+		&contract.GlobalConstant{},
 	} {
 		if _, err := tx.Model(index).
-			Where("network = ?", network).
 			Where("level = ?", level).
 			Delete(index); err != nil {
 			return err
 		}
 
 		logger.Info().
-			Str("network", network.String()).
 			Str("model", index.GetIndex()).
 			Msg("rollback")
 	}
 	return nil
 }
 
-func (rm Manager) rollbackMigrations(tx pg.DBI, network types.Network, level int64) error {
+func (rm Manager) rollbackMigrations(tx pg.DBI, level int64) error {
 	if _, err := tx.Model(new(migration.Migration)).
-		Where("contract_id IN (?)", tx.Model(new(contract.Contract)).Column("id").Where("network = ?", network).Where("level > ?", level)).
+		Where("contract_id IN (?)", tx.Model(new(contract.Contract)).Column("id").Where("level > ?", level)).
 		Where("level = ?", level).
 		Delete(); err != nil {
 		return err
@@ -157,14 +154,14 @@ func (rm Manager) rollbackMigrations(tx pg.DBI, network types.Network, level int
 	return nil
 }
 
-func (rm Manager) rollbackBigMapState(tx pg.DBI, network types.Network, level int64) error {
-	states, err := rm.bmdRepo.StatesChangedAfter(network, level)
+func (rm Manager) rollbackBigMapState(tx pg.DBI, level int64) error {
+	states, err := rm.bmdRepo.StatesChangedAfter(level)
 	if err != nil {
 		return err
 	}
 
 	for i, state := range states {
-		diff, err := rm.bmdRepo.LastDiff(state.Network, state.Ptr, state.KeyHash, false)
+		diff, err := rm.bmdRepo.LastDiff(state.Ptr, state.KeyHash, false)
 		if err != nil {
 			if rm.storage.IsRecordNotFound(err) {
 				if _, err := tx.Model(&states[i]).Delete(); err != nil {
@@ -183,7 +180,7 @@ func (rm Manager) rollbackBigMapState(tx pg.DBI, network types.Network, level in
 			states[i].Removed = false
 		} else {
 			states[i].Removed = true
-			valuedDiff, err := rm.bmdRepo.LastDiff(state.Network, state.Ptr, state.KeyHash, true)
+			valuedDiff, err := rm.bmdRepo.LastDiff(state.Ptr, state.KeyHash, true)
 			if err != nil {
 				return err
 			}
@@ -203,10 +200,9 @@ type lastAction struct {
 	Time    time.Time `pg:"time"`
 }
 
-func (rm Manager) rollbackOperations(tx pg.DBI, network types.Network, level int64) error {
+func (rm Manager) rollbackOperations(tx pg.DBI, level int64) error {
 	var ops []operation.Operation
 	if err := tx.Model(&operation.Operation{}).
-		Where("network = ?", network).
 		Where("level = ?", level).
 		Select(&ops); err != nil {
 		return err
@@ -257,12 +253,12 @@ func (rm Manager) rollbackOperations(tx pg.DBI, network types.Network, level int
 		var actions []lastAction
 
 		if _, err := tx.Query(&actions, `select max(foo.ts) as time, foo.address from (
-			(select "timestamp" as ts, source as address from operations where (network = ? and source in (?)) order by id desc limit ?)
+			(select "timestamp" as ts, source as address from operations where source in (?) order by id desc limit ?)
 			union all
-			(select "timestamp" as ts, destination as address from operations where (network = ? and destination in (?)) order by id desc limit ?)
+			(select "timestamp" as ts, destination as address from operations where destination in (?) order by id desc limit ?)
 		) as foo
 		group by address
-		`, network, addresses, length, network, addresses, length); err != nil {
+		`, addresses, length, addresses, length); err != nil {
 			return err
 		}
 

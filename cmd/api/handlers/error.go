@@ -5,11 +5,15 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
+	jsoniter "github.com/json-iterator/go"
 )
 
-func (ctx *Context) handleError(c *gin.Context, err error, code int) bool {
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+func handleError(c *gin.Context, repo models.GeneralRepository, err error, code int) bool {
 	if err == nil {
 		return false
 	}
@@ -18,7 +22,7 @@ func (ctx *Context) handleError(c *gin.Context, err error, code int) bool {
 	case http.StatusUnauthorized:
 		err = errors.New("invalid authentication")
 	case 0:
-		code = ctx.getErrorCode(err)
+		code = getErrorCode(err, repo)
 		if code == http.StatusInternalServerError {
 			if hub := sentrygin.GetHubFromContext(c); hub != nil {
 				hub.CaptureMessage(err.Error())
@@ -27,19 +31,19 @@ func (ctx *Context) handleError(c *gin.Context, err error, code int) bool {
 		}
 	}
 
-	c.AbortWithStatusJSON(code, ctx.getErrorMessage(err))
+	c.AbortWithStatusJSON(code, getErrorMessage(err, repo))
 	return true
 }
 
-func (ctx *Context) getErrorCode(err error) int {
-	if ctx.Storage.IsRecordNotFound(err) {
+func getErrorCode(err error, repo models.GeneralRepository) int {
+	if repo.IsRecordNotFound(err) {
 		return http.StatusNotFound
 	}
 	return http.StatusInternalServerError
 }
 
-func (ctx *Context) getErrorMessage(err error) Error {
-	if ctx.Storage.IsRecordNotFound(err) {
+func getErrorMessage(err error, repo models.GeneralRepository) Error {
+	if repo.IsRecordNotFound(err) {
 		return Error{Message: "not found"}
 	}
 	return Error{Message: err.Error()}

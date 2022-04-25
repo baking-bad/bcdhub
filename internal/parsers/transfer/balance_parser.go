@@ -31,13 +31,11 @@ func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, oper
 		transfer := operation.EmptyTransfer()
 		if balance.Value.Cmp(decimal.Zero) > 0 {
 			transfer.To = account.Account{
-				Network: operation.Network,
 				Address: balance.Address,
 				Type:    types.NewAccountType(balance.Address),
 			}
 		} else {
 			transfer.From = account.Account{
-				Network: operation.Network,
 				Address: balance.Address,
 				Type:    types.NewAccountType(balance.Address),
 			}
@@ -52,12 +50,12 @@ func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, oper
 }
 
 // ParseBalances -
-func (parser *DefaultBalanceParser) ParseBalances(network types.Network, contract string, balances []tbParser.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
+func (parser *DefaultBalanceParser) ParseBalances(contract string, balances []tbParser.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
 	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
 		transfer := operation.EmptyTransfer()
 
-		acc, err := parser.accounts.Get(network, balance.Address)
+		acc, err := parser.accounts.Get(balance.Address)
 		if err != nil {
 			if !errors.Is(err, pg.ErrNoRows) {
 				return nil, err
@@ -68,7 +66,7 @@ func (parser *DefaultBalanceParser) ParseBalances(network types.Network, contrac
 			}
 			transfer.Amount = balance.Value.Abs()
 		} else {
-			tb, err := parser.repo.Get(network, contract, acc.ID, balance.TokenID)
+			tb, err := parser.repo.Get(contract, acc.ID, balance.TokenID)
 			if err != nil {
 				return nil, err
 			}

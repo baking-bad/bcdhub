@@ -7,7 +7,6 @@ package operation
 import (
 	account "github.com/baking-bad/bcdhub/internal/models/account"
 	model "github.com/baking-bad/bcdhub/internal/models/operation"
-	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -96,48 +95,48 @@ func (mr *MockRepositoryMockRecorder) Get(filter, size, sort interface{}) *gomoc
 }
 
 // GetContract24HoursVolume mocks base method
-func (m *MockRepository) GetContract24HoursVolume(network types.Network, address string, entrypoints []string) (float64, error) {
+func (m *MockRepository) GetContract24HoursVolume(address string, entrypoints []string) (float64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetContract24HoursVolume", network, address, entrypoints)
+	ret := m.ctrl.Call(m, "GetContract24HoursVolume", address, entrypoints)
 	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetContract24HoursVolume indicates an expected call of GetContract24HoursVolume
-func (mr *MockRepositoryMockRecorder) GetContract24HoursVolume(network, address, entrypoints interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetContract24HoursVolume(address, entrypoints interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContract24HoursVolume", reflect.TypeOf((*MockRepository)(nil).GetContract24HoursVolume), network, address, entrypoints)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContract24HoursVolume", reflect.TypeOf((*MockRepository)(nil).GetContract24HoursVolume), address, entrypoints)
 }
 
 // GetTokensStats mocks base method
-func (m *MockRepository) GetTokensStats(network types.Network, addresses, entrypoints []string) (map[string]model.TokenUsageStats, error) {
+func (m *MockRepository) GetTokensStats(addresses, entrypoints []string) (map[string]model.TokenUsageStats, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTokensStats", network, addresses, entrypoints)
+	ret := m.ctrl.Call(m, "GetTokensStats", addresses, entrypoints)
 	ret0, _ := ret[0].(map[string]model.TokenUsageStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetTokensStats indicates an expected call of GetTokensStats
-func (mr *MockRepositoryMockRecorder) GetTokensStats(network, addresses, entrypoints interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetTokensStats(addresses, entrypoints interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokensStats", reflect.TypeOf((*MockRepository)(nil).GetTokensStats), network, addresses, entrypoints)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokensStats", reflect.TypeOf((*MockRepository)(nil).GetTokensStats), addresses, entrypoints)
 }
 
 // GetDAppStats mocks base method
-func (m *MockRepository) GetDAppStats(network types.Network, addresses []string, period string) (model.DAppStats, error) {
+func (m *MockRepository) GetDAppStats(addresses []string, period string) (model.DAppStats, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDAppStats", network, addresses, period)
+	ret := m.ctrl.Call(m, "GetDAppStats", addresses, period)
 	ret0, _ := ret[0].(model.DAppStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetDAppStats indicates an expected call of GetDAppStats
-func (mr *MockRepositoryMockRecorder) GetDAppStats(network, addresses, period interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetDAppStats(addresses, period interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDAppStats", reflect.TypeOf((*MockRepository)(nil).GetDAppStats), network, addresses, period)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDAppStats", reflect.TypeOf((*MockRepository)(nil).GetDAppStats), addresses, period)
 }
 
 // GetByIDs mocks base method

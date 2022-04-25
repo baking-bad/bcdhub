@@ -29,7 +29,6 @@ func MakeFa2Transfers(tree ast.Node, operation operation.Operation) ([]*transfer
 				return nil, err
 			}
 			t.From = account.Account{
-				Network: operation.Network,
 				Address: fromAddr,
 				Type:    modelTypes.NewAccountType(fromAddr),
 			}
@@ -40,7 +39,6 @@ func MakeFa2Transfers(tree ast.Node, operation operation.Operation) ([]*transfer
 				return nil, err
 			}
 			t.To = account.Account{
-				Network: operation.Network,
 				Address: toAddr,
 				Type:    modelTypes.NewAccountType(toAddr),
 			}

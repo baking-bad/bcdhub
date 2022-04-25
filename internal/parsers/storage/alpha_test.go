@@ -1,13 +1,13 @@
 package storage
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 	tests := []struct {
 		name          string
 		args          args
-		want          *parsers.Result
+		want          *parsers.TestStore
 		wantOperation operation.Operation
 		wantErr       bool
 	}{
@@ -33,18 +33,15 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 					Level:      1311215,
 					ProtocolID: 2,
 					Timestamp:  time.Date(2018, 06, 30, 0, 0, 0, 0, time.Local),
-					Network:    types.Mainnet,
 					Script:     []byte(`[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"pair","args":[{"prim":"address","annots":["%spender"]},{"prim":"nat","annots":["%value"]}],"annots":["%approve"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"address","annots":["%spender"]}]},{"prim":"contract","args":[{"prim":"nat"}]}],"annots":["%getAllowance"]}]},{"prim":"or","args":[{"prim":"pair","args":[{"prim":"address","annots":["%owner"]},{"prim":"contract","args":[{"prim":"nat"}]}],"annots":["%getBalance"]},{"prim":"pair","args":[{"prim":"unit"},{"prim":"contract","args":[{"prim":"nat"}]}],"annots":["%getTotalSupply"]}]}]},{"prim":"pair","args":[{"prim":"address","annots":["%from"]},{"prim":"pair","args":[{"prim":"address","annots":["%to"]},{"prim":"nat","annots":["%value"]}]}],"annots":["%transfer"]}]}]},{"prim":"storage","args":[{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"address"},{"prim":"pair","args":[{"prim":"map","args":[{"prim":"address"},{"prim":"nat"}],"annots":["%allowances"]},{"prim":"nat","annots":["%balance"]}]}],"annots":["%ledger"]},{"prim":"nat","annots":["%totalSupply"]}]}]},{"prim":"code","args":[[{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"LAMBDA","args":[{"prim":"pair","args":[{"prim":"address"},{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"address"},{"prim":"pair","args":[{"prim":"map","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}]}]},{"prim":"nat"}]}]},{"prim":"pair","args":[{"prim":"map","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}]},[{"prim":"DUP"},{"prim":"CDR"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"SWAP"},{"prim":"GET"},{"prim":"IF_NONE","args":[[{"prim":"PUSH","args":[{"prim":"nat"},{"int":"0"}]},{"prim":"EMPTY_MAP","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"PAIR"}],[]]}]]},{"prim":"LAMBDA","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"map","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}]},{"prim":"address"}]},{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"address"},{"prim":"pair","args":[{"prim":"map","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}]}]},{"prim":"nat"}]}]},{"prim":"nat"},[{"prim":"DUP"},{"prim":"CDR"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"SWAP"},{"prim":"DROP"},{"prim":"DUP"},{"prim":"CDR"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"CAR"},{"prim":"SWAP"},{"prim":"GET"},{"prim":"IF_NONE","args":[[{"prim":"PUSH","args":[{"prim":"nat"},{"int":"0"}]}],[]]}]]},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"DUP"},{"prim":"CDR"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"IF_LEFT","args":[[{"prim":"IF_LEFT","args":[[{"prim":"IF_LEFT","args":[[{"prim":"DUP"},{"prim":"CDR"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"3"}]},{"prim":"SENDER"},{"prim":"PAIR"},{"prim":"DIG","args":[{"int":"5"}]},{"prim":"SWAP"},{"prim":"EXEC"},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"4"}]},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"3"}]},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"3"}]},{"prim":"PAIR"},{"prim":"PAIR"},{"prim":"DIG","args":[{"int":"5"}]},{"prim":"SWAP"},{"prim":"EXEC"},{"prim":"PUSH","args":[{"prim":"nat"},{"int":"0"}]},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"5"}]},{"prim":"COMPARE"},{"prim":"GT"},{"prim":"PUSH","args":[{"prim":"nat"},{"int":"0"}]},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"COMPARE"},{"prim":"GT"},{"prim":"AND"},{"prim":"IF","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"UnsafeAllowanceChange"}]},{"prim":"FAILWITH"}],[]]},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"4"}]},{"prim":"CDR"},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"CAR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"3"}]},{"prim":"CDR"},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"CAR"},{"prim":"DIG","args":[{"int":"5"}]},{"prim":"DIG","args":[{"int":"5"}]},{"prim":"SWAP"},{"prim":"SOME"},{"prim":"SWAP"},{"prim":"UPDATE"},{"prim":"PAIR"},{"prim":"SOME"},{"prim":"SENDER"},{"prim":"UPDATE"},{"prim":"PAIR"},{"prim":"SWAP"},{"prim":"PAIR"}],[{"prim":"DIG","args":[{"int":"4"}]},{"prim":"DROP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CDR"},{"prim":"PAIR"},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"CDR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"CAR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"CDR"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"PAIR"},{"prim":"DIG","args":[{"int":"5"}]},{"prim":"SWAP"},{"prim":"EXEC"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"3"}]},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"PAIR"},{"prim":"PAIR"},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"SWAP"},{"prim":"EXEC"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"TRANSFER_TOKENS"},{"prim":"CONS"},{"prim":"PAIR"}]]}],[{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DROP"},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"DROP"},{"prim":"IF_LEFT","args":[[{"prim":"DUP"},{"prim":"CDR"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"3"}]},{"prim":"SWAP"},{"prim":"PAIR"},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"SWAP"},{"prim":"EXEC"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"CDR"},{"prim":"TRANSFER_TOKENS"},{"prim":"CONS"},{"prim":"PAIR"}],[{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DROP"},{"prim":"CDR"},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"CDR"},{"prim":"TRANSFER_TOKENS"},{"prim":"CONS"},{"prim":"PAIR"}]]}]]}],[{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CDR"},{"prim":"CDR"},{"prim":"PAIR"},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CDR"},{"prim":"CAR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"CDR"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"4"}]},{"prim":"PAIR"},{"prim":"DIG","args":[{"int":"6"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"7"}]},{"prim":"SWAP"},{"prim":"EXEC"},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CDR"},{"prim":"COMPARE"},{"prim":"LT"},{"prim":"IF","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"NotEnoughBalance"}]},{"prim":"FAILWITH"}],[]]},{"prim":"SENDER"},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"5"}]},{"prim":"COMPARE"},{"prim":"NEQ"},{"prim":"IF","args":[[{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"3"}]},{"prim":"SENDER"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"3"}]},{"prim":"PAIR"},{"prim":"PAIR"},{"prim":"DIG","args":[{"int":"6"}]},{"prim":"SWAP"},{"prim":"EXEC"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"3"}]},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"COMPARE"},{"prim":"LT"},{"prim":"IF","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"NotEnoughAllowance"}]},{"prim":"FAILWITH"}],[]]},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CDR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"4"}]},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"SUB"},{"prim":"ABS"},{"prim":"SOME"},{"prim":"SENDER"},{"prim":"UPDATE"},{"prim":"PAIR"}],[{"prim":"DIG","args":[{"int":"5"}]},{"prim":"DROP"}]]},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CDR"},{"prim":"SUB"},{"prim":"ABS"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"PAIR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"3"}]},{"prim":"CDR"},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"CAR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"SWAP"},{"prim":"SOME"},{"prim":"SWAP"},{"prim":"UPDATE"},{"prim":"PAIR"},{"prim":"DUP"},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"4"}]},{"prim":"PAIR"},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"SWAP"},{"prim":"EXEC"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CDR"},{"prim":"ADD"},{"prim":"SWAP"},{"prim":"CAR"},{"prim":"PAIR"},{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CDR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"SWAP"},{"prim":"SOME"},{"prim":"SWAP"},{"prim":"UPDATE"},{"prim":"PAIR"},{"prim":"SWAP"},{"prim":"PAIR"}]]}]]}]`),
 				},
 			},
-			want: &parsers.Result{
-
+			want: &parsers.TestStore{
 				BigMapState: []*bigmapdiff.BigMapState{
 					{
 						Ptr:             -1,
 						Contract:        "KT1Fv5xCoUqEeb2TycB7ijXdAXUFH4uPnRNN",
 						KeyHash:         "exprudn2kdsp9N7P4ZP6wu22AACpnLE5N1YdDW5zSCqb55fTwSnsdz",
-						Network:         types.Mainnet,
 						Key:             []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
 						Value:           []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
 						LastUpdateLevel: 1311215,
@@ -62,15 +59,8 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 						Timestamp:  time.Date(2018, 06, 30, 0, 0, 0, 0, time.Local),
 						Level:      1311215,
 						KeyHash:    "exprudn2kdsp9N7P4ZP6wu22AACpnLE5N1YdDW5zSCqb55fTwSnsdz",
-						Network:    types.Mainnet,
 						Key:        []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
 						Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
-						KeyStrings: []string{
-							"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6",
-						},
-						ValueStrings: []string{
-							"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6",
-						},
 					},
 				},
 			},
@@ -93,12 +83,12 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 			}
 			tt.args.operation.AST = tree
 
-			got, err := a.ParseOrigination(content, &tt.args.operation)
-			if (err != nil) != tt.wantErr {
+			store := parsers.NewTestStore()
+			if _, err := a.ParseOrigination(context.Background(), content, &tt.args.operation, store); (err != nil) != tt.wantErr {
 				t.Errorf("Alpha.ParseOrigination() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			assert.Len(t, got.BigMapState, len(tt.want.BigMapState))
+			assert.Len(t, store.BigMapState, len(tt.want.BigMapState))
 			assert.Len(t, tt.args.operation.BigMapDiffs, len(tt.wantOperation.BigMapDiffs))
 
 			for i := range tt.wantOperation.BigMapDiffs {
@@ -106,10 +96,10 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 			}
 
 			for i := range tt.want.BigMapState {
-				tt.want.BigMapState[i].ID = got.BigMapState[i].GetID()
+				tt.want.BigMapState[i].ID = store.BigMapState[i].GetID()
 			}
 			assert.Equal(t, tt.wantOperation.BigMapDiffs, tt.args.operation.BigMapDiffs)
-			assert.Equal(t, tt.want.BigMapState, got.BigMapState)
+			assert.Equal(t, tt.want.BigMapState, store.BigMapState)
 
 			assert.Equal(t, tt.wantOperation.DeffatedStorage, tt.args.operation.DeffatedStorage)
 		})

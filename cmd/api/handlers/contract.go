@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"math/rand"
 	"net/http"
+	"reflect"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
@@ -23,27 +26,31 @@ import (
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address} [get]
-func (ctx *Context) GetContract(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
+func GetContract() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	contract, err := ctx.Contracts.Get(req.NetworkID(), req.Address)
-	if err != nil {
-		if ctx.Storage.IsRecordNotFound(err) {
-			c.SecureJSON(http.StatusNoContent, gin.H{})
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
-		ctx.handleError(c, err, 0)
-		return
-	}
 
-	res, err := ctx.contractWithStatsPostprocessing(contract)
-	if ctx.handleError(c, err, 0) {
-		return
+		contract, err := ctx.Contracts.Get(req.Address)
+		if err != nil {
+			if ctx.Storage.IsRecordNotFound(err) {
+				c.SecureJSON(http.StatusNoContent, gin.H{})
+				return
+			}
+			handleError(c, ctx.Storage, err, 0)
+			return
+		}
+
+		res, err := contractWithStatsPostprocessing(ctx, contract)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, res)
 	}
-	c.SecureJSON(http.StatusOK, res)
 }
 
 // GetRandomContract godoc
@@ -58,58 +65,144 @@ func (ctx *Context) GetContract(c *gin.Context) {
 // @Success 204 {object} gin.H
 // @Failure 500 {object} Error
 // @Router /v1/pick_random [get]
-func (ctx *Context) GetRandomContract(c *gin.Context) {
-	var req networkQueryRequest
-	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	networks := make([]types.Network, 0)
+func GetRandomContract() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctxs := c.MustGet("contexts").(config.Contexts)
+		anyContext := ctxs.Any()
 
-	network := req.NetworkID()
-	if network != types.Empty {
-		networks = append(networks, network)
-	}
-
-	contract, err := ctx.Contracts.GetRandom(networks...)
-	if err != nil {
-		if ctx.Storage.IsRecordNotFound(err) {
-			c.SecureJSON(http.StatusNoContent, gin.H{})
+		var req networkQueryRequest
+		if err := c.BindQuery(&req); handleError(c, anyContext.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		ctx.handleError(c, err, 0)
-		return
-	}
 
-	res, err := ctx.contractWithStatsPostprocessing(contract)
-	if ctx.handleError(c, err, 0) {
-		return
+		network := req.NetworkID()
+		if network == types.Empty {
+			keys := reflect.ValueOf(ctxs).MapKeys()
+			network = keys[rand.Intn(len(keys))].Interface().(types.Network)
+		}
+
+		ctx, err := ctxs.Get(network)
+		if handleError(c, anyContext.Storage, err, 0) {
+			return
+		}
+
+		contract, err := ctx.Contracts.GetRandom()
+		if err != nil {
+			if ctx.Storage.IsRecordNotFound(err) {
+				c.SecureJSON(http.StatusNoContent, gin.H{})
+				return
+			}
+			handleError(c, ctx.Storage, err, 0)
+			return
+		}
+
+		res, err := contractWithStatsPostprocessing(ctx, contract)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		res.Network = ctx.Network.String()
+		c.SecureJSON(http.StatusOK, res)
 	}
-	c.SecureJSON(http.StatusOK, res)
 }
 
-func (ctx *Context) contractPostprocessing(contract contract.Contract) (Contract, error) {
+// GetSameContracts godoc
+// @Summary Get same contracts
+// @Description Get same contracts
+// @Tags contract
+// @ID get-contract-same
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param manager query string false "Manager"
+// @Param offset query integer false "Offset"
+// @Param size query integer false "Requested count" mininum(1) maximum(10)
+// @Accept json
+// @Produce json
+// @Success 200 {object} SameContractsResponse
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/contract/{network}/{address}/same [get]
+func GetSameContracts() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
+
+		var page pageableRequest
+		if err := c.BindQuery(&page); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		contract, err := ctx.Contracts.Get(req.Address)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		same, err := ctx.Searcher.SameContracts(contract, ctx.Network.String(), page.Offset, page.Size)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		response := SameContractsResponse{
+			Count:     same.Count,
+			Contracts: make([]ContractWithStats, 0),
+		}
+
+		ctxs := c.MustGet("contexts").(config.Contexts)
+		for i := range same.Contracts {
+			currentContext, ok := ctxs[types.NewNetwork(same.Contracts[i].Network)]
+			if !ok {
+				continue
+			}
+
+			item, err := currentContext.Contracts.Get(same.Contracts[i].Address)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			itemContract, err := contractPostprocessing(currentContext, item)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+
+			response.Contracts = append(response.Contracts, ContractWithStats{
+				Contract:  itemContract,
+				SameCount: same.Count,
+			})
+		}
+
+		c.SecureJSON(http.StatusOK, response)
+	}
+}
+
+func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Contract, error) {
 	var res Contract
 	res.FromModel(contract)
+	res.Network = ctx.Network.String()
 
-	if alias, err := ctx.Cache.ContractMetadata(contract.Network, contract.Account.Address); err == nil && alias != nil {
-		res.Slug = alias.Slug
+	if contractMetadata, err := ctx.Cache.ContractMetadata(contract.Account.Address); err == nil && contractMetadata != nil {
+		res.Slug = contractMetadata.Slug
+		if res.Alias == "" {
+			res.Alias = contractMetadata.Name
+		}
 	} else if !ctx.Storage.IsRecordNotFound(err) {
 		return res, err
 	}
 	return res, nil
 }
 
-func (ctx *Context) contractWithStatsPostprocessing(contract contract.Contract) (ContractWithStats, error) {
-	c, err := ctx.contractPostprocessing(contract)
+func contractWithStatsPostprocessing(ctx *config.Context, contract contract.Contract) (ContractWithStats, error) {
+	c, err := contractPostprocessing(ctx, contract)
 	if err != nil {
 		return ContractWithStats{}, err
 	}
-	res := ContractWithStats{c, 0, 0}
+	res := ContractWithStats{c, 0}
 	stats, err := ctx.Contracts.Stats(contract)
 	if err != nil {
 		return res, err
 	}
-	res.SameCount = stats.SameCount
-	res.SimilarCount = stats.SimilarCount
+	res.SameCount = int64(stats)
 	return res, nil
 }

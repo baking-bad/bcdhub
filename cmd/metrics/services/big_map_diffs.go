@@ -6,7 +6,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/search"
 )
 
 // BigMapDiffHandler -
@@ -20,26 +21,17 @@ func NewBigMapDiffHandler(ctx *config.Context) *BigMapDiffHandler {
 }
 
 // Handle -
-func (oh *BigMapDiffHandler) Handle(ctx context.Context, items []models.Model, wg *sync.WaitGroup) error {
+func (bmh *BigMapDiffHandler) Handle(ctx context.Context, items []*bigmapdiff.BigMapDiff, wg *sync.WaitGroup) error {
 	if len(items) == 0 {
 		return nil
 	}
 
-	logger.Info().Msgf("%3d big map diffs are processed", len(items))
+	logger.Info().Str("network", bmh.Network.String()).Msgf("%3d big map diffs are processed", len(items))
 
-	return saveSearchModels(ctx, oh.Context, items)
+	return search.Save(ctx, bmh.Searcher, bmh.Network, items)
 }
 
 // Chunk -
-func (oh *BigMapDiffHandler) Chunk(lastID int64, size int) ([]models.Model, error) {
-	diffs, err := getDiffs(oh.StorageDB.DB, lastID, size)
-	if err != nil {
-		return nil, err
-	}
-
-	data := make([]models.Model, len(diffs))
-	for i := range diffs {
-		data[i] = &diffs[i]
-	}
-	return data, nil
+func (bmh *BigMapDiffHandler) Chunk(lastID int64, size int) ([]*bigmapdiff.BigMapDiff, error) {
+	return getDiffs(bmh.StorageDB.DB, lastID, size)
 }

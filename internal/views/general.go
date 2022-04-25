@@ -1,11 +1,11 @@
 package views
 
 import (
+	"context"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
@@ -17,9 +17,8 @@ var (
 	ErrNodeReturn = errors.New(`Node return error`)
 )
 
-// Context -
-type Context struct {
-	Network                  types.Network
+// Args -
+type Args struct {
 	Protocol                 string
 	Contract                 string
 	Parameters               string
@@ -46,8 +45,8 @@ func NormalizeName(name string) string {
 }
 
 // Execute -
-func Execute(rpc noderpc.INode, view View, ctx Context, output interface{}) error {
-	response, err := ExecuteWithoutParsing(rpc, view, ctx)
+func Execute(ctx context.Context, rpc noderpc.INode, view View, args Args, output interface{}) error {
+	response, err := ExecuteWithoutParsing(ctx, rpc, view, args)
 	if err != nil {
 		return err
 	}
@@ -56,13 +55,13 @@ func Execute(rpc noderpc.INode, view View, ctx Context, output interface{}) erro
 }
 
 // ExecuteWithoutParsing -
-func ExecuteWithoutParsing(rpc noderpc.INode, view View, ctx Context) ([]byte, error) {
-	script, err := rpc.GetScriptJSON(ctx.Contract, 0)
+func ExecuteWithoutParsing(ctx context.Context, rpc noderpc.INode, view View, args Args) ([]byte, error) {
+	script, err := rpc.GetScriptJSON(ctx, args.Contract, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	parameter, err := view.GetParameter(ctx.Parameters, script.Storage)
+	parameter, err := view.GetParameter(args.Parameters, script.Storage)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +77,7 @@ func ExecuteWithoutParsing(rpc noderpc.INode, view View, ctx Context) ([]byte, e
 
 	storage := []byte(`{"prim": "None"}`)
 
-	response, err := rpc.RunCode(code, storage, parameter, ctx.ChainID, ctx.Source, ctx.Initiator, ctx.Entrypoint, ctx.Protocol, ctx.Amount, ctx.HardGasLimitPerOperation)
+	response, err := rpc.RunCode(ctx, code, storage, parameter, args.ChainID, args.Source, args.Initiator, args.Entrypoint, args.Protocol, args.Amount, args.HardGasLimitPerOperation)
 	if err != nil {
 		return nil, err
 	}

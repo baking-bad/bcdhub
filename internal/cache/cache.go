@@ -1,13 +1,13 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/account"
-	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -15,15 +15,13 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/karlseguin/ccache"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/pkg/errors"
 )
 
 // Cache -
 type Cache struct {
 	*ccache.Cache
-	rpc map[types.Network]noderpc.INode
+	rpc noderpc.INode
 
-	blocks    block.Repository
 	accounts  account.Repository
 	contracts contract.Repository
 	protocols protocol.Repository
@@ -32,11 +30,10 @@ type Cache struct {
 }
 
 // NewCache -
-func NewCache(rpc map[types.Network]noderpc.INode, blocks block.Repository, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository, cm contract_metadata.Repository, sanitizer *bluemonday.Policy) *Cache {
+func NewCache(rpc noderpc.INode, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository, cm contract_metadata.Repository, sanitizer *bluemonday.Policy) *Cache {
 	return &Cache{
 		ccache.New(ccache.Configure().MaxSize(1000)),
 		rpc,
-		blocks,
 		accounts,
 		contracts,
 		protocols,
@@ -46,18 +43,18 @@ func NewCache(rpc map[types.Network]noderpc.INode, blocks block.Repository, acco
 }
 
 // Alias -
-func (cache *Cache) Alias(network types.Network, address string) string {
+func (cache *Cache) Alias(address string) string {
 	if !bcd.IsContract(address) {
 		return ""
 	}
-	key := fmt.Sprintf("alias:%d:%s", network, address)
+	key := fmt.Sprintf("alias:%s", address)
 	item, err := cache.Fetch(key, time.Minute*30, func() (interface{}, error) {
-		acc, err := cache.accounts.Get(network, address)
+		acc, err := cache.accounts.Get(address)
 		if err == nil && acc.Alias != "" {
 			return acc.Alias, nil
 		}
 
-		cm, err := cache.tzip.Get(network, address)
+		cm, err := cache.tzip.Get(address)
 		if err == nil {
 			return cm.Name, nil
 		}
@@ -75,13 +72,13 @@ func (cache *Cache) Alias(network types.Network, address string) string {
 }
 
 // ContractMetadata -
-func (cache *Cache) ContractMetadata(network types.Network, address string) (*contract_metadata.ContractMetadata, error) {
+func (cache *Cache) ContractMetadata(address string) (*contract_metadata.ContractMetadata, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
-	key := fmt.Sprintf("contract_metadata:%d:%s", network, address)
+	key := fmt.Sprintf("contract_metadata:%s", address)
 	item, err := cache.Fetch(key, time.Minute*30, func() (interface{}, error) {
-		return cache.tzip.Get(network, address)
+		return cache.tzip.Get(address)
 	})
 	if err != nil {
 		return nil, err
@@ -91,13 +88,13 @@ func (cache *Cache) ContractMetadata(network types.Network, address string) (*co
 }
 
 // Events -
-func (cache *Cache) Events(network types.Network, address string) (contract_metadata.Events, error) {
+func (cache *Cache) Events(address string) (contract_metadata.Events, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
-	key := fmt.Sprintf("contract_metadata:%d:%s", network, address)
+	key := fmt.Sprintf("contract_metadata:%s", address)
 	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		return cache.tzip.Events(network, address)
+		return cache.tzip.Events(address)
 	})
 	if err != nil {
 		return nil, err
@@ -106,32 +103,15 @@ func (cache *Cache) Events(network types.Network, address string) (contract_meta
 	return item.Value().(contract_metadata.Events), nil
 }
 
-// Contract -
-func (cache *Cache) Contract(network types.Network, address string) (*contract.Contract, error) {
-	if !bcd.IsContract(address) {
-		return nil, nil
-	}
-
-	key := fmt.Sprintf("contract:%d:%s", network, address)
-	item, err := cache.Fetch(key, time.Minute*10, func() (interface{}, error) {
-		return cache.contracts.Get(network, address)
-	})
-	if err != nil {
-		return nil, err
-	}
-	cntr := item.Value().(contract.Contract)
-	return &cntr, nil
-}
-
 // ContractTags -
-func (cache *Cache) ContractTags(network types.Network, address string) (types.Tags, error) {
+func (cache *Cache) ContractTags(address string) (types.Tags, error) {
 	if !bcd.IsContract(address) {
 		return 0, nil
 	}
 
-	key := fmt.Sprintf("contract:%d:%s", network, address)
+	key := fmt.Sprintf("contract:%s", address)
 	item, err := cache.Fetch(key, time.Minute*10, func() (interface{}, error) {
-		c, err := cache.contracts.Get(network, address)
+		c, err := cache.contracts.Get(address)
 		if err != nil {
 			return 0, err
 		}
@@ -143,34 +123,11 @@ func (cache *Cache) ContractTags(network types.Network, address string) (types.T
 	return item.Value().(types.Tags), nil
 }
 
-// ProjectIDByHash -
-func (cache *Cache) ProjectIDByHash(hash string) string {
-	return fmt.Sprintf("project_id:%s", hash)
-}
-
-// CurrentBlock -
-func (cache *Cache) CurrentBlock(network types.Network) (block.Block, error) {
-	key := fmt.Sprintf("block:%d", network)
-	item, err := cache.Fetch(key, time.Second*15, func() (interface{}, error) {
-		return cache.blocks.Last(network)
-	})
-	if err != nil {
-		return block.Block{}, err
-	}
-	return item.Value().(block.Block), nil
-}
-
-//nolint
 // TezosBalance -
-func (cache *Cache) TezosBalance(network types.Network, address string, level int64) (int64, error) {
-	node, ok := cache.rpc[network]
-	if !ok {
-		return 0, errors.Errorf("unknown network: %s", network.String())
-	}
-
-	key := fmt.Sprintf("tezos_balance:%d:%s:%d", network, address, level)
+func (cache *Cache) TezosBalance(ctx context.Context, address string, level int64) (int64, error) {
+	key := fmt.Sprintf("tezos_balance:%s:%d", address, level)
 	item, err := cache.Fetch(key, 30*time.Second, func() (interface{}, error) {
-		return node.GetContractBalance(address, level)
+		return cache.rpc.GetContractBalance(ctx, address, level)
 	})
 	if err != nil {
 		return 0, err
@@ -179,14 +136,14 @@ func (cache *Cache) TezosBalance(network types.Network, address string, level in
 }
 
 // ScriptBytes -
-func (cache *Cache) ScriptBytes(network types.Network, address, symLink string) ([]byte, error) {
+func (cache *Cache) ScriptBytes(address, symLink string) ([]byte, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
 
-	key := fmt.Sprintf("script_bytes:%d:%s", network, address)
+	key := fmt.Sprintf("script_bytes:%s", address)
 	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		script, err := cache.contracts.Script(network, address, symLink)
+		script, err := cache.contracts.Script(address, symLink)
 		if err != nil {
 			return nil, err
 		}
@@ -199,14 +156,14 @@ func (cache *Cache) ScriptBytes(network types.Network, address, symLink string) 
 }
 
 // StorageTypeBytes -
-func (cache *Cache) StorageTypeBytes(network types.Network, address, symLink string) ([]byte, error) {
+func (cache *Cache) StorageTypeBytes(address, symLink string) ([]byte, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
 
-	key := fmt.Sprintf("storage:%d:%s", network, address)
+	key := fmt.Sprintf("storage:%s", address)
 	item, err := cache.Fetch(key, 5*time.Minute, func() (interface{}, error) {
-		return cache.contracts.ScriptPart(network, address, symLink, consts.STORAGE)
+		return cache.contracts.ScriptPart(address, symLink, consts.STORAGE)
 	})
 	if err != nil {
 		return nil, err
@@ -215,22 +172,10 @@ func (cache *Cache) StorageTypeBytes(network types.Network, address, symLink str
 }
 
 // ProtocolByID -
-func (cache *Cache) ProtocolByID(network types.Network, id int64) (protocol.Protocol, error) {
-	key := fmt.Sprintf("protocol_id:%d:%d", network, id)
+func (cache *Cache) ProtocolByID(id int64) (protocol.Protocol, error) {
+	key := fmt.Sprintf("protocol_id:%d", id)
 	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
 		return cache.protocols.GetByID(id)
-	})
-	if err != nil {
-		return protocol.Protocol{}, err
-	}
-	return item.Value().(protocol.Protocol), nil
-}
-
-// ProtocolByHash -
-func (cache *Cache) ProtocolByHash(network types.Network, hash string) (protocol.Protocol, error) {
-	key := fmt.Sprintf("protocol_hash:%d:%s", network, hash)
-	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		return cache.protocols.Get(network, hash, -1)
 	})
 	if err != nil {
 		return protocol.Protocol{}, err

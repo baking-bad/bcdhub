@@ -8,8 +8,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
 	"github.com/gin-gonic/gin"
 )
@@ -28,41 +28,39 @@ import (
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/mempool [get]
-func (ctx *Context) GetMempool(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
+func GetMempool() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	mempoolService, err := ctx.GetMempoolService(req.NetworkID())
-	if err != nil {
-		c.SecureJSON(http.StatusNoContent, []Operation{})
-		return
-	}
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
 
-	res, err := mempoolService.Get(req.Address)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		res, err := ctx.Mempool.Get(req.Address)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, ctx.mempoolPostprocessing(res, req.NetworkID()))
+		c.SecureJSON(http.StatusOK, mempoolPostprocessing(ctx, res))
+	}
 }
 
-func (ctx *Context) mempoolPostprocessing(res mempool.PendingOperations, network modelTypes.Network) []Operation {
+func mempoolPostprocessing(ctx *config.Context, res mempool.PendingOperations) []Operation {
 	ret := make([]Operation, 0)
 	if len(res.Originations)+len(res.Transactions) == 0 {
 		return ret
 	}
 
 	for _, origination := range res.Originations {
-		op := ctx.prepareMempoolOrigination(network, origination)
+		op := prepareMempoolOrigination(ctx, origination)
 		if op != nil {
 			ret = append(ret, *op)
 		}
 	}
 
 	for _, tx := range res.Transactions {
-		op := ctx.prepareMempoolTransaction(network, tx)
+		op := prepareMempoolTransaction(ctx, tx)
 		if op != nil {
 			ret = append(ret, *op)
 		}
@@ -71,7 +69,7 @@ func (ctx *Context) mempoolPostprocessing(res mempool.PendingOperations, network
 	return ret
 }
 
-func (ctx *Context) prepareMempoolTransaction(network modelTypes.Network, tx mempool.PendingTransaction) *Operation {
+func prepareMempoolTransaction(ctx *config.Context, tx mempool.PendingTransaction) *Operation {
 	status := tx.Status
 	if status == consts.Applied {
 		status = consts.Pending
@@ -87,10 +85,10 @@ func (ctx *Context) prepareMempoolTransaction(network modelTypes.Network, tx mem
 
 	op := Operation{
 		Hash:             tx.Hash,
-		Network:          network.String(),
+		Network:          ctx.Network.String(),
 		Timestamp:        time.Unix(tx.UpdatedAt, 0).UTC(),
-		SourceAlias:      ctx.Cache.Alias(network, tx.Source),
-		DestinationAlias: ctx.Cache.Alias(network, tx.Destination),
+		SourceAlias:      ctx.Cache.Alias(tx.Source),
+		DestinationAlias: ctx.Cache.Alias(tx.Destination),
 		Kind:             tx.Kind,
 		Source:           tx.Source,
 		Fee:              tx.Fee,
@@ -113,7 +111,7 @@ func (ctx *Context) prepareMempoolTransaction(network modelTypes.Network, tx mem
 
 	if bcd.IsContract(op.Destination) && op.Protocol != "" && op.Status == consts.Pending {
 		if len(tx.Parameters) > 0 {
-			_ = ctx.buildMempoolOperationParameters(tx.Parameters, &op)
+			_ = buildMempoolOperationParameters(ctx, tx.Parameters, &op)
 		} else {
 			op.Entrypoint = consts.DefaultEntrypoint
 		}
@@ -122,7 +120,7 @@ func (ctx *Context) prepareMempoolTransaction(network modelTypes.Network, tx mem
 	return &op
 }
 
-func (ctx *Context) prepareMempoolOrigination(network modelTypes.Network, origination mempool.PendingOrigination) *Operation {
+func prepareMempoolOrigination(ctx *config.Context, origination mempool.PendingOrigination) *Operation {
 	status := origination.Status
 	if status == consts.Applied {
 		status = consts.Pending
@@ -133,9 +131,9 @@ func (ctx *Context) prepareMempoolOrigination(network modelTypes.Network, origin
 
 	op := Operation{
 		Hash:         origination.Hash,
-		Network:      network.String(),
+		Network:      ctx.Network.String(),
 		Timestamp:    time.Unix(origination.UpdatedAt, 0).UTC(),
-		SourceAlias:  ctx.Cache.Alias(network, origination.Source),
+		SourceAlias:  ctx.Cache.Alias(origination.Source),
 		Kind:         origination.Kind,
 		Source:       origination.Source,
 		Fee:          origination.Fee,
@@ -156,13 +154,12 @@ func (ctx *Context) prepareMempoolOrigination(network modelTypes.Network, origin
 	return &op
 }
 
-func (ctx *Context) buildMempoolOperationParameters(data []byte, op *Operation) error {
-	network := modelTypes.NewNetwork(op.Network)
-	proto, err := ctx.Cache.ProtocolByHash(network, op.Protocol)
+func buildMempoolOperationParameters(ctx *config.Context, data []byte, op *Operation) error {
+	proto, err := ctx.Protocols.Get(op.Protocol, -1)
 	if err != nil {
 		return err
 	}
-	script, err := ctx.getScript(network, op.Destination, proto.SymLink)
+	script, err := getScript(ctx, op.Destination, proto.SymLink)
 	if err != nil {
 		return err
 	}

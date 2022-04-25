@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Metadata -
@@ -20,13 +21,27 @@ type Metadata struct {
 	Authors     []string  `json:"authors,omitempty"`
 }
 
+// NewMetadata -
+func NewMetadata(network types.Network, contractMetadata *cm.ContractMetadata) Metadata {
+	var m Metadata
+	m.Address = contractMetadata.Address
+	m.Authors = contractMetadata.Authors
+	m.Description = contractMetadata.Description
+	m.Homepage = contractMetadata.Homepage
+	m.Level = contractMetadata.Level
+	m.Name = contractMetadata.Name
+	m.Network = network.String()
+	m.Timestamp = contractMetadata.Timestamp.UTC()
+	return m
+}
+
 // GetID -
-func (m *Metadata) GetID() string {
+func (m Metadata) GetID() string {
 	return fmt.Sprintf("%s_%s", m.Network, m.Address)
 }
 
 // GetIndex -
-func (m *Metadata) GetIndex() string {
+func (m Metadata) GetIndex() string {
 	return models.DocContractMetadata
 }
 
@@ -62,22 +77,4 @@ func (m Metadata) Parse(highlight map[string][]string, data []byte) (*Item, erro
 		Highlights: highlight,
 		Network:    m.Network,
 	}, nil
-}
-
-// Prepare -
-func (m *Metadata) Prepare(model models.Model) {
-	t, ok := model.(*cm.ContractMetadata)
-	if !ok {
-		return
-	}
-
-	m.Address = t.Address
-	m.Authors = t.Authors
-	m.Description = t.Description
-	m.Homepage = t.Homepage
-	m.Level = t.Level
-	m.Name = t.Name
-	m.Network = t.Network.String()
-	m.Timestamp = t.Timestamp.UTC()
-
 }

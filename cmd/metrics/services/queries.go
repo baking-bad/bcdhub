@@ -3,28 +3,14 @@ package services
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/go-pg/pg/v10"
 )
 
-func getScripts(db pg.DBI, lastID int64, size int) (resp []contract.Script, err error) {
-	query := db.Model((*contract.Script)(nil)).Order("id asc")
-	if lastID > 0 {
-		query.Where("id > ?", lastID)
-	}
-	if size == 0 || size > 1000 {
-		size = 10
-	}
-	err = query.Limit(size).Select(&resp)
-	return
-}
-
-func getContracts(db pg.DBI, lastID int64, size int) (resp []contract.Contract, err error) {
+func getContracts(db pg.DBI, lastID int64, size int) (resp []*contract.Contract, err error) {
 	var ids []int64
 	query := db.Model((*contract.Contract)(nil)).Column("id").Order("id asc")
 	if lastID > 0 {
@@ -45,7 +31,7 @@ func getContracts(db pg.DBI, lastID int64, size int) (resp []contract.Contract, 
 	return
 }
 
-func getOperations(db pg.DBI, lastID int64, size int) (resp []operation.Operation, err error) {
+func getOperations(db pg.DBI, lastID int64, size int) (resp []*operation.Operation, err error) {
 	var ids []int64
 	query := db.Model((*operation.Operation)(nil)).Column("id")
 	if lastID > 0 {
@@ -66,7 +52,7 @@ func getOperations(db pg.DBI, lastID int64, size int) (resp []operation.Operatio
 	return
 }
 
-func getDiffs(db pg.DBI, lastID int64, size int) (resp []bigmapdiff.BigMapDiff, err error) {
+func getDiffs(db pg.DBI, lastID int64, size int) (resp []*bigmapdiff.BigMapDiff, err error) {
 	query := db.Model((*bigmapdiff.BigMapDiff)(nil)).Order("id asc")
 	if lastID > 0 {
 		query.Where("id > ?", lastID)
@@ -78,8 +64,17 @@ func getDiffs(db pg.DBI, lastID int64, size int) (resp []bigmapdiff.BigMapDiff, 
 	return
 }
 
-func saveSearchModels(ctx context.Context, internalContext *config.Context, items []models.Model) error {
-	data := search.Prepare(items)
+func save[M models.Constraint](ctx context.Context, db *pg.DB, items []M) error {
+	if len(items) == 0 {
+		return nil
+	}
 
-	return internalContext.Searcher.Save(ctx, data)
+	return db.RunInTransaction(ctx, func(tx *pg.Tx) error {
+		for i := range items {
+			if err := items[i].Save(tx); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }

@@ -17,7 +17,8 @@ func main() {
 	}
 
 	ctx := config.NewContext(
-		config.WithStorage(cfg.Storage, "nginx", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle),
+		types.Mainnet,
+		config.WithStorage(cfg.Storage, "nginx", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle, false),
 		config.WithConfigCopy(cfg),
 	)
 	defer ctx.Close()
@@ -28,7 +29,7 @@ func main() {
 		return
 	}
 
-	aliases, err := ctx.ContractMetadata.GetAliases(types.Mainnet)
+	aliases, err := ctx.ContractMetadata.GetAliases()
 	if err != nil {
 		logger.Err(err)
 		return

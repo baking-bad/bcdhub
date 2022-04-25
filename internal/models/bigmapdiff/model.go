@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
-	"github.com/lib/pq"
 )
 
 // BigMapDiff -
@@ -20,13 +19,9 @@ type BigMapDiff struct {
 	Value       types.Bytes `pg:",type:bytea"`
 	Level       int64
 	Contract    string
-	Network     types.Network `pg:",type:SMALLINT"`
 	Timestamp   time.Time
 	ProtocolID  int64 `pg:",type:SMALLINT"`
 	OperationID int64
-
-	KeyStrings   pq.StringArray `pg:",type:text[]"`
-	ValueStrings pq.StringArray ` pg:",type:text[]"`
 }
 
 // GetID -
@@ -50,12 +45,9 @@ func (b *BigMapDiff) Save(tx pg.DBI) error {
 			value = excluded.value, 
 			level = excluded.level, 
 			contract = excluded.contract,
-			network = excluded.network, 
 			timestamp = excluded.timestamp, 
 			protocol_id = excluded.protocol_id, 
-			operation_id = excluded.operation_id, 
-			key_strings = excluded.key_strings, 
-			value_strings = excluded.value_strings`).
+			operation_id = excluded.operation_id`).
 		Returning("id").
 		Insert()
 	return err
@@ -64,7 +56,6 @@ func (b *BigMapDiff) Save(tx pg.DBI) error {
 // LogFields -
 func (b *BigMapDiff) LogFields() map[string]interface{} {
 	return map[string]interface{}{
-		"network":  b.Network.String(),
 		"contract": b.Contract,
 		"ptr":      b.Ptr,
 		"block":    b.Level,
@@ -95,7 +86,6 @@ func (b *BigMapDiff) ValueBytes() []byte {
 // ToState -
 func (b *BigMapDiff) ToState() *BigMapState {
 	state := &BigMapState{
-		Network:         b.Network,
 		Contract:        b.Contract,
 		Ptr:             b.Ptr,
 		LastUpdateLevel: b.Level,

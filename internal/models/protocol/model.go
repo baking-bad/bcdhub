@@ -1,7 +1,6 @@
 package protocol
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -12,12 +11,12 @@ type Protocol struct {
 
 	ID int64
 
-	Hash       string        `pg:",unique:protocol"`
-	Network    types.Network `pg:",type:SMALLINT,unique:protocol"`
-	StartLevel int64         `pg:",use_zero"`
-	EndLevel   int64         `pg:",use_zero"`
+	Hash       string `pg:",unique:protocol"`
+	StartLevel int64  `pg:",use_zero"`
+	EndLevel   int64  `pg:",use_zero"`
 	SymLink    string
 	Alias      string
+	ChainID    string
 	*Constants
 }
 
@@ -42,8 +41,16 @@ func (p *Protocol) GetIndex() string {
 // Save -
 func (p *Protocol) Save(tx pg.DBI) error {
 	_, err := tx.Model(p).
-		OnConflict("(hash, network) DO UPDATE").
+		OnConflict("(hash) DO UPDATE").
 		Set("end_level = ?", p.EndLevel).
 		Returning("id").Insert()
 	return err
+}
+
+// ValidateChainID -
+func (p *Protocol) ValidateChainID(chainID string) bool {
+	if p.ChainID == "" {
+		return p.StartLevel == 0
+	}
+	return p.ChainID == chainID
 }

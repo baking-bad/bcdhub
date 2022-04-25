@@ -24,9 +24,9 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(network types.Network, address string) (response contract.Contract, err error) {
+func (storage *Storage) Get(address string) (response contract.Contract, err error) {
 	var accountID int64
-	if err = storage.DB.Model((*account.Account)(nil)).Column("id").Where("network = ?", network).Where("address = ?", address).Select(&accountID); err != nil {
+	if err = storage.DB.Model((*account.Account)(nil)).Column("id").Where("address = ?", address).Select(&accountID); err != nil {
 		return
 	}
 
@@ -34,150 +34,36 @@ func (storage *Storage) Get(network types.Network, address string) (response con
 	return
 }
 
-// GetMany -
-func (storage *Storage) GetMany(network types.Network) (response []contract.Contract, err error) {
-	err = storage.DB.Model(&response).Where("contract.network = ?", network).Relation("Account").Relation("Manager").Relation("Delegate").Select(&response)
+// GetAll -
+func (storage *Storage) GetAll(filters map[string]interface{}) (response []contract.Contract, err error) {
+	query := storage.DB.Model((*contract.Contract)(nil))
+	for key, value := range filters {
+		query.Where("? = ?", pg.Ident(key), value)
+	}
+	err = query.Relation("Account").Relation("Manager").Relation("Delegate").Select(&response)
 	return
 }
 
 // GetRandom -
-func (storage *Storage) GetRandom(networks ...types.Network) (response contract.Contract, err error) {
+func (storage *Storage) GetRandom() (response contract.Contract, err error) {
 	var id int64
-	if len(networks) > 0 {
-		query := storage.DB.Model(&response).Column("contract.id")
-		for i := range networks {
-			if networks[i] != types.Empty {
-				query.WhereOr("contract.network = ?", networks[i])
-			}
-		}
-		if err = query.OrderExpr("random()").Limit(1).Select(&id); err != nil {
-			return
-		}
-	} else {
-		if err = storage.DB.Model(&response).ColumnExpr("max(contract.id)").Select(&id); err != nil {
-			return
-		}
-		id = rand.Int63n(id)
+	if err = storage.DB.Model(&response).ColumnExpr("max(contract.id)").Select(&id); err != nil {
+		return
 	}
 
-	err = storage.DB.Model(&response).Where("contract.id = ?", id).
+	err = storage.DB.Model(&response).Where("contract.id = ?", rand.Int63n(id)).
 		Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").First()
 	return
 }
 
-// GetSameContracts -
-func (storage *Storage) GetSameContracts(c contract.Contract, manager string, size, offset int64) (pcr contract.SameResponse, err error) {
-	limit := storage.GetPageSize(size)
-
-	contractQuery := storage.DB.Model((*contract.Contract)(nil)).Where("account_id != ?", c.AccountID)
-
-	if c.AlphaID > 0 {
-		contractQuery.Where("alpha_id = ?", c.AlphaID)
-	}
-	if c.BabylonID > 0 {
-		contractQuery.Where("babylon_id = ?", c.BabylonID)
-	}
-
-	var managerID int64
-	if manager != "" {
-		if err = storage.DB.Model((*account.Account)(nil)).Column("id").Where("network = ?", c.Network).Where("address = ?", manager).Select(&managerID); err != nil {
-			return
-		}
-		contractQuery.Where("manager_id = ?", managerID)
-	}
-	contractQuery.Order("last_action desc").Limit(limit).Offset(int(offset))
-	if err = storage.DB.Model().TableExpr(`(?) as contract`, contractQuery).
-		ColumnExpr("contract.*").
-		ColumnExpr("account.address as account__address").
-		ColumnExpr("manager.address as manager__address").
-		ColumnExpr("delegate.address as delegate__address").
-		ColumnExpr("alpha.hash as alpha__hash, alpha.project_id as alpha__project_id, alpha.entrypoints as alpha__entrypoints, alpha.fail_strings as alpha__fail_strings, alpha.annotations as alpha__annotations, alpha.hardcoded as alpha__hardcoded, alpha.tags as alpha__tags").
-		ColumnExpr("babylon.hash as babylon__hash, babylon.project_id as babylon__project_id, babylon.entrypoints as babylon__entrypoints, babylon.fail_strings as babylon__fail_strings, babylon.annotations as babylon__annotations, babylon.hardcoded as babylon__hardcoded, babylon.tags as babylon__tags").
-		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
-		Join(`LEFT JOIN "accounts" AS "manager" ON "manager"."id" = "contract"."manager_id" `).
-		Join(`LEFT JOIN "accounts" AS "delegate" ON "delegate"."id" = "contract"."delegate_id"`).
-		Join(`LEFT JOIN "scripts" AS "alpha" ON "alpha"."id" = "contract"."alpha_id"`).
-		Join(`LEFT JOIN "scripts" AS "babylon" ON "babylon"."id" = "contract"."babylon_id"`).
-		Select(&pcr.Contracts); err != nil {
-		return
-	}
-
-	countQuery := storage.DB.Model((*contract.Contract)(nil)).Where("account_id != ?", c.AccountID)
-	if c.AlphaID > 0 {
-		countQuery.Where("alpha_id = ?", c.AlphaID)
-	}
-	if c.BabylonID > 0 {
-		countQuery.Where("babylon_id = ?", c.BabylonID)
-	}
-	if managerID > 0 {
-		countQuery.Where("manager_id = ?", managerID)
-	}
-	count, err := countQuery.Count()
-	if err != nil {
-		return
-	}
-	pcr.Count = int64(count)
-	return
-}
-
-// GetSimilarContracts -
-func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset int64) ([]contract.Similar, int, error) {
-	script := c.Alpha
-	if c.BabylonID > 0 {
-		script = c.Babylon
-	}
-
-	var ids []int64
-	if err := storage.DB.Model((*contract.Script)(nil)).Column("id").
-		Where("project_id = ?", script.ProjectID).
-		Where("hash != ?", script.Hash).
-		Select(&ids); err != nil {
-		return nil, 0, err
-	}
-
-	if len(ids) == 0 {
-		return []contract.Similar{}, 0, nil
-	}
-
-	limit := storage.GetPageSize(size)
-
-	var contracts []contract.Contract
-	if err := storage.DB.Model(&contracts).
-		WhereIn("alpha_id IN (?)", ids).
-		WhereIn("babylon_id IN (?)", ids).
-		Relation("Account.address").Relation("Manager.address").Relation("Delegate.address").Relation("Alpha").Relation("Babylon").
-		Order("last_action desc").
-		Limit(limit).
-		Offset(int(offset)).
-		Select(); err != nil {
-		return nil, 0, err
-	}
-
-	count, err := storage.DB.Model((*contract.Script)(nil)).
-		Column("id").
-		Where("project_id = ?", script.ProjectID).
-		Where("hash != ?", script.Hash).
-		Count()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	pcr := make([]contract.Similar, len(contracts))
-	for i := range contracts {
-		pcr[i].Contract = &contracts[i]
-	}
-	return pcr, count, nil
-}
-
 // GetTokens -
-func (storage *Storage) GetTokens(network types.Network, tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
+func (storage *Storage) GetTokens(tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
 	tags := types.FA12Tag | types.FA1Tag | types.FA2Tag
 	if tokenInterface == "fa1-2" || tokenInterface == "fa1" || tokenInterface == "fa2" {
 		tags = types.NewTags([]string{tokenInterface})
 	}
 
 	query := storage.DB.Model((*contract.Contract)(nil)).
-		Where("network = ?", network).
 		Where("(tags & ?) > 0", tags).
 		Order("id desc").
 		Limit(storage.GetPageSize(size)).
@@ -197,13 +83,13 @@ func (storage *Storage) GetTokens(network types.Network, tokenInterface string, 
 		return nil, 0, err
 	}
 
-	count, err := storage.DB.Model((*contract.Contract)(nil)).Where("(contract.tags & ?) > 0", tags).Where("contract.network = ?", network).Count()
+	count, err := storage.DB.Model((*contract.Contract)(nil)).Where("(contract.tags & ?) > 0", tags).Count()
 	return contracts, int64(count), err
 }
 
 // Stats -
-func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err error) {
-	sameCount, err := storage.DB.Model((*contract.Contract)(nil)).
+func (storage *Storage) Stats(c contract.Contract) (stats int, err error) {
+	return storage.DB.Model((*contract.Contract)(nil)).
 		WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
 			if c.AlphaID > 0 {
 				q.WhereOr("alpha_id = ?", c.AlphaID)
@@ -214,40 +100,6 @@ func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err er
 			return q, err
 		}).
 		Count()
-	if err != nil {
-		return
-	}
-	stats.SameCount = int64(sameCount) - 1
-
-	projectID := c.Alpha.ProjectID
-	if c.BabylonID > 0 {
-		projectID = c.Babylon.ProjectID
-	}
-	scriptsQuery := storage.DB.Model((*contract.Script)(nil)).Column("id").
-		Where("project_id = (?)", projectID)
-
-	if c.AlphaID > 0 {
-		scriptsQuery.Where("id != ?", c.AlphaID)
-	}
-	if c.BabylonID > 0 {
-		scriptsQuery.Where("id != ?", c.BabylonID)
-	}
-	var ids []int64
-	if err = scriptsQuery.Select(&ids); err != nil {
-		return
-	}
-	if len(ids) == 0 {
-		return
-	}
-
-	similarCount, err := storage.DB.Model((*contract.Contract)(nil)).
-		Where("(alpha_id is not null and alpha_id IN (?0)) OR (babylon_id is not null and babylon_id IN (?0))", ids).
-		Count()
-	if err != nil {
-		return
-	}
-	stats.SimilarCount = int64(similarCount)
-	return
 }
 
 // ByHash -
@@ -257,16 +109,14 @@ func (storage *Storage) ByHash(hash string) (result contract.Script, err error) 
 }
 
 // Script -
-func (storage *Storage) Script(network types.Network, address string, symLink string) (contract.Script, error) {
+func (storage *Storage) Script(address string, symLink string) (contract.Script, error) {
 	var accountID int64
-	if err := storage.DB.Model((*account.Account)(nil)).Column("id").Where("network = ?", network).Where("address = ?", address).Select(&accountID); err != nil {
+	if err := storage.DB.Model((*account.Account)(nil)).Column("id").Where("address = ?", address).Select(&accountID); err != nil {
 		return contract.Script{}, err
 	}
 
 	var c contract.Contract
-	query := storage.DB.Model(&c).
-		Where("contract.network = ?", network).
-		Where("account_id = ?", accountID)
+	query := storage.DB.Model(&c).Where("account_id = ?", accountID)
 	switch symLink {
 	case bcd.SymLinkAlpha:
 		err := query.Relation("Alpha").Select()
@@ -281,7 +131,7 @@ func (storage *Storage) Script(network types.Network, address string, symLink st
 // GetScripts -
 func (storage *Storage) GetScripts(limit, offset int) (scripts []contract.Script, err error) {
 	err = storage.DB.Model(&scripts).
-		ColumnExpr("tags, hash, project_id, fail_strings, annotations, entrypoints, fingerprint_code, fingerprint_storage, fingerprint_parameter").
+		ColumnExpr("tags, hash, project_id, fail_strings, annotations, entrypoints").
 		Limit(limit).Offset(offset).Order("id asc").Select()
 	return
 }
@@ -314,15 +164,13 @@ func (storage *Storage) Storage(id int64) ([]byte, error) {
 }
 
 // ScriptPart -
-func (storage *Storage) ScriptPart(network types.Network, address string, symLink, part string) ([]byte, error) {
+func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte, error) {
 	var accountID int64
-	if err := storage.DB.Model((*account.Account)(nil)).Column("id").Where("network = ?", network).Where("address = ?", address).Select(&accountID); err != nil {
+	if err := storage.DB.Model((*account.Account)(nil)).Column("id").Where("address = ?", address).Select(&accountID); err != nil {
 		return nil, err
 	}
 
-	query := storage.DB.Model((*contract.Contract)(nil)).
-		Where("contract.network = ?", network).
-		Where("account_id = ?", accountID)
+	query := storage.DB.Model((*contract.Contract)(nil)).Where("account_id = ?", accountID)
 
 	switch symLink {
 	case "alpha":
@@ -356,11 +204,10 @@ func (storage *Storage) ScriptPart(network types.Network, address string, symLin
 }
 
 // RecentlyCalled -
-func (storage *Storage) RecentlyCalled(network types.Network, offset, size int64) (contracts []contract.Contract, err error) {
+func (storage *Storage) RecentlyCalled(offset, size int64) (contracts []contract.Contract, err error) {
 	err = storage.DB.Model((*contract.Contract)(nil)).
-		ColumnExpr("contract.network, contract.id, contract.tx_count, contract.last_action, contract.account_id").
+		ColumnExpr("contract.id, contract.tx_count, contract.last_action, contract.account_id").
 		ColumnExpr("account.address as account__address, account.alias as account__alias").
-		Where("contract.network = ?", network).
 		Offset(int(offset)).Limit(int(size)).
 		OrderExpr("contract.last_action desc, contract.tx_count desc").
 		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).

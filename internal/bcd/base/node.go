@@ -10,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/pkg/errors"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -68,43 +67,6 @@ func (node *Node) GetAnnotations() map[string]struct{} {
 		}
 	}
 	return annots
-}
-
-// Hash -
-func (node *Node) Hash() (string, error) {
-	var s strings.Builder
-	var prim string
-	switch {
-	case node.Prim != "":
-		if node.Prim != consts.RENAME && node.Prim != consts.CAST && node.Prim != consts.PrimArray {
-			hashCode, err := getHashCode(node.Prim)
-			if err != nil {
-				return "", err
-			}
-			s.WriteString(hashCode)
-		}
-
-		for i := range node.Args {
-			childHashCode, err := node.Args[i].Hash()
-			if err != nil {
-				return "", err
-			}
-			s.WriteString(childHashCode)
-		}
-		return s.String(), nil
-	case node.BytesValue != nil:
-		prim = consts.BYTES
-	case node.IntValue != nil:
-		prim = consts.INT
-	case node.StringValue != nil:
-		prim = consts.STRING
-	}
-	hashCode, err := getHashCode(prim)
-	if err != nil {
-		return "", err
-	}
-	s.WriteString(hashCode)
-	return s.String(), nil
 }
 
 // Compare -
@@ -175,89 +137,4 @@ func (node *Node) IsLambda() bool {
 	}
 	return 0x58 >= b[0] || 0x6f <= b[0]
 
-}
-
-// Fingerprint -
-func (node *Node) Fingerprint(isCode bool) (string, error) {
-	var fgpt strings.Builder
-	switch node.Prim {
-	case consts.PrimArray:
-		for i := range node.Args {
-			buf, err := node.Args[i].Fingerprint(isCode)
-			if err != nil {
-				return "", err
-			}
-			fgpt.WriteString(buf)
-		}
-	default:
-		if node.Prim != "" {
-			if skip(node.Prim, isCode) {
-				return "", nil
-			}
-
-			if !pass(node.Prim, isCode) {
-				code, err := getCode(node.Prim)
-				if err != nil {
-					return "", err
-				}
-				fgpt.WriteString(code)
-			}
-
-			for i := range node.Args {
-				itemFgpt, err := node.Args[i].Fingerprint(isCode)
-				if err != nil {
-					return "", err
-				}
-				fgpt.WriteString(itemFgpt)
-			}
-
-		} else {
-			var prim string
-			switch {
-			case node.StringValue != nil:
-				prim = consts.STRING
-			case node.BytesValue != nil:
-				prim = consts.BYTES
-			case node.IntValue != nil:
-				prim = consts.INT
-			}
-			if prim != "" {
-				code, err := getCode(prim)
-				if err != nil {
-					return "", err
-				}
-				fgpt.WriteString(code)
-			}
-		}
-	}
-
-	return fgpt.String(), nil
-}
-
-func skip(prim string, isCode bool) bool {
-	p := strings.ToLower(prim)
-	return isCode && (p == consts.CAST || p == consts.RENAME)
-}
-
-func pass(prim string, isCode bool) bool {
-	p := strings.ToLower(prim)
-	return !isCode && (p == consts.PAIR || p == consts.OR)
-}
-
-func getCode(prim string) (string, error) {
-	code, ok := codes[prim]
-	if ok {
-		return code, nil
-	}
-
-	for template, code := range regCodes {
-		str := template.String()
-		if str[0] != prim[0] {
-			continue
-		}
-		if template.MatchString(prim) {
-			return code, nil
-		}
-	}
-	return "00", errors.Errorf("Unknown primitive: %s", prim)
 }

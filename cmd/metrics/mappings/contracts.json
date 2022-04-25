@@ -14,6 +14,15 @@
                 "path": "address",
                 "type": "alias"
             },
+            "hash": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
             "alias": {
                 "type": "text",
                 "fields": {
@@ -95,15 +104,6 @@
                     "keyword": {
                         "type": "keyword",
                         "ignore_above": 16
-                    }
-                }
-            },
-            "project_id": {
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 36
                     }
                 }
             },

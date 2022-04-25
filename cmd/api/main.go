@@ -20,8 +20,9 @@ import (
 )
 
 type app struct {
-	Router  *gin.Engine
-	Context *handlers.Context
+	Router   *gin.Engine
+	Contexts config.Contexts
+	Config   config.Config
 }
 
 func newApp() *app {
@@ -38,15 +39,15 @@ func newApp() *app {
 		defer helpers.CatchPanicSentry()
 	}
 
-	ctx, err := handlers.NewContext(cfg)
-	if err != nil {
-		logger.Err(err)
-		helpers.CatchErrorSentry(err)
-		return nil
-	}
-
 	api := &app{
-		Context: ctx,
+		Contexts: config.NewContexts(cfg, cfg.API.Networks,
+			config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize), cfg.API.Connections.Open, cfg.API.Connections.Idle, false),
+			config.WithRPC(cfg.RPC, false),
+			config.WithSearch(cfg.Storage),
+			config.WithMempool(cfg.Services),
+			config.WithLoadErrorDescriptions(),
+			config.WithConfigCopy(cfg)),
+		Config: cfg,
 	}
 
 	api.makeRouter()
@@ -62,16 +63,16 @@ func (api *app) makeRouter() {
 	r.SecureJsonPrefix("")         // do not prepend while(1)
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := validations.Register(v, api.Context.Config.API); err != nil {
+		if err := validations.Register(v, api.Config.API); err != nil {
 			panic(err)
 		}
 	}
 
-	if api.Context.Config.API.CorsEnabled {
+	if api.Config.API.CorsEnabled {
 		r.Use(corsSettings())
 	}
 
-	if api.Context.Config.API.SentryEnabled {
+	if api.Config.API.SentryEnabled {
 		r.Use(helpers.SentryMiddleware())
 	}
 
@@ -85,147 +86,154 @@ func (api *app) makeRouter() {
 
 	v1 := r.Group("v1")
 	{
-		v1.GET("swagger.json", api.Context.GetSwaggerDoc)
+		v1.GET("swagger.json", handlers.MainnetMiddleware(api.Contexts), handlers.GetSwaggerDoc())
+		v1.GET("config", handlers.MainnetMiddleware(api.Contexts), handlers.GetConfig())
 
-		v1.GET("head", cache.CachePage(store, time.Second*10, api.Context.GetHead))
-		v1.GET("head/:network", cache.CachePage(store, time.Second*10, api.Context.GetHeadByNetwork))
-		v1.GET("opg/:hash", api.Context.GetOperation)
-		v1.GET("pick_random", api.Context.GetRandomContract)
-		v1.GET("search", api.Context.Search)
-		v1.POST("fork", api.Context.ForkContract)
-		v1.GET("config", api.Context.GetConfig)
+		v1.GET("head", handlers.ContextsMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHead()))
+		v1.GET("head/:network", handlers.NetworkMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHeadByNetwork()))
+		v1.GET("opg/:hash", handlers.ContextsMiddleware(api.Contexts), handlers.GetOperation())
+		v1.GET("pick_random", handlers.ContextsMiddleware(api.Contexts), handlers.GetRandomContract())
+		v1.GET("search", handlers.ContextsMiddleware(api.Contexts), handlers.Search())
+		v1.POST("fork", handlers.ForkContract(api.Contexts))
 
-		v1.POST("diff", api.Context.GetDiff)
-
-		operation := v1.Group("operation/:id")
+		operation := v1.Group("operation/:network/:id")
+		operation.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
-			operation.GET("error_location", api.Context.GetOperationErrorLocation)
-			operation.GET("diff", api.Context.GetOperationDiff)
+			operation.GET("error_location", handlers.GetOperationErrorLocation())
+			operation.GET("diff", handlers.GetOperationDiff())
 		}
 
 		stats := v1.Group("stats")
 		{
-			stats.GET("", cache.CachePage(store, time.Second*30, api.Context.GetStats))
+			stats.GET("", handlers.ContextsMiddleware(api.Contexts), cache.CachePage(store, time.Second*30, handlers.GetStats()))
+
 			networkStats := stats.Group(":network")
+			networkStats.Use(handlers.NetworkMiddleware(api.Contexts))
 			{
-				networkStats.GET("", cache.CachePage(store, time.Minute*10, api.Context.GetNetworkStats))
-				networkStats.GET("series", cache.CachePage(store, time.Minute*10, api.Context.GetSeries))
-				networkStats.GET("contracts", cache.CachePage(store, time.Minute*10, api.Context.GetContractsStats))
-				networkStats.GET("recently_called_contracts", cache.CachePage(store, time.Second*10, api.Context.RecentlyCalledContracts))
+				networkStats.GET("", cache.CachePage(store, time.Minute*10, handlers.GetNetworkStats()))
+				networkStats.GET("series", cache.CachePage(store, time.Minute*10, handlers.GetSeries()))
+				networkStats.GET("contracts", cache.CachePage(store, time.Minute*10, handlers.GetContractsStats()))
+				networkStats.GET("recently_called_contracts", cache.CachePage(store, time.Second*10, handlers.RecentlyCalledContracts()))
 			}
 		}
 
 		slug := v1.Group("slug")
+		slug.Use(handlers.MainnetMiddleware(api.Contexts))
 		{
-			slug.GET(":slug", api.Context.GetBySlug)
+			slug.GET(":slug", handlers.GetBySlug())
 		}
 
 		bigmap := v1.Group("bigmap/:network/:ptr")
+		bigmap.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
-			bigmap.GET("", cache.CachePage(store, time.Second*30, api.Context.GetBigMap))
-			bigmap.GET("count", api.Context.GetBigMapDiffCount)
-			bigmap.GET("history", api.Context.GetBigMapHistory)
+			bigmap.GET("", cache.CachePage(store, time.Second*30, handlers.GetBigMap()))
+			bigmap.GET("count", handlers.GetBigMapDiffCount())
+			bigmap.GET("history", handlers.GetBigMapHistory())
 			keys := bigmap.Group("keys")
 			{
-				keys.GET("", api.Context.GetBigMapKeys)
-				keys.GET(":key_hash", api.Context.GetBigMapByKeyHash)
+				keys.GET("", handlers.GetBigMapKeys())
+				keys.GET(":key_hash", handlers.GetBigMapByKeyHash())
 			}
 		}
 
 		contract := v1.Group("contract/:network/:address")
+		contract.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
-			contract.GET("", api.Context.GetContract)
-			contract.GET("code", api.Context.GetContractCode)
-			contract.GET("operations", api.Context.GetContractOperations)
-			contract.GET("migrations", api.Context.GetContractMigrations)
-			contract.GET("transfers", api.Context.GetContractTransfers)
+			contract.GET("", handlers.GetContract())
+			contract.GET("code", handlers.GetContractCode())
+			contract.GET("operations", handlers.GetContractOperations())
+			contract.GET("migrations", handlers.GetContractMigrations())
+			contract.GET("transfers", handlers.GetContractTransfers())
 
 			tokens := contract.Group("tokens")
 			{
-				tokens.GET("", api.Context.GetContractTokens)
-				tokens.GET("count", api.Context.GetContractTokensCount)
-				tokens.GET("holders", api.Context.GetTokenHolders)
+				tokens.GET("", handlers.GetContractTokens())
+				tokens.GET("count", handlers.GetContractTokensCount())
+				tokens.GET("holders", handlers.GetTokenHolders())
 			}
 
 			storage := contract.Group("storage")
 			{
-				storage.GET("", api.Context.GetContractStorage)
-				storage.GET("raw", api.Context.GetContractStorageRaw)
-				storage.GET("rich", api.Context.GetContractStorageRich)
-				storage.GET("schema", api.Context.GetContractStorageSchema)
+				storage.GET("", handlers.GetContractStorage())
+				storage.GET("raw", handlers.GetContractStorageRaw())
+				storage.GET("rich", handlers.GetContractStorageRich())
+				storage.GET("schema", handlers.GetContractStorageSchema())
 			}
 
-			contract.GET("mempool", api.Context.GetMempool)
-			contract.GET("same", api.Context.GetSameContracts)
-			contract.GET("similar", api.Context.GetSimilarContracts)
+			contract.GET("mempool", handlers.GetMempool())
+			contract.GET("same", handlers.ContextsMiddleware(api.Contexts), handlers.GetSameContracts())
 			entrypoints := contract.Group("entrypoints")
 			{
-				entrypoints.GET("", api.Context.GetEntrypoints)
-				entrypoints.GET("schema", api.Context.GetEntrypointSchema)
-				entrypoints.POST("data", api.Context.GetEntrypointData)
-				entrypoints.POST("trace", api.Context.RunCode)
-				entrypoints.POST("run_operation", api.Context.RunOperation)
+				entrypoints.GET("", handlers.GetEntrypoints())
+				entrypoints.GET("schema", handlers.GetEntrypointSchema())
+				entrypoints.POST("data", handlers.GetEntrypointData())
+				entrypoints.POST("trace", handlers.RunCode())
+				entrypoints.POST("run_operation", handlers.RunOperation())
 			}
 			views := contract.Group("views")
 			{
-				views.GET("schema", api.Context.GetViewsSchema)
-				views.POST("execute", api.Context.ExecuteView)
+				views.GET("schema", handlers.GetViewsSchema())
+				views.POST("execute", handlers.ExecuteView())
 			}
 		}
 
 		account := v1.Group("account/:network")
+		account.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
-			account.GET("", api.Context.GetBatchTokenBalances)
+			account.GET("", handlers.GetBatchTokenBalances())
 			acc := account.Group(":address")
 			{
-				acc.GET("", api.Context.GetInfo)
-				acc.GET("metadata", api.Context.GetMetadata)
-				acc.GET("token_balances", api.Context.GetAccountTokenBalances)
-				acc.GET("count", api.Context.GetAccountTokensCountByContract)
-				acc.GET("count_with_metadata", api.Context.GetAccountTokensCountByContractWithMetadata)
+				acc.GET("", handlers.GetInfo())
+				acc.GET("metadata", handlers.GetMetadata())
+				acc.GET("token_balances", handlers.GetAccountTokenBalances())
+				acc.GET("count", handlers.GetAccountTokensCountByContract())
+				acc.GET("count_with_metadata", handlers.GetAccountTokensCountByContractWithMetadata())
 			}
 		}
 
 		fa12 := v1.Group("tokens/:network")
+		fa12.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
-			fa12.GET("", api.Context.GetFA)
-			fa12.GET("series", api.Context.GetTokenVolumeSeries)
-			fa12.GET("version/:faversion", api.Context.GetFAByVersion)
-			fa12.GET("metadata", api.Context.GetTokenMetadata)
+			fa12.GET("", handlers.GetFA())
+			fa12.GET("series", handlers.GetTokenVolumeSeries())
+			fa12.GET("version/:faversion", handlers.GetFAByVersion())
+			fa12.GET("metadata", handlers.GetTokenMetadata())
 			transfers := fa12.Group("transfers")
 			{
-				transfers.GET(":address", api.Context.GetFA12OperationsForAddress)
+				transfers.GET(":address", handlers.GetFA12OperationsForAddress())
 			}
 		}
 
 		dapps := v1.Group("dapps")
+		dapps.Use(handlers.MainnetMiddleware(api.Contexts))
 		{
-			dapps.GET("", api.Context.GetDAppList)
+			dapps.GET("", handlers.GetDAppList())
 			dappsBySlug := dapps.Group(":slug")
 			{
-				dappsBySlug.GET("", api.Context.GetDApp)
+				dappsBySlug.GET("", handlers.GetDApp())
 				dex := dappsBySlug.Group("dex")
 				{
-					dex.GET("tokens", api.Context.GetDexTokens)
-					dex.GET("tezos_volume", cache.CachePage(store, time.Minute, api.Context.GetDexTezosVolume))
+					dex.GET("tokens", handlers.GetDexTokens())
+					dex.GET("tezos_volume", cache.CachePage(store, time.Minute, handlers.GetDexTezosVolume()))
 				}
 			}
 		}
 
 		globalConstants := v1.Group("global_constants/:network/:address")
+		globalConstants.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
-			globalConstants.GET("", api.Context.GetGlobalConstant)
+			globalConstants.GET("", handlers.GetGlobalConstant())
 		}
 	}
 	api.Router = r
 }
 
 func (api *app) Close() {
-	api.Context.Close()
+	api.Contexts.Close()
 }
 
 func (api *app) Run() {
-	if err := api.Router.Run(api.Context.Config.API.Bind); err != nil {
+	if err := api.Router.Run(api.Config.API.Bind); err != nil {
 		logger.Err(err)
 		helpers.CatchErrorSentry(err)
 		return

@@ -103,11 +103,6 @@ type searchRequest struct {
 	Indices  string `form:"i,omitempty"`
 }
 
-type sameContractRequest struct {
-	pageableRequest
-	Manager string `form:"manager,omitempty"`
-}
-
 // OPGRequest -
 type OPGRequest struct {
 	Hash string `uri:"hash" binding:"required,opg" example:"ooy4c6G2BZzybYEY3vRQ7WXGL63tFmamTeGTHdjUxhd6ckbSNnb"`

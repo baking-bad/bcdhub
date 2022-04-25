@@ -6,14 +6,12 @@ import (
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 )
 
 // ImplementationKey -
 type ImplementationKey struct {
 	Address    string
-	Network    types.Network
 	Entrypoint string
 	Name       string
 }
@@ -67,7 +65,6 @@ func NewTokenEvents(repo contract_metadata.Repository) (*TokenEvents, error) {
 func (tokenEvents *TokenEvents) GetByOperation(operation operation.Operation) (contract_metadata.EventImplementation, string, bool) {
 	if event, ok := tokenEvents.events.Load(ImplementationKey{
 		Address:    operation.Destination.Address,
-		Network:    operation.Network,
 		Entrypoint: operation.Entrypoint.String(),
 		Name:       tokenbalance.SingleAssetBalanceUpdates,
 	}); ok {
@@ -76,7 +73,6 @@ func (tokenEvents *TokenEvents) GetByOperation(operation operation.Operation) (c
 
 	event, ok := tokenEvents.events.Load(ImplementationKey{
 		Address:    operation.Destination.Address,
-		Network:    operation.Network,
 		Entrypoint: operation.Entrypoint.String(),
 		Name:       tokenbalance.MultiAssetBalanceUpdates,
 	})
@@ -104,7 +100,6 @@ func (tokenEvents *TokenEvents) Update(repo contract_metadata.Repository) error 
 					for _, entrypoint := range implementation.MichelsonParameterEvent.Entrypoints {
 						tokenEvents.events.Store(ImplementationKey{
 							Address:    token.Address,
-							Network:    token.Network,
 							Entrypoint: entrypoint,
 							Name:       events.NormalizeName(event.Name),
 						}, implementation)
@@ -116,7 +111,6 @@ func (tokenEvents *TokenEvents) Update(repo contract_metadata.Repository) error 
 					for _, entrypoint := range implementation.MichelsonExtendedStorageEvent.Entrypoints {
 						tokenEvents.events.Store(ImplementationKey{
 							Address:    token.Address,
-							Network:    token.Network,
 							Entrypoint: entrypoint,
 							Name:       events.NormalizeName(event.Name),
 						}, implementation)

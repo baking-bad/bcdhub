@@ -1,10 +1,7 @@
 package bigmapdiff
 
-import "github.com/baking-bad/bcdhub/internal/models/types"
-
 // GetContext -
 type GetContext struct {
-	Network      types.Network
 	Ptr          *int64
 	Size         int64
 	Offset       int64

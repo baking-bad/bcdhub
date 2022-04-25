@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -31,24 +33,24 @@ func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol stri
 }
 
 // Parse -
-func (p *RichStorage) Parse(data noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
+func (p *RichStorage) Parse(ctx context.Context, data noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	switch operation.Kind {
 	case types.OperationKindTransaction:
-		return p.parser.ParseTransaction(data, operation)
+		return p.parser.ParseTransaction(ctx, data, operation, store)
 	case types.OperationKindOrigination:
-		result, err := p.parser.ParseOrigination(data, operation)
+		parsed, err := p.parser.ParseOrigination(ctx, data, operation, store)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		if result != nil {
-			storage, err := p.rpc.GetScriptStorageRaw(operation.Destination.Address, operation.Level)
+		if parsed {
+			storage, err := p.rpc.GetScriptStorageRaw(context.Background(), operation.Destination.Address, operation.Level)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			operation.DeffatedStorage = storage
 		}
-		return result, nil
+		return nil
 	default:
-		return nil, nil
+		return nil
 	}
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,16 +20,20 @@ import (
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/global_constants/{network}/{address} [get]
-func (ctx *Context) GetGlobalConstant(c *gin.Context) {
-	var req getGlobalConstantRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
+func GetGlobalConstant() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	constant, err := ctx.GlobalConstants.Get(req.NetworkID(), req.Address)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		var req getGlobalConstantRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, NewGlobalConstantFromModel(constant))
+		constant, err := ctx.GlobalConstants.Get(req.Address)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		c.SecureJSON(http.StatusOK, NewGlobalConstantFromModel(constant))
+	}
 }

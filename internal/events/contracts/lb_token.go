@@ -1,6 +1,8 @@
 package contracts
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -15,9 +17,9 @@ type LBToken struct {
 }
 
 // NewLBToken -
-func NewLBToken(rpc noderpc.INode) (*LBToken, error) {
+func NewLBToken(ctx context.Context, rpc noderpc.INode) (*LBToken, error) {
 	contract := new(LBToken)
-	script, err := rpc.GetScriptJSON(contract.Address(), 0)
+	script, err := rpc.GetScriptJSON(ctx, contract.Address(), 0)
 	if err != nil {
 		return nil, err
 	}

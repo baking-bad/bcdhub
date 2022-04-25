@@ -15,7 +15,7 @@ type Service interface {
 }
 
 // Handler -
-type Handler interface {
-	Chunk(lastID int64, size int) ([]models.Model, error)
-	Handle(ctx context.Context, items []models.Model, wg *sync.WaitGroup) error
+type Handler[M models.Constraint] interface {
+	Chunk(lastID int64, size int) ([]M, error)
+	Handle(ctx context.Context, items []M, wg *sync.WaitGroup) error
 }

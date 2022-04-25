@@ -2,9 +2,16 @@ rpc:
   sandboxnet:
     uri: ${SANDBOX_NODE_URI}
     timeout: 10
+    requests_per_second: 10
 
 storage:
-  pg: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB:-indexer} password=${POSTGRES_PASSWORD} sslmode=disable"
+  pg: 
+    host: ${DB_HOSTNAME:-127.0.0.1}
+    port: 5432
+    user: ${POSTGRES_USER}
+    # dbname: ${POSTGRES_DB:-indexer}
+    password: ${POSTGRES_PASSWORD}
+    sslmode: disable
   elastic:
     - http://${ELASTIC_HOSTNAME:-elastic}:9200
   timeout: 10
@@ -70,6 +77,8 @@ metrics:
   project_name: metrics
   sentry_enabled: false
   cache_aliases_seconds: 30
+  networks:
+    - sandboxnet
 
 scripts:
   networks:

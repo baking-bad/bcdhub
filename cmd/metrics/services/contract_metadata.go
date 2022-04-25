@@ -8,8 +8,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/handlers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
 )
 
@@ -23,12 +24,12 @@ type ContractMetadataHandler struct {
 func NewContractMetadataHandler(ctx *config.Context) *ContractMetadataHandler {
 	return &ContractMetadataHandler{
 		ctx,
-		handlers.NewContractMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.Storage, ctx.ContractMetadata, ctx.RPC, ctx.Config.IPFSGateways),
+		handlers.NewContractMetadata(ctx, ctx.Config.IPFSGateways),
 	}
 }
 
 // Handle -
-func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Model, wg *sync.WaitGroup) error {
+func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []domains.BigMapDiff, wg *sync.WaitGroup) error {
 	if len(items) == 0 {
 		return nil
 	}
@@ -36,25 +37,20 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Mo
 	var localWg sync.WaitGroup
 	var mx sync.Mutex
 
-	updates := make([]models.Model, 0)
+	updates := make([]*contract_metadata.ContractMetadata, 0)
 	for i := range items {
-		bmd, ok := items[i].(*domains.BigMapDiff)
-		if !ok {
-			return errors.Errorf("[ContractMetadata.Handle] invalid type: expected *bigmapdiff.BigMapDiff got %T", items[i])
-		}
-
-		storageTypeBytes, err := cm.Cache.StorageTypeBytes(bmd.Network, bmd.Contract, bmd.Protocol.SymLink)
+		storageTypeBytes, err := cm.Cache.StorageTypeBytes(items[i].Contract, items[i].Protocol.SymLink)
 		if err != nil {
-			return errors.Errorf("[ContractMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
+			return errors.Errorf("[ContractMetadata.Handle] can't get storage type for '%s' in %s: %s", items[i].Contract, cm.Network.String(), err)
 		}
 
 		storageType, err := ast.NewTypedAstFromBytes(storageTypeBytes)
 		if err != nil {
-			return errors.Errorf("[ContractMetadata.Handle] can't parse storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
+			return errors.Errorf("[ContractMetadata.Handle] can't parse storage type for '%s' in %s: %s", items[i].Contract, cm.Network.String(), err)
 		}
 
 		localWg.Add(1)
-		go func() {
+		go func(bmd *domains.BigMapDiff) {
 			defer localWg.Done()
 
 			res, err := cm.handler.Do(ctx, bmd, storageType)
@@ -67,7 +63,7 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Mo
 				updates = append(updates, res...)
 				mx.Unlock()
 			}
-		}()
+		}(&items[i])
 	}
 
 	localWg.Wait()
@@ -76,25 +72,16 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Mo
 		return nil
 	}
 
-	logger.Info().Msgf("%3d contract metadata are processed", len(updates))
+	logger.Info().Str("network", cm.Network.String()).Msgf("%3d contract metadata are processed", len(updates))
 
-	if err := saveSearchModels(ctx, cm.Context, updates); err != nil {
+	if err := search.Save(ctx, cm.Searcher, cm.Network, updates); err != nil {
 		return err
 	}
 
-	return cm.Storage.Save(ctx, updates)
+	return save(ctx, cm.StorageDB.DB, updates)
 }
 
 // Chunk -
-func (cm *ContractMetadataHandler) Chunk(lastID int64, size int) ([]models.Model, error) {
-	diff, err := cm.Domains.BigMapDiffs(lastID, int64(size))
-	if err != nil {
-		return nil, err
-	}
-
-	data := make([]models.Model, len(diff))
-	for i := range diff {
-		data[i] = &diff[i]
-	}
-	return data, nil
+func (cm *ContractMetadataHandler) Chunk(lastID int64, size int) ([]domains.BigMapDiff, error) {
+	return cm.Domains.BigMapDiffs(lastID, int64(size))
 }

@@ -78,11 +78,7 @@ func (m *FindLostContracts) saveContracts(db pg.DBI, contracts []contract.Contra
 
 func (m *FindLostContracts) findScripts(ctx *config.Context, db pg.DBI, contracts []contract.Contract) error {
 	for i := range contracts {
-		rpc, err := ctx.GetRPC(contracts[i].Network)
-		if err != nil {
-			return err
-		}
-		scriptBytes, err := rpc.GetRawScript(contracts[i].Account.Address, 0)
+		scriptBytes, err := ctx.RPC.GetRawScript(context.Background(), contracts[i].Account.Address, 0)
 		if err != nil {
 			return err
 		}
@@ -113,7 +109,7 @@ func (m *FindLostContracts) findScripts(ctx *config.Context, db pg.DBI, contract
 			}
 
 			if len(constants) > 0 {
-				globalConstants, err := ctx.GlobalConstants.All(contracts[i].Network, constants...)
+				globalConstants, err := ctx.GlobalConstants.All(constants...)
 				if err != nil {
 					return err
 				}
@@ -129,9 +125,6 @@ func (m *FindLostContracts) findScripts(ctx *config.Context, db pg.DBI, contract
 					return err
 				}
 
-				contractScript.FingerprintParameter = script.Fingerprint.Parameter
-				contractScript.FingerprintCode = script.Fingerprint.Code
-				contractScript.FingerprintStorage = script.Fingerprint.Storage
 				contractScript.FailStrings = script.FailStrings.Values()
 				contractScript.Annotations = script.Annotations.Values()
 				contractScript.Tags = types.NewTags(script.Tags.Values())
@@ -151,7 +144,7 @@ func (m *FindLostContracts) findScripts(ctx *config.Context, db pg.DBI, contract
 					return err
 				}
 
-				if contracts[i].Network != types.Mainnet {
+				if ctx.Network != types.Mainnet {
 					contracts[i].BabylonID = contractScript.ID
 				} else {
 					if contracts[i].Level <= 655360 {
@@ -164,7 +157,7 @@ func (m *FindLostContracts) findScripts(ctx *config.Context, db pg.DBI, contract
 			}
 			continue
 		}
-		if contracts[i].Network != types.Mainnet {
+		if ctx.Network != types.Mainnet {
 			contracts[i].BabylonID = contractScript.ID
 		} else {
 			if contracts[i].Level <= 655360 {

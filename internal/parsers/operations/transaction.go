@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -32,15 +34,13 @@ func NewTransaction(params *ParseParams) Transaction {
 }
 
 // Parse -
-func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error {
+func (p Transaction) Parse(data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
-		Network: p.network,
 		Address: data.Source,
 		Type:    modelsTypes.NewAccountType(data.Source),
 	}
 
 	tx := operation.Operation{
-		Network:      p.network,
 		Hash:         p.hash,
 		ProtocolID:   p.protocol.ID,
 		Level:        p.head.Level,
@@ -54,12 +54,10 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 		StorageLimit: data.StorageLimit,
 		Amount:       *data.Amount,
 		Destination: account.Account{
-			Network: p.network,
 			Address: *data.Destination,
 			Type:    modelsTypes.NewAccountType(*data.Destination),
 		},
 		Delegate: account.Account{
-			Network: p.network,
 			Address: data.Delegate,
 			Type:    modelsTypes.NewAccountType(data.Delegate),
 		},
@@ -74,7 +72,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 
 	tx.SetBurned(*p.protocol.Constants)
 
-	result.Operations = append(result.Operations, &tx)
+	store.AddOperations(&tx)
 
 	if tx.Destination.Type != modelsTypes.AccountTypeContract {
 		return nil
@@ -86,22 +84,23 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 		}
 	}
 
-	script, err := p.ctx.Cache.ScriptBytes(tx.Network, tx.Destination.Address, p.protocol.SymLink)
+	script, err := p.ctx.Cache.ScriptBytes(tx.Destination.Address, p.protocol.SymLink)
 	if err != nil {
 		if !tx.Internal {
 			return nil
 		}
 
-		for i := range result.Contracts {
-			if tx.Destination.Address == result.Contracts[i].Account.Address {
+		contracts := store.ListContracts()
+		for i := range contracts {
+			if tx.Destination.Address == contracts[i].Account.Address {
 				switch p.protocol.SymLink {
 				case bcd.SymLinkAlpha:
-					script, err = result.Contracts[i].Alpha.Full()
+					script, err = contracts[i].Alpha.Full()
 					if err != nil {
 						return err
 					}
 				case bcd.SymLinkBabylon:
-					script, err = result.Contracts[i].Babylon.Full()
+					script, err = contracts[i].Babylon.Full()
 					if err != nil {
 						return err
 					}
@@ -131,7 +130,7 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 	p.stackTrace.Add(tx)
 
 	if tx.IsApplied() {
-		if err := p.appliedHandler(data, &tx, result); err != nil {
+		if err := p.appliedHandler(data, &tx, store); err != nil {
 			return err
 		}
 	}
@@ -143,16 +142,12 @@ func (p Transaction) Parse(data noderpc.Operation, result *parsers.Result) error
 			}
 			logger.Warning().Err(err).Msg("transferParser.Parse")
 		}
-		result.TokenBalances = append(result.TokenBalances, transferParsers.UpdateTokenBalances(tx.Transfers)...)
+		store.AddTokenBalances(transferParsers.UpdateTokenBalances(tx.Transfers)...)
 	}
 
 	if tx.IsApplied() {
-		ledgerResult, err := ledger.New(p.ctx.TokenBalances, p.ctx.Accounts).Parse(&tx, p.stackTrace)
-		if err != nil {
+		if err := ledger.New(p.ctx.TokenBalances, p.ctx.Accounts).Parse(&tx, p.stackTrace, store); err != nil {
 			return err
-		}
-		if ledgerResult != nil {
-			result.TokenBalances = append(result.TokenBalances, ledgerResult.TokenBalances...)
 		}
 	}
 
@@ -173,16 +168,12 @@ func (p Transaction) fillInternal(tx *operation.Operation) {
 	tx.Initiator = p.main.Source
 }
 
-func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operation, result *parsers.Result) error {
-	storageResult, err := p.storageParser.Parse(item, tx)
-	if err != nil {
+func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operation, store parsers.Store) error {
+	if err := p.storageParser.Parse(context.Background(), item, tx, store); err != nil {
 		return err
 	}
-	if storageResult != nil {
-		result.Merge(storageResult)
-	}
 
-	return NewMigration(p.ctx.Contracts).Parse(item, tx, result)
+	return NewMigration(p.ctx.Contracts).Parse(item, tx, store)
 }
 
 func (p Transaction) getEntrypoint(tx *operation.Operation) error {

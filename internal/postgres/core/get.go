@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -23,12 +22,5 @@ func (p *Postgres) GetAll(index string) ([]models.Model, error) {
 func (p *Postgres) GetByIDs(index string, ids ...int64) ([]models.Model, error) {
 	var result []models.Model
 	err := p.DB.Model().Table(index).Where("id IN (?)", pg.In(ids)).Select(&result)
-	return result, err
-}
-
-// GetByNetwork -
-func (p *Postgres) GetByNetwork(network types.Network, index string) ([]models.Model, error) {
-	var result []models.Model
-	err := p.DB.Model().Table(index).Where("network = ?", network).Select(&result)
 	return result, err
 }

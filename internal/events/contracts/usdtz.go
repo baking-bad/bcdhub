@@ -1,6 +1,8 @@
 package contracts
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -15,9 +17,9 @@ type USDtz struct {
 }
 
 // NewUSDtz -
-func NewUSDtz(rpc noderpc.INode) (*USDtz, error) {
+func NewUSDtz(ctx context.Context, rpc noderpc.INode) (*USDtz, error) {
 	contract := new(USDtz)
-	script, err := rpc.GetScriptJSON(contract.Address(), 0)
+	script, err := rpc.GetScriptJSON(ctx, contract.Address(), 0)
 	if err != nil {
 		return nil, err
 	}

@@ -14,4 +14,5 @@ var (
 	ErrJSONDecoding              = errors.New("JSON decoding error")
 	ErrNoIPFSResponse            = errors.New("can't load document from IPFS")
 	ErrInvalidIPFSHash           = errors.New("invalid IPFS multihash")
+	ErrTooManyRequests           = errors.New("too many requests")
 )

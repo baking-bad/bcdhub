@@ -64,17 +64,17 @@ func (mr *MockGeneralRepositoryMockRecorder) DeleteTables(indices interface{}) *
 }
 
 // DeleteByContract mocks base method
-func (m *MockGeneralRepository) DeleteByContract(network types.Network, indices []string, address string) error {
+func (m *MockGeneralRepository) DeleteByContract(indices []string, address string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByContract", network, indices, address)
+	ret := m.ctrl.Call(m, "DeleteByContract", indices, address)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByContract indicates an expected call of DeleteByContract
-func (mr *MockGeneralRepositoryMockRecorder) DeleteByContract(network, indices, address interface{}) *gomock.Call {
+func (mr *MockGeneralRepositoryMockRecorder) DeleteByContract(indices, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByContract", reflect.TypeOf((*MockGeneralRepository)(nil).DeleteByContract), network, indices, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByContract", reflect.TypeOf((*MockGeneralRepository)(nil).DeleteByContract), indices, address)
 }
 
 // GetByID mocks base method
@@ -91,19 +91,19 @@ func (mr *MockGeneralRepositoryMockRecorder) GetByID(output interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockGeneralRepository)(nil).GetByID), output)
 }
 
-// GetByNetwork mocks base method
-func (m *MockGeneralRepository) GetByNetwork(network types.Network, index string) ([]models.Model, error) {
+// GetAll mocks base method
+func (m *MockGeneralRepository) GetAll(index string) ([]models.Model, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByNetwork", network, index)
+	ret := m.ctrl.Call(m, "GetAll", index)
 	ret0, _ := ret[0].([]models.Model)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByNetwork indicates an expected call of GetByNetwork
-func (mr *MockGeneralRepositoryMockRecorder) GetByNetwork(network, index interface{}) *gomock.Call {
+// GetAll indicates an expected call of GetAll
+func (mr *MockGeneralRepositoryMockRecorder) GetAll(index interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByNetwork", reflect.TypeOf((*MockGeneralRepository)(nil).GetByNetwork), network, index)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGeneralRepository)(nil).GetAll), index)
 }
 
 // UpdateDoc mocks base method
@@ -233,4 +233,19 @@ func (m *MockStatistics) NetworkStats(network types.Network) (map[string]*models
 func (mr *MockStatisticsMockRecorder) NetworkStats(network interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NetworkStats", reflect.TypeOf((*MockStatistics)(nil).NetworkStats), network)
+}
+
+// ContractStats mocks base method
+func (m *MockStatistics) ContractStats(network types.Network, address string) (models.ContractStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ContractStats", network, address)
+	ret0, _ := ret[0].(models.ContractStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ContractStats indicates an expected call of ContractStats
+func (mr *MockStatisticsMockRecorder) ContractStats(network, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractStats", reflect.TypeOf((*MockStatistics)(nil).ContractStats), network, address)
 }

@@ -21,12 +21,9 @@ services:
         max-file: "5"
 
   db:
-    image: ghcr.io/baking-bad/bcdhub-db:${TAG:-master}
+    image: postgres:14
     shm_size: 1g
     user: postgres
-    build:
-      context: .
-      dockerfile: build/db/Dockerfile
     restart: always
     env_file:
       - .env
@@ -84,6 +81,8 @@ services:
     depends_on:
       - elastic
       - db
+    ports:
+      - 127.0.0.1:6060:6060
     volumes:
       - ${SHARE_PATH}:/etc/bcd
     logging: *bcd-logging

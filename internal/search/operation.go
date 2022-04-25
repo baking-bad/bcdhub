@@ -40,13 +40,65 @@ type Operation struct {
 	StorageStrings   []string `json:"storage_strings,omitempty"`
 }
 
+// NewOperation -
+func NewOperation(network modelTypes.Network, model *operation.Operation) Operation {
+	var o Operation
+	o.ID = helpers.GenerateID()
+	o.Destination = model.Destination.Address
+	o.DestinationAlias = model.Destination.Alias
+	if model.Entrypoint.Valid {
+		o.Entrypoint = model.Entrypoint.String()
+	}
+	o.Hash = model.Hash
+	o.Initiator = model.Initiator.Address
+	o.Internal = model.Internal
+	o.Kind = model.Kind.String()
+	o.Level = model.Level
+	o.Network = network.String()
+	o.Source = model.Source.Address
+	o.SourceAlias = model.Source.Alias
+	o.Status = model.Status.String()
+	o.Timestamp = model.Timestamp.UTC()
+	o.Delegate = model.Delegate.Address
+	o.DelegateAlias = model.Delegate.Alias
+	o.PaidStorageDiff = model.PaidStorageSizeDiff
+	o.ConsumedGas = model.ConsumedGas
+
+	if len(model.DeffatedStorage) > 0 {
+		var tree ast.UntypedAST
+		if err := json.Unmarshal(model.DeffatedStorage, &tree); err == nil {
+			o.StorageStrings, err = tree.GetStrings(true)
+			if err != nil {
+				logger.Error().Err(err).Msg("GetStrings for storage")
+			}
+		} else {
+			logger.Error().Err(err).Msg("GetStrings for storage")
+		}
+	}
+
+	if model.Kind == modelTypes.OperationKindTransaction && len(model.Parameters) > 0 {
+		params := types.NewParameters(model.Parameters)
+
+		var tree ast.UntypedAST
+		if err := json.Unmarshal(params.Value, &tree); err == nil {
+			o.ParameterStrings, err = tree.GetStrings(true)
+			if err != nil {
+				logger.Error().Err(err).Msg("GetStrings for storage")
+			}
+		} else {
+			logger.Error().Err(err).Msg("GetStrings for storage")
+		}
+	}
+	return o
+}
+
 // GetID -
-func (o *Operation) GetID() string {
+func (o Operation) GetID() string {
 	return o.ID
 }
 
 // GetIndex -
-func (o *Operation) GetIndex() string {
+func (o Operation) GetIndex() string {
 	return models.DocOperations
 }
 
@@ -84,59 +136,4 @@ func (o Operation) Parse(highlight map[string][]string, data []byte) (*Item, err
 		Highlights: highlight,
 		Network:    o.Network,
 	}, nil
-}
-
-// Prepare -
-func (o *Operation) Prepare(model models.Model) {
-	op, ok := model.(*operation.Operation)
-	if !ok {
-		return
-	}
-
-	o.ID = helpers.GenerateID()
-	o.Destination = op.Destination.Address
-	o.DestinationAlias = op.Destination.Alias
-	if op.Entrypoint.Valid {
-		o.Entrypoint = op.Entrypoint.String()
-	}
-	o.Hash = op.Hash
-	o.Initiator = op.Initiator.Address
-	o.Internal = op.Internal
-	o.Kind = op.Kind.String()
-	o.Level = op.Level
-	o.Network = op.Network.String()
-	o.Source = op.Source.Address
-	o.SourceAlias = op.Source.Alias
-	o.Status = op.Status.String()
-	o.Timestamp = op.Timestamp.UTC()
-	o.Delegate = op.Delegate.Address
-	o.DelegateAlias = op.Delegate.Alias
-	o.PaidStorageDiff = op.PaidStorageSizeDiff
-	o.ConsumedGas = op.ConsumedGas
-
-	if len(op.DeffatedStorage) > 0 {
-		var tree ast.UntypedAST
-		if err := json.Unmarshal(op.DeffatedStorage, &tree); err == nil {
-			o.StorageStrings, err = tree.GetStrings(true)
-			if err != nil {
-				logger.Error().Err(err).Msg("GetStrings for storage")
-			}
-		} else {
-			logger.Error().Err(err).Msg("GetStrings for storage")
-		}
-	}
-
-	if op.Kind == modelTypes.OperationKindTransaction && len(op.Parameters) > 0 {
-		params := types.NewParameters(op.Parameters)
-
-		var tree ast.UntypedAST
-		if err := json.Unmarshal(params.Value, &tree); err == nil {
-			o.ParameterStrings, err = tree.GetStrings(true)
-			if err != nil {
-				logger.Error().Err(err).Msg("GetStrings for storage")
-			}
-		} else {
-			logger.Error().Err(err).Msg("GetStrings for storage")
-		}
-	}
 }

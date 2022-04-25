@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -27,56 +28,57 @@ import (
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/storage [get]
-func (ctx *Context) GetContractStorage(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
-
-	var sReq storageRequest
-	if err := c.BindQuery(&sReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	network := req.NetworkID()
-
-	var header block.Block
-	var err error
-	if sReq.Level == 0 {
-		header, err = ctx.Blocks.Last(network)
-		if ctx.handleError(c, err, 0) {
+func GetContractStorage() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
-	} else {
-		header, err = ctx.Blocks.Get(network, int64(sReq.Level))
-		if ctx.handleError(c, err, 0) {
+
+		var sReq storageRequest
+		if err := c.BindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-	}
 
-	deffatedStorage, err := ctx.getDeffattedStorage(req.NetworkID(), req.Address, int64(sReq.Level))
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	storageType, err := ctx.getStorageType(network, req.Address, header.Protocol.SymLink)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		var header block.Block
+		var err error
+		if sReq.Level == 0 {
+			header, err = ctx.Blocks.Last()
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+		} else {
+			header, err = ctx.Blocks.Get(int64(sReq.Level))
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+		}
 
-	var data ast.UntypedAST
-	if err := json.Unmarshal(deffatedStorage, &data); ctx.handleError(c, err, 0) {
-		return
-	}
-	if err := storageType.Settle(data); ctx.handleError(c, err, 0) {
-		return
-	}
+		deffatedStorage, err := getDeffattedStorage(c, ctx, req.Address, int64(sReq.Level))
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		storageType, err := getStorageType(ctx, req.Address, header.Protocol.SymLink)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	resp, err := storageType.ToMiguel()
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		var data ast.UntypedAST
+		if err := json.Unmarshal(deffatedStorage, &data); handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		if err := storageType.Settle(data); handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, resp)
+		resp, err := storageType.ToMiguel()
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		c.SecureJSON(http.StatusOK, resp)
+	}
 }
 
 // GetContractStorageRaw godoc
@@ -95,25 +97,28 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/storage/raw [get]
-func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
-	var sReq storageRequest
-	if err := c.BindQuery(&sReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	storage, err := ctx.getDeffattedStorage(req.NetworkID(), req.Address, int64(sReq.Level))
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	resp, err := formatter.MichelineStringToMichelson(string(storage), false, formatter.DefLineSize)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+func GetContractStorageRaw() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
+		var sReq storageRequest
+		if err := c.BindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		storage, err := getDeffattedStorage(c, ctx, req.Address, int64(sReq.Level))
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		resp, err := formatter.MichelineStringToMichelson(string(storage), false, formatter.DefLineSize)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, resp)
+		c.SecureJSON(http.StatusOK, resp)
+	}
 }
 
 // GetContractStorageRich godoc
@@ -132,55 +137,59 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/storage/rich [get]
-func (ctx *Context) GetContractStorageRich(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
-	var sReq storageRequest
-	if err := c.BindQuery(&sReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	storage, err := ctx.getDeffattedStorage(req.NetworkID(), req.Address, int64(sReq.Level))
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	var symLink string
-	if sReq.Level == 0 {
-		symLink = bcd.GetCurrentSymLink()
-	} else {
-		block, err := ctx.Blocks.Get(req.NetworkID(), int64(sReq.Level))
-		if ctx.handleError(c, err, 0) {
+func GetContractStorageRich() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
-		symLink = block.Protocol.SymLink
-	}
+		var sReq storageRequest
+		if err := c.BindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		storage, err := getDeffattedStorage(c, ctx, req.Address, int64(sReq.Level))
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		var symLink string
+		if sReq.Level == 0 {
+			symLink = bcd.GetCurrentSymLink()
+		} else {
+			block, err := ctx.Blocks.Get(int64(sReq.Level))
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			symLink = block.Protocol.SymLink
+		}
 
-	storageType, err := ctx.getStorageType(req.NetworkID(), req.Address, symLink)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		storageType, err := getStorageType(ctx, req.Address, symLink)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	states, err := ctx.BigMapDiffs.GetForAddress(req.NetworkID(), req.Address)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		states, err := ctx.BigMapDiffs.GetForAddress(req.Address)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	bmd := make([]bigmapdiff.BigMapDiff, 0, len(states))
-	for i := range states {
-		bmd = append(bmd, states[i].ToDiff())
-	}
+		bmd := make([]bigmapdiff.BigMapDiff, 0, len(states))
+		for i := range states {
+			bmd = append(bmd, states[i].ToDiff())
+		}
 
-	if err := prepareStorage(storageType, storage, bmd); ctx.handleError(c, err, 0) {
-		return
-	}
+		if err := prepareStorage(storageType, storage, bmd); handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	response, err := storageType.Nodes[0].ToBaseNode(false)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+		response, err := storageType.Nodes[0].ToBaseNode(false)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, response)
+		c.SecureJSON(http.StatusOK, response)
+	}
 }
 
 // GetContractStorageSchema godoc
@@ -198,62 +207,64 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/storage/schema [get]
-func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
-	var ssReq storageSchemaRequest
-	if err := c.BindQuery(&ssReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	storageType, err := ctx.getStorageType(req.NetworkID(), req.Address, bcd.SymLinkBabylon)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	schema := new(EntrypointSchema)
-
-	data, err := storageType.GetEntrypointsDocs()
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	if len(data) > 0 {
-		schema.EntrypointType = data[0]
-	}
-	schema.Schema, err = storageType.ToJSONSchema()
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	if ssReq.FillType == "current" {
-		storage, err := ctx.getDeffattedStorage(req.NetworkID(), req.Address, 0)
-		if ctx.handleError(c, err, 0) {
+func GetContractStorageSchema() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
+		var ssReq storageSchemaRequest
+		if err := c.BindQuery(&ssReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
-		if err := storageType.SettleFromBytes(storage); ctx.handleError(c, err, 0) {
+		storageType, err := getStorageType(ctx, req.Address, bcd.SymLinkBabylon)
+		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		schema.DefaultModel = make(ast.JSONModel)
-		storageType.GetJSONModel(schema.DefaultModel)
-	}
+		schema := new(EntrypointSchema)
 
-	c.SecureJSON(http.StatusOK, schema)
+		data, err := storageType.GetEntrypointsDocs()
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		if len(data) > 0 {
+			schema.EntrypointType = data[0]
+		}
+		schema.Schema, err = storageType.ToJSONSchema()
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		if ssReq.FillType == "current" {
+			storage, err := getDeffattedStorage(c, ctx, req.Address, 0)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+
+			if err := storageType.SettleFromBytes(storage); handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+
+			schema.DefaultModel = make(ast.JSONModel)
+			storageType.GetJSONModel(schema.DefaultModel)
+		}
+
+		c.SecureJSON(http.StatusOK, schema)
+	}
 }
 
-func (ctx *Context) getDeffattedStorage(network types.Network, address string, level int64) ([]byte, error) {
-	destination, err := ctx.Accounts.Get(network, address)
+func getDeffattedStorage(c *gin.Context, ctx *config.Context, address string, level int64) ([]byte, error) {
+	destination, err := ctx.Accounts.Get(address)
 	if err != nil {
 		return nil, err
 	}
 
 	filters := map[string]interface{}{
-		"operation.network": network,
-		"destination_id":    destination.ID,
-		"status":            types.OperationStatusApplied,
+		"destination_id": destination.ID,
+		"status":         types.OperationStatusApplied,
 	}
 	if level > 0 {
 		filters["level"] = level
@@ -263,11 +274,7 @@ func (ctx *Context) getDeffattedStorage(network types.Network, address string, l
 		return nil, err
 	}
 	if len(operation.DeffatedStorage) == 0 || ctx.Storage.IsRecordNotFound(err) {
-		rpc, err := ctx.GetRPC(network)
-		if err != nil {
-			return nil, err
-		}
-		return rpc.GetScriptStorageRaw(address, level)
+		return ctx.RPC.GetScriptStorageRaw(c, address, level)
 	}
 	return operation.DeffatedStorage, nil
 

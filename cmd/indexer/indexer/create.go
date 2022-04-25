@@ -10,23 +10,19 @@ import (
 )
 
 // CreateIndexers -
-func CreateIndexers(ctx context.Context, internalCtx *config.Context, cfg config.Config) ([]Indexer, error) {
+func CreateIndexers(ctx context.Context, cfg config.Config) ([]Indexer, error) {
 	if err := tezerrors.LoadErrorDescriptions(); err != nil {
-		return nil, err
-	}
-
-	if err := NewInitializer(internalCtx.Storage, internalCtx.StorageDB.DB, cfg.Indexer.OffchainBaseURL).Init(ctx); err != nil {
 		return nil, err
 	}
 
 	indexers := make([]Indexer, 0)
 	for network, indexerCfg := range cfg.Indexer.Networks {
-		rpc, ok := cfg.RPC[network]
-		if !ok {
-			return nil, errors.Errorf("Unknown network %s", network)
+		networkType := types.NewNetwork(network)
+		if networkType == types.Empty {
+			return nil, errors.Errorf("unknown network %s", network)
 		}
 
-		bi, err := NewBoostIndexer(ctx, *internalCtx, rpc, types.NewNetwork(network), indexerCfg)
+		bi, err := NewBoostIndexer(ctx, cfg, networkType, indexerCfg)
 		if err != nil {
 			return nil, err
 		}

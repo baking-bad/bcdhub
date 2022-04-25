@@ -1,6 +1,7 @@
 package noderpc
 
 import (
+	"context"
 	"math/rand"
 	"reflect"
 	"time"
@@ -95,24 +96,31 @@ func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
 	}
 
 	response := mthd.Call(in)
-	if len(response) != 2 {
+
+	switch len(response) {
+	case 1:
+		if !response[0].IsNil() {
+			return reflect.Value{}, response[0].Interface().(error)
+		}
+		return reflect.Value{}, nil
+	case 2:
+		if !response[1].IsNil() {
+			if IsNodeUnavailiableError(response[1].Interface().(error)) {
+				node.block()
+				return p.call(method, args...)
+			}
+			return response[0], response[1].Interface().(error)
+		}
+		return response[0], nil
+	default:
 		node.block()
 		return reflect.Value{}, errors.Errorf("Invalid response length: %d", len(response))
 	}
-
-	if !response[1].IsNil() {
-		if IsNodeUnavailiableError(response[1].Interface().(error)) {
-			node.block()
-			return p.call(method, args...)
-		}
-		return response[0], response[1].Interface().(error)
-	}
-	return response[0], nil
 }
 
 // GetHead -
-func (p Pool) GetHead() (Header, error) {
-	data, err := p.call("GetHead")
+func (p Pool) GetHead(ctx context.Context) (Header, error) {
+	data, err := p.call("GetHead", ctx)
 	if err != nil {
 		return Header{}, err
 	}
@@ -120,8 +128,8 @@ func (p Pool) GetHead() (Header, error) {
 }
 
 // GetHeader -
-func (p Pool) GetHeader(block int64) (Header, error) {
-	data, err := p.call("GetHeader", block)
+func (p Pool) GetHeader(ctx context.Context, block int64) (Header, error) {
+	data, err := p.call("GetHeader", ctx, block)
 	if err != nil {
 		return Header{}, err
 	}
@@ -129,8 +137,8 @@ func (p Pool) GetHeader(block int64) (Header, error) {
 }
 
 // GetLevel -
-func (p Pool) GetLevel() (int64, error) {
-	data, err := p.call("GetLevel")
+func (p Pool) GetLevel(ctx context.Context) (int64, error) {
+	data, err := p.call("GetLevel", ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -138,8 +146,8 @@ func (p Pool) GetLevel() (int64, error) {
 }
 
 // GetScriptJSON -
-func (p Pool) GetScriptJSON(address string, level int64) (Script, error) {
-	data, err := p.call("GetScriptJSON", address, level)
+func (p Pool) GetScriptJSON(ctx context.Context, address string, level int64) (Script, error) {
+	data, err := p.call("GetScriptJSON", ctx, address, level)
 	if err != nil {
 		return Script{}, err
 	}
@@ -147,8 +155,8 @@ func (p Pool) GetScriptJSON(address string, level int64) (Script, error) {
 }
 
 // GetScriptStorageRaw -
-func (p Pool) GetScriptStorageRaw(address string, level int64) ([]byte, error) {
-	data, err := p.call("GetScriptStorageRaw", address, level)
+func (p Pool) GetScriptStorageRaw(ctx context.Context, address string, level int64) ([]byte, error) {
+	data, err := p.call("GetScriptStorageRaw", ctx, address, level)
 	if err != nil {
 		return nil, err
 	}
@@ -156,8 +164,8 @@ func (p Pool) GetScriptStorageRaw(address string, level int64) ([]byte, error) {
 }
 
 // GetContractBalance -
-func (p Pool) GetContractBalance(address string, level int64) (int64, error) {
-	data, err := p.call("GetContractBalance", address, level)
+func (p Pool) GetContractBalance(ctx context.Context, address string, level int64) (int64, error) {
+	data, err := p.call("GetContractBalance", ctx, address, level)
 	if err != nil {
 		return 0, err
 	}
@@ -165,8 +173,8 @@ func (p Pool) GetContractBalance(address string, level int64) (int64, error) {
 }
 
 // GetContractData -
-func (p Pool) GetContractData(address string, level int64) (ContractData, error) {
-	data, err := p.call("GetContractData", address, level)
+func (p Pool) GetContractData(ctx context.Context, address string, level int64) (ContractData, error) {
+	data, err := p.call("GetContractData", ctx, address, level)
 	if err != nil {
 		return ContractData{}, err
 	}
@@ -174,8 +182,8 @@ func (p Pool) GetContractData(address string, level int64) (ContractData, error)
 }
 
 // GetOPG -
-func (p Pool) GetOPG(block int64) ([]OperationGroup, error) {
-	data, err := p.call("GetOPG", block)
+func (p Pool) GetOPG(ctx context.Context, block int64) ([]OperationGroup, error) {
+	data, err := p.call("GetOPG", ctx, block)
 	if err != nil {
 		return nil, err
 	}
@@ -183,8 +191,8 @@ func (p Pool) GetOPG(block int64) ([]OperationGroup, error) {
 }
 
 // GetLightOPG -
-func (p Pool) GetLightOPG(block int64) ([]LightOperationGroup, error) {
-	data, err := p.call("GetLightOPG", block)
+func (p Pool) GetLightOPG(ctx context.Context, block int64) ([]LightOperationGroup, error) {
+	data, err := p.call("GetLightOPG", ctx, block)
 	if err != nil {
 		return nil, err
 	}
@@ -192,8 +200,8 @@ func (p Pool) GetLightOPG(block int64) ([]LightOperationGroup, error) {
 }
 
 // GetContractsByBlock -
-func (p Pool) GetContractsByBlock(block int64) ([]string, error) {
-	data, err := p.call("GetContractsByBlock", block)
+func (p Pool) GetContractsByBlock(ctx context.Context, block int64) ([]string, error) {
+	data, err := p.call("GetContractsByBlock", ctx, block)
 	if err != nil {
 		return nil, err
 	}
@@ -201,8 +209,8 @@ func (p Pool) GetContractsByBlock(block int64) ([]string, error) {
 }
 
 // GetNetworkConstants -
-func (p Pool) GetNetworkConstants(level int64) (res Constants, err error) {
-	data, err := p.call("GetNetworkConstants", level)
+func (p Pool) GetNetworkConstants(ctx context.Context, level int64) (res Constants, err error) {
+	data, err := p.call("GetNetworkConstants", ctx, level)
 	if err != nil {
 		return res, err
 	}
@@ -210,8 +218,8 @@ func (p Pool) GetNetworkConstants(level int64) (res Constants, err error) {
 }
 
 // RunCode -
-func (p Pool) RunCode(script, storage, input []byte, chainID, source, payer, entrypoint, proto string, amount, gas int64) (RunCodeResponse, error) {
-	data, err := p.call("RunCode", script, storage, input, chainID, source, payer, entrypoint, proto, amount, gas)
+func (p Pool) RunCode(ctx context.Context, script, storage, input []byte, chainID, source, payer, entrypoint, proto string, amount, gas int64) (RunCodeResponse, error) {
+	data, err := p.call("RunCode", ctx, script, storage, input, chainID, source, payer, entrypoint, proto, amount, gas)
 	if err != nil {
 		return RunCodeResponse{}, err
 	}
@@ -219,8 +227,8 @@ func (p Pool) RunCode(script, storage, input []byte, chainID, source, payer, ent
 }
 
 // RunOperation -
-func (p Pool) RunOperation(chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters []byte) (OperationGroup, error) {
-	data, err := p.call("RunOperation", chainID, branch, source, destination, fee, gasLimit, storageLimit, counter, amount, parameters)
+func (p Pool) RunOperation(ctx context.Context, chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters []byte) (OperationGroup, error) {
+	data, err := p.call("RunOperation", ctx, chainID, branch, source, destination, fee, gasLimit, storageLimit, counter, amount, parameters)
 	if err != nil {
 		return OperationGroup{}, err
 	}
@@ -228,8 +236,8 @@ func (p Pool) RunOperation(chainID, branch, source, destination string, fee, gas
 }
 
 // RunOperationLight -
-func (p Pool) RunOperationLight(chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters []byte) (LightOperationGroup, error) {
-	data, err := p.call("RunOperationLight", chainID, branch, source, destination, fee, gasLimit, storageLimit, counter, amount, parameters)
+func (p Pool) RunOperationLight(ctx context.Context, chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters []byte) (LightOperationGroup, error) {
+	data, err := p.call("RunOperationLight", ctx, chainID, branch, source, destination, fee, gasLimit, storageLimit, counter, amount, parameters)
 	if err != nil {
 		return LightOperationGroup{}, err
 	}
@@ -237,8 +245,8 @@ func (p Pool) RunOperationLight(chainID, branch, source, destination string, fee
 }
 
 // GetCounter -
-func (p Pool) GetCounter(address string) (int64, error) {
-	data, err := p.call("GetCounter", address)
+func (p Pool) GetCounter(ctx context.Context, address string) (int64, error) {
+	data, err := p.call("GetCounter", ctx, address)
 	if err != nil {
 		return 0, err
 	}
@@ -246,8 +254,8 @@ func (p Pool) GetCounter(address string) (int64, error) {
 }
 
 // GetBigMapType -
-func (p Pool) GetBigMapType(ptr, level int64) (BigMap, error) {
-	data, err := p.call("GetBigMapType", ptr, level)
+func (p Pool) GetBigMapType(ctx context.Context, ptr, level int64) (BigMap, error) {
+	data, err := p.call("GetBigMapType", ctx, ptr, level)
 	if err != nil {
 		return BigMap{}, err
 	}
@@ -255,8 +263,8 @@ func (p Pool) GetBigMapType(ptr, level int64) (BigMap, error) {
 }
 
 // GetBlockMetadata -
-func (p Pool) GetBlockMetadata(level int64) (Metadata, error) {
-	data, err := p.call("GetBlockMetadata", level)
+func (p Pool) GetBlockMetadata(ctx context.Context, level int64) (Metadata, error) {
+	data, err := p.call("GetBlockMetadata", ctx, level)
 	if err != nil {
 		return Metadata{}, err
 	}
@@ -264,8 +272,8 @@ func (p Pool) GetBlockMetadata(level int64) (Metadata, error) {
 }
 
 // GetRawScript -
-func (p Pool) GetRawScript(address string, level int64) ([]byte, error) {
-	data, err := p.call("GetRawScript", address, level)
+func (p Pool) GetRawScript(ctx context.Context, address string, level int64) ([]byte, error) {
+	data, err := p.call("GetRawScript", ctx, address, level)
 	if err != nil {
 		return nil, err
 	}

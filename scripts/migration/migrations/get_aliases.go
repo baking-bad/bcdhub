@@ -51,14 +51,13 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 			}
 
 			acc := account.Account{
-				Network: types.Mainnet,
 				Address: address,
 				Type:    types.NewAccountType(address),
 				Alias:   alias,
 			}
 
 			if _, err := tx.Model(&acc).
-				OnConflict("(network, address) DO UPDATE").
+				OnConflict("(address) DO UPDATE").
 				Set("alias = ?alias").
 				Insert(); err != nil {
 				return err

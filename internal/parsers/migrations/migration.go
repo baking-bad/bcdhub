@@ -108,7 +108,7 @@ func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContr
 		newPtr = p
 	}
 
-	bmd, err := p.bmdRepo.GetByAddress(contract.Network, contract.Account.Address)
+	bmd, err := p.bmdRepo.GetByAddress(contract.Account.Address)
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContr
 		}
 	}
 
-	keys, err := p.bmdRepo.CurrentByContract(contract.Network, contract.Account.Address)
+	keys, err := p.bmdRepo.CurrentByContract(contract.Account.Address)
 	if err != nil {
 		return err
 	}

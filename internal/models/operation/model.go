@@ -22,21 +22,20 @@ type Operation struct {
 	tableName struct{} `pg:"operations"`
 
 	ID                                 int64
-	ContentIndex                       int64         `pg:",use_zero"`
-	Level                              int64         `pg:",use_zero"`
-	Counter                            int64         `pg:",use_zero"`
-	Fee                                int64         `pg:",use_zero"`
-	GasLimit                           int64         `pg:",use_zero"`
-	StorageLimit                       int64         `pg:",use_zero"`
-	Amount                             int64         `pg:",use_zero"`
-	ConsumedGas                        int64         `pg:",use_zero"`
-	StorageSize                        int64         `pg:",use_zero"`
-	PaidStorageSizeDiff                int64         `pg:",use_zero"`
-	Burned                             int64         `pg:",use_zero"`
-	AllocatedDestinationContractBurned int64         `pg:",use_zero"`
-	ProtocolID                         int64         `pg:",type:SMALLINT"`
-	Network                            types.Network `pg:",type:SMALLINT"`
-	Tags                               types.Tags    `pg:",use_zero"`
+	ContentIndex                       int64      `pg:",use_zero"`
+	Level                              int64      `pg:",use_zero"`
+	Counter                            int64      `pg:",use_zero"`
+	Fee                                int64      `pg:",use_zero"`
+	GasLimit                           int64      `pg:",use_zero"`
+	StorageLimit                       int64      `pg:",use_zero"`
+	Amount                             int64      `pg:",use_zero"`
+	ConsumedGas                        int64      `pg:",use_zero"`
+	StorageSize                        int64      `pg:",use_zero"`
+	PaidStorageSizeDiff                int64      `pg:",use_zero"`
+	Burned                             int64      `pg:",use_zero"`
+	AllocatedDestinationContractBurned int64      `pg:",use_zero"`
+	ProtocolID                         int64      `pg:",type:SMALLINT"`
+	Tags                               types.Tags `pg:",use_zero"`
 	Nonce                              *int64
 
 	InitiatorID   int64
@@ -89,9 +88,8 @@ func (o *Operation) Save(tx pg.DBI) error {
 // LogFields -
 func (o *Operation) LogFields() map[string]interface{} {
 	return map[string]interface{}{
-		"network": o.Network.String(),
-		"hash":    o.Hash,
-		"block":   o.Level,
+		"hash":  o.Hash,
+		"block": o.Level,
 	}
 }
 
@@ -147,7 +145,6 @@ func (o *Operation) IsCall() bool {
 // EmptyTransfer -
 func (o Operation) EmptyTransfer() *transfer.Transfer {
 	return &transfer.Transfer{
-		Network:     o.Network,
 		Contract:    o.Destination.Address,
 		Status:      o.Status,
 		Timestamp:   o.Timestamp,

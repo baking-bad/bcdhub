@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10/orm"
 )
 
@@ -13,9 +12,6 @@ func (storage *Storage) buildGetContext(query *orm.Query, ctx transfer.GetContex
 		return
 	}
 
-	if ctx.Network != types.Empty {
-		query.Where("transfer.network = ?", ctx.Network)
-	}
 	if ctx.AccountID > -1 {
 		query.WhereGroup(func(q *orm.Query) (*orm.Query, error) {
 			q = q.WhereOr("transfer.from_id = ?", ctx.AccountID).WhereOr("transfer.to_id = ?", ctx.AccountID)

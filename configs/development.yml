@@ -1,13 +1,16 @@
 rpc:
   mainnet:
-    uri: https://rpc.tzkt.io/mainnet
+    uri: https://rpc.tzkt.io/archive
     timeout: 20
+    requests_per_second: 10
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
     timeout: 20
+    requests_per_second: 10
   ithacanet:
     uri: https://rpc.tzkt.io/ithacanet
     timeout: 20
+    requests_per_second: 10
 
 tzkt:
   mainnet:
@@ -20,7 +23,13 @@ services:
     mempool: https://mempool.dipdup.net/v1/graphql
 
 storage:
-  pg: "host=${DB_HOSTNAME:-127.0.0.1} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB:-indexer} password=${POSTGRES_PASSWORD} sslmode=disable"
+  pg: 
+    host: ${DB_HOSTNAME:-127.0.0.1}
+    port: 5432
+    user: ${POSTGRES_USER}
+    # dbname: ${POSTGRES_DB:-indexer}
+    password: ${POSTGRES_PASSWORD}
+    sslmode: disable
   elastic:
     - http://${ELASTIC_HOSTNAME:-127.0.0.1}:9200
   timeout: 10
@@ -71,8 +80,8 @@ indexer:
   offchain_base_url: ${OFFCHAIN_BASE_URL}
   cache: true
   networks:
-    mainnet:
-      receiver_threads: 20
+    # mainnet:
+    #   receiver_threads: 5
     hangzhou2net:
       receiver_threads: 2
     ithacanet:
@@ -85,6 +94,10 @@ metrics:
   project_name: metrics
   sentry_enabled: false
   cache_aliases_seconds: 30
+  networks:
+    - mainnet
+    - hangzhou2net
+    - ithacanet
   connections:
     max: 10
     idle: 10

@@ -45,47 +45,46 @@ func New(tokenBalanceRepo tbModel.Repository, accounts account.Repository) *Ledg
 }
 
 // Do -
-func (ledger *Ledger) Parse(operation *operation.Operation, st *stacktrace.StackTrace) (*parsers.Result, error) {
+func (ledger *Ledger) Parse(operation *operation.Operation, st *stacktrace.StackTrace, store parsers.Store) error {
 	if operation == nil || len(operation.BigMapDiffs) == 0 || !operation.Tags.Has(types.LedgerTag) {
-		return nil, nil
+		return nil
 	}
 
 	isFATransfer := (operation.Tags.Has(types.FA2Tag) || operation.Tags.Has(types.FA12Tag)) && operation.IsEntrypoint(consts.TransferEntrypoint)
 	if isFATransfer {
-		return nil, nil
+		return nil
 	}
 
 	storage, err := operation.AST.Storage.ToTypedAST()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := storage.SettleFromBytes(operation.DeffatedStorage); err != nil {
-		return nil, err
+		return err
 	}
 
 	bigMap, err := ledger.getLedgerBigMap(storage)
 	switch {
 	case errors.Is(err, ErrNoLedgerKeyInStorage):
-		return nil, nil
+		return nil
 	case err != nil:
-		return nil, err
+		return err
 	case bigMap == nil:
-		return nil, nil
+		return nil
 	}
 
-	result := new(parsers.Result)
 	for _, bmd := range operation.BigMapDiffs {
 		if bmd.Ptr != *bigMap.Ptr {
 			continue
 		}
 		balances, err := ledger.handle(bmd, bigMap, st, operation)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		result.TokenBalances = append(result.TokenBalances, balances...)
+		store.AddTokenBalances(balances...)
 	}
-	return result, nil
+	return nil
 }
 
 func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap, st *stacktrace.StackTrace, op *operation.Operation) ([]*tbModel.TokenBalance, error) {
@@ -118,10 +117,8 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 	}
 
 	tb := &tbModel.TokenBalance{
-		Network: bmd.Network,
 		Account: account.Account{
 			Address: balance[0].Address,
-			Network: bmd.Network,
 			Type:    types.NewAccountType(balance[0].Address),
 		},
 		TokenID:  balance[0].TokenID,
@@ -137,7 +134,7 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 		op.Transfers = append(op.Transfers, t)
 
 		if balance[0].IsExclusiveNFT {
-			holders, err := ledger.tokenBalances.GetHolders(tb.Network, tb.Contract, tb.TokenID)
+			holders, err := ledger.tokenBalances.GetHolders(tb.Contract, tb.TokenID)
 			if err != nil {
 				return nil, err
 			}
@@ -145,7 +142,6 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 				holders[i].Balance = decimal.Zero
 				holders[i].IsLedger = true
 				t.From = account.Account{
-					Network: bmd.Network,
 					Address: holders[i].Account.Address,
 					Type:    types.NewAccountType(holders[i].Account.Address),
 				}
@@ -158,7 +154,7 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 }
 
 func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, st *stacktrace.StackTrace, op *operation.Operation) *transfer.Transfer {
-	acc, err := ledger.accounts.Get(op.Network, tb.Address)
+	acc, err := ledger.accounts.Get(tb.Address)
 	if err != nil {
 		if !errors.Is(err, pg.ErrNoRows) {
 			logger.Err(err)
@@ -166,7 +162,7 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, st *stacktrace.
 		}
 	}
 
-	balance, err := ledger.tokenBalances.Get(op.Network, op.Destination.Address, acc.ID, tb.TokenID)
+	balance, err := ledger.tokenBalances.Get(op.Destination.Address, acc.ID, tb.TokenID)
 	if err != nil {
 		logger.Err(err)
 		return nil
@@ -179,7 +175,6 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, st *stacktrace.
 	t := op.EmptyTransfer()
 
 	account := account.Account{
-		Network: op.Network,
 		Address: tb.Address,
 		Type:    types.NewAccountType(tb.Address),
 	}

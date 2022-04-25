@@ -1,6 +1,8 @@
 package contracts
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -15,9 +17,9 @@ type ETHtz struct {
 }
 
 // NewETHtz -
-func NewETHtz(rpc noderpc.INode) (*ETHtz, error) {
+func NewETHtz(ctx context.Context, rpc noderpc.INode) (*ETHtz, error) {
 	contract := new(ETHtz)
-	script, err := rpc.GetScriptJSON(contract.Address(), 0)
+	script, err := rpc.GetScriptJSON(ctx, contract.Address(), 0)
 	if err != nil {
 		return nil, err
 	}

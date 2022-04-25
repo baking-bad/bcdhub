@@ -4,7 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*types.BigMapDiff {
@@ -22,7 +21,6 @@ func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*
 			OperationID: bmd[i].OperationID,
 			Level:       bmd[i].Level,
 			Address:     bmd[i].Contract,
-			Network:     bmd[i].Network.String(),
 			Timestamp:   bmd[i].Timestamp,
 			Protocol:    bmd[i].ProtocolID,
 		})
@@ -43,7 +41,6 @@ func prepareBigMapStatesToEnrich(bmd []bigmapdiff.BigMapState, skipEmpty bool) [
 			ID:      bmd[i].ID,
 			KeyHash: bmd[i].KeyHash,
 			Address: bmd[i].Contract,
-			Network: bmd[i].Network.String(),
 		}
 
 		if !bmd[i].Removed {
@@ -67,7 +64,6 @@ func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmapdiff.BigMapDiff {
 			OperationID: bmd[i].OperationID,
 			Level:       bmd[i].Level,
 			Contract:    bmd[i].Address,
-			Network:     modelTypes.NewNetwork(bmd[i].Network),
 			Timestamp:   bmd[i].Timestamp,
 			ProtocolID:  bmd[i].Protocol,
 		})
@@ -88,7 +84,8 @@ func createBigMapAst(key, value []byte, ptr int64) (*ast.BigMap, error) {
 	return bigMap, nil
 }
 
-func getStrings(data []byte) ([]string, error) {
+// GetStrings -
+func GetStrings(data []byte) ([]string, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}
@@ -97,21 +94,4 @@ func getStrings(data []byte) ([]string, error) {
 		return nil, err
 	}
 	return tree.GetStrings(true)
-}
-
-func setBigMapDiffsStrings(bmd *bigmapdiff.BigMapDiff) error {
-	keyStrings, err := getStrings(bmd.KeyBytes())
-	if err != nil {
-		return err
-	}
-	bmd.KeyStrings = keyStrings
-
-	if bmd.Value != nil {
-		valStrings, err := getStrings(bmd.ValueBytes())
-		if err != nil {
-			return err
-		}
-		bmd.ValueStrings = valStrings
-	}
-	return nil
 }

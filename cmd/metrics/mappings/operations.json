@@ -1,4 +1,9 @@
 {
+    "settings": {
+        "index": {
+            "number_of_shards": 3
+        }
+    },
     "mappings": {
         "properties": {
             "delegate_alias": {

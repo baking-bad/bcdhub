@@ -8,6 +8,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
 	mock_accounts "github.com/baking-bad/bcdhub/internal/models/mock/account"
 	mock_token_balance "github.com/baking-bad/bcdhub/internal/models/mock/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -32,9 +34,8 @@ func TestLedger_Parse(t *testing.T) {
 
 	accountsRepo.
 		EXPECT().
-		Get(gomock.Eq(types.Mainnet), gomock.Eq("tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo")).
+		Get(gomock.Eq("tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo")).
 		Return(account.Account{
-			Network: types.Mainnet,
 			Address: "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 			Type:    types.AccountTypeTz,
 		}, nil).
@@ -43,15 +44,12 @@ func TestLedger_Parse(t *testing.T) {
 	tbRepo.
 		EXPECT().
 		Get(
-			gomock.Eq(types.Mainnet),
 			gomock.Eq("KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E"),
 			gomock.Eq(int64(0)),
 			gomock.Eq(uint64(0))).
 		Return(tbModel.TokenBalance{
 			Contract: "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-			Network:  types.Mainnet,
 			Account: account.Account{
-				Network: types.Mainnet,
 				Address: "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 				Type:    types.AccountTypeTz,
 			},
@@ -64,7 +62,7 @@ func TestLedger_Parse(t *testing.T) {
 		name          string
 		operation     *operation.Operation
 		st            *stacktrace.StackTrace
-		want          *parsers.Result
+		want          *parsers.TestStore
 		wantTransfers []*transfer.Transfer
 		wantErr       bool
 	}{
@@ -76,25 +74,22 @@ func TestLedger_Parse(t *testing.T) {
 					Str:   consts.TransferEntrypoint,
 					Valid: true,
 				},
-				Network:         types.Mainnet,
 				DeffatedStorage: []byte(`{"int":257}`),
 				BigMapDiffs: []*bigmapdiff.BigMapDiff{
 					{
 						Ptr:         257,
 						Key:         []byte(`{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"}`),
 						KeyHash:     "expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf",
-						KeyStrings:  []string{"tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"},
 						Value:       []byte(`{"int":"1000000"}`),
 						OperationID: 1,
 						Level:       1269694,
 						Contract:    "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
-						Network:     types.Mainnet,
 						Timestamp:   time.Date(2020, 12, 22, 19, 19, 49, 0, time.UTC),
 						ProtocolID:  1,
 					},
 				},
 			},
-			want: nil,
+			want: parsers.NewTestStore(),
 		}, {
 			name: "test 2",
 			operation: &operation.Operation{
@@ -103,25 +98,22 @@ func TestLedger_Parse(t *testing.T) {
 					Str:   consts.TransferEntrypoint,
 					Valid: true,
 				},
-				Network:         types.Mainnet,
 				DeffatedStorage: []byte(`{"int":257}`),
 				BigMapDiffs: []*bigmapdiff.BigMapDiff{
 					{
 						Ptr:         257,
 						Key:         []byte(`{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"}`),
 						KeyHash:     "expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf",
-						KeyStrings:  []string{"tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"},
 						Value:       []byte(`{"int":"1000000"}`),
 						OperationID: 1,
 						Level:       1269694,
 						Contract:    "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
-						Network:     types.Mainnet,
 						Timestamp:   time.Date(2020, 12, 22, 19, 19, 49, 0, time.UTC),
 						ProtocolID:  1,
 					},
 				},
 			},
-			want: nil,
+			want: parsers.NewTestStore(),
 		}, {
 			name: "test 3",
 			operation: &operation.Operation{
@@ -130,10 +122,8 @@ func TestLedger_Parse(t *testing.T) {
 					Str:   "burn",
 					Valid: true,
 				},
-				Kind:    types.OperationKindTransaction,
-				Network: types.Mainnet,
+				Kind: types.OperationKindTransaction,
 				Destination: account.Account{
-					Network: types.Mainnet,
 					Address: "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
 					Type:    types.AccountTypeContract,
 				},
@@ -145,27 +135,28 @@ func TestLedger_Parse(t *testing.T) {
 						Ptr:         2071,
 						Key:         []byte(`{"bytes":"00016631ce723071ea19a87bd93d7e2f81dd82c18565"}`),
 						KeyHash:     "exprvA4NaRxQEqyJad5LzVz7rohGSQDn9B32KR87KxRQ43kWiaqPS4",
-						KeyStrings:  []string{"tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo"},
 						Value:       []byte(``),
 						OperationID: 1,
 						Level:       1455291,
 						Contract:    "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
-						Network:     types.Mainnet,
 						Timestamp:   time.Date(2021, 05, 03, 10, 03, 20, 0, time.UTC),
 						ProtocolID:  2,
 					},
 				},
 			},
-			want: &parsers.Result{
+			want: &parsers.TestStore{
+				Contracts:       make([]*contract.Contract, 0),
+				BigMapState:     make([]*bigmapdiff.BigMapState, 0),
+				Migrations:      make([]*migration.Migration, 0),
+				Operations:      make([]*operation.Operation, 0),
+				GlobalConstants: make([]*contract.GlobalConstant, 0),
 				TokenBalances: []*tbModel.TokenBalance{
 					{
 						Account: account.Account{
-							Network: types.Mainnet,
 							Address: "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 							Type:    types.AccountTypeTz,
 						},
 						Contract: "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
-						Network:  types.Mainnet,
 						Balance:  decimal.RequireFromString("0"),
 						TokenID:  0,
 						IsLedger: true,
@@ -175,12 +166,10 @@ func TestLedger_Parse(t *testing.T) {
 			wantTransfers: []*transfer.Transfer{
 				{
 					From: account.Account{
-						Network: types.Mainnet,
 						Address: "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 						Type:    types.AccountTypeTz,
 					},
 					Contract:   "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
-					Network:    types.Mainnet,
 					Amount:     decimal.RequireFromString("168000"),
 					TokenID:    0,
 					Entrypoint: "burn",
@@ -205,13 +194,13 @@ func TestLedger_Parse(t *testing.T) {
 				tokenBalances: tbRepo,
 				accounts:      accountsRepo,
 			}
-			got, err := ledger.Parse(tt.operation, tt.st)
-			if (err != nil) != tt.wantErr {
+			store := parsers.NewTestStore()
+			if err := ledger.Parse(tt.operation, tt.st, store); (err != nil) != tt.wantErr {
 				t.Errorf("Ledger.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.want, store)
 
 			assert.Len(t, tt.operation.Transfers, len(tt.wantTransfers))
 			assert.Equal(t, tt.wantTransfers, tt.operation.Transfers)

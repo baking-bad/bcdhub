@@ -26,13 +26,12 @@ func NewParser(ctx *config.Context) *Parser {
 }
 
 // Parse -
-func (p *Parser) Parse(operation *operation.Operation, symLink string, result *parsers.Result) error {
+func (p *Parser) Parse(operation *operation.Operation, symLink string, store parsers.Store) error {
 	if !operation.IsOrigination() {
 		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
 
 	contract := contract.Contract{
-		Network:    operation.Network,
 		Level:      operation.Level,
 		Timestamp:  operation.Timestamp,
 		Manager:    operation.Source,
@@ -44,7 +43,8 @@ func (p *Parser) Parse(operation *operation.Operation, symLink string, result *p
 	if err := p.computeMetrics(operation, symLink, &contract); err != nil {
 		return err
 	}
-	result.Contracts = append(result.Contracts, &contract)
+
+	store.AddContracts(&contract)
 	return nil
 }
 
@@ -71,7 +71,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, 
 		}
 
 		if len(constants) > 0 {
-			globalConstants, err := p.ctx.GlobalConstants.All(c.Network, constants...)
+			globalConstants, err := p.ctx.GlobalConstants.All(constants...)
 			if err != nil {
 				return err
 			}
@@ -95,21 +95,16 @@ func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, 
 		}
 
 		operation.Script = script.CodeRaw
-		contractScript = contract.Script{
-			Hash:                 script.Hash,
-			Code:                 s.Code,
-			Parameter:            s.Parameter,
-			Storage:              s.Storage,
-			Views:                s.Views,
-			FingerprintParameter: script.Fingerprint.Parameter,
-			FingerprintCode:      script.Fingerprint.Code,
-			FingerprintStorage:   script.Fingerprint.Storage,
-			FailStrings:          script.FailStrings.Values(),
-			Annotations:          script.Annotations.Values(),
-			Tags:                 types.NewTags(script.Tags.Values()),
-			Hardcoded:            script.HardcodedAddresses.Values(),
-			Entrypoints:          params.GetEntrypoints(),
-		}
+		contractScript.Hash = script.Hash
+		contractScript.Code = s.Code
+		contractScript.Parameter = s.Parameter
+		contractScript.Storage = s.Storage
+		contractScript.Views = s.Views
+		contractScript.FailStrings = script.FailStrings.Values()
+		contractScript.Annotations = script.Annotations.Values()
+		contractScript.Tags = types.NewTags(script.Tags.Values())
+		contractScript.Hardcoded = script.HardcodedAddresses.Values()
+		contractScript.Entrypoints = params.GetEntrypoints()
 
 		switch symLink {
 		case bcd.SymLinkAlpha:

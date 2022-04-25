@@ -10,8 +10,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/cenkalti/backoff"
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/elastic/go-elasticsearch/v7/esutil"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 )
@@ -21,6 +22,8 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 // Elastic -
 type Elastic struct {
 	*elasticsearch.Client
+
+	bulkIndexer esutil.BulkIndexer
 }
 
 // New -
@@ -42,7 +45,17 @@ func New(addresses []string) (*Elastic, error) {
 		return nil, err
 	}
 
-	e := &Elastic{es}
+	bi, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
+		Client:        es,               // The Elasticsearch client
+		NumWorkers:    2,                // The number of worker goroutines
+		FlushBytes:    1024 * 512,       // The flush threshold in bytes
+		FlushInterval: 10 * time.Second, // The periodic flush interval
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	e := &Elastic{es, bi}
 	return e, e.ping()
 }
 
@@ -52,12 +65,12 @@ func WaitNew(addresses []string, timeout int) *Elastic {
 	var err error
 
 	for es == nil {
-		es, err = New(addresses)
-		if err != nil {
+		if es, err = New(addresses); err != nil {
 			logger.Warning().Msgf("Waiting elastic up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))
 		}
 	}
+
 	return es
 }
 
@@ -73,16 +86,6 @@ func (e *Elastic) getResponse(resp *esapi.Response, result interface{}) error {
 		return nil
 	}
 	return json.NewDecoder(resp.Body).Decode(result)
-}
-
-func (e *Elastic) getTextResponse(resp *esapi.Response) (string, error) {
-	if resp.IsError() {
-		return "", errors.Errorf(resp.String())
-	}
-
-	buf := new(bytes.Buffer)
-	_, err := buf.ReadFrom(resp.Body)
-	return buf.String(), err
 }
 
 func (e *Elastic) query(indices []string, query map[string]interface{}, response interface{}) (err error) {
@@ -203,17 +206,37 @@ func (e *Elastic) deleteWithQuery(indices []string, query map[string]interface{}
 	return
 }
 
-// ReloadSecureSettings -
-func (e *Elastic) ReloadSecureSettings() error {
-	resp, err := e.Nodes.ReloadSecureSettings()
+type countResponse struct {
+	Count int64 `json:"count"`
+}
+
+func (e *Elastic) count(indices []string, query map[string]interface{}) (int64, error) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(query); err != nil {
+		return 0, err
+	}
+
+	// logger.InterfaceToJSON(query)
+	// logger.InterfaceToJSON(indices)
+
+	var resp *esapi.Response
+	options := []func(*esapi.CountRequest){
+		e.Count.WithContext(context.Background()),
+		e.Count.WithIndex(indices...),
+		e.Count.WithBody(&buf),
+	}
+
+	resp, err := e.Count(
+		options...,
+	)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer resp.Body.Close()
 
-	if resp.IsError() {
-		return errors.Errorf(resp.Status())
+	var response countResponse
+	if err := e.getResponse(resp, &response); err != nil {
+		return 0, err
 	}
-
-	return nil
+	return response.Count, nil
 }

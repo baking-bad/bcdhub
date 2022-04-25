@@ -1,12 +1,13 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
@@ -17,12 +18,12 @@ var (
 )
 
 // GetBigMapPtr -
-func GetBigMapPtr(repo models.GeneralRepository, contracts contract.Repository, rpc noderpc.INode, network types.Network, address, key, protocol string, level int64) (int64, error) {
+func GetBigMapPtr(ctx context.Context, repo models.GeneralRepository, contracts contract.Repository, rpc noderpc.INode, address, key, protocol string, level int64) (int64, error) {
 	symLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return 0, err
 	}
-	storageTypeByte, err := contracts.ScriptPart(network, address, symLink, consts.STORAGE)
+	storageTypeByte, err := contracts.ScriptPart(address, symLink, consts.STORAGE)
 	if err != nil {
 		return 0, err
 	}
@@ -36,7 +37,7 @@ func GetBigMapPtr(repo models.GeneralRepository, contracts contract.Repository, 
 		return 0, errors.Wrap(ErrBigMapNotFound, key)
 	}
 
-	storageJSON, err := rpc.GetScriptStorageRaw(address, level)
+	storageJSON, err := rpc.GetScriptStorageRaw(ctx, address, level)
 	if err != nil {
 		return 0, err
 	}
@@ -56,12 +57,12 @@ func GetBigMapPtr(repo models.GeneralRepository, contracts contract.Repository, 
 }
 
 // FindByName -
-func FindByName(repo models.GeneralRepository, contracts contract.Repository, network types.Network, address, key, protocol string) *ast.BigMap {
+func FindByName(repo models.GeneralRepository, contracts contract.Repository, address, key, protocol string) *ast.BigMap {
 	symLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return nil
 	}
-	storageTypeByte, err := contracts.ScriptPart(network, address, symLink, consts.STORAGE)
+	storageTypeByte, err := contracts.ScriptPart(address, symLink, consts.STORAGE)
 	if err != nil {
 		return nil
 	}

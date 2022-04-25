@@ -10,7 +10,7 @@ import (
 	"github.com/jessevdk/go-flags"
 )
 
-var ctx *config.Context
+var ctxs config.Contexts
 var creds awsData
 
 type awsData struct {
@@ -30,13 +30,13 @@ func main() {
 		Region:     cfg.Scripts.AWS.Region,
 	}
 
-	ctx = config.NewContext(
-		config.WithStorage(cfg.Storage, "bcdctl", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle),
+	ctxs = config.NewContexts(cfg, cfg.Scripts.Networks,
+		config.WithStorage(cfg.Storage, "bcdctl", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle, false),
 		config.WithConfigCopy(cfg),
-		config.WithRPC(cfg.RPC),
+		config.WithRPC(cfg.RPC, false),
 		config.WithSearch(cfg.Storage),
 	)
-	defer ctx.Close()
+	defer ctxs.Close()
 
 	parser := flags.NewParser(nil, flags.Default)
 
@@ -44,46 +44,6 @@ func main() {
 		"Rollback state",
 		"Rollback network state to certain level",
 		&rollbackCmd); err != nil {
-		logger.Err(err)
-		return
-	}
-
-	if _, err := parser.AddCommand("create_repository",
-		"Create repository",
-		"Create repository",
-		&createRepoCmd); err != nil {
-		logger.Err(err)
-		return
-	}
-
-	if _, err := parser.AddCommand("snapshot",
-		"Create snapshot",
-		"Create snapshot",
-		&snapshotCmd); err != nil {
-		logger.Err(err)
-		return
-	}
-
-	if _, err := parser.AddCommand("restore",
-		"Restore snapshot",
-		"Restore snapshot",
-		&restoreCmd); err != nil {
-		logger.Err(err)
-		return
-	}
-
-	if _, err := parser.AddCommand("set_policy",
-		"Set policy",
-		"Set elastic snapshot policy",
-		&setPolicyCmd); err != nil {
-		logger.Err(err)
-		return
-	}
-
-	if _, err := parser.AddCommand("reload_secure_settings",
-		"Reload secure settings",
-		"Reload secure settings",
-		&reloadSecureSettingsCmd); err != nil {
 		logger.Err(err)
 		return
 	}
@@ -109,15 +69,4 @@ func yes() bool {
 		panic(err)
 	}
 	return strings.ReplaceAll(text, "\n", "") == "yes"
-}
-
-func askQuestion(question string) (string, error) {
-	logger.Warning().Msg(question)
-
-	reader := bufio.NewReader(os.Stdin)
-	text, err := reader.ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-	return strings.ReplaceAll(text, "\n", ""), nil
 }

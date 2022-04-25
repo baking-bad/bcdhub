@@ -2,7 +2,6 @@ package operation
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models/account"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Repository -
@@ -16,10 +15,10 @@ type Repository interface {
 	// `Sort` - sort by time and content index by desc
 	Get(filter map[string]interface{}, size int64, sort bool) ([]Operation, error)
 
-	GetContract24HoursVolume(network types.Network, address string, entrypoints []string) (float64, error)
-	GetTokensStats(network types.Network, addresses, entrypoints []string) (map[string]TokenUsageStats, error)
+	GetContract24HoursVolume(address string, entrypoints []string) (float64, error)
+	GetTokensStats(addresses, entrypoints []string) (map[string]TokenUsageStats, error)
 
-	GetDAppStats(network types.Network, addresses []string, period string) (DAppStats, error)
+	GetDAppStats(addresses []string, period string) (DAppStats, error)
 	GetByIDs(ids ...int64) ([]Operation, error)
 	GetByID(id int64) (Operation, error)
 }

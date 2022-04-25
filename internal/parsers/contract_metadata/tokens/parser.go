@@ -6,15 +6,12 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
 	cmStorage "github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/storage"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/pkg/errors"
@@ -23,28 +20,20 @@ import (
 
 // Parser -
 type Parser struct {
-	bmdRepo       bigmapdiff.Repository
-	blocksRepo    block.Repository
-	contractsRepo contract.Repository
-	tmRepo        tokenmetadata.Repository
-	storage       models.GeneralRepository
-
-	rpc     noderpc.INode
-	network types.Network
-	ipfs    []string
+	ctx  *config.Context
+	ipfs []string
 }
 
 // NewParser -
-func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, contractsRepo contract.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, network types.Network, ipfs ...string) Parser {
+func NewParser(ctx *config.Context, ipfs ...string) Parser {
 	return Parser{
-		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage,
-		rpc: rpc, network: network, ipfs: ipfs, tmRepo: tmRepo,
-		contractsRepo: contractsRepo,
+		ctx:  ctx,
+		ipfs: ipfs,
 	}
 }
 
 // Parse -
-func (t Parser) Parse(ctx context.Context, address string, level int64) ([]tokenmetadata.TokenMetadata, error) {
+func (t Parser) Parse(ctx context.Context, address string, level int64) ([]*tokenmetadata.TokenMetadata, error) {
 	state, err := t.getState(level)
 	if err != nil {
 		return nil, err
@@ -53,7 +42,7 @@ func (t Parser) Parse(ctx context.Context, address string, level int64) ([]token
 }
 
 // ParseBigMapDiff -
-func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, storageAST *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
+func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, storageAST *ast.TypedAst) ([]*tokenmetadata.TokenMetadata, error) {
 	storageType := ast.TypedAst{
 		Nodes: []ast.Node{ast.Copy(storageAST.Nodes[0])},
 	}
@@ -76,23 +65,23 @@ func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, st
 		ptr := bmd.Ptr
 		switch {
 		case strings.HasPrefix(m.Link, "ipfs://"):
-			if found, err := t.tmRepo.GetOne(bmd.Network, bmd.Contract, m.TokenID); err == nil && found != nil {
+			if found, err := t.ctx.TokenMetadata.GetOne(bmd.Contract, m.TokenID); err == nil && found != nil {
 				if link, ok := found.Extras[""]; ok && link == m.Link {
 					return nil, nil
 				}
 			}
 		case strings.HasPrefix(m.Link, "tezos-storage:"):
-			bmPtr, err := storage.GetBigMapPtr(t.storage, t.contractsRepo, t.rpc, t.network, bmd.Contract, "metadata", bmd.Protocol.Hash, bmd.Level)
+			bmPtr, err := storage.GetBigMapPtr(ctx, t.ctx.Storage, t.ctx.Contracts, t.ctx.RPC, bmd.Contract, "metadata", bmd.Protocol.Hash, bmd.Level)
 			if err != nil {
 				return nil, err
 			}
 			ptr = bmPtr
 		}
 
-		s := cmStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
+		s := cmStorage.NewFull(t.ctx, t.ipfs...)
 
 		remoteMetadata := new(TokenMetadata)
-		if err := s.Get(ctx, t.network, bmd.Contract, m.Link, ptr, remoteMetadata); err != nil {
+		if err := s.Get(ctx, bmd.Contract, m.Link, ptr, remoteMetadata); err != nil {
 			switch {
 			case errors.Is(err, cmStorage.ErrHTTPRequest):
 				logger.Warning().Str("url", m.Link).Str("kind", "token_metadata").Err(err).Msg("")
@@ -107,18 +96,17 @@ func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, st
 		m.Merge(remoteMetadata)
 	}
 
-	return []tokenmetadata.TokenMetadata{m.ToModel(bmd.Contract, t.network)}, nil
+	return []*tokenmetadata.TokenMetadata{m.ToModel(bmd.Contract)}, nil
 }
 
-func (t Parser) parse(ctx context.Context, address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
-	ptr, err := storage.GetBigMapPtr(t.storage, t.contractsRepo, t.rpc, state.Network, address, TokenMetadataStorageKey, state.Protocol.Hash, state.Level)
+func (t Parser) parse(ctx context.Context, address string, state block.Block) ([]*tokenmetadata.TokenMetadata, error) {
+	ptr, err := storage.GetBigMapPtr(ctx, t.ctx.Storage, t.ctx.Contracts, t.ctx.RPC, address, TokenMetadataStorageKey, state.Protocol.Hash, state.Level)
 	if err != nil {
 		return nil, err
 	}
 
-	bmd, err := t.bmdRepo.Get(bigmapdiff.GetContext{
+	bmd, err := t.ctx.BigMapDiffs.Get(bigmapdiff.GetContext{
 		Ptr:          &ptr,
-		Network:      t.network,
 		CurrentLevel: &state.Level,
 		Contract:     address,
 	})
@@ -142,13 +130,13 @@ func (t Parser) parse(ctx context.Context, address string, state block.Block) ([
 		metadata = append(metadata, m)
 	}
 
-	result := make([]tokenmetadata.TokenMetadata, 0)
+	result := make([]*tokenmetadata.TokenMetadata, 0)
 	for _, m := range metadata {
 		if m.Link != "" {
-			s := cmStorage.NewFull(t.bmdRepo, t.contractsRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
+			s := cmStorage.NewFull(t.ctx, t.ipfs...)
 
 			remoteMetadata := &TokenMetadata{}
-			if err := s.Get(ctx, t.network, address, m.Link, ptr, remoteMetadata); err != nil {
+			if err := s.Get(ctx, address, m.Link, ptr, remoteMetadata); err != nil {
 				if errors.Is(err, cmStorage.ErrHTTPRequest) {
 					logger.Err(err)
 					return nil, nil
@@ -158,7 +146,7 @@ func (t Parser) parse(ctx context.Context, address string, state block.Block) ([
 			m.Merge(remoteMetadata)
 		}
 
-		result = append(result, m.ToModel(address, t.network))
+		result = append(result, m.ToModel(address))
 	}
 
 	return result, nil
@@ -166,7 +154,7 @@ func (t Parser) parse(ctx context.Context, address string, state block.Block) ([
 
 func (t Parser) getState(level int64) (block.Block, error) {
 	if level > 0 {
-		return t.blocksRepo.Get(t.network, level)
+		return t.ctx.Blocks.Get(level)
 	}
-	return t.blocksRepo.Last(t.network)
+	return t.ctx.Blocks.Last()
 }

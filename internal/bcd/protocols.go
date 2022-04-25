@@ -58,3 +58,9 @@ const (
 	SymLinkAlpha   = "alpha"
 	SymLinkBabylon = "babylon"
 )
+
+var ChainID = map[string]string{
+	"NetXdQprcVkpaWU": "mainnet",
+	"NetXZSsxBpMQeAT": "hangzhou2net",
+	"NetXnHfVqm9iesp": "ithacanet",
+}

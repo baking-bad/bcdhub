@@ -2,6 +2,7 @@ package operations
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -36,12 +37,12 @@ func readJSONFile(name string, response interface{}) error {
 	return json.Unmarshal(bytes, response)
 }
 
-func readTestScript(network types.Network, address, symLink string) ([]byte, error) {
-	path := filepath.Join("./test/contracts", network.String(), fmt.Sprintf("%s_%s.json", address, symLink))
+func readTestScript(address, symLink string) ([]byte, error) {
+	path := filepath.Join("./test/contracts", fmt.Sprintf("%s_%s.json", address, symLink))
 	return ioutil.ReadFile(path)
 }
 
-func readRPCScript(address string, _ int64) (noderpc.Script, error) {
+func readRPCScript(_ context.Context, address string, _ int64) (noderpc.Script, error) {
 	var script noderpc.Script
 	storageFile := fmt.Sprintf("./data/rpc/script/script/%s.json", address)
 	if _, err := os.Lstat(storageFile); !os.IsNotExist(err) {
@@ -57,8 +58,8 @@ func readRPCScript(address string, _ int64) (noderpc.Script, error) {
 	return script, errors.Errorf("unknown RPC script: %s", address)
 }
 
-func readTestScriptModel(network types.Network, address, symLink string) (contract.Script, error) {
-	data, err := readTestScript(network, address, bcd.SymLinkBabylon)
+func readTestScriptModel(address, symLink string) (contract.Script, error) {
+	data, err := readTestScript(address, bcd.SymLinkBabylon)
 	if err != nil {
 		return contract.Script{}, err
 	}
@@ -78,23 +79,20 @@ func readTestScriptModel(network types.Network, address, symLink string) (contra
 		return contract.Script{}, err
 	}
 	return contract.Script{
-		Code:                 s.Code,
-		Parameter:            s.Parameter,
-		Storage:              s.Storage,
-		Hash:                 script.Hash,
-		FingerprintParameter: script.Fingerprint.Parameter,
-		FingerprintCode:      script.Fingerprint.Code,
-		FingerprintStorage:   script.Fingerprint.Storage,
-		FailStrings:          script.FailStrings.Values(),
-		Annotations:          script.Annotations.Values(),
-		Tags:                 types.NewTags(script.Tags.Values()),
-		Hardcoded:            script.HardcodedAddresses.Values(),
+		Code:        s.Code,
+		Parameter:   s.Parameter,
+		Storage:     s.Storage,
+		Hash:        script.Hash,
+		FailStrings: script.FailStrings.Values(),
+		Annotations: script.Annotations.Values(),
+		Tags:        types.NewTags(script.Tags.Values()),
+		Hardcoded:   script.HardcodedAddresses.Values(),
 	}, nil
 }
 
 //nolint
-func readTestScriptPart(network types.Network, address, symLink, part string) ([]byte, error) {
-	data, err := readTestScript(network, address, bcd.SymLinkBabylon)
+func readTestScriptPart(address, symLink, part string) ([]byte, error) {
+	data, err := readTestScript(address, bcd.SymLinkBabylon)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +112,7 @@ func readTestScriptPart(network types.Network, address, symLink, part string) ([
 	return nil, nil
 }
 
-func readTestContractModel(network types.Network, address string) (contract.Contract, error) {
+func readTestContractModel(address string) (contract.Contract, error) {
 	var c contract.Contract
 	f, err := os.Open(fmt.Sprintf("./data/models/contract/%s.json", address))
 	if err != nil {
@@ -126,12 +124,12 @@ func readTestContractModel(network types.Network, address string) (contract.Cont
 	return c, err
 }
 
-func readStorage(address string, level int64) ([]byte, error) {
+func readStorage(_ context.Context, address string, level int64) ([]byte, error) {
 	storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", address, level)
 	return ioutil.ReadFile(storageFile)
 }
 
-func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
+func compareParserResponse(t *testing.T, got, want *parsers.TestStore) bool {
 	if !assert.Len(t, got.BigMapState, len(want.BigMapState)) {
 		return false
 	}
@@ -186,10 +184,6 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 }
 
 func compareTransfers(t *testing.T, one, two *transfer.Transfer) bool {
-	if one.Network != two.Network {
-		logger.Info().Msgf("Network: %s != %s", one.Network, two.Network)
-		return false
-	}
 	if one.Contract != two.Contract {
 		logger.Info().Msgf("Contract: %s != %s", one.Contract, two.Contract)
 		return false
@@ -277,10 +271,6 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 	}
 	if one.AllocatedDestinationContractBurned != two.AllocatedDestinationContractBurned {
 		logger.Info().Msgf("AllocatedDestinationContractBurned: %d != %d", one.AllocatedDestinationContractBurned, two.AllocatedDestinationContractBurned)
-		return false
-	}
-	if one.Network != two.Network {
-		logger.Info().Msgf("Network: %s != %s", one.Network, two.Network)
 		return false
 	}
 	if one.ProtocolID != two.ProtocolID {
@@ -390,10 +380,6 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 		logger.Info().Msgf("Level: %d != %d", one.Level, two.Level)
 		return false
 	}
-	if one.Network != two.Network {
-		logger.Info().Msgf("Network: %s != %s", one.Network, two.Network)
-		return false
-	}
 	if one.Timestamp != two.Timestamp {
 		logger.Info().Msgf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
 		return false
@@ -402,28 +388,12 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 		logger.Info().Msgf("Protocol: %d != %d", one.ProtocolID, two.ProtocolID)
 		return false
 	}
+	if one.Ptr != two.Ptr {
+		logger.Info().Msgf("Ptr: %d != %d", one.Ptr, two.Ptr)
+		return false
+	}
 	if !assert.JSONEq(t, string(one.KeyBytes()), string(two.KeyBytes())) {
 		return false
-	}
-	if len(one.KeyStrings) != len(two.KeyStrings) {
-		logger.Info().Msgf("KeyStrings: %v != %v", one.KeyStrings, two.KeyStrings)
-		return false
-	}
-	for i := range one.KeyStrings {
-		if one.KeyStrings[i] != two.KeyStrings[i] {
-			logger.Info().Msgf("KeyStrings[i]: %v != %v", one.KeyStrings[i], two.KeyStrings[i])
-			return false
-		}
-	}
-	if len(one.ValueStrings) != len(two.ValueStrings) {
-		logger.Info().Msgf("ValueStrings: %v != %v", one.ValueStrings, two.ValueStrings)
-		return false
-	}
-	for i := range one.ValueStrings {
-		if one.ValueStrings[i] != two.ValueStrings[i] {
-			logger.Info().Msgf("ValueStrings[i]: %v != %v", one.ValueStrings[i], two.ValueStrings[i])
-			return false
-		}
 	}
 	return true
 }
@@ -449,10 +419,6 @@ func compareBigMapAction(one, two *bigmapaction.BigMapAction) bool {
 		logger.Info().Msgf("BigMapAction.Address: %s != %s", one.Address, two.Address)
 		return false
 	}
-	if one.Network != two.Network {
-		logger.Info().Msgf("Network: %s != %s", one.Network, two.Network)
-		return false
-	}
 	if one.Timestamp != two.Timestamp {
 		logger.Info().Msgf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
 		return false
@@ -461,9 +427,6 @@ func compareBigMapAction(one, two *bigmapaction.BigMapAction) bool {
 }
 
 func compareContract(t *testing.T, one, two *contract.Contract) bool {
-	if !assert.Equal(t, one.Network, two.Network) {
-		return false
-	}
 	if !assert.Equal(t, one.Account, two.Account) {
 		return false
 	}
@@ -494,9 +457,6 @@ func compareScript(t *testing.T, one, two contract.Script) bool {
 	if !assert.Equal(t, one.Hash, two.Hash) {
 		return false
 	}
-	if !assert.Equal(t, one.ProjectID, two.ProjectID) {
-		return false
-	}
 	if !assert.ElementsMatch(t, one.Entrypoints, two.Entrypoints) {
 		return false
 	}
@@ -510,15 +470,6 @@ func compareScript(t *testing.T, one, two contract.Script) bool {
 		return false
 	}
 	if !assert.ElementsMatch(t, one.Code, two.Code) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.FingerprintParameter, two.FingerprintParameter) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.FingerprintCode, two.FingerprintCode) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.FingerprintStorage, two.FingerprintStorage) {
 		return false
 	}
 	return true

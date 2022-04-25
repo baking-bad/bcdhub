@@ -46,6 +46,7 @@ type Config struct {
 		SentryEnabled       bool        `yaml:"sentry_enabled"`
 		CacheAliasesSeconds int         `yaml:"cache_aliases_seconds"`
 		Connections         Connections `yaml:"connections"`
+		Networks            []string    `yaml:"networks"`
 	} `yaml:"metrics"`
 
 	Scripts struct {
@@ -62,9 +63,10 @@ type IndexerConfig struct {
 
 // RPCConfig -
 type RPCConfig struct {
-	URI     string `yaml:"uri"`
-	Timeout int    `yaml:"timeout"`
-	Cache   string `yaml:"cache"`
+	URI               string `yaml:"uri"`
+	Timeout           int    `yaml:"timeout"`
+	Cache             string `yaml:"cache"`
+	RequestsPerSecond int    `yaml:"requests_per_second"`
 }
 
 // TzKTConfig -
@@ -81,9 +83,28 @@ type ServiceConfig struct {
 
 // StorageConfig -
 type StorageConfig struct {
-	Postgres string   `yaml:"pg"`
-	Elastic  []string `yaml:"elastic"`
-	Timeout  int      `yaml:"timeout"`
+	Postgres PostgresConfig `yaml:"pg"`
+	Elastic  []string       `yaml:"elastic"`
+	Timeout  int            `yaml:"timeout"`
+}
+
+// PostgresConfig -
+type PostgresConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	DBName   string `yaml:"dbname"`
+	Password string `yaml:"password"`
+	SslMode  string `yaml:"sslmode"`
+}
+
+// ConnectionString -
+func (p PostgresConfig) ConnectionString() string {
+	database := p.DBName
+	if database == "" {
+		database = "postgres"
+	}
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s sslmode=%s dbname=%s", p.Host, p.Port, p.User, p.Password, p.SslMode, database)
 }
 
 // DatabaseConfig -

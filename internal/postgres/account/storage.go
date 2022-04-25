@@ -2,7 +2,6 @@ package account
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models/account"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
 
@@ -17,9 +16,8 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(network types.Network, address string) (account account.Account, err error) {
+func (storage *Storage) Get(address string) (account account.Account, err error) {
 	err = storage.DB.Model(&account).
-		Where("network = ?", network).
 		Where("address = ?", address).
 		Limit(1).
 		Select(&account)
@@ -27,10 +25,9 @@ func (storage *Storage) Get(network types.Network, address string) (account acco
 }
 
 // Alias -
-func (storage *Storage) Alias(network types.Network, address string) (alias string, err error) {
+func (storage *Storage) Alias(address string) (alias string, err error) {
 	err = storage.DB.Model((*account.Account)(nil)).
 		Column("alias").
-		Where("network = ?", network).
 		Where("address = ?", address).
 		Limit(1).
 		Select(&alias)

@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -28,15 +30,13 @@ func NewOrigination(params *ParseParams) Origination {
 var delegatorContract = []byte(`{"code":[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%do"]},{"prim":"unit","annots":["%default"]}]}]},{"prim":"storage","args":[{"prim":"key_hash"}]},{"prim":"code","args":[[[[{"prim":"DUP"},{"prim":"CAR"},{"prim":"DIP","args":[[{"prim":"CDR"}]]}]],{"prim":"IF_LEFT","args":[[{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},{"prim":"AMOUNT"},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}],{"prim":"IMPLICIT_ACCOUNT"},{"prim":"ADDRESS"},{"prim":"SENDER"},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"UNIT"},{"prim":"EXEC"},{"prim":"PAIR"}],[{"prim":"DROP"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]]}],"storage":{"bytes":"0079943a60100e0394ac1c8f6ccfaeee71ec9c2d94"}}`)
 
 // Parse -
-func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error {
+func (p Origination) Parse(data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
-		Network: p.network,
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
 	}
 
 	origination := operation.Operation{
-		Network:      p.network,
 		Hash:         p.hash,
 		ProtocolID:   p.protocol.ID,
 		Level:        p.head.Level,
@@ -50,7 +50,6 @@ func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error
 		StorageLimit: data.StorageLimit,
 		Amount:       *data.Balance,
 		Delegate: account.Account{
-			Network: p.network,
 			Address: data.Delegate,
 			Type:    types.NewAccountType(data.Delegate),
 		},
@@ -73,47 +72,40 @@ func (p Origination) Parse(data noderpc.Operation, result *parsers.Result) error
 	p.stackTrace.Add(origination)
 
 	if origination.IsApplied() {
-		if err := p.appliedHandler(data, &origination, result); err != nil {
+		if err := p.appliedHandler(data, &origination, store); err != nil {
 			return err
 		}
 	}
 
-	result.Operations = append(result.Operations, &origination)
+	store.AddOperations(&origination)
 
 	return nil
 }
 
-func (p Origination) appliedHandler(item noderpc.Operation, origination *operation.Operation, result *parsers.Result) error {
-	if origination == nil || result == nil {
+func (p Origination) appliedHandler(item noderpc.Operation, origination *operation.Operation, store parsers.Store) error {
+	if origination == nil || store == nil {
 		return nil
 	}
 
-	if err := p.contractParser.Parse(origination, p.protocol.SymLink, result); err != nil {
+	if err := p.contractParser.Parse(origination, p.protocol.SymLink, store); err != nil {
 		return err
 	}
 
-	if err := setTags(p.ctx, result.Contracts[0], origination); err != nil {
+	contracts := store.ListContracts()
+	if err := setTags(p.ctx, contracts[0], origination); err != nil {
 		return err
 	}
 
-	storageResult, err := p.storageParser.Parse(item, origination)
-	if err != nil {
+	if err := p.storageParser.Parse(context.Background(), item, origination, store); err != nil {
 		return err
 	}
-	if storageResult != nil {
-		result.Merge(storageResult)
-	}
 
-	ledgerResult, err := ledger.New(p.ctx.TokenBalances, p.ctx.Accounts).Parse(origination, p.stackTrace)
-	if err != nil {
+	if err := ledger.New(p.ctx.TokenBalances, p.ctx.Accounts).Parse(origination, p.stackTrace, store); err != nil {
 		return err
 	}
-	if ledgerResult != nil {
-		result.TokenBalances = append(result.TokenBalances, ledgerResult.TokenBalances...)
-	}
 
-	if origination.Network == types.Mainnet {
-		if err := p.executeInitialStorageEvent(item.Script, origination, result); err != nil {
+	if p.withEvents {
+		if err := p.executeInitialStorageEvent(item.Script, origination, store); err != nil {
 			if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
 				logger.Err(err)
 			}
@@ -136,12 +128,12 @@ func (p Origination) fillInternal(tx *operation.Operation) {
 	tx.Initiator = p.main.Source
 }
 
-func (p Origination) executeInitialStorageEvent(raw []byte, origination *operation.Operation, result *parsers.Result) error {
-	if origination == nil || result == nil || origination.Tags.Has(types.LedgerTag) {
+func (p Origination) executeInitialStorageEvent(raw []byte, origination *operation.Operation, store parsers.Store) error {
+	if origination == nil || store == nil || origination.Tags.Has(types.LedgerTag) {
 		return nil
 	}
 
-	contractEvents, err := p.ctx.Cache.Events(origination.Network, origination.Destination.Address)
+	contractEvents, err := p.ctx.Cache.Events(origination.Destination.Address)
 	if err != nil {
 		if p.ctx.Storage.IsRecordNotFound(err) {
 			return nil
@@ -178,8 +170,7 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 				return err
 			}
 
-			balances, err := events.Execute(p.rpc, event, events.Context{
-				Network:                  origination.Network,
+			balances, err := events.Execute(context.Background(), p.ctx.RPC, event, events.Args{
 				Parameters:               storageType,
 				Source:                   origination.Source.Address,
 				Initiator:                origination.Initiator.Address,
@@ -201,11 +192,9 @@ func (p Origination) executeInitialStorageEvent(raw []byte, origination *operati
 			}
 
 			for i := range balances {
-				result.TokenBalances = append(result.TokenBalances, &tbModel.TokenBalance{
-					Network: origination.Network,
+				store.AddTokenBalances(&tbModel.TokenBalance{
 					Account: account.Account{
 						Address: balances[i].Address,
-						Network: origination.Network,
 						Type:    types.NewAccountType(balances[i].Address),
 					},
 					TokenID:  balances[i].TokenID,

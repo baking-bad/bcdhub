@@ -40,7 +40,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 
-		if _, err := ctx.ContractMetadata.Get(bmd[i].Network, bmd[i].Contract); err != nil {
+		if _, err := ctx.ContractMetadata.Get(bmd[i].Contract); err != nil {
 			if !ctx.Storage.IsRecordNotFound(err) {
 				return err
 			}
@@ -48,15 +48,11 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			continue
 		}
 
-		rpc, err := ctx.GetRPC(bmd[i].Network)
-		if err != nil {
-			return err
-		}
-		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Contracts, ctx.Storage, rpc, tzipParsers.ParserConfig{
+		parser := tzipParsers.NewParser(ctx, tzipParsers.ParserConfig{
 			IPFSGateways: ctx.Config.IPFSGateways,
 		})
 
-		proto, err := ctx.Protocols.Get(bmd[i].Network, "", bmd[i].LastUpdateLevel)
+		proto, err := ctx.Protocols.Get("", bmd[i].LastUpdateLevel)
 		if err != nil {
 			return err
 		}
@@ -64,7 +60,6 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		t, err := parser.Parse(context.Background(), tzipParsers.ParseArgs{
 			BigMapDiff: bigmapdiff.BigMapDiff{
 				Contract:   bmd[i].Contract,
-				Network:    bmd[i].Network,
 				Ptr:        bmd[i].Ptr,
 				Value:      bmd[i].Value,
 				KeyHash:    bmd[i].KeyHash,

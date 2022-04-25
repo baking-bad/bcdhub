@@ -6,7 +6,6 @@ package contract_metadata
 
 import (
 	model "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,18 +34,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(network types.Network, address string) (*model.ContractMetadata, error) {
+func (m *MockRepository) Get(address string) (*model.ContractMetadata, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", network, address)
+	ret := m.ctrl.Call(m, "Get", address)
 	ret0, _ := ret[0].(*model.ContractMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockRepositoryMockRecorder) Get(network, address interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Get(address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), network, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), address)
 }
 
 // GetWithEvents mocks base method
@@ -80,31 +79,31 @@ func (mr *MockRepositoryMockRecorder) GetBySlug(slug interface{}) *gomock.Call {
 }
 
 // GetAliases mocks base method
-func (m *MockRepository) GetAliases(network types.Network) ([]model.ContractMetadata, error) {
+func (m *MockRepository) GetAliases() ([]model.ContractMetadata, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAliases", network)
+	ret := m.ctrl.Call(m, "GetAliases")
 	ret0, _ := ret[0].([]model.ContractMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAliases indicates an expected call of GetAliases
-func (mr *MockRepositoryMockRecorder) GetAliases(network interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetAliases() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAliases", reflect.TypeOf((*MockRepository)(nil).GetAliases), network)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAliases", reflect.TypeOf((*MockRepository)(nil).GetAliases))
 }
 
 // Events mocks base method
-func (m *MockRepository) Events(network types.Network, address string) (model.Events, error) {
+func (m *MockRepository) Events(address string) (model.Events, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Events", network, address)
+	ret := m.ctrl.Call(m, "Events", address)
 	ret0, _ := ret[0].(model.Events)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Events indicates an expected call of Events
-func (mr *MockRepositoryMockRecorder) Events(network, address interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Events(address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Events", reflect.TypeOf((*MockRepository)(nil).Events), network, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Events", reflect.TypeOf((*MockRepository)(nil).Events), address)
 }

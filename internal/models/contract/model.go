@@ -14,7 +14,6 @@ type Contract struct {
 	tableName struct{} `pg:"contracts"`
 
 	ID        int64
-	Network   types.Network `pg:",type:SMALLINT"`
 	Level     int64
 	Timestamp time.Time
 
@@ -55,7 +54,6 @@ func (c *Contract) Save(tx pg.DBI) error {
 // LogFields -
 func (c *Contract) LogFields() map[string]interface{} {
 	return map[string]interface{}{
-		"network": c.Network.String(),
 		"address": c.Account,
 		"block":   c.Level,
 	}

@@ -4,8 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/pkg/errors"
 )
 
@@ -47,7 +46,7 @@ func (uri *TezosStorageURI) Parse(value string) (err error) {
 
 func (uri *TezosStorageURI) parseHost(host string) {
 	parts := strings.Split(host, ".")
-	if helpers.IsAddress(parts[0]) {
+	if bcd.IsAddress(parts[0]) {
 		uri.Address = parts[0]
 	}
 
@@ -56,14 +55,14 @@ func (uri *TezosStorageURI) parseHost(host string) {
 	}
 }
 
-func (uri *TezosStorageURI) networkByChainID(blockRepo block.Repository) error {
+func (uri *TezosStorageURI) networkByChainID() error {
 	if uri.Network == "" {
 		return nil
 	}
 
-	network, err := blockRepo.GetNetworkAlias(uri.Network)
-	if err != nil {
-		return err
+	network, ok := bcd.ChainID[uri.Network]
+	if !ok {
+		return errors.Errorf("unknown chain id: %s", network)
 	}
 	uri.Network = network
 	return nil

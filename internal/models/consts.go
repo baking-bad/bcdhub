@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -74,7 +73,7 @@ func AllModels() []Model {
 		&bigmapdiff.BigMapState{},
 		&transfer.Transfer{},
 		&operation.Operation{},
-		&global_constant.GlobalConstant{},
+		&contract.GlobalConstant{},
 		&contract.Script{},
 		&contract.ScriptConstants{},
 		&contract.Contract{},

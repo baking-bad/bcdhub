@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/baking-bad/bcdhub/internal/config"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
@@ -25,40 +26,44 @@ import (
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/entrypoints [get]
-func (ctx *Context) GetEntrypoints(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
-	script, err := ctx.getScript(req.NetworkID(), req.Address, bcd.SymLinkBabylon)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	parameter, err := script.ParameterType()
-	if ctx.handleError(c, err, 0) {
-		return
-	}
+func GetEntrypoints() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	entrypoints, err := parameter.GetEntrypointsDocs()
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	resp := make([]EntrypointSchema, len(entrypoints))
-	for i, entrypoint := range entrypoints {
-		resp[i].EntrypointType = entrypoint
-		e := parameter.FindByName(entrypoint.Name, true)
-		if e == nil {
-			continue
-		}
-		resp[i].Schema, err = e.ToJSONSchema()
-		if ctx.handleError(c, err, 0) {
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
-		resp[i].Schema = ast.WrapEntrypointJSONSchema(resp[i].Schema)
-	}
+		script, err := getScript(ctx, req.Address, bcd.SymLinkBabylon)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		parameter, err := script.ParameterType()
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-	c.SecureJSON(http.StatusOK, resp)
+		entrypoints, err := parameter.GetEntrypointsDocs()
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		resp := make([]EntrypointSchema, len(entrypoints))
+		for i, entrypoint := range entrypoints {
+			resp[i].EntrypointType = entrypoint
+			e := parameter.FindByName(entrypoint.Name, true)
+			if e == nil {
+				continue
+			}
+			resp[i].Schema, err = e.ToJSONSchema()
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			resp[i].Schema = ast.WrapEntrypointJSONSchema(resp[i].Schema)
+		}
+
+		c.SecureJSON(http.StatusOK, resp)
+	}
 }
 
 // GetEntrypointData godoc
@@ -76,31 +81,35 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/entrypoints/data [post]
-func (ctx *Context) GetEntrypointData(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
-	var reqData getEntrypointDataRequest
-	if err := c.BindJSON(&reqData); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
+func GetEntrypointData() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	result, err := ctx.buildParametersForExecution(req.NetworkID(), req.Address, bcd.SymLinkBabylon, reqData.Name, reqData.Data)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	if reqData.Format == "michelson" {
-		michelson, err := formatter.MichelineStringToMichelson(string(result.Value), false, formatter.DefLineSize)
-		if ctx.handleError(c, err, 0) {
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
-		c.SecureJSON(http.StatusOK, michelson)
-		return
-	}
+		var reqData getEntrypointDataRequest
+		if err := c.BindJSON(&reqData); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
 
-	c.Data(http.StatusOK, gin.MIMEJSON, result.Value)
+		result, err := buildParametersForExecution(ctx, req.Address, bcd.SymLinkBabylon, reqData.Name, reqData.Data)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		if reqData.Format == "michelson" {
+			michelson, err := formatter.MichelineStringToMichelson(string(result.Value), false, formatter.DefLineSize)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			c.SecureJSON(http.StatusOK, michelson)
+			return
+		}
+
+		c.Data(http.StatusOK, gin.MIMEJSON, result.Value)
+	}
 }
 
 // GetEntrypointSchema godoc
@@ -119,85 +128,88 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/entrypoints/schema [get]
-func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
-		return
-	}
+func GetEntrypointSchema() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
 
-	var esReq entrypointSchemaRequest
-	if err := c.BindQuery(&esReq); ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	script, err := ctx.getScript(req.NetworkID(), req.Address, bcd.SymLinkBabylon)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	parameter, err := script.ParameterType()
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	entrypoints, err := parameter.GetEntrypointsDocs()
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	schema := new(EntrypointSchema)
-	for _, entrypoint := range entrypoints {
-		if entrypoint.Name != esReq.EntrypointName {
-			continue
-		}
-
-		schema.EntrypointType = entrypoint
-		e := parameter.FindByName(esReq.EntrypointName, true)
-		if e == nil {
-			continue
-		}
-		schema.Schema, err = e.ToJSONSchema()
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		if esReq.FillType != "latest" {
-			break
-		}
-
-		account, err := ctx.Accounts.Get(req.NetworkID(), req.Address)
-		if ctx.handleError(c, err, 0) {
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
-		op, err := ctx.Operations.Last(
-			map[string]interface{}{
-				"operation.network": req.NetworkID(),
-				"destination_id":    account.ID,
-				"kind":              modelTypes.OperationKindTransaction,
-				"entrypoint":        esReq.EntrypointName,
-				"status":            modelTypes.OperationStatusApplied,
-			}, 0)
-		if ctx.handleError(c, err, 0) {
+		var esReq entrypointSchemaRequest
+		if err := c.BindQuery(&esReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
-		if op.Parameters != nil {
-			parameters := types.NewParameters(op.Parameters)
-			subTree, err := parameter.FromParameters(parameters)
-			if ctx.handleError(c, err, 0) {
+		script, err := getScript(ctx, req.Address, bcd.SymLinkBabylon)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		parameter, err := script.ParameterType()
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		entrypoints, err := parameter.GetEntrypointsDocs()
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		schema := new(EntrypointSchema)
+		for _, entrypoint := range entrypoints {
+			if entrypoint.Name != esReq.EntrypointName {
+				continue
+			}
+
+			schema.EntrypointType = entrypoint
+			e := parameter.FindByName(esReq.EntrypointName, true)
+			if e == nil {
+				continue
+			}
+			schema.Schema, err = e.ToJSONSchema()
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			if esReq.FillType != "latest" {
+				break
+			}
+
+			account, err := ctx.Accounts.Get(req.Address)
+			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 
-			node, _ := subTree.UnwrapAndGetEntrypointName()
-			schema.DefaultModel = make(ast.JSONModel)
-			node.GetJSONModel(schema.DefaultModel)
-		}
-	}
+			op, err := ctx.Operations.Last(
+				map[string]interface{}{
+					"destination_id": account.ID,
+					"kind":           modelTypes.OperationKindTransaction,
+					"entrypoint":     esReq.EntrypointName,
+					"status":         modelTypes.OperationStatusApplied,
+				}, 0)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
 
-	c.SecureJSON(http.StatusOK, schema)
+			if op.Parameters != nil {
+				parameters := types.NewParameters(op.Parameters)
+				subTree, err := parameter.FromParameters(parameters)
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
+
+				node, _ := subTree.UnwrapAndGetEntrypointName()
+				schema.DefaultModel = make(ast.JSONModel)
+				node.GetJSONModel(schema.DefaultModel)
+			}
+		}
+
+		c.SecureJSON(http.StatusOK, schema)
+	}
 }
 
-func (ctx *Context) buildParametersForExecution(network modelTypes.Network, address, symLink, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
-	parameterType, err := ctx.getParameterType(network, address, symLink)
+func buildParametersForExecution(ctx *config.Context, address, symLink, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
+	parameterType, err := getParameterType(ctx, address, symLink)
 	if err != nil {
 		return nil, err
 	}

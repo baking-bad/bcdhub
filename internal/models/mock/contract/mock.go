@@ -6,7 +6,6 @@ package contract
 
 import (
 	model "github.com/baking-bad/bcdhub/internal/models/contract"
-	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,58 +34,54 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(network types.Network, address string) (model.Contract, error) {
+func (m *MockRepository) Get(address string) (model.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", network, address)
+	ret := m.ctrl.Call(m, "Get", address)
 	ret0, _ := ret[0].(model.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockRepositoryMockRecorder) Get(network, address interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Get(address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), network, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), address)
 }
 
-// GetMany mocks base method
-func (m *MockRepository) GetMany(network types.Network) ([]model.Contract, error) {
+// GetAll mocks base method
+func (m *MockRepository) GetAll(filters map[string]interface{}) ([]model.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMany", network)
+	ret := m.ctrl.Call(m, "GetAll", filters)
 	ret0, _ := ret[0].([]model.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetMany indicates an expected call of GetMany
-func (mr *MockRepositoryMockRecorder) GetMany(network interface{}) *gomock.Call {
+// GetAll indicates an expected call of GetAll
+func (mr *MockRepositoryMockRecorder) GetAll(filters interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockRepository)(nil).GetMany), network)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll), filters)
 }
 
 // GetRandom mocks base method
-func (m *MockRepository) GetRandom(networks ...types.Network) (model.Contract, error) {
+func (m *MockRepository) GetRandom() (model.Contract, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
-	for _, a := range networks {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetRandom", varargs...)
+	ret := m.ctrl.Call(m, "GetRandom")
 	ret0, _ := ret[0].(model.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRandom indicates an expected call of GetRandom
-func (mr *MockRepositoryMockRecorder) GetRandom(networks ...interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetRandom() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRandom", reflect.TypeOf((*MockRepository)(nil).GetRandom), networks...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRandom", reflect.TypeOf((*MockRepository)(nil).GetRandom))
 }
 
 // GetTokens mocks base method
-func (m *MockRepository) GetTokens(network types.Network, tokenInterface string, offset, size int64) ([]model.Contract, int64, error) {
+func (m *MockRepository) GetTokens(tokenInterface string, offset, size int64) ([]model.Contract, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTokens", network, tokenInterface, offset, size)
+	ret := m.ctrl.Call(m, "GetTokens", tokenInterface, offset, size)
 	ret0, _ := ret[0].([]model.Contract)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -94,62 +89,31 @@ func (m *MockRepository) GetTokens(network types.Network, tokenInterface string,
 }
 
 // GetTokens indicates an expected call of GetTokens
-func (mr *MockRepositoryMockRecorder) GetTokens(network, tokenInterface, offset, size interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetTokens(tokenInterface, offset, size interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokens", reflect.TypeOf((*MockRepository)(nil).GetTokens), network, tokenInterface, offset, size)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokens", reflect.TypeOf((*MockRepository)(nil).GetTokens), tokenInterface, offset, size)
 }
 
 // RecentlyCalled mocks base method
-func (m *MockRepository) RecentlyCalled(network types.Network, offset, size int64) ([]model.Contract, error) {
+func (m *MockRepository) RecentlyCalled(offset, size int64) ([]model.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecentlyCalled", network, offset, size)
+	ret := m.ctrl.Call(m, "RecentlyCalled", offset, size)
 	ret0, _ := ret[0].([]model.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // RecentlyCalled indicates an expected call of RecentlyCalled
-func (mr *MockRepositoryMockRecorder) RecentlyCalled(network, offset, size interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) RecentlyCalled(offset, size interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecentlyCalled", reflect.TypeOf((*MockRepository)(nil).RecentlyCalled), network, offset, size)
-}
-
-// GetSameContracts mocks base method
-func (m *MockRepository) GetSameContracts(contact model.Contract, manager string, size, offset int64) (model.SameResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSameContracts", contact, manager, size, offset)
-	ret0, _ := ret[0].(model.SameResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetSameContracts indicates an expected call of GetSameContracts
-func (mr *MockRepositoryMockRecorder) GetSameContracts(contact, manager, size, offset interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSameContracts", reflect.TypeOf((*MockRepository)(nil).GetSameContracts), contact, manager, size, offset)
-}
-
-// GetSimilarContracts mocks base method
-func (m *MockRepository) GetSimilarContracts(arg0 model.Contract, arg1, arg2 int64) ([]model.Similar, int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSimilarContracts", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]model.Similar)
-	ret1, _ := ret[1].(int)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetSimilarContracts indicates an expected call of GetSimilarContracts
-func (mr *MockRepositoryMockRecorder) GetSimilarContracts(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilarContracts", reflect.TypeOf((*MockRepository)(nil).GetSimilarContracts), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecentlyCalled", reflect.TypeOf((*MockRepository)(nil).RecentlyCalled), offset, size)
 }
 
 // Stats mocks base method
-func (m *MockRepository) Stats(c model.Contract) (model.Stats, error) {
+func (m *MockRepository) Stats(c model.Contract) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Stats", c)
-	ret0, _ := ret[0].(model.Stats)
+	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -161,33 +125,33 @@ func (mr *MockRepositoryMockRecorder) Stats(c interface{}) *gomock.Call {
 }
 
 // Script mocks base method
-func (m *MockRepository) Script(network types.Network, address, symLink string) (model.Script, error) {
+func (m *MockRepository) Script(address, symLink string) (model.Script, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Script", network, address, symLink)
+	ret := m.ctrl.Call(m, "Script", address, symLink)
 	ret0, _ := ret[0].(model.Script)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Script indicates an expected call of Script
-func (mr *MockRepositoryMockRecorder) Script(network, address, symLink interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Script(address, symLink interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Script", reflect.TypeOf((*MockRepository)(nil).Script), network, address, symLink)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Script", reflect.TypeOf((*MockRepository)(nil).Script), address, symLink)
 }
 
 // ScriptPart mocks base method
-func (m *MockRepository) ScriptPart(network types.Network, address, symLink, part string) ([]byte, error) {
+func (m *MockRepository) ScriptPart(address, symLink, part string) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ScriptPart", network, address, symLink, part)
+	ret := m.ctrl.Call(m, "ScriptPart", address, symLink, part)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ScriptPart indicates an expected call of ScriptPart
-func (mr *MockRepositoryMockRecorder) ScriptPart(network, address, symLink, part interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) ScriptPart(address, symLink, part interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScriptPart", reflect.TypeOf((*MockRepository)(nil).ScriptPart), network, address, symLink, part)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScriptPart", reflect.TypeOf((*MockRepository)(nil).ScriptPart), address, symLink, part)
 }
 
 // MockScriptRepository is a mock of ScriptRepository interface
@@ -300,4 +264,61 @@ func (m *MockScriptRepository) Storage(id int64) ([]byte, error) {
 func (mr *MockScriptRepositoryMockRecorder) Storage(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Storage", reflect.TypeOf((*MockScriptRepository)(nil).Storage), id)
+}
+
+// MockConstantRepository is a mock of ConstantRepository interface
+type MockConstantRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockConstantRepositoryMockRecorder
+}
+
+// MockConstantRepositoryMockRecorder is the mock recorder for MockConstantRepository
+type MockConstantRepositoryMockRecorder struct {
+	mock *MockConstantRepository
+}
+
+// NewMockConstantRepository creates a new mock instance
+func NewMockConstantRepository(ctrl *gomock.Controller) *MockConstantRepository {
+	mock := &MockConstantRepository{ctrl: ctrl}
+	mock.recorder = &MockConstantRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockConstantRepository) EXPECT() *MockConstantRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method
+func (m *MockConstantRepository) Get(address string) (model.GlobalConstant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", address)
+	ret0, _ := ret[0].(model.GlobalConstant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get
+func (mr *MockConstantRepositoryMockRecorder) Get(address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockConstantRepository)(nil).Get), address)
+}
+
+// All mocks base method
+func (m *MockConstantRepository) All(addresses ...string) ([]model.GlobalConstant, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range addresses {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "All", varargs...)
+	ret0, _ := ret[0].([]model.GlobalConstant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// All indicates an expected call of All
+func (mr *MockConstantRepositoryMockRecorder) All(addresses ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockConstantRepository)(nil).All), addresses...)
 }

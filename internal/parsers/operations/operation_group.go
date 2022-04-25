@@ -19,9 +19,7 @@ func NewGroup(params *ParseParams) Group {
 }
 
 // Parse -
-func (opg Group) Parse(data noderpc.LightOperationGroup) (*parsers.Result, error) {
-	result := parsers.NewResult()
-
+func (opg Group) Parse(data noderpc.LightOperationGroup, store parsers.Store) error {
 	opg.hash = data.Hash
 	helpers.SetTagSentry("hash", opg.hash)
 
@@ -34,17 +32,17 @@ func (opg Group) Parse(data noderpc.LightOperationGroup) (*parsers.Result, error
 
 		var operation noderpc.Operation
 		if err := json.Unmarshal(item.Raw, &operation); err != nil {
-			return nil, err
+			return err
 		}
 
 		contentParser := NewContent(opg.ParseParams)
-		if err := contentParser.Parse(operation, result); err != nil {
-			return nil, err
+		if err := contentParser.Parse(operation, store); err != nil {
+			return err
 		}
 		contentParser.clear()
 	}
 
-	return result, nil
+	return nil
 }
 
 func (Group) needParse(item noderpc.LightOperation) bool {
@@ -70,32 +68,32 @@ func NewContent(params *ParseParams) Content {
 }
 
 // Parse -
-func (content Content) Parse(data noderpc.Operation, result *parsers.Result) error {
+func (content Content) Parse(data noderpc.Operation, store parsers.Store) error {
 	switch data.Kind {
 	case consts.Origination, consts.OriginationNew:
-		if err := NewOrigination(content.ParseParams).Parse(data, result); err != nil {
+		if err := NewOrigination(content.ParseParams).Parse(data, store); err != nil {
 			return err
 		}
 	case consts.Transaction:
-		if err := NewTransaction(content.ParseParams).Parse(data, result); err != nil {
+		if err := NewTransaction(content.ParseParams).Parse(data, store); err != nil {
 			return err
 		}
 	case consts.RegisterGlobalConstant:
-		if err := NewRegisterGlobalConstant(content.ParseParams).Parse(data, result); err != nil {
+		if err := NewRegisterGlobalConstant(content.ParseParams).Parse(data, store); err != nil {
 			return err
 		}
 	default:
 		return nil
 	}
 
-	if err := content.parseInternal(data, result); err != nil {
+	if err := content.parseInternal(data, store); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (content Content) parseInternal(data noderpc.Operation, result *parsers.Result) error {
+func (content Content) parseInternal(data noderpc.Operation, store parsers.Store) error {
 	if data.Metadata == nil {
 		return nil
 	}
@@ -108,7 +106,7 @@ func (content Content) parseInternal(data noderpc.Operation, result *parsers.Res
 	}
 
 	for i := range internals {
-		if err := content.Parse(internals[i], result); err != nil {
+		if err := content.Parse(internals[i], store); err != nil {
 			return err
 		}
 	}

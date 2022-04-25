@@ -2,7 +2,6 @@ package tokenmetadata
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10/orm"
 )
 
@@ -14,9 +13,6 @@ func (storage *Storage) buildGetTokenMetadataContext(query *orm.Query, ctx ...to
 	query = query.WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
 		for i := range ctx {
 			q = query.WhereGroup(func(subQuery *orm.Query) (*orm.Query, error) {
-				if ctx[i].Network != types.Empty {
-					subQuery.Where("network = ?", ctx[i].Network)
-				}
 				if ctx[i].Contract != "" {
 					subQuery.Where("contract = ?", ctx[i].Contract)
 				}

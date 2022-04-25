@@ -6,7 +6,6 @@ package tokenbalance
 
 import (
 	model "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,76 +34,76 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(network types.Network, contract string, accountID int64, tokenID uint64) (model.TokenBalance, error) {
+func (m *MockRepository) Get(contract string, accountID int64, tokenID uint64) (model.TokenBalance, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", network, contract, accountID, tokenID)
+	ret := m.ctrl.Call(m, "Get", contract, accountID, tokenID)
 	ret0, _ := ret[0].(model.TokenBalance)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockRepositoryMockRecorder) Get(network, contract, accountID, tokenID interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Get(contract, accountID, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), network, contract, accountID, tokenID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), contract, accountID, tokenID)
 }
 
 // GetHolders mocks base method
-func (m *MockRepository) GetHolders(network types.Network, contract string, tokenID uint64) ([]model.TokenBalance, error) {
+func (m *MockRepository) GetHolders(contract string, tokenID uint64) ([]model.TokenBalance, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetHolders", network, contract, tokenID)
+	ret := m.ctrl.Call(m, "GetHolders", contract, tokenID)
 	ret0, _ := ret[0].([]model.TokenBalance)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetHolders indicates an expected call of GetHolders
-func (mr *MockRepositoryMockRecorder) GetHolders(network, contract, tokenID interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetHolders(contract, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHolders", reflect.TypeOf((*MockRepository)(nil).GetHolders), network, contract, tokenID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHolders", reflect.TypeOf((*MockRepository)(nil).GetHolders), contract, tokenID)
 }
 
 // Batch mocks base method
-func (m *MockRepository) Batch(network types.Network, accountIDs []int64) (map[string][]model.TokenBalance, error) {
+func (m *MockRepository) Batch(accountIDs []int64) (map[string][]model.TokenBalance, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Batch", network, accountIDs)
+	ret := m.ctrl.Call(m, "Batch", accountIDs)
 	ret0, _ := ret[0].(map[string][]model.TokenBalance)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Batch indicates an expected call of Batch
-func (mr *MockRepositoryMockRecorder) Batch(network, accountIDs interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Batch(accountIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Batch", reflect.TypeOf((*MockRepository)(nil).Batch), network, accountIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Batch", reflect.TypeOf((*MockRepository)(nil).Batch), accountIDs)
 }
 
 // CountByContract mocks base method
-func (m *MockRepository) CountByContract(network types.Network, accountID int64, hideEmpty bool) (map[string]int64, error) {
+func (m *MockRepository) CountByContract(accountID int64, hideEmpty bool) (map[string]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByContract", network, accountID, hideEmpty)
+	ret := m.ctrl.Call(m, "CountByContract", accountID, hideEmpty)
 	ret0, _ := ret[0].(map[string]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountByContract indicates an expected call of CountByContract
-func (mr *MockRepositoryMockRecorder) CountByContract(network, accountID, hideEmpty interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CountByContract(accountID, hideEmpty interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByContract", reflect.TypeOf((*MockRepository)(nil).CountByContract), network, accountID, hideEmpty)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByContract", reflect.TypeOf((*MockRepository)(nil).CountByContract), accountID, hideEmpty)
 }
 
 // TokenSupply mocks base method
-func (m *MockRepository) TokenSupply(network types.Network, contract string, tokenID uint64) (string, error) {
+func (m *MockRepository) TokenSupply(contract string, tokenID uint64) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TokenSupply", network, contract, tokenID)
+	ret := m.ctrl.Call(m, "TokenSupply", contract, tokenID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TokenSupply indicates an expected call of TokenSupply
-func (mr *MockRepositoryMockRecorder) TokenSupply(network, contract, tokenID interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) TokenSupply(contract, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TokenSupply", reflect.TypeOf((*MockRepository)(nil).TokenSupply), network, contract, tokenID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TokenSupply", reflect.TypeOf((*MockRepository)(nil).TokenSupply), contract, tokenID)
 }

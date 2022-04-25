@@ -17,7 +17,7 @@ func NewAccountType(address string) AccountType {
 	switch {
 	case bcd.IsContract(address):
 		return AccountTypeContract
-	case bcd.IsAddress(address):
+	case bcd.IsAddressLazy(address):
 		return AccountTypeTz
 	default:
 		return AccountTypeUnknown

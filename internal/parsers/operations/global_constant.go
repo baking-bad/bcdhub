@@ -1,7 +1,7 @@
 package operations
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models/global_constant"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
@@ -15,9 +15,8 @@ func NewGlobalConstant() GlobalConstant {
 }
 
 // Parse -
-func (p GlobalConstant) Parse(data noderpc.Operation, operation operation.Operation) *global_constant.GlobalConstant {
-	gc := &global_constant.GlobalConstant{
-		Network:   operation.Network,
+func (p GlobalConstant) Parse(data noderpc.Operation, operation operation.Operation) *contract.GlobalConstant {
+	gc := &contract.GlobalConstant{
 		Timestamp: operation.Timestamp,
 		Level:     operation.Level,
 		Value:     data.Value,

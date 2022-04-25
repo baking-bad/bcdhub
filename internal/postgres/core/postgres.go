@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -49,10 +50,6 @@ func parseConnectionString(connection string) (*pg.Options, error) {
 			port = values[1]
 		case "dbname":
 			opts.Database = values[1]
-		case "sslmode":
-			// if values[1] != "disable" {
-			// 	// TODO: init ssl mode
-			// }
 		}
 	}
 
@@ -72,7 +69,7 @@ func New(connection, appName string, opts ...PostgresOption) (*Postgres, error) 
 
 	opt, err := parseConnectionString(connection)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	postgres.DB = pg.Connect(opt)
@@ -107,6 +104,11 @@ func WaitNew(connectionString, appName string, timeout int, opts ...PostgresOpti
 			bcdLogger.Warning().Msgf("Waiting postgres up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))
 		}
+	}
+
+	for err := db.DB.Ping(context.Background()); err != nil; err = db.DB.Ping(context.Background()) {
+		bcdLogger.Warning().Msgf("Waiting postgres up %d seconds...", timeout)
+		time.Sleep(time.Second * time.Duration(timeout))
 	}
 
 	return db

@@ -11,9 +11,13 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
-var ctx *config.Context
+var ctxs config.Contexts
 
 const (
 	bulkSize = 100
@@ -31,64 +35,59 @@ func main() {
 		defer helpers.CatchPanicSentry()
 	}
 
-	ctx = config.NewContext(
-		config.WithStorage(cfg.Storage, cfg.Metrics.ProjectName, 0, cfg.Metrics.Connections.Open, cfg.Metrics.Connections.Idle),
-		config.WithRPC(cfg.RPC),
+	ctxs = config.NewContexts(
+		cfg, cfg.Metrics.Networks,
+		config.WithStorage(cfg.Storage, cfg.Metrics.ProjectName, 0, cfg.Metrics.Connections.Open, cfg.Metrics.Connections.Idle, false),
+		config.WithRPC(cfg.RPC, false),
 		config.WithSearch(cfg.Storage),
-		config.WithDomains(cfg.Domains),
 		config.WithConfigCopy(cfg),
 	)
-	defer ctx.Close()
+	defer ctxs.Close()
 
-	if err := ctx.Searcher.CreateIndexes(); err != nil {
+	if err := ctxs.Any().Searcher.CreateIndexes(); err != nil {
 		logger.Err(err)
 		return
 	}
 
-	workers := []services.Service{
-		services.NewUnknown(ctx, time.Minute*30, time.Second*2, -time.Hour*24),
-		services.NewStorageBased(
-			"projects",
-			ctx.Services,
-			services.NewProjectsHandler(ctx),
-			time.Second*15,
-			bulkSize,
-		),
-		services.NewStorageBased(
+	workers := make([]services.Service, 0)
+
+	for _, ctx := range ctxs {
+		workers = append(workers, services.NewUnknown(ctx, time.Minute*30, time.Second*2, -time.Hour*24))
+		workers = append(workers, services.NewStorageBased[domains.BigMapDiff](
 			"contract_metadata",
 			ctx.Services,
 			services.NewContractMetadataHandler(ctx),
 			time.Second*15,
 			bulkSize,
-		),
-		services.NewStorageBased(
+		))
+		workers = append(workers, services.NewStorageBased[domains.BigMapDiff](
 			"token_metadata",
 			ctx.Services,
 			services.NewTokenMetadataHandler(ctx),
 			time.Second*15,
 			bulkSize,
-		),
-		services.NewStorageBased(
+		))
+		workers = append(workers, services.NewStorageBased[*operation.Operation](
 			"operations",
 			ctx.Services,
 			services.NewOperationsHandler(ctx),
 			time.Second*15,
 			bulkSize,
-		),
-		services.NewStorageBased(
+		))
+		workers = append(workers, services.NewStorageBased[*contract.Contract](
 			"contracts",
 			ctx.Services,
 			services.NewContractsHandler(ctx),
 			time.Second*15,
 			bulkSize,
-		),
-		services.NewStorageBased(
+		))
+		workers = append(workers, services.NewStorageBased[*bigmapdiff.BigMapDiff](
 			"big_map_diffs",
 			ctx.Services,
 			services.NewBigMapDiffHandler(ctx),
 			time.Second*15,
 			bulkSize,
-		),
+		))
 	}
 
 	signals := make(chan os.Signal, 1)

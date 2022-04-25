@@ -122,10 +122,6 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		}
 		return ctx.StorageDB.DB.RunInTransaction(context.Background(), func(tx *pg.Tx) error {
 			for i := range items {
-				if _, ok := networks[items[i].Network.String()]; !ok {
-					continue
-				}
-
 				if err := processTzipItem(ctx, items[i], tx); err != nil {
 					return err
 				}
@@ -160,7 +156,6 @@ func processTzipItem(ctx *config.Context, item repository.Item, tx pg.DBI) error
 
 	for _, token := range model.Tokens.Static {
 		tm := &tokenmetadata.TokenMetadata{
-			Network:   item.Network,
 			Contract:  item.Address,
 			Level:     0,
 			Timestamp: model.Timestamp,
@@ -175,7 +170,7 @@ func processTzipItem(ctx *config.Context, item repository.Item, tx pg.DBI) error
 		}
 	}
 
-	copyModel, err := ctx.ContractMetadata.Get(item.Network, item.Address)
+	copyModel, err := ctx.ContractMetadata.Get(item.Address)
 	switch {
 	case err == nil:
 		model.ID = copyModel.ID
@@ -202,10 +197,9 @@ func processTzipItem(ctx *config.Context, item repository.Item, tx pg.DBI) error
 		acc := account.Account{
 			Alias:   model.ContractMetadata.Name,
 			Address: model.ContractMetadata.Address,
-			Network: model.ContractMetadata.Network,
 			Type:    types.NewAccountType(model.ContractMetadata.Address),
 		}
-		if _, err := tx.Model(&acc).OnConflict("(network, address) DO UPDATE").Set(`alias = excluded.alias`).Returning("id").Insert(); err != nil {
+		if _, err := tx.Model(&acc).OnConflict("(address) DO UPDATE").Set(`alias = excluded.alias`).Returning("id").Insert(); err != nil {
 			return err
 		}
 	}

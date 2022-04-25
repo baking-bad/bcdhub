@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/service"
 )
 
 // StorageBased -
-type StorageBased struct {
+type StorageBased[M models.Constraint] struct {
 	name         string
-	handler      Handler
+	handler      Handler[M]
 	updatePeriod time.Duration
 	repo         service.Repository
 	state        service.State
@@ -22,17 +23,17 @@ type StorageBased struct {
 }
 
 // NewStorageBased -
-func NewStorageBased(
+func NewStorageBased[M models.Constraint](
 	name string,
 	repo service.Repository,
-	handler Handler,
+	handler Handler[M],
 	updatePeriod time.Duration,
 	bulkSize int,
-) *StorageBased {
+) *StorageBased[M] {
 	if bulkSize < 10 {
 		bulkSize = 10
 	}
-	return &StorageBased{
+	return &StorageBased[M]{
 		name:         name,
 		repo:         repo,
 		handler:      handler,
@@ -42,7 +43,7 @@ func NewStorageBased(
 }
 
 // Init -
-func (s *StorageBased) Init() error {
+func (s *StorageBased[M]) Init() error {
 	logger.Info().Str("name", s.name).Msg("starting service...")
 	state, err := s.repo.Get(s.name)
 	if err != nil {
@@ -53,18 +54,18 @@ func (s *StorageBased) Init() error {
 }
 
 // Start -
-func (s *StorageBased) Start(ctx context.Context) {
+func (s *StorageBased[M]) Start(ctx context.Context) {
 	s.wg.Add(1)
 	go s.work(ctx)
 }
 
 // Close -
-func (s *StorageBased) Close() error {
+func (s *StorageBased[M]) Close() error {
 	s.wg.Wait()
 	return nil
 }
 
-func (s *StorageBased) work(ctx context.Context) {
+func (s *StorageBased[M]) work(ctx context.Context) {
 	defer s.wg.Done()
 
 	ticker := time.NewTicker(s.updatePeriod)
@@ -102,7 +103,7 @@ func (s *StorageBased) work(ctx context.Context) {
 	}
 }
 
-func (s *StorageBased) do(ctx context.Context, wg *sync.WaitGroup) (bool, error) {
+func (s *StorageBased[M]) do(ctx context.Context, wg *sync.WaitGroup) (bool, error) {
 	items, err := s.handler.Chunk(s.state.LastID, s.bulkSize)
 	if err != nil {
 		return false, err

@@ -3,7 +3,7 @@ package elastic
 import (
 	"strings"
 
-	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 // IsRecordNotFound -

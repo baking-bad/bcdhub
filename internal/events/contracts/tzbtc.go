@@ -1,6 +1,8 @@
 package contracts
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -15,10 +17,10 @@ type TzBTC struct {
 }
 
 // NewTzBTC -
-func NewTzBTC(rpc noderpc.INode) (*TzBTC, error) {
+func NewTzBTC(ctx context.Context, rpc noderpc.INode) (*TzBTC, error) {
 	contract := new(TzBTC)
 
-	script, err := rpc.GetScriptJSON(contract.Address(), 0)
+	script, err := rpc.GetScriptJSON(ctx, contract.Address(), 0)
 	if err != nil {
 		return nil, err
 	}

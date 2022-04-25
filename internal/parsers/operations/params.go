@@ -15,7 +15,6 @@ import (
 // ParseParams -
 type ParseParams struct {
 	ctx *config.Context
-	rpc noderpc.INode
 
 	contractParser *contract.Parser
 	transferParser *transfer.Parser
@@ -24,12 +23,13 @@ type ParseParams struct {
 
 	stackTrace *stacktrace.StackTrace
 
-	network    types.Network
 	hash       string
 	head       noderpc.Header
 	contentIdx int64
 	main       *operation.Operation
 	protocol   *protocol.Protocol
+
+	withEvents bool
 }
 
 // ParseParamsOption -
@@ -39,13 +39,6 @@ type ParseParamsOption func(*ParseParams)
 func WithProtocol(protocol *protocol.Protocol) ParseParamsOption {
 	return func(dp *ParseParams) {
 		dp.protocol = protocol
-	}
-}
-
-// WithNetwork -
-func WithNetwork(network types.Network) ParseParamsOption {
-	return func(dp *ParseParams) {
-		dp.network = network
 	}
 }
 
@@ -78,18 +71,18 @@ func WithMainOperation(main *operation.Operation) ParseParamsOption {
 }
 
 // NewParseParams -
-func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsOption) (*ParseParams, error) {
+func NewParseParams(ctx *config.Context, opts ...ParseParamsOption) (*ParseParams, error) {
 	params := &ParseParams{
 		ctx:        ctx,
-		rpc:        rpc,
 		stackTrace: stacktrace.New(),
+		withEvents: ctx.Network == types.Mainnet,
 	}
 	for i := range opts {
 		opts[i](params)
 	}
 
 	if params.protocol == nil {
-		proto, err := ctx.Protocols.Get(params.network, bcd.GetCurrentProtocol(), 0)
+		proto, err := ctx.Protocols.Get(bcd.GetCurrentProtocol(), 0)
 		if err != nil {
 			return nil, err
 		}
@@ -97,10 +90,9 @@ func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsO
 	}
 
 	transferParser, err := transfer.NewParser(
-		rpc,
+		ctx.RPC,
 		ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
 		transfer.WithStackTrace(params.stackTrace),
-		transfer.WithNetwork(params.network),
 		transfer.WithChainID(params.head.ChainID),
 		transfer.WithGasLimit(params.protocol.Constants.HardGasLimitPerOperation),
 	)
@@ -110,7 +102,7 @@ func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsO
 	params.transferParser = transferParser
 
 	params.contractParser = contract.NewParser(params.ctx)
-	storageParser, err := NewRichStorage(ctx.BigMapDiffs, rpc, params.head.Protocol)
+	storageParser, err := NewRichStorage(ctx.BigMapDiffs, ctx.RPC, params.head.Protocol)
 	if err != nil {
 		return nil, err
 	}

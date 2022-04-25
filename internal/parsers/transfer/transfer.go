@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"context"
 	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -42,7 +43,7 @@ type Parser struct {
 	level    int64
 	init     sync.Once
 
-	withoutViews bool
+	withoutEvents bool
 }
 
 var globalEvents *TokenEvents
@@ -56,6 +57,7 @@ func NewParser(rpc noderpc.INode, cmRepo contract_metadata.Repository, blocks bl
 		cmRepo:        cmRepo,
 		blocks:        blocks,
 		accounts:      accounts,
+		network:       modelTypes.Empty,
 	}
 
 	for i := range opts {
@@ -71,7 +73,7 @@ func NewParser(rpc noderpc.INode, cmRepo contract_metadata.Repository, blocks bl
 
 func (p *Parser) initialize() {
 	if contractHandlers == nil && p.network == modelTypes.Mainnet {
-		ch, err := NewContractHandlers(p.rpc)
+		ch, err := NewContractHandlers(context.Background(), p.rpc)
 		if err != nil {
 			logger.Error().Err(err).Msg("create contract handlers")
 		} else {
@@ -80,26 +82,26 @@ func (p *Parser) initialize() {
 	}
 
 	switch {
-	case p.withoutViews && globalEvents == nil:
+	case p.withoutEvents && globalEvents == nil:
 		globalEvents = EmptyTokenEvents()
-	case p.withoutViews && globalEvents != nil:
-	case !p.withoutViews && globalEvents == nil:
+	case p.withoutEvents && globalEvents != nil:
+	case !p.withoutEvents && globalEvents == nil:
 		tokenEvents, err := NewTokenEvents(p.cmRepo)
 		if err != nil {
 			logger.Err(err)
 		}
 		globalEvents = tokenEvents
-	case !p.withoutViews && globalEvents != nil:
+	case !p.withoutEvents && globalEvents != nil:
 		if err := globalEvents.Update(p.cmRepo); err != nil {
 			logger.Err(err)
 		}
 	}
 	if p.network != modelTypes.Empty && p.chainID == "" {
-		state, err := p.blocks.Last(p.network)
+		state, err := p.blocks.Last()
 		if err != nil {
 			logger.Err(err)
 		}
-		p.chainID = state.ChainID
+		p.chainID = state.Protocol.ChainID
 	}
 }
 
@@ -121,7 +123,7 @@ func (p *Parser) Parse(diffs []*bigmapdiff.BigMapDiff, protocol string, operatio
 	}
 
 	if impl, name, ok := globalEvents.GetByOperation(*operation); ok {
-		return p.executeEvents(impl, name, protocol, diffs, operation)
+		return p.executeEvents(context.Background(), impl, name, protocol, diffs, operation)
 	}
 
 	if operation.IsEntrypoint(consts.TransferEntrypoint) {
@@ -152,12 +154,12 @@ func (p *Parser) executeContractHandler(ch contracts.Contract, operation *operat
 	return nil
 }
 
-func (p *Parser) executeEvents(impl contract_metadata.EventImplementation, name, protocol string, diffs []*bigmapdiff.BigMapDiff, operation *operation.Operation) error {
+func (p *Parser) executeEvents(ctx context.Context, impl contract_metadata.EventImplementation, name, protocol string, diffs []*bigmapdiff.BigMapDiff, operation *operation.Operation) error {
 	if !operation.IsApplied() {
 		return nil
 	}
 
-	ctx := events.Context{
+	args := events.Args{
 		Network:                  p.network,
 		Protocol:                 protocol,
 		Source:                   operation.Source.Address,
@@ -178,13 +180,13 @@ func (p *Parser) executeEvents(impl contract_metadata.EventImplementation, name,
 		if err != nil {
 			return err
 		}
-		ctx.Parameters = subTree
-		ctx.Entrypoint = operation.Entrypoint.String()
+		args.Parameters = subTree
+		args.Entrypoint = operation.Entrypoint.String()
 		event, err := events.NewMichelsonParameter(impl, name)
 		if err != nil {
 			return err
 		}
-		return p.makeTransfersFromBalanceEvents(event, ctx, operation, true)
+		return p.makeTransfersFromBalanceEvents(ctx, event, args, operation, true)
 	case impl.MichelsonExtendedStorageEvent != nil && impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint.String()):
 		storage, err := operation.AST.StorageType()
 		if err != nil {
@@ -197,8 +199,8 @@ func (p *Parser) executeEvents(impl contract_metadata.EventImplementation, name,
 		if err := storage.Settle(deffattedStorage); err != nil {
 			return err
 		}
-		ctx.Parameters = storage
-		ctx.Entrypoint = consts.DefaultEntrypoint
+		args.Parameters = storage
+		args.Entrypoint = consts.DefaultEntrypoint
 		bmd := make([]bigmapdiff.BigMapDiff, 0)
 		for i := range diffs {
 			if diffs[i].OperationID == operation.ID {
@@ -209,16 +211,16 @@ func (p *Parser) executeEvents(impl contract_metadata.EventImplementation, name,
 		if err != nil {
 			return err
 		}
-		return p.makeTransfersFromBalanceEvents(event, ctx, operation, false)
+		return p.makeTransfersFromBalanceEvents(ctx, event, args, operation, false)
 	default:
 		return nil
 	}
 }
 
-func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.Context, operation *operation.Operation, isDelta bool) error {
-	balances, err := events.Execute(p.rpc, event, ctx)
+func (p *Parser) makeTransfersFromBalanceEvents(ctx context.Context, event events.Event, args events.Args, operation *operation.Operation, isDelta bool) error {
+	balances, err := events.Execute(ctx, p.rpc, event, args)
 	if err != nil {
-		logger.Error().Msgf("Event of %s %s: %s", operation.Network, operation.Destination.Address, err.Error())
+		logger.Error().Msgf("Event of %s: %s", operation.Destination.Address, err.Error())
 		return nil
 	}
 
@@ -226,7 +228,7 @@ func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.C
 	if isDelta {
 		operation.Transfers, err = parser.Parse(balances, *operation)
 	} else {
-		operation.Transfers, err = parser.ParseBalances(p.network, operation.Destination.Address, balances, *operation)
+		operation.Transfers, err = parser.ParseBalances(operation.Destination.Address, balances, *operation)
 	}
 	if err != nil {
 		return err

@@ -193,34 +193,6 @@ definitions:
       michelsonStorageView:
         $ref: '#/definitions/contract_metadata.Sections'
     type: object
-  formatter.DiffResult:
-    properties:
-      added:
-        type: integer
-      changed:
-        type: integer
-      left:
-        items:
-          items:
-            $ref: '#/definitions/formatter.Item'
-          type: array
-        type: array
-      removed:
-        type: integer
-      right:
-        items:
-          items:
-            $ref: '#/definitions/formatter.Item'
-          type: array
-        type: array
-    type: object
-  formatter.Item:
-    properties:
-      chunk:
-        type: string
-      type:
-        type: integer
-    type: object
   gin.H:
     additionalProperties: true
     type: object
@@ -348,39 +320,6 @@ definitions:
         example: "2018-06-30T18:05:27Z"
         type: string
     type: object
-  handlers.CodeDiffLeg:
-    properties:
-      address:
-        type: string
-      level:
-        type: integer
-      network:
-        type: integer
-      protocol:
-        type: string
-    required:
-    - address
-    - network
-    type: object
-  handlers.CodeDiffRequest:
-    properties:
-      left:
-        $ref: '#/definitions/handlers.CodeDiffLeg'
-      right:
-        $ref: '#/definitions/handlers.CodeDiffLeg'
-    required:
-    - left
-    - right
-    type: object
-  handlers.CodeDiffResponse:
-    properties:
-      diff:
-        $ref: '#/definitions/formatter.DiffResult'
-      left:
-        $ref: '#/definitions/handlers.CodeDiffLeg'
-      right:
-        $ref: '#/definitions/handlers.CodeDiffLeg'
-    type: object
   handlers.ContractWithStats:
     properties:
       address:
@@ -434,12 +373,7 @@ definitions:
         x-nullable: true
       network:
         type: string
-      project_id:
-        type: string
-        x-nullable: true
       same_count:
-        type: integer
-      similar_count:
         type: integer
       slug:
         type: string
@@ -720,11 +654,9 @@ definitions:
       end_level:
         example: 0
         type: integer
+        x-nullable: true
       hash:
         example: PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb
-        type: string
-      network:
-        example: mainnet
         type: string
       start_level:
         example: 851969
@@ -753,95 +685,6 @@ definitions:
       contracts:
         items:
           $ref: '#/definitions/handlers.ContractWithStats'
-        type: array
-      count:
-        type: integer
-    type: object
-  handlers.SimilarContract:
-    properties:
-      added:
-        type: integer
-        x-nullable: true
-      address:
-        type: string
-      alias:
-        type: string
-        x-nullable: true
-      annotations:
-        items:
-          type: string
-        type: array
-        x-nullable: true
-      delegate:
-        type: string
-        x-nullable: true
-      delegate_alias:
-        type: string
-        x-nullable: true
-      entrypoints:
-        items:
-          type: string
-        type: array
-        x-nullable: true
-      fail_strings:
-        items:
-          type: string
-        type: array
-        x-nullable: true
-      found_by:
-        type: string
-        x-nullable: true
-      hardcoded:
-        items:
-          type: string
-        type: array
-        x-nullable: true
-      hash:
-        type: string
-      id:
-        type: integer
-      last_action:
-        type: string
-        x-nullable: true
-      level:
-        type: integer
-      manager:
-        type: string
-        x-nullable: true
-      migrations_count:
-        type: integer
-        x-nullable: true
-      network:
-        type: string
-      project_id:
-        type: string
-        x-nullable: true
-      removed:
-        type: integer
-        x-nullable: true
-      same_count:
-        type: integer
-      similar_count:
-        type: integer
-      slug:
-        type: string
-        x-nullable: true
-      tags:
-        items:
-          type: string
-        type: array
-        x-nullable: true
-      timestamp:
-        type: string
-      tx_count:
-        type: integer
-        x-nullable: true
-    type: object
-  handlers.SimilarContractsResponse:
-    properties:
-      contracts:
-        items:
-          $ref: '#/definitions/handlers.SimilarContract'
         type: array
       count:
         type: integer
@@ -2427,56 +2270,6 @@ paths:
       summary: Get same contracts
       tags:
       - contract
-  /v1/contract/{network}/{address}/similar:
-    get:
-      consumes:
-      - application/json
-      description: Get similar contracts
-      operationId: get-contract-similar
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      - description: KT address
-        in: path
-        maxLength: 36
-        minLength: 36
-        name: address
-        required: true
-        type: string
-      - description: Offset
-        in: query
-        name: offset
-        type: integer
-      - description: Requested count
-        in: query
-        maximum: 10
-        name: size
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.SimilarContractsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Get similar contracts
-      tags:
-      - contract
   /v1/contract/{network}/{address}/storage:
     get:
       consumes:
@@ -2971,37 +2764,6 @@ paths:
       summary: Get view schemas of contract metadata
       tags:
       - contract
-  /v1/diff:
-    post:
-      consumes:
-      - application/json
-      description: Get diff between two contracts
-      operationId: get-diff
-      parameters:
-      - description: Request body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.CodeDiffRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.CodeDiffResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Get diff between two contracts
-      tags:
-      - contract
   /v1/global_constants/{network}/{address}:
     get:
       consumes:
@@ -3089,12 +2851,17 @@ paths:
       summary: Show indexer head for the network
       tags:
       - head
-  /v1/operation/{id}/diff:
+  /v1/operation/{network}/{id}/diff:
     get:
       consumes:
       - application/json
       operationId: get-operation-diff
       parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
       - description: Internal BCD operation ID
         in: path
         name: id
@@ -3118,13 +2885,18 @@ paths:
       summary: Get operation storage diff
       tags:
       - operations
-  /v1/operation/{id}/error_location:
+  /v1/operation/{network}/{id}/error_location:
     get:
       consumes:
       - application/json
       description: Get code line where operation failed
       operationId: get-operation-error-location
       parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
       - description: Internal BCD operation ID
         in: path
         name: id

@@ -9,9 +9,6 @@ import (
 func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *orm.Query {
 	query := storage.DB.Model().Table(models.DocBigMapDiff).ColumnExpr("max(id) as id, count(id) as keys_count")
 
-	if ctx.Network != 0 {
-		query.Where("network = ?", ctx.Network)
-	}
 	if ctx.Contract != "" {
 		query.Where("contract = ?", ctx.Contract)
 	}
@@ -40,9 +37,6 @@ func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *orm.Query {
 func (storage *Storage) buildGetContextForState(ctx bigmapdiff.GetContext) *orm.Query {
 	query := storage.DB.Model().Table(models.DocBigMapState)
 
-	if ctx.Network != 0 {
-		query.Where("network = ?", ctx.Network)
-	}
 	if ctx.Contract != "" {
 		query.Where("contract = ?", ctx.Contract)
 	}
