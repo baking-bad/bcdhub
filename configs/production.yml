@@ -82,11 +82,11 @@ indexer:
   offchain_base_url: ${OFFCHAIN_BASE_URL}
   networks:
     mainnet:
-      receiver_threads: 10
+      receiver_threads: ${MAINNET_THREADS:-1}
     hangzhou2net:
-      receiver_threads: 2
+      receiver_threads: ${TESTNET_THREADS:-1}
     ithacanet:
-      receiver_threads: 2
+      receiver_threads: ${TESTNET_THREADS:-1}
   connections:
     max: 5
     idle: 5
