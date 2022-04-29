@@ -331,7 +331,7 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current node state: %7d", head.Level)
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %7d", bi.state.Level)
 
-	if !time.Now().Add(time.Duration(-5) * time.Minute).After(head.Timestamp) {
+	if time.Now().Add(time.Duration(-5) * time.Minute).After(head.Timestamp) {
 		return errors.Errorf("node is stucking...")
 	}
 
