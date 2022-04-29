@@ -185,9 +185,12 @@ func (rm Manager) rollbackBigMapState(tx pg.DBI, level int64) error {
 			states[i].Removed = true
 			valuedDiff, err := rm.bmdRepo.LastDiff(state.Ptr, state.KeyHash, true)
 			if err != nil {
-				return err
+				if !rm.storage.IsRecordNotFound(err) {
+					return err
+				}
+			} else {
+				states[i].Value = valuedDiff.ValueBytes()
 			}
-			states[i].Value = valuedDiff.ValueBytes()
 		}
 
 		if err := states[i].Save(tx); err != nil {
