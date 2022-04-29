@@ -201,10 +201,8 @@ func (bi *BoostIndexer) indexBlock(ctx context.Context, wg *sync.WaitGroup) {
 		case <-ticker.C:
 			if block, ok := bi.blocks[bi.state.Level+1]; ok {
 				if bi.state.Level > 0 && block.Header.Predecessor != bi.state.Hash {
-					if !time.Now().Add(time.Duration(-5) * time.Minute).After(block.Header.Timestamp) { // Check that node is out of sync
-						if err := bi.Rollback(ctx); err != nil {
-							logger.Error().Err(err).Msg("Rollback")
-						}
+					if err := bi.Rollback(ctx); err != nil {
+						logger.Error().Err(err).Msg("Rollback")
 					}
 				} else {
 					if err := bi.handleBlock(ctx, block); err != nil {
@@ -332,6 +330,10 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current node state: %7d", head.Level)
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %7d", bi.state.Level)
+
+	if !time.Now().Add(time.Duration(-5) * time.Minute).After(head.Timestamp) {
+		return errors.Errorf("node is stucking...")
+	}
 
 	if head.Level > bi.state.Level {
 		if err := bi.Index(ctx, head); err != nil {
