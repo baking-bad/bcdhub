@@ -232,6 +232,12 @@ func (bi *BoostIndexer) createIndices() {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
+	if _, err := bi.Context.StorageDB.DB.Model((*tokenmetadata.TokenMetadata)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS token_metadata_creators_idx ON ?TableName USING gin (creators)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
 	// Transfers
 	if _, err := bi.Context.StorageDB.DB.Model((*transfer.Transfer)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS transfers_level_idx ON ?TableName (level)
