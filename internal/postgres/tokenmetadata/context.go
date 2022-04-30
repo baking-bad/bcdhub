@@ -26,7 +26,7 @@ func (storage *Storage) buildGetTokenMetadataContext(query *orm.Query, ctx ...to
 					subQuery.Where("level > ?", ctx[i].MinLevel)
 				}
 				if ctx[i].Creator != "" {
-					subQuery.Where("? = ANY(creators)", ctx[i].Creator)
+					subQuery.Where("ARRAY[?] <@ creators", ctx[i].Creator)
 				}
 				if ctx[i].Name != "" {
 					subQuery.Where("name = ?", ctx[i].Name)
