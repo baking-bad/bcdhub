@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path"
 	"strconv"
 	"time"
 
@@ -91,14 +90,6 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	return node
 }
 
-func (rpc *NodeRPC) cached() bool {
-	return rpc.cacheDir != ""
-}
-
-func (rpc *NodeRPC) cachePath(uri string) string {
-	return path.Join(rpc.cacheDir, uri)
-}
-
 func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) error {
 	switch {
 	case resp.StatusCode == http.StatusOK:
@@ -107,15 +98,11 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 		return NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
 	case checkStatusCode:
 		invalidResponseErr := newInvalidNodeResponse()
-		data, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
+		buffer := new(bytes.Buffer)
+		stream := io.TeeReader(resp.Body, buffer)
+		invalidResponseErr.Raw = buffer.Bytes()
+		if err := json.NewDecoder(stream).Decode(&invalidResponseErr.Errors); err != nil {
 			return errors.Wrap(invalidResponseErr, err.Error())
-		}
-		invalidResponseErr.Raw = data
-		if json.Valid(data) {
-			if err := json.Unmarshal(data, &invalidResponseErr.Errors); err != nil {
-				return errors.Wrap(invalidResponseErr, err.Error())
-			}
 		}
 		return invalidResponseErr
 	default:
@@ -123,26 +110,9 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 	}
 }
 
-func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode, withCache bool, uri string, response interface{}) error {
+func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool, uri string, response interface{}) error {
 	if err := rpc.checkStatusCode(resp, checkStatusCode); err != nil {
 		return errors.Wrap(err, ErrNodeRPCError)
-	}
-
-	if withCache && rpc.cached() && uri != "" {
-		cachePath := rpc.cachePath(uri)
-		dirPath := path.Dir(cachePath)
-		if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-			if err := os.MkdirAll(dirPath, 0700); err != nil {
-				return err
-			}
-		}
-		f, err := os.Create(cachePath)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		return json.NewDecoder(io.TeeReader(resp.Body, f)).Decode(response)
 	}
 
 	return json.NewDecoder(resp.Body).Decode(response)
@@ -191,21 +161,10 @@ func (rpc *NodeRPC) makePostRequest(ctx context.Context, uri string, data interf
 	return rpc.makeRequest(ctx, req)
 }
 
-func (rpc *NodeRPC) get(ctx context.Context, uri string, withCache bool, response interface{}) error {
+func (rpc *NodeRPC) get(ctx context.Context, uri string, response interface{}) error {
 	if rpc.rateLimit != nil {
 		if err := rpc.rateLimit.Wait(ctx); err != nil {
 			return err
-		}
-	}
-
-	if withCache && rpc.cached() {
-		if f, err := os.Open(rpc.cachePath(uri)); err == nil {
-			if err := json.NewDecoder(f).Decode(response); err == nil {
-				return f.Close()
-			}
-			if err := f.Close(); err != nil {
-				return err
-			}
 		}
 	}
 
@@ -215,7 +174,7 @@ func (rpc *NodeRPC) get(ctx context.Context, uri string, withCache bool, respons
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp, true, withCache, uri, response)
+	return rpc.parseResponse(resp, true, uri, response)
 }
 
 func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
@@ -239,7 +198,7 @@ func (rpc *NodeRPC) post(ctx context.Context, uri string, data interface{}, chec
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp, checkStatusCode, false, "", response)
+	return rpc.parseResponse(resp, checkStatusCode, "", response)
 }
 
 // GetHead - get head
@@ -252,7 +211,7 @@ func (rpc *NodeRPC) GetLevel(ctx context.Context) (int64, error) {
 	var head struct {
 		Level int64 `json:"level"`
 	}
-	if err := rpc.get(ctx, "chains/main/blocks/head/header", false, &head); err != nil {
+	if err := rpc.get(ctx, "chains/main/blocks/head/header", &head); err != nil {
 		return 0, err
 	}
 	return head.Level, nil
@@ -260,13 +219,13 @@ func (rpc *NodeRPC) GetLevel(ctx context.Context) (int64, error) {
 
 // GetHeader - get head for certain level
 func (rpc *NodeRPC) GetHeader(ctx context.Context, level int64) (header Header, err error) {
-	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/header", getBlockString(level)), level > 0, &header)
+	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/header", getBlockString(level)), &header)
 	return
 }
 
 // GetScriptJSON -
 func (rpc *NodeRPC) GetScriptJSON(ctx context.Context, address string, level int64) (script Script, err error) {
-	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), level > 0, &script)
+	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), &script)
 	return
 }
 
@@ -280,14 +239,14 @@ func (rpc *NodeRPC) GetScriptStorageRaw(ctx context.Context, address string, lev
 	var response struct {
 		Storage stdJSON.RawMessage `json:"storage"`
 	}
-	err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), false, &response)
+	err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), &response)
 	return response.Storage, err
 }
 
 // GetContractBalance -
 func (rpc *NodeRPC) GetContractBalance(ctx context.Context, address string, level int64) (int64, error) {
 	var balanceStr string
-	if err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/balance", getBlockString(level), address), false, &balanceStr); err != nil {
+	if err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/balance", getBlockString(level), address), &balanceStr); err != nil {
 		return 0, err
 	}
 	return strconv.ParseInt(balanceStr, 10, 64)
@@ -296,19 +255,19 @@ func (rpc *NodeRPC) GetContractBalance(ctx context.Context, address string, leve
 // GetContractData -
 func (rpc *NodeRPC) GetContractData(ctx context.Context, address string, level int64) (ContractData, error) {
 	var response ContractData
-	err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", getBlockString(level), address), false, &response)
+	err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", getBlockString(level), address), &response)
 	return response, err
 }
 
 // GetOPG -
 func (rpc *NodeRPC) GetOPG(ctx context.Context, block int64) (group []OperationGroup, err error) {
-	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/operations/3", getBlockString(block)), block > 0, &group)
+	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/operations/3", getBlockString(block)), &group)
 	return
 }
 
 // GetLightOPG -
 func (rpc *NodeRPC) GetLightOPG(ctx context.Context, block int64) (group []LightOperationGroup, err error) {
-	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/operations/3", getBlockString(block)), block > 0, &group)
+	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/operations/3", getBlockString(block)), &group)
 	return
 }
 
@@ -318,7 +277,7 @@ func (rpc *NodeRPC) GetContractsByBlock(ctx context.Context, block int64) ([]str
 		return nil, errors.Errorf("For less loading node RPC `block` value is only 1")
 	}
 	contracts := make([]string, 0)
-	if err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%d/context/contracts", block), false, &contracts); err != nil {
+	if err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%d/context/contracts", block), &contracts); err != nil {
 		return nil, err
 	}
 	return contracts, nil
@@ -326,7 +285,7 @@ func (rpc *NodeRPC) GetContractsByBlock(ctx context.Context, block int64) ([]str
 
 // GetNetworkConstants -
 func (rpc *NodeRPC) GetNetworkConstants(ctx context.Context, level int64) (constants Constants, err error) {
-	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/constants", getBlockString(level)), true, &constants)
+	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/constants", getBlockString(level)), &constants)
 	return
 }
 
@@ -417,7 +376,7 @@ func (rpc *NodeRPC) RunOperationLight(ctx context.Context, chainID, branch, sour
 // GetCounter -
 func (rpc *NodeRPC) GetCounter(ctx context.Context, address string) (int64, error) {
 	var counter string
-	if err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/head/context/contracts/%s/counter", address), false, &counter); err != nil {
+	if err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/head/context/contracts/%s/counter", address), &counter); err != nil {
 		return 0, err
 	}
 	return strconv.ParseInt(counter, 10, 64)
@@ -425,25 +384,12 @@ func (rpc *NodeRPC) GetCounter(ctx context.Context, address string) (int64, erro
 
 // GetBigMapType -
 func (rpc *NodeRPC) GetBigMapType(ctx context.Context, ptr, level int64) (bm BigMap, err error) {
-	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/raw/json/big_maps/index/%d", getBlockString(level), ptr), false, &bm)
+	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/raw/json/big_maps/index/%d", getBlockString(level), ptr), &bm)
 	return
 }
 
 // GetBlockMetadata -
 func (rpc *NodeRPC) GetBlockMetadata(ctx context.Context, level int64) (metadata Metadata, err error) {
-	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/metadata", getBlockString(level)), level > 0, &metadata)
+	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/metadata", getBlockString(level)), &metadata)
 	return
-}
-
-// RollbackCache -
-func (rpc *NodeRPC) RollbackCache(level int64) error {
-	if !rpc.cached() {
-		return nil
-	}
-
-	dirPath := rpc.cachePath(fmt.Sprintf("chains/main/blocks/%d", level))
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		return nil
-	}
-	return os.RemoveAll(dirPath)
 }

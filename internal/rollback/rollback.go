@@ -77,10 +77,6 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network
 		if err != nil {
 			return err
 		}
-
-		if err := rm.rpc.RollbackCache(level); err != nil {
-			return err
-		}
 	}
 	return nil
 }
