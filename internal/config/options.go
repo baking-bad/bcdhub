@@ -34,7 +34,7 @@ import (
 type ContextOption func(ctx *Context)
 
 // WithRPC -
-func WithRPC(rpcConfig map[string]RPCConfig, cache bool) ContextOption {
+func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 	return func(ctx *Context) {
 		if rpcProvider, ok := rpcConfig[ctx.Network.String()]; ok {
 			if rpcProvider.URI == "" {
@@ -43,9 +43,6 @@ func WithRPC(rpcConfig map[string]RPCConfig, cache bool) ContextOption {
 			opts := []noderpc.NodeOption{
 				noderpc.WithTimeout(time.Second * time.Duration(rpcProvider.Timeout)),
 				noderpc.WithRateLimit(rpcProvider.RequestsPerSecond),
-			}
-			if cache {
-				opts = append(opts, noderpc.WithCache(ctx.Config.SharePath, ctx.Network.String()))
 			}
 
 			ctx.RPC = noderpc.NewPool([]string{rpcProvider.URI}, opts...)

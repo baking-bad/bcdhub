@@ -50,7 +50,7 @@ func NewBoostIndexer(ctx context.Context, cfg config.Config, network types.Netwo
 		config.WithConfigCopy(cfg),
 		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle, true),
 		config.WithSearch(cfg.Storage),
-		config.WithRPC(cfg.RPC, cfg.Indexer.Cache),
+		config.WithRPC(cfg.RPC),
 	)
 	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 

@@ -279,9 +279,3 @@ func (p Pool) GetRawScript(ctx context.Context, address string, level int64) ([]
 	}
 	return data.Interface().([]byte), nil
 }
-
-// RollbackCache -
-func (p Pool) RollbackCache(level int64) error {
-	_, err := p.call("RollbackCache", level)
-	return err
-}
