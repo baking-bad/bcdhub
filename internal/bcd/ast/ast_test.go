@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -469,7 +470,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 				},
 			},
 		}, {
-			name: "Case 15: contract with tag field",
+			name: "Case 16: contract with tag field",
 			data: `{"prim":"contract","args":[{"prim":"nat"}],"annots":["%get_countdown_milliseconds"]}`,
 			want: &JSONSchema{
 				Type:    JSONSchemaTypeString,
@@ -477,6 +478,47 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 				Title:   "get_countdown_milliseconds",
 				Default: "",
 				Tag:     ContractTagViewNat,
+			},
+		}, {
+			name: "Case 17: KT1Djz5ix2yEGmV7PMq3GYq17TvMMkd1anT2",
+			data: `{"prim":"list","args":[{"prim":"list","args":[{"prim":"nat"}]}],"annots":["%update_cycles"]}`,
+			want: &JSONSchema{
+				Type:    JSONSchemaTypeObject,
+				Default: nil,
+				Properties: map[string]*JSONSchema{
+					"update_cycles": {
+						Type:       JSONSchemaTypeArray,
+						Prim:       consts.LIST,
+						Default:    []any{},
+						Properties: make(map[string]*JSONSchema),
+						Required:   make([]string, 0),
+						Items: &JSONSchema{
+							Type:     JSONSchemaTypeObject,
+							Required: make([]string, 0),
+							Properties: map[string]*JSONSchema{
+								"@list_2": {
+									Type:       JSONSchemaTypeArray,
+									Prim:       consts.LIST,
+									Default:    []any{},
+									Properties: make(map[string]*JSONSchema),
+									Required:   make([]string, 0),
+									Items: &JSONSchema{
+										Type:     JSONSchemaTypeObject,
+										Required: make([]string, 0),
+										Properties: map[string]*JSONSchema{
+											"@nat_3": {
+												Type:    JSONSchemaTypeInt,
+												Prim:    consts.NAT,
+												Title:   "@nat_3",
+												Default: 0,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -1376,6 +1418,11 @@ func TestTypedAst_FromJSONSchema(t *testing.T) {
 			tree: `{"prim":"pair","args":[{"prim":"address"},{"prim":"nat"}]}`,
 			data: `{"@address_2": "KT1Tg6WFuTU47Z8rPeBhDbgx1DmX1SWCZcZq","@nat_3":0}`,
 			want: `{"prim":"Pair","args":[{"string":"KT1Tg6WFuTU47Z8rPeBhDbgx1DmX1SWCZcZq"},{"int":"0"}]}`,
+		}, {
+			name: "mainnet/KT1Djz5ix2yEGmV7PMq3GYq17TvMMkd1anT2/update_cycles",
+			tree: `{"prim":"list","args":[{"prim":"list","args":[{"prim":"nat"}]}],"annots":["%update_cycles"]}`,
+			data: `{"update_cycles":[{"@list_2":[{"@nat_3":"12"}]}]}`,
+			want: `[[{"int":"12"}]]`,
 		},
 	}
 	for _, tt := range tests {
