@@ -133,7 +133,7 @@ func (list *List) ToJSONSchema() (*JSONSchema, error) {
 	}
 
 	switch list.Type.(type) {
-	case *Address, *Nat, *Mutez, *Int, *BakerHash, *BLS12381fr, *BLS12381g1, *BLS12381g2, *Bytes, *Key, *KeyHash, *ChainID, *Lambda, *Signature, *String:
+	case *Address, *Nat, *Mutez, *Int, *BakerHash, *BLS12381fr, *BLS12381g1, *BLS12381g2, *Bytes, *Key, *KeyHash, *ChainID, *Lambda, *Signature, *String, *List:
 		s.Items.Properties = child.Properties
 	default:
 		s.Items.Properties[list.Type.GetName()] = child
