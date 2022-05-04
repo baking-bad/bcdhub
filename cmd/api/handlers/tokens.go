@@ -321,7 +321,13 @@ func GetContractTokens() gin.HandlerFunc {
 			}
 			return
 		}
-		c.SecureJSON(http.StatusOK, metadata)
+
+		result := make([]TokenMetadata, len(metadata))
+		for i := range metadata {
+			result[i] = TokenMetadataFromModel(metadata[i], false)
+			result[i].Network = req.Network
+		}
+		c.SecureJSON(http.StatusOK, result)
 	}
 }
 
@@ -374,7 +380,7 @@ func getTokensWithSupply(ctx *config.Context, getCtx tokenmetadata.GetContext, s
 func addSupply(ctx *config.Context, metadata []tokenmetadata.TokenMetadata) ([]Token, error) {
 	tokens := make([]Token, 0)
 	for _, token := range metadata {
-		tokenMetadata := TokenMetadataFromElasticModel(token, true)
+		tokenMetadata := TokenMetadataFromModel(token, true)
 		tokenMetadata.Network = ctx.Network.String()
 		t := Token{
 			TokenMetadata: tokenMetadata,
