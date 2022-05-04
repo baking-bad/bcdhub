@@ -189,7 +189,7 @@ func getAccountBalances(ctx *config.Context, address string, req tokenBalanceReq
 	}
 
 	for _, token := range balances.Balances {
-		tm := TokenMetadataFromElasticModel(token.TokenMetadata, false)
+		tm := TokenMetadataFromModel(token.TokenMetadata, false)
 		tb := TokenBalance{
 			Balance: token.Balance,
 		}
