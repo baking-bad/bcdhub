@@ -209,6 +209,7 @@ func RunCode() gin.HandlerFunc {
 		if err := setParatemetersWithType(input, script, &main); handleError(c, ctx.Storage, err, 0) {
 			return
 		}
+		main.Storage = response.Storage
 		if err := setSimulateStorageDiff(c, ctx, response, state.Protocol, script, &main); handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -251,9 +252,14 @@ func parseAppliedRunCode(c *gin.Context, ctx *config.Context, response noderpc.R
 		if err := setParameters(response.Operations[i].Parameters, s, &op); err != nil {
 			return nil, err
 		}
-		if err := setSimulateStorageDiff(c, ctx, response, proto, script, &op); err != nil {
-			return nil, err
+
+		if response.Operations[i].Result != nil {
+			op.Storage = response.Operations[i].Result.Storage
+			if err := setSimulateStorageDiff(c, ctx, response, proto, s, &op); err != nil {
+				return nil, err
+			}
 		}
+
 		operations = append(operations, op)
 	}
 	return operations, nil
@@ -305,11 +311,11 @@ func parseBigMapDiffs(c *gin.Context, ctx *config.Context, response noderpc.RunC
 	return bmd, nil
 }
 
-func setSimulateStorageDiff(c *gin.Context, ctx *config.Context, response noderpc.RunCodeResponse, proto protocol.Protocol, script *ast.Script, main *Operation) error {
-	if len(response.Storage) == 0 || !bcd.IsContract(main.Destination) || main.Status != consts.Applied {
+func setSimulateStorageDiff(c *gin.Context, ctx *config.Context, response noderpc.RunCodeResponse, proto protocol.Protocol, script *ast.Script, operation *Operation) error {
+	if len(response.Storage) == 0 || !bcd.IsContract(operation.Destination) || operation.Status != consts.Applied {
 		return nil
 	}
-	bmd, err := parseBigMapDiffs(c, ctx, response, script, main, proto)
+	bmd, err := parseBigMapDiffs(c, ctx, response, script, operation, proto)
 	if err != nil {
 		return err
 	}
@@ -318,15 +324,15 @@ func setSimulateStorageDiff(c *gin.Context, ctx *config.Context, response noderp
 		return err
 	}
 
-	destination, err := ctx.Accounts.Get(main.Destination)
+	destination, err := ctx.Accounts.Get(operation.Destination)
 	if err != nil {
 		return err
 	}
 
-	storageDiff, err := getStorageDiff(ctx, destination.ID, bmd, response.Storage, storageType, main)
+	storageDiff, err := getStorageDiff(ctx, destination.ID, bmd, operation.Storage, storageType, operation)
 	if err != nil {
 		return err
 	}
-	main.StorageDiff = storageDiff
+	operation.StorageDiff = storageDiff
 	return nil
 }
