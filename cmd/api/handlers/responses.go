@@ -61,6 +61,7 @@ type Operation struct {
 	AllocatedDestinationContract       bool               `json:"allocated_destination_contract,omitempty" extensions:"x-nullable" example:"true"`
 	Internal                           bool               `json:"internal"`
 	Mempool                            bool               `json:"mempool"`
+	Storage                            stdJSON.RawMessage `json:"-"`
 }
 
 // FromModel -
