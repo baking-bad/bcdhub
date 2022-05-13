@@ -65,7 +65,7 @@ func (storage *Storage) TokenBalances(contract string, accountID int64, size, of
 	switch sort {
 	case "token_id":
 	case "balance":
-		query.Order("balance desc, id desc")
+		query.OrderExpr("balance desc, id desc")
 	default:
 		query.Order("token_id desc")
 	}
