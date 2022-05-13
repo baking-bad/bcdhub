@@ -190,6 +190,7 @@ func getAccountBalances(ctx *config.Context, address string, req tokenBalanceReq
 
 	for _, token := range balances.Balances {
 		tm := TokenMetadataFromModel(token.TokenMetadata, false)
+		tm.Network = ctx.Network.String()
 		tb := TokenBalance{
 			Balance: token.Balance,
 		}
@@ -199,6 +200,7 @@ func getAccountBalances(ctx *config.Context, address string, req tokenBalanceReq
 			tb.TokenMetadata = TokenMetadata{
 				Contract: token.Contract,
 				TokenID:  token.TokenID,
+				Network:  ctx.Network.String(),
 			}
 		}
 		response.Balances = append(response.Balances, tb)
