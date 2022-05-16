@@ -54,6 +54,7 @@ const (
 	OPENCHEST          = "OPEN_CHEST"
 	CHEST              = "chest"
 	CHESTKEY           = "chest_key"
+	TXROLLUPL2ADDRESS  = "tx_rollup_l2_address"
 )
 
 // Data instructions

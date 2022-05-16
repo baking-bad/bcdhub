@@ -30,11 +30,13 @@ func newInt64Ptr(val int64) *int64 {
 }
 
 func readJSONFile(name string, response interface{}) error {
-	bytes, err := ioutil.ReadFile(name)
+	f, err := os.Open(name)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(bytes, response)
+	defer f.Close()
+
+	return json.NewDecoder(f).Decode(response)
 }
 
 func readTestScript(address, symLink string) ([]byte, error) {

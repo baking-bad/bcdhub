@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/pkg/errors"
 )
 
 // Migration -
@@ -22,7 +23,78 @@ func NewMigration(contracts contract.Repository) Migration {
 }
 
 // Parse -
-func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
+func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation, protocol string, store parsers.Store) error {
+	switch protocol {
+	case
+		"ProtoGenesisGenesisGenesisGenesisGenesisGenesk612im",
+		"PrihK96nBAFSxVL1GLJTVhu9YnzkMFiBeuJRPA8NwuZVZCE1L6i",
+		"PtBMwNZT94N7gXKw4i273CKcSaBrrBnqnt3RATExNKr9KNX2USV",
+		"ProtoDemoNoopsDemoNoopsDemoNoopsDemoNoopsDemo6XBoYp",
+		"PtYuensgYBb3G3x1hLLbCmcav8ue8Kyd2khADcL5LsT5R1hcXex",
+		"Ps9mPmXaRzmzk35gbAYNCAw6UXdE2qoABTHbN2oEEc1qM7CwT9P",
+		"PsYLVpVvgbLhAhoqAkMFUo6gudkJ9weNXhUYCiLDzcUpFpkk8Wt",
+		"PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
+		"Pt24m4xiPbLDhVgVfABUjirbmda3yohdN82Sp9FeuAXJ4eV9otd",
+		"PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY",
+		"PsBabyM1eUXZseaJdmXFApDSBqj8YBfwELoxZHHW77EMcAbbwAS",
+		"PsBABY5HQTSkA4297zNHfsZNKtxULfL18y95qb3m53QJiXGmrbU",
+		"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+		"PryLyZ8A11FXDr1tRE9zQ7Di6Y8zX48RfFCFpkjC8Pt9yCBLhtN",
+		"PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
+		"PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq",
+		"PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA":
+		return m.fromBigMapDiffs(data, operation, store)
+	case
+		"PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx",
+		"PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
+		"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP",
+		"Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A",
+		"PrrUA9dCzbqBzugjQyw65HLHKjhH3HMFSLLHLZjj5rkmkG13Fej",
+		"PsrsRVg1Gycjn5LvMtoYSQah1znvYmGp8bHLxwYLBZaYFf2CEkV",
+		"PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
+		"PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV",
+		"PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY":
+		return m.fromLazyStorageDiff(data, operation, store)
+	default:
+		return errors.Errorf("unknown protocol for migration parser: %s", protocol)
+	}
+}
+
+func (m Migration) fromLazyStorageDiff(data noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
+	var lsd []noderpc.LazyStorageDiff
+	switch {
+	case data.Result != nil && data.Result.LazyStorageDiff != nil:
+		lsd = data.Result.LazyStorageDiff
+	case data.Metadata != nil && data.Metadata.OperationResult != nil && data.Metadata.OperationResult.LazyStorageDiff != nil:
+		lsd = data.Metadata.OperationResult.LazyStorageDiff
+	default:
+		return nil
+	}
+
+	for i := range lsd {
+		if lsd[i].Kind != types.LazyStorageDiffBigMap || lsd[i].Diff == nil || lsd[i].Diff.BigMap == nil {
+			continue
+		}
+
+		if lsd[i].Diff.BigMap.Action != types.BigMapActionStringUpdate {
+			continue
+		}
+
+		for j := range lsd[i].Diff.BigMap.Updates {
+			migration, err := m.createMigration(lsd[i].Diff.BigMap.Updates[j].Value, operation)
+			if err != nil {
+				return err
+			}
+			if migration != nil {
+				store.AddMigrations(migration)
+				logger.Info().Fields(migration.LogFields()).Msg("Migration detected")
+			}
+		}
+	}
+	return nil
+}
+
+func (m Migration) fromBigMapDiffs(data noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	var bmd []noderpc.BigMapDiff
 	switch {
 	case data.Result != nil && data.Result.BigMapDiffs != nil:
@@ -34,36 +106,49 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation,
 	}
 
 	for i := range bmd {
-		if bmd[i].Action != types.BigMapActionStringUpdate || len(bmd[i].Value) == 0 {
+		if bmd[i].Action != types.BigMapActionStringUpdate {
 			continue
 		}
 
-		var tree ast.UntypedAST
-		if err := json.Unmarshal(bmd[i].Value, &tree); err != nil {
+		migration, err := m.createMigration(bmd[i].Value, operation)
+		if err != nil {
 			return err
 		}
-
-		if len(tree) == 0 {
-			continue
-		}
-
-		if tree[0].IsLambda() {
-			c, err := m.contracts.Get(operation.Destination.Address)
-			if err != nil {
-				return err
-			}
-			migration := &migration.Migration{
-				ContractID: c.ID,
-				Level:      operation.Level,
-				ProtocolID: operation.ProtocolID,
-				Timestamp:  operation.Timestamp,
-				Hash:       operation.Hash,
-				Kind:       types.MigrationKindLambda,
-			}
+		if migration != nil {
 			store.AddMigrations(migration)
 			logger.Info().Fields(migration.LogFields()).Msg("Migration detected")
-			return nil
 		}
 	}
 	return nil
+}
+
+func (m Migration) createMigration(value []byte, operation *operation.Operation) (*migration.Migration, error) {
+	if len(value) == 0 {
+		return nil, nil
+	}
+	var tree ast.UntypedAST
+	if err := json.Unmarshal(value, &tree); err != nil {
+		return nil, err
+	}
+
+	if len(tree) == 0 {
+		return nil, nil
+	}
+
+	if !tree[0].IsLambda() {
+		return nil, nil
+	}
+
+	c, err := m.contracts.Get(operation.Destination.Address)
+	if err != nil {
+		return nil, err
+	}
+	return &migration.Migration{
+		ContractID: c.ID,
+		Level:      operation.Level,
+		ProtocolID: operation.ProtocolID,
+		Timestamp:  operation.Timestamp,
+		Hash:       operation.Hash,
+		Kind:       types.MigrationKindLambda,
+	}, nil
 }

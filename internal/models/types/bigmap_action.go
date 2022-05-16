@@ -50,3 +50,9 @@ const (
 	BigMapActionStringAlloc  = "alloc"
 	BigMapActionStringRemove = "remove"
 )
+
+// lazy storage diff types
+const (
+	LazyStorageDiffBigMap       = "big_map"
+	LazyStorageDiffSaplingState = "sapling_state"
+)

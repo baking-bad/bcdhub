@@ -226,6 +226,8 @@ func typeNode(node *base.Node, depth int, id *int) (Node, error) {
 		ast = NewChestKey(depth + 1)
 	case consts.CONSTANT:
 		ast = NewConstant(depth + 1)
+	case consts.TXROLLUPL2ADDRESS:
+		ast = NewTxRollupL2Address(depth + 1)
 	default:
 		return nil, errors.Wrap(consts.ErrUnknownPrim, node.Prim)
 	}

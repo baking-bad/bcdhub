@@ -33,6 +33,7 @@ var symLinks = map[string]string{
 	"PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx": SymLinkBabylon, // Hangzhounet 2
 	"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP": SymLinkBabylon, // Itacanet
 	"Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A": SymLinkBabylon, // Itacanet 2
+	"PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY": SymLinkBabylon, // Jakarta
 }
 
 // GetProtoSymLink -
@@ -50,7 +51,7 @@ func GetCurrentSymLink() string {
 
 // GetCurrentProtocol - returns last supported protocol
 func GetCurrentProtocol() string {
-	return "PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx"
+	return "Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A"
 }
 
 // Symbolic links
@@ -63,4 +64,5 @@ var ChainID = map[string]string{
 	"NetXdQprcVkpaWU": "mainnet",
 	"NetXZSsxBpMQeAT": "hangzhou2net",
 	"NetXnHfVqm9iesp": "ithacanet",
+	"NetXLH1uAxK7CCh": "jakarta",
 }

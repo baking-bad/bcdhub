@@ -173,7 +173,7 @@ func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operat
 		return err
 	}
 
-	return NewMigration(p.ctx.Contracts).Parse(item, tx, store)
+	return NewMigration(p.ctx.Contracts).Parse(item, tx, p.protocol.Hash, store)
 }
 
 func (p Transaction) getEntrypoint(tx *operation.Operation) error {

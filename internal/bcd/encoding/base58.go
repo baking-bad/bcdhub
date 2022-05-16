@@ -28,7 +28,15 @@ const (
 	PrefixPublicKeyTZ1                = "tz1"
 	PrefixPublicKeyTZ2                = "tz2"
 	PrefixPublicKeyTZ3                = "tz3"
+	PrefixPublicKeyTZ4                = "tz4"
 	PrefixPublicKeyKT1                = "KT1"
+	PrefixPublicKeyTxr1               = "txr1"
+	PrefixRollupInboxHash             = "txi"
+	PrefixRollupMessageHash           = "txm"
+	PrefixRollupCommitmentHash        = "txc"
+	PrefixRollupMessageResultHash     = "txmr"
+	PrefixRollupMessageResultListHash = "txM"
+	PrefixRollupWithdrawListHash      = "txw"
 	PrefixScriptExpr                  = "expr"
 	PrefixED25519Seed                 = "edsk"
 	PrefixED25519PublicKey            = "edpk"
@@ -63,6 +71,15 @@ var base58Encodings = []base58Encoding{
 	{[]byte(PrefixPublicKeyTZ2), 36, []byte{6, 161, 161}, 20, "secp256k1 public key hash"},
 	{[]byte(PrefixPublicKeyTZ3), 36, []byte{6, 161, 164}, 20, "p256 public key hash"},
 	{[]byte(PrefixPublicKeyKT1), 36, []byte{2, 90, 121}, 20, "Originated address"},
+
+	{[]byte(PrefixPublicKeyTxr1), 37, []byte{1, 128, 120, 31}, 20, "Rollup address"},
+	{[]byte(PrefixPublicKeyTZ4), 36, []byte{6, 161, 166}, 20, "L2 rollup address"},
+	{[]byte(PrefixRollupInboxHash), 53, []byte{79, 148, 196}, 32, "Inbox hash"},
+	{[]byte(PrefixRollupMessageHash), 53, []byte{79, 149, 030}, 32, "Message hash"},
+	{[]byte(PrefixRollupCommitmentHash), 53, []byte{79, 148, 017}, 32, "Commitment hash"},
+	{[]byte(PrefixRollupMessageResultHash), 54, []byte{18, 7, 206, 87}, 32, "Message result hash"},
+	{[]byte(PrefixRollupMessageResultListHash), 53, []byte{79, 146, 82}, 32, "Message result list hash"},
+	{[]byte(PrefixRollupWithdrawListHash), 53, []byte{79, 150, 72}, 32, "Withdraw list hash"},
 
 	{[]byte(PrefixScriptExpr), 54, []byte{13, 44, 64, 27}, 32, "script expression"},
 	{[]byte(PrefixED25519Seed), 54, []byte{13, 15, 58, 7}, 32, "ed25519 seed"},
