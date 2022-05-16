@@ -34,16 +34,16 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(ptr int64) ([]model.BigMapAction, error) {
+func (m *MockRepository) Get(ptr, limit, offset int64) ([]model.BigMapAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ptr)
+	ret := m.ctrl.Call(m, "Get", ptr, limit, offset)
 	ret0, _ := ret[0].([]model.BigMapAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockRepositoryMockRecorder) Get(ptr interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Get(ptr, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ptr)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ptr, limit, offset)
 }
