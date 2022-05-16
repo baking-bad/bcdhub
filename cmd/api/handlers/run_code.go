@@ -239,7 +239,7 @@ func parseAppliedRunCode(c *gin.Context, ctx *config.Context, response noderpc.R
 		op.Internal = true
 
 		var s *ast.Script
-		if op.Destination == main.Destination {
+		if op.Destination == main.Destination || op.Destination == consts.NullContract {
 			s = script
 		} else {
 			var err error

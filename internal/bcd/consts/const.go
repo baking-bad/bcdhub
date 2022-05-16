@@ -66,3 +66,8 @@ const (
 var (
 	BeginningOfTime = time.Date(2018, 06, 30, 0, 0, 0, 0, time.UTC)
 )
+
+// NullContract -
+const (
+	NullContract = "KT1BEqzn5Wx8uJrZNvuS9DVHmLvG9td3fDLi"
+)
