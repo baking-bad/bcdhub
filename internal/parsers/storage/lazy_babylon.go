@@ -1,6 +1,9 @@
 package storage
 
 import (
+	"context"
+	stdJSON "encoding/json"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -14,15 +17,17 @@ import (
 // LazyBabylon -
 type LazyBabylon struct {
 	repo bigmapdiff.Repository
+	rpc  noderpc.INode
 
 	ptrMap            map[int64]int64
 	temporaryPointers map[int64]*ast.BigMap
 }
 
 // NewLazyBabylon -
-func NewLazyBabylon(repo bigmapdiff.Repository) *LazyBabylon {
+func NewLazyBabylon(repo bigmapdiff.Repository, rpc noderpc.INode) *LazyBabylon {
 	return &LazyBabylon{
 		repo: repo,
+		rpc:  rpc,
 
 		ptrMap:            make(map[int64]int64),
 		temporaryPointers: make(map[int64]*ast.BigMap),
@@ -30,27 +35,37 @@ func NewLazyBabylon(repo bigmapdiff.Repository) *LazyBabylon {
 }
 
 // ParseTransaction -
-func (b *LazyBabylon) ParseTransaction(content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
+func (b *LazyBabylon) ParseTransaction(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	result := content.GetResult()
 	if result == nil {
 		return nil
 	}
 	operation.DeffatedStorage = result.Storage
 
-	return b.handleBigMapDiff(result, *content.Destination, operation, result.Storage, store)
+	_, err := b.handleBigMapDiff(ctx, result, *content.Destination, operation, result.Storage, store)
+	return err
 }
 
 // ParseOrigination -
-func (b *LazyBabylon) ParseOrigination(content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
+func (b *LazyBabylon) ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) (bool, error) {
 	result := content.GetResult()
 	if result == nil {
-		return nil
+		return false, nil
 	}
 
-	return b.handleBigMapDiff(result, result.Originated[0], operation, operation.DeffatedStorage, store)
+	var scriptData struct {
+		Storage stdJSON.RawMessage `json:"storage"`
+	}
+	if err := json.Unmarshal(content.Script, &scriptData); err != nil {
+		return false, err
+	}
+
+	operation.DeffatedStorage = scriptData.Storage
+
+	return b.handleBigMapDiff(ctx, result, result.Originated[0], operation, scriptData.Storage, store)
 }
 
-func (b *LazyBabylon) initPointersTypes(result *noderpc.OperationResult, operation *operation.Operation, data []byte) error {
+func (b *LazyBabylon) initPointersTypes(ctx context.Context, result *noderpc.OperationResult, operation *operation.Operation, data []byte) error {
 	level := operation.Level
 	if operation.IsTransaction() && operation.Level >= 2 {
 		level = operation.Level - 1
@@ -63,6 +78,19 @@ func (b *LazyBabylon) initPointersTypes(result *noderpc.OperationResult, operati
 
 	if err := storage.SettleFromBytes(data); err != nil {
 		return errors.Wrapf(err, "settleStorage %s %d", operation.Destination.Address, level)
+	}
+
+	if err := b.checkPointers(result, storage); err == nil {
+		return nil
+	}
+
+	rawData, err := b.rpc.GetScriptStorageRaw(ctx, operation.Destination.Address, level)
+	if err != nil {
+		return errors.Wrapf(err, "GetScriptStorageRaw %s %d", operation.Destination.Address, level)
+	}
+
+	if err := storage.SettleFromBytes(rawData); err != nil {
+		return errors.Wrapf(err, "Settle %s %d", operation.Destination.Address, level)
 	}
 
 	return b.checkPointers(result, storage)
@@ -116,13 +144,13 @@ func (b *LazyBabylon) checkPointers(result *noderpc.OperationResult, storage *as
 	return nil
 }
 
-func (b *LazyBabylon) handleBigMapDiff(result *noderpc.OperationResult, address string, op *operation.Operation, storageData []byte, store parsers.Store) error {
+func (b *LazyBabylon) handleBigMapDiff(ctx context.Context, result *noderpc.OperationResult, address string, op *operation.Operation, storageData []byte, store parsers.Store) (bool, error) {
 	if len(result.LazyStorageDiff) == 0 {
-		return nil
+		return false, nil
 	}
 
-	if err := b.initPointersTypes(result, op, storageData); err != nil {
-		return nil
+	if err := b.initPointersTypes(ctx, result, op, storageData); err != nil {
+		return false, nil
 	}
 
 	handlers := map[string]func(*noderpc.LazyBigMapDiff, int64, string, *operation.Operation, parsers.Store) error{
@@ -143,11 +171,11 @@ func (b *LazyBabylon) handleBigMapDiff(result *noderpc.OperationResult, address 
 		}
 
 		if err := handler(result.LazyStorageDiff[i].Diff.BigMap, result.LazyStorageDiff[i].ID, address, op, store); err != nil {
-			return err
+			return false, err
 		}
 	}
 
-	return nil
+	return true, nil
 }
 
 func (b *LazyBabylon) handleBigMapDiffUpdate(diff *noderpc.LazyBigMapDiff, ptr int64, address string, operation *operation.Operation, store parsers.Store) error {
