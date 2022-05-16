@@ -43,7 +43,7 @@ func (p *RichStorage) Parse(ctx context.Context, data noderpc.Operation, operati
 			return err
 		}
 		if parsed {
-			storage, err := p.rpc.GetScriptStorageRaw(context.Background(), operation.Destination.Address, operation.Level)
+			storage, err := p.rpc.GetScriptStorageRaw(ctx, operation.Destination.Address, operation.Level)
 			if err != nil {
 				return err
 			}

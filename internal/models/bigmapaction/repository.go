@@ -2,5 +2,5 @@ package bigmapaction
 
 // Repository -
 type Repository interface {
-	Get(ptr int64) ([]BigMapAction, error)
+	Get(ptr, limit, offset int64) ([]BigMapAction, error)
 }

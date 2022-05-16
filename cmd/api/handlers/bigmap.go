@@ -53,7 +53,7 @@ func GetBigMap() gin.HandlerFunc {
 		}
 
 		if stats.Total == 0 {
-			actions, err := ctx.BigMapActions.Get(req.Ptr)
+			actions, err := ctx.BigMapActions.Get(req.Ptr, 1, 0)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -157,7 +157,7 @@ func GetBigMapHistory() gin.HandlerFunc {
 			return
 		}
 
-		bm, err := ctx.BigMapActions.Get(req.Ptr)
+		bm, err := ctx.BigMapActions.Get(req.Ptr, 0, 0)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -398,20 +398,28 @@ func prepareBigMapItem(ctx *config.Context, data []bigmapdiff.BigMapDiff, keyHas
 }
 
 func getBigMapType(ctx *config.Context, data bigmapdiff.BigMapDiff) (*ast.BigMap, error) {
+	actions, err := ctx.BigMapActions.Get(data.Ptr, 2, 0)
+	if err != nil {
+		return nil, err
+	}
+	if len(actions) == 0 {
+		return nil, errors.Errorf("can't find ptr in storage: %d", data.Ptr)
+	}
+
+	operationID := actions[0].OperationID
+	if actions[0].Action == types.BigMapActionRemove {
+		if len(actions) < 2 {
+			return nil, errors.Errorf("can't find ptr in storage: %d", data.Ptr)
+		}
+		operationID = actions[1].OperationID
+	}
+
 	storageType, err := getStorageType(ctx, data.Contract, bcd.GetCurrentSymLink())
 	if err != nil {
 		return nil, err
 	}
 
-	contract, err := ctx.Accounts.Get(data.Contract)
-	if err != nil {
-		return nil, err
-	}
-
-	operation, err := ctx.Operations.Last(map[string]interface{}{
-		"destination_id": contract.ID,
-		"status":         types.OperationStatusApplied,
-	}, 0)
+	operation, err := ctx.Operations.GetByID(operationID)
 	if err != nil {
 		return nil, err
 	}
