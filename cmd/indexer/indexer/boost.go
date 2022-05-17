@@ -282,8 +282,6 @@ func (bi *BoostIndexer) Rollback(ctx context.Context) error {
 		return err
 	}
 
-	helpers.CatchErrorSentry(errors.Errorf("[%s] Rollback from %7d to %7d", bi.Network, bi.state.Level, lastLevel))
-
 	newState, err := bi.Blocks.Last()
 	if err != nil {
 		return err
