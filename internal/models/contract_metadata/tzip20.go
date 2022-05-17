@@ -1,6 +1,7 @@
 package contract_metadata
 
 import (
+	"bytes"
 	stdJSON "encoding/json"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -51,16 +52,16 @@ type Sections struct {
 	Code       stdJSON.RawMessage `json:"code"`
 }
 
-var null = " null"
+var null = []byte("null")
 
 // Empty -
 func (s Sections) Empty() bool {
-	return string(s.Code) == null && string(s.Parameter) == null && string(s.ReturnType) == null
+	return bytes.HasSuffix(s.Code, null) && bytes.HasSuffix(s.Parameter, null) && bytes.HasSuffix(s.ReturnType, null)
 }
 
 // IsParameterEmpty -
 func (s Sections) IsParameterEmpty() bool {
-	return string(s.Parameter) == null
+	return bytes.HasSuffix(s.Parameter, null)
 }
 
 // MichelsonInitialStorageEvent -
