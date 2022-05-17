@@ -133,7 +133,7 @@ func (bi *BoostIndexer) Sync(ctx context.Context, wg *sync.WaitGroup) {
 	// First tick
 	if err := bi.process(ctx); err != nil {
 		logger.Err(err)
-		helpers.CatchErrorSentry(err)
+		helpers.LocalCatchErrorSentry(localSentry, err)
 	}
 
 	everySecond := false
@@ -156,7 +156,7 @@ func (bi *BoostIndexer) Sync(ctx context.Context, wg *sync.WaitGroup) {
 					continue
 				}
 				logger.Err(err)
-				helpers.CatchErrorSentry(err)
+				helpers.LocalCatchErrorSentry(localSentry, err)
 			}
 
 			if everySecond {
@@ -331,7 +331,7 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current node state: %7d", head.Level)
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %7d", bi.state.Level)
 
-	if time.Now().Add(time.Duration(-5) * time.Minute).After(head.Timestamp) {
+	if head.Timestamp.Add(5 * time.Minute).Before(time.Now().UTC()) {
 		return errors.Errorf("node is stucking...")
 	}
 
