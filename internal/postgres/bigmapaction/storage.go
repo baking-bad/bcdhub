@@ -21,7 +21,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 func (storage *Storage) Get(ptr, limit, offset int64) (actions []bigmapaction.BigMapAction, err error) {
 	query := storage.DB.Model().Table(models.DocBigMapActions).
 		WhereGroup(func(q *orm.Query) (*orm.Query, error) {
-			q.Where("source_ptr = ?", ptr).WhereOr("destination_ptr = ?", ptr)
+			q.Where("source_ptr = ? AND action <> 3", ptr).WhereOr("destination_ptr = ? AND action = 3 ", ptr)
 			return q, nil
 		}).
 		Order("id DESC")
