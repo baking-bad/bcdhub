@@ -535,6 +535,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 				t.Errorf("TypedAst.ToJSONSchema() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			assert.Equal(t, tt.want, got)
 		})
 	}
