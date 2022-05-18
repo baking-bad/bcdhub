@@ -27,6 +27,7 @@ import (
 
 var errBcdQuit = errors.New("bcd-quit")
 var errSameLevel = errors.New("Same level")
+var errNodeIsStucked = errors.New("node is stucked")
 
 // BoostIndexer -
 type BoostIndexer struct {
@@ -132,8 +133,10 @@ func (bi *BoostIndexer) Sync(ctx context.Context, wg *sync.WaitGroup) {
 
 	// First tick
 	if err := bi.process(ctx); err != nil {
-		logger.Err(err)
-		helpers.LocalCatchErrorSentry(localSentry, err)
+		if !errors.Is(err, errSameLevel) {
+			logger.Err(err)
+			helpers.LocalCatchErrorSentry(localSentry, err)
+		}
 	}
 
 	everySecond := false
@@ -332,7 +335,7 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %7d", bi.state.Level)
 
 	if head.Timestamp.Add(5 * time.Minute).Before(time.Now().UTC()) {
-		return errors.Errorf("node is stucking...")
+		return errNodeIsStucked
 	}
 
 	if head.Level > bi.state.Level {
