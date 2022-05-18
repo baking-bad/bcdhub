@@ -18,8 +18,3 @@ func ComputeHash(data []byte) (string, error) {
 	}
 	return hex.EncodeToString(sha.Sum(nil)), nil
 }
-
-// IsAddress -
-func IsAddress(str string) bool {
-	return len(str) == 36 && regAddress.MatchString(str)
-}

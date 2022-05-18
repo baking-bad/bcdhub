@@ -33,7 +33,7 @@ func GetInfo() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, Error{Message: err.Error()})
 			return
@@ -155,7 +155,7 @@ func GetAccountTokenBalances() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
@@ -228,7 +228,7 @@ func GetAccountTokensCountByContract() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
@@ -267,7 +267,7 @@ func GetAccountTokensCountByContractWithMetadata() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
@@ -334,7 +334,7 @@ func GetMetadata() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}

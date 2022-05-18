@@ -126,7 +126,7 @@ func GetFA12OperationsForAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}

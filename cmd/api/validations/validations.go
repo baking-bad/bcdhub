@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/btcsuite/btcutil/base58"
@@ -19,6 +19,10 @@ const (
 // Register -
 func Register(v *validator.Validate, cfg config.APIConfig) error {
 	if err := v.RegisterValidation("address", addressValidator()); err != nil {
+		return err
+	}
+
+	if err := v.RegisterValidation("contract", contractValidator()); err != nil {
 		return err
 	}
 
@@ -63,7 +67,13 @@ func Register(v *validator.Validate, cfg config.APIConfig) error {
 
 func addressValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
-		return contract.IsAddress(fl.Field().String())
+		return bcd.IsAddress(fl.Field().String())
+	}
+}
+
+func contractValidator() validator.Func {
+	return func(fl validator.FieldLevel) bool {
+		return bcd.IsContract(fl.Field().String())
 	}
 }
 

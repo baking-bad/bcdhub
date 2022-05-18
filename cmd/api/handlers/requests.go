@@ -6,8 +6,18 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
-type getContractRequest struct {
+type getAccountRequest struct {
 	Address string `uri:"address" binding:"required,address"`
+	Network string `uri:"network" binding:"required,network"`
+}
+
+// NetworkID -
+func (req getAccountRequest) NetworkID() types.Network {
+	return types.NewNetwork(req.Network)
+}
+
+type getContractRequest struct {
+	Address string `uri:"address" binding:"required,contract"`
 	Network string `uri:"network" binding:"required,network"`
 }
 

@@ -21,19 +21,27 @@ func IsLiteral(prim string) bool {
 	return false
 }
 
-// IsContract -
-func IsContract(address string) bool {
-	return len(address) == 36 && strings.HasPrefix(address, "KT")
+// IsContractLazy -
+func IsContractLazy(str string) bool {
+	return len(str) == 36 && strings.HasPrefix(str, "KT1")
 }
 
 // IsAddressLazy -
-func IsAddressLazy(address string) bool {
-	return len(address) == 36 && (strings.HasPrefix(address, "KT") || strings.HasPrefix(address, "tz"))
+func IsAddressLazy(str string) bool {
+	return len(str) == 36 && (strings.HasPrefix(str, "KT1") || strings.HasPrefix(str, "tz"))
 }
+
+var (
+	addressRegex  = regexp.MustCompile("(tz1|tz2|tz3|KT1)[0-9A-Za-z]{33}")
+	contractRegex = regexp.MustCompile("(KT1)[0-9A-Za-z]{33}")
+)
 
 // IsAddress -
 func IsAddress(str string) bool {
-	regexString := "(tz|KT)[0-9A-Za-z]{34}"
-	re := regexp.MustCompile(regexString)
-	return re.MatchString(str)
+	return addressRegex.MatchString(str)
+}
+
+// IsContract -
+func IsContract(str string) bool {
+	return contractRegex.MatchString(str)
 }
