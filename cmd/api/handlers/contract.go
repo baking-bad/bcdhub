@@ -45,7 +45,9 @@ func GetContract() gin.HandlerFunc {
 			return
 		}
 
-		res, err := contractWithStatsPostprocessing(ctx, contract)
+		ctxs := c.MustGet("contexts").(config.Contexts)
+
+		res, err := contractWithStatsPostprocessing(ctxs, ctx, contract)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -96,7 +98,7 @@ func GetRandomContract() gin.HandlerFunc {
 			return
 		}
 
-		res, err := contractWithStatsPostprocessing(ctx, contract)
+		res, err := contractWithStatsPostprocessing(ctxs, ctx, contract)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -141,7 +143,7 @@ func GetSameContracts() gin.HandlerFunc {
 			return
 		}
 
-		same, err := ctx.Searcher.SameContracts(contract, ctx.Network.String(), page.Offset, page.Size)
+		same, err := ctx.Searcher.SameContracts(contract, ctx.Network.String(), ctx.Config.API.Networks, page.Offset, page.Size)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -193,16 +195,19 @@ func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Co
 	return res, nil
 }
 
-func contractWithStatsPostprocessing(ctx *config.Context, contract contract.Contract) (ContractWithStats, error) {
+func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, contract contract.Contract) (ContractWithStats, error) {
 	c, err := contractPostprocessing(ctx, contract)
 	if err != nil {
 		return ContractWithStats{}, err
 	}
 	res := ContractWithStats{c, 0}
-	stats, err := ctx.Contracts.Stats(contract)
-	if err != nil {
-		return res, err
+
+	for _, cur := range ctxs {
+		stats, err := cur.Contracts.Stats(contract)
+		if err != nil {
+			return res, err
+		}
+		res.SameCount += int64(stats)
 	}
-	res.SameCount = int64(stats)
 	return res, nil
 }

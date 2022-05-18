@@ -139,7 +139,7 @@ func (api *app) makeRouter() {
 		contract := v1.Group("contract/:network/:address")
 		contract.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
-			contract.GET("", handlers.GetContract())
+			contract.GET("", handlers.ContextsMiddleware(api.Contexts), handlers.GetContract())
 			contract.GET("code", handlers.GetContractCode())
 			contract.GET("operations", handlers.GetContractOperations())
 			contract.GET("migrations", handlers.GetContractMigrations())
