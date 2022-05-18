@@ -29,8 +29,12 @@ func newSameContractsQuery(contract contract.Contract, network string) Base {
 				Match("hash", hash),
 			),
 			MustNot(
-				Match("network", network),
-				Match("address", contract.Account.Address),
+				Bool(
+					Filter(
+						Match("network", network),
+						Match("address", contract.Account.Address),
+					),
+				),
 			),
 		),
 	)

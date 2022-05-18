@@ -200,7 +200,7 @@ func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, 
 	if err != nil {
 		return ContractWithStats{}, err
 	}
-	res := ContractWithStats{c, 0}
+	res := ContractWithStats{c, -1}
 
 	for _, cur := range ctxs {
 		stats, err := cur.Contracts.Stats(contract)
