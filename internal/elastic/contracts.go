@@ -18,7 +18,7 @@ type sameContractsResponse struct {
 	} `json:"hits"`
 }
 
-func newSameContractsQuery(contract contract.Contract, network string) Base {
+func newSameContractsQuery(contract contract.Contract, network string, networks ...string) Base {
 	hash := contract.Babylon.Hash
 	if contract.AlphaID > 0 && hash == "" {
 		hash = contract.Alpha.Hash
@@ -27,25 +27,22 @@ func newSameContractsQuery(contract contract.Contract, network string) Base {
 		Bool(
 			Filter(
 				Match("hash", hash),
+				In("network", networks),
 			),
 			MustNot(
-				Bool(
-					Filter(
-						Match("network", network),
-						Match("address", contract.Account.Address),
-					),
-				),
+				Match("network", network),
+				Match("address", contract.Account.Address),
 			),
 		),
 	)
 }
 
 // SameContracts -
-func (e *Elastic) SameContracts(contract contract.Contract, network string, offset, size int64) (search.SameContracts, error) {
+func (e *Elastic) SameContracts(contract contract.Contract, network string, networks []string, offset, size int64) (search.SameContracts, error) {
 	if size == 0 {
 		size = defaultSize
 	}
-	query := newSameContractsQuery(contract, network).Size(size).From(offset)
+	query := newSameContractsQuery(contract, network, networks...).Size(size).From(offset)
 
 	var response sameContractsResponse
 	if err := e.query([]string{models.DocContracts}, query, &response); err != nil {
