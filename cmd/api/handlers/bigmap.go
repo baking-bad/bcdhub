@@ -398,32 +398,46 @@ func prepareBigMapItem(ctx *config.Context, data []bigmapdiff.BigMapDiff, keyHas
 }
 
 func getBigMapType(ctx *config.Context, data bigmapdiff.BigMapDiff) (*ast.BigMap, error) {
-	actions, err := ctx.BigMapActions.Get(data.Ptr, 2, 0)
-	if err != nil {
-		return nil, err
-	}
-	if len(actions) == 0 {
-		return nil, errors.Errorf("can't find ptr in storage: %d", data.Ptr)
-	}
-
-	operationID := actions[0].OperationID
-	if actions[0].Action == types.BigMapActionRemove {
-		if len(actions) < 2 {
-			return nil, errors.Errorf("can't find ptr in storage: %d", data.Ptr)
-		}
-		operationID = actions[1].OperationID
-	}
-
 	storageType, err := getStorageType(ctx, data.Contract, bcd.GetCurrentSymLink())
 	if err != nil {
 		return nil, err
 	}
 
-	operation, err := ctx.Operations.GetByID(operationID)
+	actions, err := ctx.BigMapActions.Get(data.Ptr, 2, 0)
 	if err != nil {
 		return nil, err
 	}
-	if err := storageType.SettleFromBytes(operation.DeffatedStorage); err != nil {
+
+	var deffatedStorage []byte
+	if len(actions) != 0 {
+		operationID := actions[0].OperationID
+		if actions[0].Action == types.BigMapActionRemove {
+			if len(actions) >= 2 {
+				operationID = actions[1].OperationID
+			}
+		}
+		operation, err := ctx.Operations.GetByID(operationID)
+		if err != nil {
+			return nil, err
+		}
+		deffatedStorage = operation.DeffatedStorage
+	} else {
+		contract, err := ctx.Accounts.Get(data.Contract)
+		if err != nil {
+			return nil, err
+		}
+
+		operation, err := ctx.Operations.Last(map[string]interface{}{
+			"destination_id": contract.ID,
+			"status":         types.OperationStatusApplied,
+		}, 0)
+		if err != nil {
+			return nil, err
+		}
+		deffatedStorage = operation.DeffatedStorage
+	}
+
+	if err := storageType.SettleFromBytes(deffatedStorage); err != nil {
 		return nil, err
 	}
 	bigMaps := storageType.FindBigMapByPtr()
