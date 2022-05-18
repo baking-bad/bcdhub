@@ -20,7 +20,7 @@ type Searcher interface {
 	CreateIndexes() error
 	Rollback(network string, level int64) error
 	BigMapDiffs(args BigMapDiffSearchArgs) ([]BigMapDiffResult, error)
-	SameContracts(contract contract.Contract, network string, networks []string, offset, size int64) (SameContracts, error)
+	SameContracts(contract contract.Contract, network string, offset, size int64) (SameContracts, error)
 }
 
 // Data -

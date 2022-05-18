@@ -143,7 +143,7 @@ func GetSameContracts() gin.HandlerFunc {
 			return
 		}
 
-		same, err := ctx.Searcher.SameContracts(contract, ctx.Network.String(), ctx.Config.API.Networks, page.Offset, page.Size)
+		same, err := ctx.Searcher.SameContracts(contract, ctx.Network.String(), page.Offset, page.Size)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
