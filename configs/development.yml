@@ -81,8 +81,8 @@ indexer:
   skip_delegator_blocks: true
   offchain_base_url: ${OFFCHAIN_BASE_URL}
   networks:
-    # mainnet:
-    #   receiver_threads: 5
+    mainnet:
+      receiver_threads: 5
     ithacanet:
       receiver_threads: 5
     jakartanet:

@@ -1,8 +1,6 @@
 package operations
 
 import (
-	"context"
-
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -169,7 +167,7 @@ func (p Transaction) fillInternal(tx *operation.Operation) {
 }
 
 func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operation, store parsers.Store) error {
-	if err := p.storageParser.Parse(context.Background(), item, tx, store); err != nil {
+	if err := p.specific.StorageParser.ParseTransaction(item, tx, store); err != nil {
 		return err
 	}
 

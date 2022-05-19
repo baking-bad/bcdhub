@@ -7,7 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/parsers/contract"
+	"github.com/baking-bad/bcdhub/internal/parsers/protocols"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
@@ -16,10 +16,8 @@ import (
 type ParseParams struct {
 	ctx *config.Context
 
-	contractParser *contract.Parser
+	specific       *protocols.Specific
 	transferParser *transfer.Parser
-
-	storageParser *RichStorage
 
 	stackTrace *stacktrace.StackTrace
 
@@ -89,6 +87,12 @@ func NewParseParams(ctx *config.Context, opts ...ParseParamsOption) (*ParseParam
 		params.protocol = &proto
 	}
 
+	specific, err := protocols.Get(ctx, params.protocol.Hash)
+	if err != nil {
+		return nil, err
+	}
+	params.specific = specific
+
 	transferParser, err := transfer.NewParser(
 		ctx.RPC,
 		ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
@@ -100,12 +104,5 @@ func NewParseParams(ctx *config.Context, opts ...ParseParamsOption) (*ParseParam
 		return nil, err
 	}
 	params.transferParser = transferParser
-
-	params.contractParser = contract.NewParser(params.ctx)
-	storageParser, err := NewRichStorage(ctx.BigMapDiffs, ctx.RPC, params.head.Protocol)
-	if err != nil {
-		return nil, err
-	}
-	params.storageParser = storageParser
 	return params, nil
 }

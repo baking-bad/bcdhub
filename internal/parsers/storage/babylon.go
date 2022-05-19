@@ -1,10 +1,8 @@
 package storage
 
 import (
-	"context"
-	stdJSON "encoding/json"
-
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -16,18 +14,20 @@ import (
 
 // Babylon -
 type Babylon struct {
-	repo bigmapdiff.Repository
-	rpc  noderpc.INode
+	bigmapdiffs bigmapdiff.Repository
+	operations  operation.Repository
+	accounts    account.Repository
 
 	ptrMap            map[int64]int64
 	temporaryPointers map[int64]*ast.BigMap
 }
 
 // NewBabylon -
-func NewBabylon(repo bigmapdiff.Repository, rpc noderpc.INode) *Babylon {
+func NewBabylon(bigmapdiffs bigmapdiff.Repository, operations operation.Repository, accounts account.Repository) *Babylon {
 	return &Babylon{
-		repo: repo,
-		rpc:  rpc,
+		bigmapdiffs: bigmapdiffs,
+		operations:  operations,
+		accounts:    accounts,
 
 		ptrMap:            make(map[int64]int64),
 		temporaryPointers: make(map[int64]*ast.BigMap),
@@ -35,37 +35,27 @@ func NewBabylon(repo bigmapdiff.Repository, rpc noderpc.INode) *Babylon {
 }
 
 // ParseTransaction -
-func (b *Babylon) ParseTransaction(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
+func (b *Babylon) ParseTransaction(content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	result := content.GetResult()
 	if result == nil {
 		return nil
 	}
 	operation.DeffatedStorage = result.Storage
 
-	_, err := b.handleBigMapDiff(ctx, result, *content.Destination, operation, result.Storage, store)
-	return err
+	return b.handleBigMapDiff(result, *content.Destination, operation, result.Storage, store)
 }
 
 // ParseOrigination -
-func (b *Babylon) ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) (bool, error) {
+func (b *Babylon) ParseOrigination(content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	result := content.GetResult()
 	if result == nil {
-		return false, nil
+		return nil
 	}
 
-	var scriptData struct {
-		Storage stdJSON.RawMessage `json:"storage"`
-	}
-	if err := json.Unmarshal(content.Script, &scriptData); err != nil {
-		return false, err
-	}
-
-	operation.DeffatedStorage = scriptData.Storage
-
-	return b.handleBigMapDiff(ctx, result, result.Originated[0], operation, scriptData.Storage, store)
+	return b.handleBigMapDiff(result, result.Originated[0], operation, operation.DeffatedStorage, store)
 }
 
-func (b *Babylon) initPointersTypes(ctx context.Context, result *noderpc.OperationResult, operation *operation.Operation, data []byte) error {
+func (b *Babylon) initPointersTypes(result *noderpc.OperationResult, operation *operation.Operation, data []byte) error {
 	level := operation.Level
 	if operation.IsTransaction() && operation.Level >= 2 {
 		level = operation.Level - 1
@@ -84,12 +74,19 @@ func (b *Babylon) initPointersTypes(ctx context.Context, result *noderpc.Operati
 		return nil
 	}
 
-	rawData, err := b.rpc.GetScriptStorageRaw(ctx, operation.Destination.Address, level)
+	account, err := b.accounts.Get(operation.Destination.Address)
 	if err != nil {
-		return errors.Wrapf(err, "GetScriptStorageRaw %s %d", operation.Destination.Address, level)
+		return err
 	}
 
-	if err := storage.SettleFromBytes(rawData); err != nil {
+	operaiton, err := b.operations.Last(map[string]interface{}{
+		"destination_id": account.ID,
+		"status":         types.OperationStatusApplied,
+	}, 0)
+	if err != nil {
+		return err
+	}
+	if err := storage.SettleFromBytes(operaiton.DeffatedStorage); err != nil {
 		return errors.Wrapf(err, "Settle %s %d", operation.Destination.Address, level)
 	}
 
@@ -140,13 +137,13 @@ func (b *Babylon) checkPointers(result *noderpc.OperationResult, storage *ast.Ty
 	return nil
 }
 
-func (b *Babylon) handleBigMapDiff(ctx context.Context, result *noderpc.OperationResult, address string, op *operation.Operation, storageData []byte, store parsers.Store) (bool, error) {
+func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address string, op *operation.Operation, storageData []byte, store parsers.Store) error {
 	if len(result.BigMapDiffs) == 0 {
-		return false, nil
+		return nil
 	}
 
-	if err := b.initPointersTypes(ctx, result, op, storageData); err != nil {
-		return false, nil
+	if err := b.initPointersTypes(result, op, storageData); err != nil {
+		return nil
 	}
 
 	handlers := map[string]func(noderpc.BigMapDiff, string, *operation.Operation, parsers.Store) error{
@@ -164,11 +161,11 @@ func (b *Babylon) handleBigMapDiff(ctx context.Context, result *noderpc.Operatio
 		}
 
 		if err := handler(result.BigMapDiffs[i], address, op, store); err != nil {
-			return false, err
+			return err
 		}
 	}
 
-	return true, nil
+	return nil
 }
 
 func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string, operation *operation.Operation, store parsers.Store) error {
@@ -251,7 +248,7 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 	if ptr < 0 {
 		return nil
 	}
-	states, err := b.repo.GetByPtr(address, ptr)
+	states, err := b.bigmapdiffs.GetByPtr(address, ptr)
 	if err != nil {
 		return err
 	}
@@ -342,7 +339,7 @@ func (b *Babylon) updateTemporaryPointers(src, dst int64) {
 
 func (b *Babylon) getCopyBigMapDiff(src int64, address string) (bmd []bigmapdiff.BigMapDiff, err error) {
 	if src > -1 {
-		states, err := b.repo.GetByPtr(address, src)
+		states, err := b.bigmapdiffs.GetByPtr(address, src)
 		if err != nil {
 			return nil, err
 		}

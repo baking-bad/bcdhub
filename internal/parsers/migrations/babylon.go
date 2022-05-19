@@ -7,7 +7,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/contract"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
@@ -15,29 +14,24 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/go-pg/pg/v10"
-	"github.com/pkg/errors"
 )
 
-// MigrationParser -
-type MigrationParser struct {
-	storage models.GeneralRepository
+// Babylon -
+type Babylon struct {
 	bmdRepo bigmapdiff.Repository
 }
 
-// NewMigrationParser -
-func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Repository) *MigrationParser {
-	return &MigrationParser{
-		storage: storage,
+// NewBabylon -
+func NewBabylon(bmdRepo bigmapdiff.Repository) *Babylon {
+	return &Babylon{
 		bmdRepo: bmdRepo,
 	}
 }
 
 // Parse -
-func (p *MigrationParser) Parse(script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx pg.DBI) error {
-	if previous.SymLink == bcd.SymLinkAlpha {
-		if err := p.getUpdates(script, *old, tx); err != nil {
-			return err
-		}
+func (p *Babylon) Parse(script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx pg.DBI) error {
+	if err := p.getUpdates(script, *old, tx); err != nil {
+		return err
 	}
 
 	codeBytes, err := json.Marshal(script.Code)
@@ -72,14 +66,7 @@ func (p *MigrationParser) Parse(script noderpc.Script, old *modelsContract.Contr
 		return err
 	}
 
-	switch next.SymLink {
-	case bcd.SymLinkAlpha:
-		old.AlphaID = contractScript.ID
-	case bcd.SymLinkBabylon:
-		old.BabylonID = contractScript.ID
-	default:
-		return errors.Errorf("unknown protocol symbolic link: %s", next.SymLink)
-	}
+	old.BabylonID = contractScript.ID
 
 	m := &migration.Migration{
 		ContractID:     old.ID,
@@ -93,7 +80,7 @@ func (p *MigrationParser) Parse(script noderpc.Script, old *modelsContract.Contr
 	return m.Save(tx)
 }
 
-func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContract.Contract, tx pg.DBI) error {
+func (p *Babylon) getUpdates(script noderpc.Script, contract modelsContract.Contract, tx pg.DBI) error {
 	storage, err := script.GetSettledStorage()
 	if err != nil {
 		return err

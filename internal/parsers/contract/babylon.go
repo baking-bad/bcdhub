@@ -1,9 +1,7 @@
 package contract
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
@@ -15,18 +13,18 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Hangzhou -
-type Hangzhou struct {
+// Babylon -
+type Babylon struct {
 	ctx *config.Context
 }
 
-// NewHangzhou -
-func NewHangzhou(ctx *config.Context) *Hangzhou {
-	return &Hangzhou{ctx: ctx}
+// NewBabylon -
+func NewBabylon(ctx *config.Context) *Babylon {
+	return &Babylon{ctx: ctx}
 }
 
 // Parse -
-func (p *Hangzhou) Parse(operation *operation.Operation, store parsers.Store) error {
+func (p *Babylon) Parse(operation *operation.Operation, store parsers.Store) error {
 	if !operation.IsOrigination() {
 		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
@@ -48,7 +46,7 @@ func (p *Hangzhou) Parse(operation *operation.Operation, store parsers.Store) er
 	return nil
 }
 
-func (p *Hangzhou) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
+func (p *Babylon) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
 	script, err := astContract.NewParser(operation.Script)
 	if err != nil {
 		return errors.Wrap(err, "astContract.NewParser")
@@ -63,26 +61,6 @@ func (p *Hangzhou) computeMetrics(operation *operation.Operation, c *contract.Co
 		var s bcd.RawScript
 		if err := json.Unmarshal(script.CodeRaw, &s); err != nil {
 			return err
-		}
-
-		constants, err := script.FindConstants()
-		if err != nil {
-			return errors.Wrap(err, "script.FindConstants")
-		}
-
-		if len(constants) > 0 {
-			globalConstants, err := p.ctx.GlobalConstants.All(constants...)
-			if err != nil {
-				return err
-			}
-			contractScript.Constants = globalConstants
-			p.replaceConstants(&contractScript, operation)
-
-			script, err = astContract.NewParser(operation.Script)
-			if err != nil {
-				return errors.Wrap(err, "astContract.NewParser")
-			}
-			operation.AST = script.Code
 		}
 
 		if err := script.Parse(); err != nil {
@@ -115,15 +93,4 @@ func (p *Hangzhou) computeMetrics(operation *operation.Operation, c *contract.Co
 	c.Tags = contractScript.Tags
 
 	return nil
-}
-
-func (p *Hangzhou) replaceConstants(c *contract.Script, operation *operation.Operation) {
-	pattern := `{"prim":"constant","args":[{"string":"%s"}]}`
-	for i := range c.Constants {
-		operation.Script = bytes.ReplaceAll(
-			operation.Script,
-			[]byte(fmt.Sprintf(pattern, c.Constants[i].Address)),
-			c.Constants[i].Value,
-		)
-	}
 }

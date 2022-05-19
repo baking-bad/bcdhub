@@ -38,7 +38,7 @@ func IsRollupAddressLazy(address string) bool {
 }
 
 var (
-	addressRegex   = regexp.MustCompile("(tz1|tz2|tz3|KT1|txr)[0-9A-Za-z]{33}")
+	addressRegex   = regexp.MustCompile("(tz|KT|txr)[0-9A-Za-z]{34}")
 	contractRegex  = regexp.MustCompile("(KT1)[0-9A-Za-z]{33}")
 	bakerHashRegex = regexp.MustCompile("(SG1)[0-9A-Za-z]{33}")
 )

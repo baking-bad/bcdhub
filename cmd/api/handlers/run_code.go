@@ -14,7 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
-	"github.com/baking-bad/bcdhub/internal/parsers/storage"
+	"github.com/baking-bad/bcdhub/internal/parsers/protocols"
 	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -271,7 +271,7 @@ func parseBigMapDiffs(c *gin.Context, ctx *config.Context, response noderpc.RunC
 
 	model.ProtocolID = proto.ID
 
-	parser, err := storage.MakeStorageParser(ctx.BigMapDiffs, ctx.RPC, operation.Protocol)
+	specific, err := protocols.Get(ctx, proto.Hash)
 	if err != nil {
 		return nil, err
 	}
@@ -297,9 +297,9 @@ func parseBigMapDiffs(c *gin.Context, ctx *config.Context, response noderpc.RunC
 	store := postgres.NewStore(ctx.StorageDB.DB)
 	switch operation.Kind {
 	case types.OperationKindTransaction.String():
-		err = parser.ParseTransaction(c, nodeOperation, &model, store)
+		err = specific.StorageParser.ParseTransaction(nodeOperation, &model, store)
 	case types.OperationKindOrigination.String(), types.OperationKindOriginationNew.String():
-		_, err = parser.ParseOrigination(c, nodeOperation, &model, store)
+		err = specific.StorageParser.ParseOrigination(nodeOperation, &model, store)
 	}
 	if err != nil {
 		return nil, err

@@ -18,6 +18,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/migrations"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
+	"github.com/baking-bad/bcdhub/internal/parsers/protocols"
 	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/rollback"
@@ -438,7 +439,15 @@ func (bi *BoostIndexer) implicitMigration(ctx context.Context, head noderpc.Head
 	if err != nil {
 		return err
 	}
-	implicitParser := migrations.NewImplicitParser(bi.Context, bi.RPC, protocol)
+	specific, err := protocols.Get(bi.Context, protocol.Hash)
+	if err != nil {
+		return err
+	}
+
+	implicitParser, err := migrations.NewImplicitParser(bi.Context, bi.RPC, specific.ContractParser, protocol)
+	if err != nil {
+		return err
+	}
 	return implicitParser.Parse(ctx, metadata, head, store)
 }
 
@@ -454,7 +463,10 @@ func (bi *BoostIndexer) standartMigration(ctx context.Context, newProtocol proto
 	}
 	logger.Info().Str("network", bi.Network.String()).Msgf("Now %2d contracts are indexed", len(contracts))
 
-	migrationParser := migrations.NewMigrationParser(bi.Storage, bi.BigMapDiffs)
+	specific, err := protocols.Get(bi.Context, newProtocol.Hash)
+	if err != nil {
+		return err
+	}
 
 	for i := range contracts {
 		logger.Info().Str("network", bi.Network.String()).Msgf("Migrate %s...", contracts[i].Account.Address)
@@ -463,7 +475,7 @@ func (bi *BoostIndexer) standartMigration(ctx context.Context, newProtocol proto
 			return err
 		}
 
-		if err := migrationParser.Parse(script, &contracts[i], bi.currentProtocol, newProtocol, head.Timestamp, tx); err != nil {
+		if err := specific.MigrationParser.Parse(script, &contracts[i], bi.currentProtocol, newProtocol, head.Timestamp, tx); err != nil {
 			return err
 		}
 
@@ -475,7 +487,7 @@ func (bi *BoostIndexer) standartMigration(ctx context.Context, newProtocol proto
 		}
 	}
 
-	_, err := bi.StorageDB.DB.Model((*contract.Contract)(nil)).
+	_, err = bi.StorageDB.DB.Model((*contract.Contract)(nil)).
 		Set("babylon_id = alpha_id").
 		Where("tags & 4 > 0"). // only delegator contracts
 		Update()
@@ -488,7 +500,15 @@ func (bi *BoostIndexer) vestingMigration(ctx context.Context, head noderpc.Heade
 		return err
 	}
 
-	p := migrations.NewVestingParser(bi.Context)
+	specific, err := protocols.Get(bi.Context, bi.currentProtocol.Hash)
+	if err != nil {
+		return err
+	}
+
+	p, err := migrations.NewVestingParser(bi.Context, specific.ContractParser, bi.currentProtocol)
+	if err != nil {
+		return err
+	}
 
 	store := postgres.NewStore(tx)
 
@@ -502,7 +522,7 @@ func (bi *BoostIndexer) vestingMigration(ctx context.Context, head noderpc.Heade
 			return err
 		}
 
-		if err := p.Parse(data, head, address, bi.currentProtocol, store); err != nil {
+		if err := p.Parse(data, head, address, store); err != nil {
 			return err
 		}
 	}

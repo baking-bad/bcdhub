@@ -16,7 +16,7 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-pg/pg/v10 v10.10.6
 	github.com/go-playground/validator/v10 v10.9.0
-	github.com/golang/mock v1.5.0
+	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.1.2
 	github.com/iancoleman/strcase v0.1.3
 	github.com/ipfs/go-cid v0.1.0

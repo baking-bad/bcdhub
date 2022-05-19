@@ -126,11 +126,6 @@ func readTestContractModel(address string) (contract.Contract, error) {
 	return c, err
 }
 
-func readStorage(_ context.Context, address string, level int64) ([]byte, error) {
-	storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", address, level)
-	return ioutil.ReadFile(storageFile)
-}
-
 func compareParserResponse(t *testing.T, got, want *parsers.TestStore) bool {
 	if !assert.Len(t, got.BigMapState, len(want.BigMapState)) {
 		return false
@@ -479,4 +474,8 @@ func compareScript(t *testing.T, one, two contract.Script) bool {
 
 func compareInt64Ptr(one, two *int64) bool {
 	return (one != nil && two != nil && *one == *two) || (one == nil && two == nil)
+}
+
+func getInt64Pointer(x int64) *int64 {
+	return &x
 }
