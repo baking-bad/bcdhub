@@ -87,7 +87,7 @@ func (api *app) makeRouter() {
 	v1 := r.Group("v1")
 	{
 		v1.GET("swagger.json", handlers.MainnetMiddleware(api.Contexts), handlers.GetSwaggerDoc())
-		v1.GET("config", handlers.MainnetMiddleware(api.Contexts), handlers.GetConfig())
+		v1.GET("config", handlers.ContextsMiddleware(api.Contexts), handlers.GetConfig())
 
 		v1.GET("head", handlers.ContextsMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHead()))
 		v1.GET("head/:network", handlers.NetworkMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHeadByNetwork()))
