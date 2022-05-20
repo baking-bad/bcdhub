@@ -10,7 +10,8 @@ import (
 // GetConfig -
 func GetConfig() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := c.MustGet("context").(*config.Context)
+		ctxs := c.MustGet("contexts").(config.Contexts)
+		ctx := ctxs.Any()
 
 		tzktEndpoints := make(map[string]string)
 		for network, tzkt := range ctx.Config.TzKT {
