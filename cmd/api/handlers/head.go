@@ -27,13 +27,8 @@ func GetHead() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
 
-		ctx, err := ctxs.Get(types.Mainnet)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
-
-		stats, err := ctx.Statistics.NetworkStats(types.Empty)
-		if handleError(c, ctx.Storage, err, 0) {
+		stats, err := ctxs.Any().Statistics.NetworkStats(types.Empty)
+		if handleError(c, ctxs.Any().Storage, err, 0) {
 			return
 		}
 
