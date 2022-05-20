@@ -2,8 +2,10 @@ package views
 
 import (
 	"bytes"
+	"context"
 
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
 // MichelsonStorageView -
@@ -28,8 +30,7 @@ func NewMichelsonStorageView(impl cm.ViewImplementation, name string) *Michelson
 	}
 }
 
-// GetCode -
-func (msv *MichelsonStorageView) GetCode(storageType []byte) ([]byte, error) {
+func (msv *MichelsonStorageView) buildCode(storageType []byte) ([]byte, error) {
 	var script bytes.Buffer
 	script.WriteString(`[{"prim":"parameter","args":[`)
 	if msv.Parameter != nil {
@@ -51,13 +52,7 @@ func (msv *MichelsonStorageView) GetCode(storageType []byte) ([]byte, error) {
 	return script.Bytes(), nil
 }
 
-// Parse -
-func (msv *MichelsonStorageView) Parse(response []byte, output interface{}) error {
-	return nil
-}
-
-// GetParameter -
-func (msv *MichelsonStorageView) GetParameter(parameter string, storageValue []byte) ([]byte, error) {
+func (msv *MichelsonStorageView) buildParameter(_, parameter string, storageValue []byte) ([]byte, error) {
 	var script bytes.Buffer
 	if msv.Parameter != nil {
 		script.WriteString(`{"prim":"Pair","args":[`)
@@ -71,4 +66,40 @@ func (msv *MichelsonStorageView) GetParameter(parameter string, storageValue []b
 		return nil, err
 	}
 	return script.Bytes(), nil
+}
+
+// Return -
+func (msv *MichelsonStorageView) Return() []byte {
+	return msv.ReturnType
+}
+
+// Execute -
+func (msv *MichelsonStorageView) Execute(ctx context.Context, rpc noderpc.INode, args Args) ([]byte, error) {
+	script, err := rpc.GetScriptJSON(ctx, args.Contract, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	parameter, err := msv.buildParameter(args.Contract, args.Parameters, script.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	storageType, err := json.Marshal(script.Code.Storage[0])
+	if err != nil {
+		return nil, err
+	}
+	code, err := msv.buildCode(storageType)
+	if err != nil {
+		return nil, err
+	}
+
+	storage := []byte(`{"prim": "None"}`)
+
+	response, err := rpc.RunCode(ctx, code, storage, parameter, args.ChainID, args.Source, args.Initiator, "", args.Protocol, args.Amount, args.HardGasLimitPerOperation)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Storage, nil
 }

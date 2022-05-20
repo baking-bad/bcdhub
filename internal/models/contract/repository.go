@@ -25,6 +25,7 @@ type ScriptRepository interface {
 	Code(id int64) ([]byte, error)
 	Parameter(id int64) ([]byte, error)
 	Storage(id int64) ([]byte, error)
+	Views(id int64) ([]byte, error)
 }
 
 // ConstantRepository -

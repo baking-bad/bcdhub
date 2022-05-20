@@ -159,6 +159,13 @@ func (storage *Storage) Storage(id int64) ([]byte, error) {
 	return data, err
 }
 
+// Storage -
+func (storage *Storage) Views(id int64) ([]byte, error) {
+	var data []byte
+	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("views").Select(&data)
+	return data, err
+}
+
 // ScriptPart -
 func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte, error) {
 	var accountID int64
@@ -177,6 +184,8 @@ func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte
 			query.Column("alpha.code").Relation("Alpha._")
 		case "storage":
 			query.Column("alpha.storage").Relation("Alpha._")
+		case "views":
+			query.Column("alpha.views").Relation("Alpha._")
 		default:
 			return nil, errors.Errorf("unknown script part name: %s", part)
 		}
@@ -188,6 +197,8 @@ func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte
 			query.Column("babylon.code").Relation("Babylon._")
 		case "storage":
 			query.Column("babylon.storage").Relation("Babylon._")
+		case "views":
+			query.Column("babylon.views").Relation("Babylon._")
 		default:
 			return nil, errors.Errorf("unknown script part name: %s", part)
 		}

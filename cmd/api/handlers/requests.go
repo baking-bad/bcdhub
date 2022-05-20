@@ -264,6 +264,7 @@ type executeViewRequest struct {
 	Data           map[string]interface{} `json:"data" binding:"required"`
 	Name           string                 `json:"name" binding:"required"`
 	Implementation *int                   `json:"implementation" binding:"required"`
+	Kind           ViewSchemaKind         `json:"kind" binding:"required"`
 	Amount         int64                  `json:"amount,omitempty"`
 	GasLimit       int64                  `json:"gas_limit,omitempty"`
 	Source         string                 `json:"source,omitempty" binding:"omitempty,address"`

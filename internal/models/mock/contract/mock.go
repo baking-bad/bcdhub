@@ -266,6 +266,21 @@ func (mr *MockScriptRepositoryMockRecorder) Storage(id interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Storage", reflect.TypeOf((*MockScriptRepository)(nil).Storage), id)
 }
 
+// Views mocks base method
+func (m *MockScriptRepository) Views(id int64) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Views", id)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Views indicates an expected call of Views
+func (mr *MockScriptRepositoryMockRecorder) Views(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Views", reflect.TypeOf((*MockScriptRepository)(nil).Views), id)
+}
+
 // MockConstantRepository is a mock of ConstantRepository interface
 type MockConstantRepository struct {
 	ctrl     *gomock.Controller
