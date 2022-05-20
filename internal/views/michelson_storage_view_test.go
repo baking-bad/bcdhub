@@ -47,7 +47,7 @@ func TestMichelsonStorageView_GetCode(t *testing.T) {
 				ReturnType: tt.fields.ReturnType,
 				Name:       tt.fields.Name,
 			}
-			got, err := msv.GetCode(tt.storageType)
+			got, err := msv.buildCode(tt.storageType)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MichelsonStorageView.GetCode() error = %v, wantErr %v", err, tt.wantErr)
 				return

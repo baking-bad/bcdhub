@@ -1123,6 +1123,8 @@ definitions:
         type: string
       implementation:
         type: integer
+      kind:
+        type: string
       name:
         type: string
       schema:
@@ -1143,6 +1145,8 @@ definitions:
         type: integer
       implementation:
         type: integer
+      kind:
+        type: string
       name:
         type: string
       sender:
@@ -1152,6 +1156,7 @@ definitions:
     required:
     - data
     - implementation
+    - kind
     - name
     type: object
   handlers.getEntrypointDataRequest:
@@ -2851,6 +2856,43 @@ paths:
       summary: Show indexer head for the network
       tags:
       - head
+  /v1/json_schema:
+    post:
+      consumes:
+      - application/json
+      description: Get JSON schema from micheline
+      operationId: get-json-schema
+      parameters:
+      - description: Micheline
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ast.JSONSchema'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get JSON schema from micheline
+      tags:
+      - contract
   /v1/operation/{network}/{id}/diff:
     get:
       consumes:

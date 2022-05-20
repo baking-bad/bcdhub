@@ -654,11 +654,21 @@ type ViewSchema struct {
 	Type           []ast.Typedef   `json:"typedef"`
 	Name           string          `json:"name"`
 	Implementation int             `json:"implementation"`
-	Description    string          `json:"description"`
+	Description    string          `json:"description,omitempty"`
 	Schema         *ast.JSONSchema `json:"schema"`
 	DefaultModel   interface{}     `json:"default_model,omitempty" extensions:"x-nullable"`
 	Error          string          `json:"error,omitempty"`
+	Kind           ViewSchemaKind  `json:"kind"`
 }
+
+// ViewSchemaKind -
+type ViewSchemaKind string
+
+// ViewSchemaKind
+const (
+	OffchainView ViewSchemaKind = "off-chain"
+	OnchainView  ViewSchemaKind = "on-chain"
+)
 
 // ForkResponse -
 type ForkResponse struct {

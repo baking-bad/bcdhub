@@ -2353,6 +2353,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/json_schema": {
+            "post": {
+                "description": "Get JSON schema from micheline",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Get JSON schema from micheline",
+                "operationId": "get-json-schema",
+                "parameters": [
+                    {
+                        "description": "Micheline",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ast.JSONSchema"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/operation/{network}/{id}/diff": {
             "get": {
                 "consumes": [
@@ -5042,6 +5098,9 @@ const docTemplate = `{
                 "implementation": {
                     "type": "integer"
                 },
+                "kind": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -5061,6 +5120,7 @@ const docTemplate = `{
             "required": [
                 "data",
                 "implementation",
+                "kind",
                 "name"
             ],
             "properties": {
@@ -5076,6 +5136,9 @@ const docTemplate = `{
                 },
                 "implementation": {
                     "type": "integer"
+                },
+                "kind": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
