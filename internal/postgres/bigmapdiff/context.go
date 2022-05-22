@@ -44,13 +44,13 @@ func (storage *Storage) buildGetContextForState(ctx bigmapdiff.GetContext) *orm.
 		query.Where("ptr = ?", *ctx.Ptr)
 	}
 	if ctx.MaxLevel != nil {
-		query.Where("level < ?", *ctx.MaxLevel)
+		query.Where("last_update_level < ?", *ctx.MaxLevel)
 	}
 	if ctx.MinLevel != nil {
-		query.Where("level >= ?", *ctx.MinLevel)
+		query.Where("last_update_level >= ?", *ctx.MinLevel)
 	}
 	if ctx.CurrentLevel != nil {
-		query.Where("level = ?", *ctx.CurrentLevel)
+		query.Where("last_update_level = ?", *ctx.CurrentLevel)
 	}
 
 	query.Limit(storage.GetPageSize(ctx.Size))
