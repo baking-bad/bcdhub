@@ -109,19 +109,19 @@ func (mr *MockRepositoryMockRecorder) RecentlyCalled(offset, size interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecentlyCalled", reflect.TypeOf((*MockRepository)(nil).RecentlyCalled), offset, size)
 }
 
-// Stats mocks base method
-func (m *MockRepository) Stats(c model.Contract) (int, error) {
+// SameCount mocks base method
+func (m *MockRepository) SameCount(c model.Contract) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Stats", c)
+	ret := m.ctrl.Call(m, "SameCount", c)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Stats indicates an expected call of Stats
-func (mr *MockRepositoryMockRecorder) Stats(c interface{}) *gomock.Call {
+// SameCount indicates an expected call of SameCount
+func (mr *MockRepositoryMockRecorder) SameCount(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stats", reflect.TypeOf((*MockRepository)(nil).Stats), c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SameCount", reflect.TypeOf((*MockRepository)(nil).SameCount), c)
 }
 
 // Script mocks base method

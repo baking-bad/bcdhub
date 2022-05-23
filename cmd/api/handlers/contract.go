@@ -195,15 +195,46 @@ func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Co
 	return res, nil
 }
 
-func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, contract contract.Contract) (ContractWithStats, error) {
-	c, err := contractPostprocessing(ctx, contract)
+func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, contractModel contract.Contract) (ContractWithStats, error) {
+	c, err := contractPostprocessing(ctx, contractModel)
 	if err != nil {
 		return ContractWithStats{}, err
 	}
 	res := ContractWithStats{c, -1}
 
+	stats, err := ctx.Contracts.SameCount(contractModel)
+	if err != nil {
+		return res, err
+	}
+	res.SameCount += int64(stats)
+
 	for _, cur := range ctxs {
-		stats, err := cur.Contracts.Stats(contract)
+		if cur.Network == ctx.Network {
+			continue
+		}
+
+		var buf contract.Contract
+		switch {
+		case contractModel.AlphaID > 0:
+			script, err := cur.Scripts.ByHash(contractModel.Alpha.Hash)
+			if err != nil {
+				if cur.Storage.IsRecordNotFound(err) {
+					continue
+				}
+				return res, err
+			}
+			buf.AlphaID = script.ID
+		case contractModel.BabylonID > 0:
+			script, err := cur.Scripts.ByHash(contractModel.Babylon.Hash)
+			if err != nil {
+				if cur.Storage.IsRecordNotFound(err) {
+					continue
+				}
+				return res, err
+			}
+			buf.BabylonID = script.ID
+		}
+		stats, err := cur.Contracts.SameCount(buf)
 		if err != nil {
 			return res, err
 		}
