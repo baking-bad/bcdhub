@@ -77,15 +77,12 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network
 		if err != nil {
 			return err
 		}
-
-		if err := rm.rpc.RollbackCache(level); err != nil {
-			return err
-		}
 	}
 	return nil
 }
 
 func (rm Manager) rollbackTokenBalances(tx pg.DBI, level int64) error {
+	logger.Info().Msg("rollback token balances...")
 	transfers, err := rm.transfersRepo.GetAll(level)
 	if err != nil {
 		return err
@@ -145,6 +142,7 @@ func (rm Manager) rollbackAll(tx pg.DBI, level int64) error {
 }
 
 func (rm Manager) rollbackMigrations(tx pg.DBI, level int64) error {
+	logger.Info().Msg("rollback migrations...")
 	if _, err := tx.Model(new(migration.Migration)).
 		Where("contract_id IN (?)", tx.Model(new(contract.Contract)).Column("id").Where("level > ?", level)).
 		Where("level = ?", level).
@@ -155,6 +153,7 @@ func (rm Manager) rollbackMigrations(tx pg.DBI, level int64) error {
 }
 
 func (rm Manager) rollbackBigMapState(tx pg.DBI, level int64) error {
+	logger.Info().Msg("rollback big map states...")
 	states, err := rm.bmdRepo.StatesChangedAfter(level)
 	if err != nil {
 		return err
@@ -182,9 +181,12 @@ func (rm Manager) rollbackBigMapState(tx pg.DBI, level int64) error {
 			states[i].Removed = true
 			valuedDiff, err := rm.bmdRepo.LastDiff(state.Ptr, state.KeyHash, true)
 			if err != nil {
-				return err
+				if !rm.storage.IsRecordNotFound(err) {
+					return err
+				}
+			} else {
+				states[i].Value = valuedDiff.ValueBytes()
 			}
-			states[i].Value = valuedDiff.ValueBytes()
 		}
 
 		if err := states[i].Save(tx); err != nil {
@@ -201,6 +203,7 @@ type lastAction struct {
 }
 
 func (rm Manager) rollbackOperations(tx pg.DBI, level int64) error {
+	logger.Info().Msg("rollback oeprations...")
 	var ops []operation.Operation
 	if err := tx.Model(&operation.Operation{}).
 		Where("level = ?", level).

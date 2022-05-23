@@ -33,7 +33,7 @@ func GetInfo() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, Error{Message: err.Error()})
 			return
@@ -155,7 +155,7 @@ func GetAccountTokenBalances() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
@@ -189,7 +189,8 @@ func getAccountBalances(ctx *config.Context, address string, req tokenBalanceReq
 	}
 
 	for _, token := range balances.Balances {
-		tm := TokenMetadataFromElasticModel(token.TokenMetadata, false)
+		tm := TokenMetadataFromModel(token.TokenMetadata, false)
+		tm.Network = ctx.Network.String()
 		tb := TokenBalance{
 			Balance: token.Balance,
 		}
@@ -199,6 +200,7 @@ func getAccountBalances(ctx *config.Context, address string, req tokenBalanceReq
 			tb.TokenMetadata = TokenMetadata{
 				Contract: token.Contract,
 				TokenID:  token.TokenID,
+				Network:  ctx.Network.String(),
 			}
 		}
 		response.Balances = append(response.Balances, tb)
@@ -226,7 +228,7 @@ func GetAccountTokensCountByContract() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
@@ -265,7 +267,7 @@ func GetAccountTokensCountByContractWithMetadata() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
@@ -332,7 +334,7 @@ func GetMetadata() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}

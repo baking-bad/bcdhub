@@ -294,7 +294,9 @@ func (set *Set) GetJSONModel(model JSONModel) {
 	}
 	arr := make([]JSONModel, len(set.Data))
 	for i := range set.Data {
-		set.Data[i].GetJSONModel(arr[i])
+		res := make(JSONModel)
+		set.Data[i].GetJSONModel(res)
+		arr = append(arr, res)
 	}
 	model[set.GetName()] = arr
 }

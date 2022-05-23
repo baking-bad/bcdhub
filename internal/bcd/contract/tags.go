@@ -3,6 +3,7 @@ package contract
 import (
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -27,7 +28,7 @@ func checkStorageIsDelegator(storage ast.UntypedAST) bool {
 
 	switch {
 	case storage[0].StringValue != nil:
-		return IsAddress(*storage[0].StringValue)
+		return bcd.IsAddress(*storage[0].StringValue)
 	case storage[0].BytesValue != nil:
 		_, err := forge.UnforgeAddress(*storage[0].BytesValue)
 		return err == nil

@@ -50,7 +50,7 @@ func NewBoostIndexer(ctx context.Context, cfg config.Config, network types.Netwo
 		config.WithConfigCopy(cfg),
 		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle, true),
 		config.WithSearch(cfg.Storage),
-		config.WithRPC(cfg.RPC, cfg.Indexer.Cache),
+		config.WithRPC(cfg.RPC),
 	)
 	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 
@@ -132,8 +132,10 @@ func (bi *BoostIndexer) Sync(ctx context.Context, wg *sync.WaitGroup) {
 
 	// First tick
 	if err := bi.process(ctx); err != nil {
-		logger.Err(err)
-		helpers.CatchErrorSentry(err)
+		if !errors.Is(err, errSameLevel) {
+			logger.Err(err)
+			helpers.LocalCatchErrorSentry(localSentry, err)
+		}
 	}
 
 	everySecond := false
@@ -156,7 +158,7 @@ func (bi *BoostIndexer) Sync(ctx context.Context, wg *sync.WaitGroup) {
 					continue
 				}
 				logger.Err(err)
-				helpers.CatchErrorSentry(err)
+				helpers.LocalCatchErrorSentry(localSentry, err)
 			}
 
 			if everySecond {
@@ -201,10 +203,8 @@ func (bi *BoostIndexer) indexBlock(ctx context.Context, wg *sync.WaitGroup) {
 		case <-ticker.C:
 			if block, ok := bi.blocks[bi.state.Level+1]; ok {
 				if bi.state.Level > 0 && block.Header.Predecessor != bi.state.Hash {
-					if !time.Now().Add(time.Duration(-5) * time.Minute).After(block.Header.Timestamp) { // Check that node is out of sync
-						if err := bi.Rollback(ctx); err != nil {
-							logger.Error().Err(err).Msg("Rollback")
-						}
+					if err := bi.Rollback(ctx); err != nil {
+						logger.Error().Err(err).Msg("Rollback")
 					}
 				} else {
 					if err := bi.handleBlock(ctx, block); err != nil {
@@ -284,8 +284,6 @@ func (bi *BoostIndexer) Rollback(ctx context.Context) error {
 		return err
 	}
 
-	helpers.CatchErrorSentry(errors.Errorf("[%s] Rollback from %7d to %7d", bi.Network, bi.state.Level, lastLevel))
-
 	newState, err := bi.Blocks.Last()
 	if err != nil {
 		return err
@@ -333,7 +331,8 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current node state: %7d", head.Level)
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %7d", bi.state.Level)
 
-	if head.Level > bi.state.Level {
+	switch {
+	case head.Level > bi.state.Level:
 		if err := bi.Index(ctx, head); err != nil {
 			if errors.Is(err, errBcdQuit) {
 				return nil
@@ -343,13 +342,11 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 
 		logger.Info().Str("network", bi.Network.String()).Msg("Synced")
 		return nil
-	} else if head.Level < bi.state.Level {
-		if err := bi.Rollback(ctx); err != nil {
-			return err
-		}
+	case head.Level < bi.state.Level:
+		return bi.Rollback(ctx)
+	default:
+		return errSameLevel
 	}
-
-	return errSameLevel
 }
 func (bi *BoostIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
 	newBlock := block.Block{

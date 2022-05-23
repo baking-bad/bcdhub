@@ -61,6 +61,7 @@ type Operation struct {
 	AllocatedDestinationContract       bool               `json:"allocated_destination_contract,omitempty" extensions:"x-nullable" example:"true"`
 	Internal                           bool               `json:"internal"`
 	Mempool                            bool               `json:"mempool"`
+	Storage                            stdJSON.RawMessage `json:"-"`
 }
 
 // FromModel -
@@ -601,8 +602,8 @@ type TokenMetadata struct {
 	Volume24Hours      *float64               `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
 }
 
-// TokenMetadataFromElasticModel -
-func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenInfo bool) (tm TokenMetadata) {
+// TokenMetadataFromModel -
+func TokenMetadataFromModel(model tokenmetadata.TokenMetadata, withTokenInfo bool) (tm TokenMetadata) {
 	tm.TokenID = model.TokenID
 	tm.Symbol = model.Symbol
 	tm.Name = model.Name

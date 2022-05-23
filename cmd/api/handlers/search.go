@@ -111,7 +111,13 @@ func searchInMempool(ctxs config.Contexts, q string) *search.Item {
 		return nil
 	}
 
-	if operation := getOperationFromMempool(ctxs, q); operation != nil {
+	ctx := ctxs.Any()
+
+	operation, err := getOperationFromMempool(ctx, q)
+	if err != nil {
+		return nil
+	}
+	if operation != nil {
 		return &search.Item{
 			Type:  models.DocOperations,
 			Value: operation.Hash,

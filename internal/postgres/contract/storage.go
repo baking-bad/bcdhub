@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/go-pg/pg/v10"
-	"github.com/go-pg/pg/v10/orm"
 	"github.com/pkg/errors"
 )
 
@@ -87,19 +86,16 @@ func (storage *Storage) GetTokens(tokenInterface string, offset, size int64) ([]
 	return contracts, int64(count), err
 }
 
-// Stats -
-func (storage *Storage) Stats(c contract.Contract) (stats int, err error) {
-	return storage.DB.Model((*contract.Contract)(nil)).
-		WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
-			if c.AlphaID > 0 {
-				q.WhereOr("alpha_id = ?", c.AlphaID)
-			}
-			if c.BabylonID > 0 {
-				q.WhereOr("babylon_id = ?", c.BabylonID)
-			}
-			return q, err
-		}).
-		Count()
+// SameCount -
+func (storage *Storage) SameCount(c contract.Contract) (int, error) {
+	query := storage.DB.Model((*contract.Contract)(nil))
+	if c.AlphaID > 0 {
+		query.WhereOr("alpha_id = ?", c.AlphaID)
+	}
+	if c.BabylonID > 0 {
+		query.WhereOr("babylon_id = ?", c.BabylonID)
+	}
+	return query.Count()
 }
 
 // ByHash -

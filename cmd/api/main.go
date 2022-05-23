@@ -42,7 +42,7 @@ func newApp() *app {
 	api := &app{
 		Contexts: config.NewContexts(cfg, cfg.API.Networks,
 			config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize), cfg.API.Connections.Open, cfg.API.Connections.Idle, false),
-			config.WithRPC(cfg.RPC, false),
+			config.WithRPC(cfg.RPC),
 			config.WithSearch(cfg.Storage),
 			config.WithMempool(cfg.Services),
 			config.WithLoadErrorDescriptions(),
@@ -87,7 +87,7 @@ func (api *app) makeRouter() {
 	v1 := r.Group("v1")
 	{
 		v1.GET("swagger.json", handlers.MainnetMiddleware(api.Contexts), handlers.GetSwaggerDoc())
-		v1.GET("config", handlers.MainnetMiddleware(api.Contexts), handlers.GetConfig())
+		v1.GET("config", handlers.ContextsMiddleware(api.Contexts), handlers.GetConfig())
 
 		v1.GET("head", handlers.ContextsMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHead()))
 		v1.GET("head/:network", handlers.NetworkMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHeadByNetwork()))
@@ -139,7 +139,7 @@ func (api *app) makeRouter() {
 		contract := v1.Group("contract/:network/:address")
 		contract.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
-			contract.GET("", handlers.GetContract())
+			contract.GET("", handlers.ContextsMiddleware(api.Contexts), handlers.GetContract())
 			contract.GET("code", handlers.GetContractCode())
 			contract.GET("operations", handlers.GetContractOperations())
 			contract.GET("migrations", handlers.GetContractMigrations())

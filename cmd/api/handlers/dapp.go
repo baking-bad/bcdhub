@@ -142,7 +142,7 @@ func GetDexTokens() gin.HandlerFunc {
 			}
 
 			for i := range tokenMetadata {
-				tm := TokenMetadataFromElasticModel(tokenMetadata[i], true)
+				tm := TokenMetadataFromModel(tokenMetadata[i], true)
 				tm.Volume24Hours = &vol
 				dexTokens = append(dexTokens, tm)
 			}

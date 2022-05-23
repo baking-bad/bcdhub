@@ -6,8 +6,18 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
-type getContractRequest struct {
+type getAccountRequest struct {
 	Address string `uri:"address" binding:"required,address"`
+	Network string `uri:"network" binding:"required,network"`
+}
+
+// NetworkID -
+func (req getAccountRequest) NetworkID() types.Network {
+	return types.NewNetwork(req.Network)
+}
+
+type getContractRequest struct {
+	Address string `uri:"address" binding:"required,contract"`
 	Network string `uri:"network" binding:"required,network"`
 }
 
@@ -153,7 +163,7 @@ type getEntrypointDataRequest struct {
 
 type getSeriesRequest struct {
 	Name    string `form:"name" binding:"oneof=contract operation paid_storage_size_diff consumed_gas volume users token_volume" example:"contract"`
-	Period  string `form:"period" binding:"oneof=all year month week day hour" example:"year"`
+	Period  string `form:"period" binding:"oneof=year month week day hour" example:"year"`
 	Address string `form:"address,omitempty" binding:"omitempty"`
 }
 

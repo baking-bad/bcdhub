@@ -45,7 +45,9 @@ func GetContract() gin.HandlerFunc {
 			return
 		}
 
-		res, err := contractWithStatsPostprocessing(ctx, contract)
+		ctxs := c.MustGet("contexts").(config.Contexts)
+
+		res, err := contractWithStatsPostprocessing(ctxs, ctx, contract)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -96,7 +98,7 @@ func GetRandomContract() gin.HandlerFunc {
 			return
 		}
 
-		res, err := contractWithStatsPostprocessing(ctx, contract)
+		res, err := contractWithStatsPostprocessing(ctxs, ctx, contract)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -193,16 +195,50 @@ func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Co
 	return res, nil
 }
 
-func contractWithStatsPostprocessing(ctx *config.Context, contract contract.Contract) (ContractWithStats, error) {
-	c, err := contractPostprocessing(ctx, contract)
+func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, contractModel contract.Contract) (ContractWithStats, error) {
+	c, err := contractPostprocessing(ctx, contractModel)
 	if err != nil {
 		return ContractWithStats{}, err
 	}
-	res := ContractWithStats{c, 0}
-	stats, err := ctx.Contracts.Stats(contract)
+	res := ContractWithStats{c, -1}
+
+	stats, err := ctx.Contracts.SameCount(contractModel)
 	if err != nil {
 		return res, err
 	}
-	res.SameCount = int64(stats)
+	res.SameCount += int64(stats)
+
+	for _, cur := range ctxs {
+		if cur.Network == ctx.Network {
+			continue
+		}
+
+		var buf contract.Contract
+		switch {
+		case contractModel.AlphaID > 0:
+			script, err := cur.Scripts.ByHash(contractModel.Alpha.Hash)
+			if err != nil {
+				if cur.Storage.IsRecordNotFound(err) {
+					continue
+				}
+				return res, err
+			}
+			buf.AlphaID = script.ID
+		case contractModel.BabylonID > 0:
+			script, err := cur.Scripts.ByHash(contractModel.Babylon.Hash)
+			if err != nil {
+				if cur.Storage.IsRecordNotFound(err) {
+					continue
+				}
+				return res, err
+			}
+			buf.BabylonID = script.ID
+		}
+		stats, err := cur.Contracts.SameCount(buf)
+		if err != nil {
+			return res, err
+		}
+		res.SameCount += int64(stats)
+	}
 	return res, nil
 }
