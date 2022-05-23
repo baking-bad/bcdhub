@@ -20,7 +20,7 @@ type Postgres struct {
 	PageSize int64
 }
 
-func parseConnectionString(connection string) (*pg.Options, error) {
+func parseConnectionString(connection, schemaName string) (*pg.Options, error) {
 	if len(connection) == 0 {
 		return nil, errors.New("invalid connection string")
 	}
@@ -56,18 +56,26 @@ func parseConnectionString(connection string) (*pg.Options, error) {
 	opts.Addr = fmt.Sprintf("%s:%s", host, port)
 	opts.IdleTimeout = time.Second * 15
 	opts.IdleCheckFrequency = time.Second * 10
+	opts.OnConnect = func(ctx context.Context, cn *pg.Conn) error {
+		schema := pg.Ident(schemaName)
+		if _, err := cn.Exec("create schema if not exists ?", schema); err != nil {
+			return err
+		}
+		_, err := cn.Exec("set search_path = ?", schema)
+		return err
+	}
 
 	return opts, nil
 }
 
 // New -
-func New(connection, appName string, opts ...PostgresOption) (*Postgres, error) {
+func New(connection, schemaName, appName string, opts ...PostgresOption) (*Postgres, error) {
 	postgres := Postgres{}
 	if appName != "" {
 		connection = fmt.Sprintf("%s application_name=%s", connection, appName)
 	}
 
-	opt, err := parseConnectionString(connection)
+	opt, err := parseConnectionString(connection, schemaName)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +98,7 @@ const (
 )
 
 // WaitNew - waiting for db up and creating connection
-func WaitNew(connectionString, appName string, timeout int, opts ...PostgresOption) *Postgres {
+func WaitNew(connectionString, schemaName, appName string, timeout int, opts ...PostgresOption) *Postgres {
 	var db *Postgres
 	var err error
 
@@ -99,7 +107,7 @@ func WaitNew(connectionString, appName string, timeout int, opts ...PostgresOpti
 	}
 
 	for db == nil {
-		db, err = New(connectionString, appName, opts...)
+		db, err = New(connectionString, schemaName, appName, opts...)
 		if err != nil {
 			bcdLogger.Warning().Msgf("Waiting postgres up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))

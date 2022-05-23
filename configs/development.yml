@@ -29,7 +29,7 @@ storage:
     host: ${DB_HOSTNAME:-127.0.0.1}
     port: 5432
     user: ${POSTGRES_USER}
-    # dbname: ${POSTGRES_DB:-indexer}
+    dbname: ${POSTGRES_DB:-bcd}
     password: ${POSTGRES_PASSWORD}
     sslmode: disable
   elastic:
@@ -81,10 +81,10 @@ indexer:
   skip_delegator_blocks: true
   offchain_base_url: ${OFFCHAIN_BASE_URL}
   networks:
-    # mainnet:
-    #   receiver_threads: 5
-    # ithacanet:
-    #   receiver_threads: 5
+    mainnet:
+      receiver_threads: 5
+    ithacanet:
+      receiver_threads: 5
     jakartanet:
       receiver_threads: 5
   connections:

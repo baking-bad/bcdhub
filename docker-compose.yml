@@ -32,6 +32,11 @@ services:
       - /etc/postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
     ports:
       - 127.0.0.1:${POSTGRES_PORT}:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     logging: *bcd-logging
     command:
       - "postgres"
@@ -81,8 +86,6 @@ services:
     depends_on:
       - elastic
       - db
-    ports:
-      - 127.0.0.1:6060:6060
     volumes:
       - ${SHARE_PATH}:/etc/bcd
     logging: *bcd-logging

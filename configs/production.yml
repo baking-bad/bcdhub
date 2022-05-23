@@ -30,7 +30,7 @@ storage:
     host: ${DB_HOSTNAME:-db}
     port: 5432
     user: ${POSTGRES_USER}
-    # dbname: ${POSTGRES_DB:-indexer}
+    dbname: ${POSTGRES_DB:-bcd}
     password: ${POSTGRES_PASSWORD}
     sslmode: disable
   elastic:
