@@ -479,18 +479,38 @@ func (bi *BoostIndexer) standartMigration(ctx context.Context, newProtocol proto
 			return err
 		}
 
-		if _, err := bi.StorageDB.DB.
-			Model(&contracts[i]).
-			Set("alpha_id = ?alpha_id, babylon_id = ?babylon_id").
-			WherePK().Update(&contracts[i]); err != nil {
-			return err
+		switch newProtocol.SymLink {
+		case bcd.SymLinkBabylon:
+			if _, err := bi.StorageDB.DB.
+				Model(&contracts[i]).
+				Set("babylon_id = ?babylon_id").
+				WherePK().Update(&contracts[i]); err != nil {
+				return err
+			}
+		case bcd.SymLinkJakarta:
+			if _, err := bi.StorageDB.DB.
+				Model(&contracts[i]).
+				Set("jakarta_id = ?jakarta_id").
+				WherePK().Update(&contracts[i]); err != nil {
+				return err
+			}
 		}
+
 	}
 
-	_, err = bi.StorageDB.DB.Model((*contract.Contract)(nil)).
-		Set("babylon_id = alpha_id").
-		Where("tags & 4 > 0"). // only delegator contracts
-		Update()
+	// only delegator contracts
+	switch newProtocol.SymLink {
+	case bcd.SymLinkBabylon:
+		_, err = bi.StorageDB.DB.Model((*contract.Contract)(nil)).
+			Set("babylon_id = alpha_id").
+			Where("tags & 4 > 0").
+			Update()
+	case bcd.SymLinkJakarta:
+		_, err = bi.StorageDB.DB.Model((*contract.Contract)(nil)).
+			Set("jakarta_id = babylon_id").
+			Where("tags & 4 > 0").
+			Update()
+	}
 	return err
 }
 
