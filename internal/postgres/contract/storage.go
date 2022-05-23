@@ -86,8 +86,8 @@ func (storage *Storage) GetTokens(tokenInterface string, offset, size int64) ([]
 	return contracts, int64(count), err
 }
 
-// Stats -
-func (storage *Storage) Stats(c contract.Contract) (stats int, err error) {
+// SameCount -
+func (storage *Storage) SameCount(c contract.Contract) (int, error) {
 	query := storage.DB.Model((*contract.Contract)(nil))
 	if c.AlphaID > 0 {
 		query.WhereOr("alpha_id = ?", c.AlphaID)
