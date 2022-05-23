@@ -27,7 +27,6 @@ import (
 
 var errBcdQuit = errors.New("bcd-quit")
 var errSameLevel = errors.New("Same level")
-var errNodeIsStucked = errors.New("node is stucked")
 
 // BoostIndexer -
 type BoostIndexer struct {
@@ -332,11 +331,8 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current node state: %7d", head.Level)
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %7d", bi.state.Level)
 
-	if head.Timestamp.Add(5 * time.Minute).Before(time.Now().UTC()) {
-		return errNodeIsStucked
-	}
-
-	if head.Level > bi.state.Level {
+	switch {
+	case head.Level > bi.state.Level:
 		if err := bi.Index(ctx, head); err != nil {
 			if errors.Is(err, errBcdQuit) {
 				return nil
@@ -346,13 +342,11 @@ func (bi *BoostIndexer) process(ctx context.Context) error {
 
 		logger.Info().Str("network", bi.Network.String()).Msg("Synced")
 		return nil
-	} else if head.Level < bi.state.Level {
-		if err := bi.Rollback(ctx); err != nil {
-			return err
-		}
+	case head.Level < bi.state.Level:
+		return bi.Rollback(ctx)
+	default:
+		return errSameLevel
 	}
-
-	return errSameLevel
 }
 func (bi *BoostIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
 	newBlock := block.Block{

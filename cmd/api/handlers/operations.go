@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"strings"
-	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -131,7 +130,11 @@ func GetOperation() gin.HandlerFunc {
 			opg := make([]Operation, 0)
 
 			if queryReq.WithMempool {
-				operation := getOperationFromMempool(ctxs, req.Hash)
+				ctx := ctxs.Any()
+				operation, err := getOperationFromMempool(ctx, req.Hash)
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
 				if operation != nil {
 					opg = append(opg, *operation)
 				}
@@ -253,44 +256,19 @@ func GetOperationDiff() gin.HandlerFunc {
 	}
 }
 
-func getOperationFromMempool(ctxs config.Contexts, hash string) *Operation {
-	var wg sync.WaitGroup
-	var opCh = make(chan *Operation, len(ctxs))
-
-	defer close(opCh)
-
-	for _, ctx := range ctxs {
-		wg.Add(1)
-		go getOperation(ctx, hash, opCh, &wg)
-	}
-
-	wg.Wait()
-
-	for i := 0; i < len(ctxs); i++ {
-		if op := <-opCh; op != nil {
-			return op
-		}
-	}
-
-	return nil
-}
-
-func getOperation(ctx *config.Context, hash string, ops chan<- *Operation, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func getOperationFromMempool(ctx *config.Context, hash string) (*Operation, error) {
 	res, err := ctx.Mempool.GetByHash(hash)
 	if err != nil {
-		ops <- nil
-		return
+		return nil, err
 	}
 
 	switch {
 	case len(res.Originations) > 0:
-		ops <- prepareMempoolOrigination(ctx, res.Originations[0])
+		return prepareMempoolOrigination(ctx, res.Originations[0]), nil
 	case len(res.Transactions) > 0:
-		ops <- prepareMempoolTransaction(ctx, res.Transactions[0])
+		return prepareMempoolTransaction(ctx, res.Transactions[0]), nil
 	default:
-		ops <- nil
+		return nil, nil
 	}
 }
 
