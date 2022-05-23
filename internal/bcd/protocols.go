@@ -33,7 +33,7 @@ var symLinks = map[string]string{
 	"PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx": SymLinkBabylon, // Hangzhounet 2
 	"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP": SymLinkBabylon, // Itacanet
 	"Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A": SymLinkBabylon, // Itacanet 2
-	"PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY": SymLinkBabylon, // Jakarta
+	"PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY": SymLinkJakarta, // Jakarta
 }
 
 // GetProtoSymLink -
@@ -58,6 +58,7 @@ func GetCurrentProtocol() string {
 const (
 	SymLinkAlpha   = "alpha"
 	SymLinkBabylon = "babylon"
+	SymLinkJakarta = "jakarta"
 )
 
 var ChainID = map[string]string{

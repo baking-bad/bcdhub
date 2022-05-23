@@ -233,6 +233,15 @@ func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, 
 				return res, err
 			}
 			buf.BabylonID = script.ID
+		case contractModel.JakartaID > 0:
+			script, err := cur.Scripts.ByHash(contractModel.Jakarta.Hash)
+			if err != nil {
+				if cur.Storage.IsRecordNotFound(err) {
+					continue
+				}
+				return res, err
+			}
+			buf.JakartaID = script.ID
 		}
 		stats, err := cur.Contracts.SameCount(buf)
 		if err != nil {

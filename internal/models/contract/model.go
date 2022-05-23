@@ -33,6 +33,8 @@ type Contract struct {
 	Alpha     Script `pg:",rel:has-one"`
 	BabylonID int64
 	Babylon   Script `pg:",rel:has-one"`
+	JakartaID int64
+	Jakarta   Script `pg:",rel:has-one"`
 }
 
 // GetID -

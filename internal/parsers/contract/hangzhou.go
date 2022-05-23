@@ -1,9 +1,7 @@
 package contract
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
@@ -76,7 +74,7 @@ func (p *Hangzhou) computeMetrics(operation *operation.Operation, c *contract.Co
 				return err
 			}
 			contractScript.Constants = globalConstants
-			p.replaceConstants(&contractScript, operation)
+			replaceConstants(&contractScript, operation)
 
 			script, err = astContract.NewParser(operation.Script)
 			if err != nil {
@@ -115,15 +113,4 @@ func (p *Hangzhou) computeMetrics(operation *operation.Operation, c *contract.Co
 	c.Tags = contractScript.Tags
 
 	return nil
-}
-
-func (p *Hangzhou) replaceConstants(c *contract.Script, operation *operation.Operation) {
-	pattern := `{"prim":"constant","args":[{"string":"%s"}]}`
-	for i := range c.Constants {
-		operation.Script = bytes.ReplaceAll(
-			operation.Script,
-			[]byte(fmt.Sprintf(pattern, c.Constants[i].Address)),
-			c.Constants[i].Value,
-		)
-	}
 }

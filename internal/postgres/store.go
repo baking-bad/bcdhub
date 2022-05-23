@@ -230,6 +230,29 @@ func (store *Store) saveContracts(tx pg.DBI) error {
 				store.Contracts[i].BabylonID = store.Contracts[i].Alpha.ID
 			}
 		}
+		if store.Contracts[i].Jakarta.Code != nil {
+			if store.Contracts[i].Babylon.Hash != store.Contracts[i].Jakarta.Hash {
+				if err := store.Contracts[i].Jakarta.Save(tx); err != nil {
+					return err
+				}
+				store.Contracts[i].JakartaID = store.Contracts[i].Jakarta.ID
+
+				if len(store.Contracts[i].Jakarta.Constants) > 0 {
+					for j := range store.Contracts[i].Jakarta.Constants {
+						relation := contract.ScriptConstants{
+							ScriptId:         store.Contracts[i].JakartaID,
+							GlobalConstantId: store.Contracts[i].Jakarta.Constants[j].ID,
+						}
+						if _, err := tx.Model(&relation).Insert(); err != nil {
+							return err
+						}
+					}
+				}
+
+			} else {
+				store.Contracts[i].JakartaID = store.Contracts[i].Babylon.ID
+			}
+		}
 
 		if err := store.Contracts[i].Account.Save(tx); err != nil {
 			return err

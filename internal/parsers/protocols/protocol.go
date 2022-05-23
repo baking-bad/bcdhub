@@ -67,14 +67,21 @@ func Get(ctx *config.Context, protocol string) (*Specific, error) {
 	case "PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx",
 		"PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
 		"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP",
-		"Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A",
-		"PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY":
+		"Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A":
 		return &Specific{
 			StorageParser:         storage.NewLazyBabylon(ctx.BigMapDiffs),
 			ContractParser:        contract.NewHangzhou(ctx),
 			MigrationParser:       migrations.NewCarthage(),
 			NeedReceiveRawStorage: true,
 		}, nil
+	case "PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY":
+		return &Specific{
+			StorageParser:         storage.NewLazyBabylon(ctx.BigMapDiffs),
+			ContractParser:        contract.NewJakarta(ctx),
+			MigrationParser:       migrations.NewJakarta(),
+			NeedReceiveRawStorage: true,
+		}, nil
+
 	default:
 		return nil, errors.Errorf("unknown protocol in parser's creation: %s", protocol)
 

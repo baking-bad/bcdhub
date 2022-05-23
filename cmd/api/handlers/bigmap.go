@@ -67,7 +67,7 @@ func GetBigMap() gin.HandlerFunc {
 			}
 			res.ContractAlias = destination.Alias
 
-			script, err := ctx.Contracts.ScriptPart(res.Address, bcd.SymLinkBabylon, consts.STORAGE)
+			script, err := ctx.Contracts.ScriptPart(res.Address, bcd.GetCurrentSymLink(), consts.STORAGE)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}

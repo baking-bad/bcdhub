@@ -102,6 +102,11 @@ func (p Transaction) Parse(data noderpc.Operation, store parsers.Store) error {
 					if err != nil {
 						return err
 					}
+				case bcd.SymLinkJakarta:
+					script, err = contracts[i].Jakarta.Full()
+					if err != nil {
+						return err
+					}
 				default:
 					return errors.Errorf("unknown protocol symbolic link: %s", p.protocol.SymLink)
 				}

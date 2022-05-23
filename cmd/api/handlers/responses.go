@@ -176,8 +176,11 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Timestamp = contract.Timestamp
 
 	script := contract.Alpha
-	if contract.BabylonID > 0 {
+	switch {
+	case contract.BabylonID > 0:
 		script = contract.Babylon
+	case contract.JakartaID > 0:
+		script = contract.Jakarta
 	}
 
 	c.Hash = script.Hash
