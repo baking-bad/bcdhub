@@ -21,6 +21,8 @@ services:
     mempool: https://mempool.dipdup.net/v1/graphql
   hangzhou2net:
     mempool: https://mempool.dipdup.net/v1/graphql
+  ithacanet:
+    mempool: https://mempool.dipdup.net/v1/graphql
 
 storage:
   pg: 
