@@ -37,7 +37,7 @@ require (
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.0
 )
 
 require (
@@ -110,6 +110,6 @@ require (
 	golang.org/x/tools v0.1.10 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	mellium.im/sasl v0.2.1 // indirect
 )
