@@ -61,7 +61,7 @@ func createStartIndices(db pg.DBI) error {
 		}
 
 		// Contract Metadata
-		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS tzips_address_idx ON ?TableName (address)`); err != nil {
+		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_address_idx ON ?TableName (address)`); err != nil {
 			return err
 		}
 
@@ -69,7 +69,7 @@ func createStartIndices(db pg.DBI) error {
 			return err
 		}
 
-		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_address_idx ON ?TableName (updated_at)`); err != nil {
+		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_updated_at_idx ON ?TableName (updated_at)`); err != nil {
 			return err
 		}
 

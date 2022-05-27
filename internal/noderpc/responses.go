@@ -232,8 +232,8 @@ type LazySaplingStateDiff struct {
 
 // LazyBigMapUpdate -
 type LazySaplingStateUpdate struct {
-	CommitmentsAndCiphertexts CommitmentsAndCiphertexts `json:"commitments_and_ciphertexts"`
-	Nullifiers                []string                  `json:"nullifiers"`
+	CommitmentsAndCiphertexts []CommitmentsAndCiphertexts `json:"commitments_and_ciphertexts"`
+	Nullifiers                []string                    `json:"nullifiers"`
 }
 
 // CommitmentsAndCiphertexts -
