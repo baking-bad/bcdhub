@@ -327,7 +327,7 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 		}
 
 		var page pageableRequest
-		if err := c.BindQuery(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.BindQuery(&page); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 

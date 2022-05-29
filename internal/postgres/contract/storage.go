@@ -201,12 +201,21 @@ func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte
 
 // RecentlyCalled -
 func (storage *Storage) RecentlyCalled(offset, size int64) (contracts []contract.Contract, err error) {
-	err = storage.DB.Model((*contract.Contract)(nil)).
+	query := storage.DB.Model((*contract.Contract)(nil)).
 		ColumnExpr("contract.id, contract.tx_count, contract.last_action, contract.account_id").
 		ColumnExpr("account.address as account__address, account.alias as account__alias").
-		Offset(int(offset)).Limit(int(size)).
+		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`)
+
+	if offset > 0 {
+		query.Offset(int(offset))
+	}
+	if size > 0 {
+		query.Limit(int(size))
+	} else {
+		query.Limit(10)
+	}
+	err = query.
 		OrderExpr("contract.last_action desc, contract.tx_count desc").
-		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
 		Select(&contracts)
 	return
 }
