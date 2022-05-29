@@ -197,7 +197,6 @@ type ContractWithStats struct {
 // RecentlyCalledContract -
 type RecentlyCalledContract struct {
 	ID         int64     `json:"id"`
-	Network    string    `json:"network"`
 	Address    string    `json:"address"`
 	Alias      string    `json:"alias,omitempty" extensions:"x-nullable"`
 	LastAction time.Time `json:"last_action,omitempty" extensions:"x-nullable"`
