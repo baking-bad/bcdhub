@@ -668,6 +668,7 @@ type ViewSchemaKind string
 const (
 	OffchainView ViewSchemaKind = "off-chain"
 	OnchainView  ViewSchemaKind = "on-chain"
+	EmptyView    ViewSchemaKind = ""
 )
 
 // ForkResponse -
