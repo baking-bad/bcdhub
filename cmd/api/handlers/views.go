@@ -330,7 +330,7 @@ func getViewForExecute(contractMetadata contract_metadata.Repository, contracts 
 
 		return nil, nil, errNoViews
 
-	case OffchainView, "": // TODO: remove empty kind. It's workaround for current UI version
+	case OffchainView, EmptyView: // TODO: remove empty kind. It's workaround for current UI version
 		tzipValue, err := contractMetadata.Get(address)
 		if err != nil {
 			return nil, nil, err
