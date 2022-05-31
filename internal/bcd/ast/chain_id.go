@@ -89,8 +89,7 @@ func (c *ChainID) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (c *ChainID) FromJSONSchema(data map[string]interface{}) error {
-	setOptimizedJSONSchema(&c.Default, data, forge.UnforgeChainID)
-	return nil
+	return setOptimizedJSONSchema(&c.Default, data, forge.UnforgeChainID, ChainIDValidator)
 }
 
 // FindByName -

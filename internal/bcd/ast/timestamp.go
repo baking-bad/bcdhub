@@ -77,21 +77,20 @@ func (t *Timestamp) ToBaseNode(optimized bool) (*base.Node, error) {
 
 // FromJSONSchema -
 func (t *Timestamp) FromJSONSchema(data map[string]interface{}) error {
-	for key := range data {
-		if key == t.GetName() {
-			t.ValueKind = valueKindInt
-			switch val := data[key].(type) {
-			case string:
-				ts, err := time.Parse(time.RFC3339, val)
-				if err != nil {
-					return err
-				}
-				t.Value = types.NewBigInt(ts.UTC().Unix())
-			case float64:
-				t.Value = types.NewBigInt(int64(val))
+	key := t.GetName()
+	if value, ok := data[key]; ok {
+		t.ValueKind = valueKindInt
+		switch val := value.(type) {
+		case string:
+			ts, err := time.Parse(time.RFC3339, val)
+			if err != nil {
+				return errors.Wrapf(ErrValidation, "time should be in RFC3339  %s=%s", key, val)
 			}
-			break
+			t.Value = types.NewBigInt(ts.UTC().Unix())
+		case float64:
+			t.Value = types.NewBigInt(int64(val))
 		}
+
 	}
 	return nil
 }

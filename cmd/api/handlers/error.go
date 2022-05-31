@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	sentrygin "github.com/getsentry/sentry-go/gin"
@@ -38,6 +39,9 @@ func handleError(c *gin.Context, repo models.GeneralRepository, err error, code 
 func getErrorCode(err error, repo models.GeneralRepository) int {
 	if repo.IsRecordNotFound(err) {
 		return http.StatusNotFound
+	}
+	if errors.Is(err, ast.ErrValidation) {
+		return http.StatusBadRequest
 	}
 	return http.StatusInternalServerError
 }
