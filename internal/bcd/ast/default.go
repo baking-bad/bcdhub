@@ -194,12 +194,11 @@ func (d *Default) ToJSONSchema() (*JSONSchema, error) {
 
 // FromJSONSchema -
 func (d *Default) FromJSONSchema(data map[string]interface{}) error {
-	for key := range data {
-		if key == d.GetName() {
-			d.Value = data[key]
-			d.ValueKind = valueKindString
-			break
-		}
+	key := d.GetName()
+
+	if value, ok := data[key]; ok {
+		d.Value = value
+		d.ValueKind = valueKindString
 	}
 	return nil
 }

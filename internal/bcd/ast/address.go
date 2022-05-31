@@ -115,8 +115,7 @@ func (a *Address) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (a *Address) FromJSONSchema(data map[string]interface{}) error {
-	setOptimizedJSONSchema(&a.Default, data, forge.UnforgeContract)
-	return nil
+	return setOptimizedJSONSchema(&a.Default, data, forge.UnforgeContract, AddressValidator)
 }
 
 // FindByName -

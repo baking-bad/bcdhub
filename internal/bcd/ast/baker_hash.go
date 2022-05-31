@@ -82,8 +82,7 @@ func (s *BakerHash) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (s *BakerHash) FromJSONSchema(data map[string]interface{}) error {
-	setOptimizedJSONSchema(&s.Default, data, forge.UnforgeBakerHash)
-	return nil
+	return setOptimizedJSONSchema(&s.Default, data, forge.UnforgeBakerHash, BakerHashValidator)
 }
 
 // FindByName -

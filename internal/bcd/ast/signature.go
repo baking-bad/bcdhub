@@ -82,8 +82,7 @@ func (s *Signature) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (s *Signature) FromJSONSchema(data map[string]interface{}) error {
-	setOptimizedJSONSchema(&s.Default, data, forge.UnforgeSignature)
-	return nil
+	return setOptimizedJSONSchema(&s.Default, data, forge.UnforgeSignature, SignatureValidator)
 }
 
 // FindByName -

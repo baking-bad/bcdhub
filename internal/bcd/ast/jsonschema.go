@@ -40,6 +40,9 @@ type JSONSchema struct {
 	XOptions   map[string]interface{} `json:"x-options,omitempty"`
 }
 
+// Optimizer -
+type Optimizer func(string) (string, error)
+
 func getStringJSONSchema(d Default) *JSONSchema {
 	return wrapObject(&JSONSchema{
 		Prim:    d.Prim,
@@ -70,49 +73,57 @@ func getAddressJSONSchema(d Default) *JSONSchema {
 }
 
 func setIntJSONSchema(d *Default, data map[string]interface{}) {
-	for key := range data {
-		if key == d.GetName() {
-			switch v := data[key].(type) {
-			case float64:
-				i := big.NewInt(0)
-				i, _ = big.NewFloat(v).Int(i)
-				d.Value = &types.BigInt{Int: i}
-			case string:
-				d.Value = types.NewBigIntFromString(v)
-			}
-			d.ValueKind = valueKindInt
-			break
+	key := d.GetName()
+	if value, ok := data[key]; ok {
+		switch v := value.(type) {
+		case float64:
+			i := big.NewInt(0)
+			i, _ = big.NewFloat(v).Int(i)
+			d.Value = &types.BigInt{Int: i}
+		case string:
+			d.Value = types.NewBigIntFromString(v)
 		}
+		d.ValueKind = valueKindInt
 	}
 }
 
 func setBytesJSONSchema(d *Default, data map[string]interface{}) error {
-	for key := range data {
-		if key == d.GetName() {
-			if _, err := hex.DecodeString(data[key].(string)); err != nil {
-				return errors.Errorf("invalid bytes string: %s=%v", key, data[key])
+	key := d.GetName()
+	if value, ok := data[key]; ok {
+		if str, ok := value.(string); ok {
+			if err := BytesValidator(str); err != nil {
+				return err
+			}
+			if _, err := hex.DecodeString(str); err != nil {
+				return errors.Errorf("bytes decoding error: %s=%v", key, value)
 			}
 
-			d.Value = data[key]
+			d.Value = value
 			d.ValueKind = valueKindBytes
-			return nil
 		}
 	}
 	return nil
 }
 
-func setOptimizedJSONSchema(d *Default, data map[string]interface{}, optimizer func(string) (string, error)) {
-	for key, value := range data {
-		if key == d.GetName() {
-			val, err := optimizer(value.(string))
+func setOptimizedJSONSchema(d *Default, data map[string]interface{}, optimizer Optimizer, validator Validator[string]) error {
+	key := d.GetName()
+	if value, ok := data[key]; ok {
+		if str, ok := value.(string); ok {
+			if validator != nil {
+				if err := validator(str); err != nil {
+					return err
+				}
+			}
+
+			val, err := optimizer(str)
 			if err != nil {
-				val = value.(string)
+				val = str
 			}
 			d.ValueKind = valueKindString
 			d.Value = val
-			break
 		}
 	}
+	return nil
 }
 
 type mergeFields struct {

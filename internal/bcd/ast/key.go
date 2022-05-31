@@ -83,8 +83,7 @@ func (k *Key) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (k *Key) FromJSONSchema(data map[string]interface{}) error {
-	setOptimizedJSONSchema(&k.Default, data, forge.UnforgePublicKey)
-	return nil
+	return setOptimizedJSONSchema(&k.Default, data, forge.UnforgePublicKey, PublicKeyValidator)
 }
 
 // FindByName -

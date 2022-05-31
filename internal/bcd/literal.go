@@ -32,8 +32,9 @@ func IsAddressLazy(str string) bool {
 }
 
 var (
-	addressRegex  = regexp.MustCompile("(tz1|tz2|tz3|KT1)[0-9A-Za-z]{33}")
-	contractRegex = regexp.MustCompile("(KT1)[0-9A-Za-z]{33}")
+	addressRegex   = regexp.MustCompile("(tz1|tz2|tz3|KT1)[0-9A-Za-z]{33}")
+	contractRegex  = regexp.MustCompile("(KT1)[0-9A-Za-z]{33}")
+	bakerHashRegex = regexp.MustCompile("(SG1)[0-9A-Za-z]{33}")
 )
 
 // IsAddress -
@@ -44,4 +45,9 @@ func IsAddress(str string) bool {
 // IsContract -
 func IsContract(str string) bool {
 	return contractRegex.MatchString(str)
+}
+
+// IsBakerHash -
+func IsBakerHash(str string) bool {
+	return bakerHashRegex.MatchString(str)
 }
