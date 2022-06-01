@@ -169,6 +169,11 @@ func getOnChainViewsSchema(contracts contract.Repository, address string) ([]Vie
 	if err != nil {
 		return nil, err
 	}
+
+	if len(rawViews) == 0 {
+		return nil, nil
+	}
+
 	var views []views.OnChain
 	if err := json.Unmarshal(rawViews, &views); err != nil {
 		return nil, err
