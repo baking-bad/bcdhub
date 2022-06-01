@@ -22,11 +22,11 @@ type Cache struct {
 	*ccache.Cache
 	rpc noderpc.INode
 
-	accounts  account.Repository
-	contracts contract.Repository
-	protocols protocol.Repository
-	sanitizer *bluemonday.Policy
-	tzip      contract_metadata.Repository
+	accounts         account.Repository
+	contracts        contract.Repository
+	protocols        protocol.Repository
+	sanitizer        *bluemonday.Policy
+	contractMetadata contract_metadata.Repository
 }
 
 // NewCache -
@@ -54,9 +54,12 @@ func (cache *Cache) Alias(address string) string {
 			return acc.Alias, nil
 		}
 
-		cm, err := cache.tzip.Get(address)
+		cm, err := cache.contractMetadata.Get(address)
 		if err == nil {
-			return cm.Name, nil
+			if cm.Name != consts.Unknown {
+				return cm.Name, nil
+			}
+			return "", nil
 		}
 
 		return "", err
@@ -78,7 +81,7 @@ func (cache *Cache) ContractMetadata(address string) (*contract_metadata.Contrac
 	}
 	key := fmt.Sprintf("contract_metadata:%s", address)
 	item, err := cache.Fetch(key, time.Minute*30, func() (interface{}, error) {
-		return cache.tzip.Get(address)
+		return cache.contractMetadata.Get(address)
 	})
 	if err != nil {
 		return nil, err
@@ -94,7 +97,7 @@ func (cache *Cache) Events(address string) (contract_metadata.Events, error) {
 	}
 	key := fmt.Sprintf("contract_metadata:%s", address)
 	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		return cache.tzip.Events(address)
+		return cache.contractMetadata.Events(address)
 	})
 	if err != nil {
 		return nil, err

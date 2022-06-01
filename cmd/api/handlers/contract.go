@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -186,7 +187,7 @@ func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Co
 
 	if contractMetadata, err := ctx.Cache.ContractMetadata(contract.Account.Address); err == nil && contractMetadata != nil {
 		res.Slug = contractMetadata.Slug
-		if res.Alias == "" {
+		if res.Alias == "" && contractMetadata.Name != consts.Unknown {
 			res.Alias = contractMetadata.Name
 		}
 	} else if !ctx.Storage.IsRecordNotFound(err) {
