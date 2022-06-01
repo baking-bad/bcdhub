@@ -136,7 +136,7 @@ func fillTypeValidator() validator.Func {
 
 func searchStringValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
-		return len(fl.Field().String()) > 2
+		return len(fl.Field().String()) > 2 && len(fl.Field().String()) < 256
 	}
 }
 
