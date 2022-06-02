@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,9 +15,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-
-	"net/http"
-	_ "net/http/pprof"
 )
 
 var ctxs config.Contexts
@@ -28,10 +24,6 @@ const (
 )
 
 func main() {
-	go func() {
-		log.Println(http.ListenAndServe(":6060", nil))
-	}()
-
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		logger.Err(err)
