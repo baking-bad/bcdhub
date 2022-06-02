@@ -2,7 +2,7 @@ rpc:
   mainnet:
     uri: https://rpc.tzkt.io/archive
     timeout: 20
-    requests_per_second: 10
+    requests_per_second: 15
   ithacanet:
     uri: https://rpc.tzkt.io/ithacanet
     timeout: 20

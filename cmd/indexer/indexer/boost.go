@@ -251,7 +251,7 @@ func (bi *BoostIndexer) handleBlock(ctx context.Context, block *Block) error {
 			}
 
 			store := postgres.NewStore(tx)
-			if err := bi.implicitMigration(ctx, block.Header, bi.currentProtocol, store); err != nil {
+			if err := bi.implicitMigration(ctx, block, bi.currentProtocol, store); err != nil {
 				return err
 			}
 
@@ -434,11 +434,11 @@ func (bi *BoostIndexer) migrate(ctx context.Context, head noderpc.Header, tx pg.
 	return nil
 }
 
-func (bi *BoostIndexer) implicitMigration(ctx context.Context, head noderpc.Header, protocol protocol.Protocol, store parsers.Store) error {
-	metadata, err := bi.RPC.GetBlockMetadata(ctx, head.Level)
-	if err != nil {
-		return err
+func (bi *BoostIndexer) implicitMigration(ctx context.Context, block *Block, protocol protocol.Protocol, store parsers.Store) error {
+	if block == nil || block.Metadata == nil {
+		return nil
 	}
+
 	specific, err := protocols.Get(bi.Context, protocol.Hash)
 	if err != nil {
 		return err
@@ -448,7 +448,7 @@ func (bi *BoostIndexer) implicitMigration(ctx context.Context, head noderpc.Head
 	if err != nil {
 		return err
 	}
-	return implicitParser.Parse(ctx, metadata, head, store)
+	return implicitParser.Parse(ctx, *block.Metadata, block.Header, store)
 }
 
 func (bi *BoostIndexer) standartMigration(ctx context.Context, newProtocol protocol.Protocol, head noderpc.Header, tx pg.DBI) error {
