@@ -4,14 +4,12 @@ import (
 	"context"
 	"sync"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/handlers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/search"
-	"github.com/pkg/errors"
 )
 
 // ContractMetadataHandler -
@@ -39,21 +37,11 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []domains.B
 
 	updates := make([]*contract_metadata.ContractMetadata, 0)
 	for i := range items {
-		storageTypeBytes, err := cm.Cache.StorageTypeBytes(items[i].Contract, items[i].Protocol.SymLink)
-		if err != nil {
-			return errors.Errorf("[ContractMetadata.Handle] can't get storage type for '%s' in %s: %s", items[i].Contract, cm.Network.String(), err)
-		}
-
-		storageType, err := ast.NewTypedAstFromBytes(storageTypeBytes)
-		if err != nil {
-			return errors.Errorf("[ContractMetadata.Handle] can't parse storage type for '%s' in %s: %s", items[i].Contract, cm.Network.String(), err)
-		}
-
 		localWg.Add(1)
 		go func(bmd *domains.BigMapDiff) {
 			defer localWg.Done()
 
-			res, err := cm.handler.Do(ctx, bmd, storageType)
+			res, err := cm.handler.Do(ctx, bmd, nil)
 			if err != nil {
 				logger.Warning().Err(err).Msgf("ContractMetadata.Handle")
 				return

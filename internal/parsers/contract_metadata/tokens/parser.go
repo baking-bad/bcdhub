@@ -42,10 +42,7 @@ func (t Parser) Parse(ctx context.Context, address string, level int64) ([]*toke
 }
 
 // ParseBigMapDiff -
-func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, storageAST *ast.TypedAst) ([]*tokenmetadata.TokenMetadata, error) {
-	storageType := ast.TypedAst{
-		Nodes: []ast.Node{ast.Copy(storageAST.Nodes[0])},
-	}
+func (t Parser) ParseBigMapDiff(ctx context.Context, bmd *domains.BigMapDiff, storageType *ast.TypedAst) ([]*tokenmetadata.TokenMetadata, error) {
 	if err := storageType.SettleFromBytes(bmd.Operation.DeffatedStorage); err != nil {
 		return nil, err
 	}

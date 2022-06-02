@@ -29,7 +29,7 @@ func NewContractMetadata(ctx *config.Context, ipfs []string) *ContractMetadata {
 }
 
 // Do -
-func (t *ContractMetadata) Do(ctx context.Context, bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]*cmModel.ContractMetadata, error) {
+func (t *ContractMetadata) Do(ctx context.Context, bmd *domains.BigMapDiff, _ *ast.TypedAst) ([]*cmModel.ContractMetadata, error) {
 	if bmd.KeyHash != cm.EmptyStringKey {
 		return nil, nil
 	}
