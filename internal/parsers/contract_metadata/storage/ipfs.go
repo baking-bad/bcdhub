@@ -15,18 +15,19 @@ import (
 	"github.com/karlseguin/ccache"
 )
 
-// IPFS storage prefix
+// IPFS constants
 const (
 	PrefixIPFS = "ipfs"
-	MaxTTL     = time.Duration(1<<63 - 1)
+	MaxTTL     = time.Hour
 	BounceTime = time.Minute * 5
 	BounceFlag = "no_response"
 )
 
+var cache *ccache.Cache
+
 // IPFSStorage -
 type IPFSStorage struct {
 	HTTPStorage
-	cache *ccache.Cache
 }
 
 // IPFSStorageOption -
@@ -53,7 +54,10 @@ var globalGateways = make(map[string]time.Time)
 func NewIPFSStorage(gateways []string, opts ...IPFSStorageOption) IPFSStorage {
 	s := IPFSStorage{
 		HTTPStorage: NewHTTPStorage(),
-		cache:       ccache.New(ccache.Configure()),
+	}
+
+	if cache == nil {
+		cache = ccache.New(ccache.Configure().MaxSize(1000))
 	}
 
 	if len(globalGateways) == 0 {
@@ -93,7 +97,7 @@ func (s IPFSStorage) Get(ctx context.Context, value string, output interface{}) 
 		return ErrInvalidIPFSHash
 	}
 
-	if item := s.cache.Get(value); item != nil && !item.Expired() {
+	if item := cache.Get(value); item != nil && !item.Expired() {
 		output = item.Value()
 		logger.Info().Str("url", value).Msg("using cached response")
 		if output == BounceFlag {
@@ -109,7 +113,7 @@ func (s IPFSStorage) Get(ctx context.Context, value string, output interface{}) 
 		url := fmt.Sprintf("%s/ipfs/%s%s", baseURL, ipfsURI.Host, ipfsURI.Path)
 		err := s.HTTPStorage.Get(ctx, url, output)
 		if err == nil {
-			s.cache.Set(value, output, MaxTTL)
+			cache.Set(value, output, MaxTTL)
 			return nil
 		}
 		if errors.Is(err, ErrTooManyRequests) {
@@ -120,6 +124,6 @@ func (s IPFSStorage) Get(ctx context.Context, value string, output interface{}) 
 		}
 	}
 
-	s.cache.Set(value, BounceFlag, BounceTime)
+	cache.Set(value, BounceFlag, BounceTime)
 	return ErrNoIPFSResponse
 }
