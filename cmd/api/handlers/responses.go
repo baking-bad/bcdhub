@@ -405,13 +405,17 @@ func (p *Protocol) FromModel(protocol protocol.Protocol) {
 
 // Block -
 type Block struct {
-	Network     string    `json:"network" example:"mainnet"`
-	Hash        string    `json:"hash" example:"BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT"`
-	Level       int64     `json:"level" example:"24"`
-	Predecessor string    `json:"predecessor" example:"BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs"`
-	ChainID     string    `json:"chain_id" example:"NetXdQprcVkpaWU"`
-	Protocol    string    `json:"protocol" example:"PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"`
-	Timestamp   time.Time `json:"timestamp" example:"2018-06-30T18:05:27Z"`
+	Network                      string    `json:"network" example:"mainnet"`
+	Hash                         string    `json:"hash" example:"BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT"`
+	Level                        int64     `json:"level" example:"100"`
+	Predecessor                  string    `json:"predecessor" example:"BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs"`
+	ChainID                      string    `json:"chain_id" example:"NetXdQprcVkpaWU"`
+	Timestamp                    time.Time `json:"timestamp" example:"2018-06-30T18:05:27Z"`
+	Protocol                     string    `json:"protocol" example:"PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"`
+	CostPerByte                  int64     `json:"cost_per_byte" example:"250"`
+	HardGasLimitPerOperation     int64     `json:"hard_gas_limit_per_operation" example:"1040000"`
+	HardStorageLimitPerOperation int64     `json:"hard_storage_limit_per_operation" example:"60000"`
+	TimeBetweenBlocks            int64     `json:"time_between_blocks" example:"30"`
 }
 
 // FromModel -
@@ -421,6 +425,10 @@ func (b *Block) FromModel(block block.Block) {
 	b.Protocol = block.Protocol.Hash
 	b.ChainID = block.Protocol.ChainID
 	b.Timestamp = block.Timestamp
+	b.CostPerByte = block.Protocol.CostPerByte
+	b.HardGasLimitPerOperation = block.Protocol.HardGasLimitPerOperation
+	b.HardStorageLimitPerOperation = block.Protocol.HardStorageLimitPerOperation
+	b.TimeBetweenBlocks = block.Protocol.TimeBetweenBlocks
 }
 
 // SameContractsResponse -
