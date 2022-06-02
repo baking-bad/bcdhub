@@ -46,7 +46,7 @@ func GetProtoSymLink(protocol string) (string, error) {
 
 // GetCurrentSymLink -
 func GetCurrentSymLink() string {
-	return SymLinkBabylon
+	return SymLinkJakarta
 }
 
 // GetCurrentProtocol - returns last supported protocol
