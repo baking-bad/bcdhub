@@ -145,6 +145,7 @@ func (api *app) makeRouter() {
 			contract.GET("operations", handlers.GetContractOperations())
 			contract.GET("migrations", handlers.GetContractMigrations())
 			contract.GET("transfers", handlers.GetContractTransfers())
+			contract.GET("global_constants", handlers.GetContractGlobalConstants())
 
 			tokens := contract.Group("tokens")
 			{

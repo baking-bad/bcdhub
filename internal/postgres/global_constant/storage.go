@@ -50,4 +50,27 @@ func (storage *Storage) List(size, offset int64) (response []contract.GlobalCons
 		Order("id desc").
 		Select(&response)
 	return
+
+}
+
+// ForContract -
+func (storage *Storage) ForContract(address string, size, offset int64) (response []contract.GlobalConstant, err error) {
+	if offset < 0 || address == "" {
+		return nil, nil
+	}
+	if size < 1 || size > consts.MaxSize {
+		size = consts.DefaultSize
+	}
+
+	err = storage.DB.Model((*contract.Contract)(nil)).
+		ColumnExpr("global_constants.*").
+		Join("LEFT JOIN accounts on account_id = accounts.id").
+		Join("LEFT JOIN script_constants on script_constants.script_id = jakarta_id").
+		Join("LEFT JOIN global_constants on script_constants.global_constant_id = global_constants.id").
+		Where("accounts.address = ?", address).
+		Limit(int(size)).
+		Offset(int(offset)).
+		Order("id desc").
+		Select(&response)
+	return
 }
