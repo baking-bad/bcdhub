@@ -22,7 +22,7 @@ func CreateIndexers(ctx context.Context, cfg config.Config) ([]Indexer, error) {
 			return nil, errors.Errorf("unknown network %s", network)
 		}
 
-		bi, err := NewBoostIndexer(ctx, cfg, networkType, indexerCfg)
+		bi, err := NewBlockchainIndexer(ctx, cfg, networkType, indexerCfg)
 		if err != nil {
 			return nil, err
 		}

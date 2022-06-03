@@ -111,7 +111,7 @@ func (r *Receiver) get(ctx context.Context, level int64) (Block, error) {
 	}
 	block.OPG = opg
 
-	if protocols.NeedImplicitParsing(header.Hash) {
+	if protocols.NeedImplicitParsing(header.Protocol) {
 		metadata, err := r.rpc.GetBlockMetadata(ctx, level)
 		if err != nil {
 			return block, err

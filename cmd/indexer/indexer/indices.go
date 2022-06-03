@@ -77,7 +77,7 @@ func createStartIndices(db pg.DBI) error {
 	})
 }
 
-func (bi *BoostIndexer) createIndices() {
+func (bi *BlockchainIndexer) createIndices() {
 	logger.Info().Str("network", bi.Network.String()).Msg("creating database indices...")
 
 	// Big map action
