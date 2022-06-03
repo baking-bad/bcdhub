@@ -738,7 +738,6 @@ type TokensCountWithMetadata struct {
 
 // GlobalConstant -
 type GlobalConstant struct {
-	Network   types.Network      `json:"network"`
 	Timestamp time.Time          `json:"timestamp"`
 	Level     int64              `json:"level"`
 	Address   string             `json:"address"`

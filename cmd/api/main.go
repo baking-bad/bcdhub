@@ -145,6 +145,7 @@ func (api *app) makeRouter() {
 			contract.GET("operations", handlers.GetContractOperations())
 			contract.GET("migrations", handlers.GetContractMigrations())
 			contract.GET("transfers", handlers.GetContractTransfers())
+			contract.GET("global_constants", handlers.GetContractGlobalConstants())
 
 			tokens := contract.Group("tokens")
 			{
@@ -220,10 +221,11 @@ func (api *app) makeRouter() {
 			}
 		}
 
-		globalConstants := v1.Group("global_constants/:network/:address")
+		globalConstants := v1.Group("global_constants/:network")
 		globalConstants.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
-			globalConstants.GET("", handlers.GetGlobalConstant())
+			globalConstants.GET("", handlers.ListGlobalConstants())
+			globalConstants.GET(":address", handlers.GetGlobalConstant())
 		}
 	}
 	api.Router = r
