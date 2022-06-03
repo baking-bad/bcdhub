@@ -32,4 +32,5 @@ type ScriptRepository interface {
 type ConstantRepository interface {
 	Get(address string) (GlobalConstant, error)
 	All(addresses ...string) ([]GlobalConstant, error)
+	List(size, offset int64) ([]GlobalConstant, error)
 }
