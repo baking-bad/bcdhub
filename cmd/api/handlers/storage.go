@@ -219,7 +219,7 @@ func GetContractStorageSchema() gin.HandlerFunc {
 			return
 		}
 
-		storageType, err := getStorageType(ctx, req.Address, bcd.GetCurrentSymLink())
+		storageType, err := getStorageType(ctx, req.Address, getSymLink(req.NetworkID()))
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

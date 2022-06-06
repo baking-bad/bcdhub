@@ -398,7 +398,7 @@ func prepareBigMapItem(ctx *config.Context, data []bigmapdiff.BigMapDiff, keyHas
 }
 
 func getBigMapType(ctx *config.Context, data bigmapdiff.BigMapDiff) (*ast.BigMap, error) {
-	storageType, err := getStorageType(ctx, data.Contract, bcd.GetCurrentSymLink())
+	storageType, err := getStorageType(ctx, data.Contract, getSymLink(ctx.Network))
 	if err != nil {
 		return nil, err
 	}

@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 func getScript(ctx *config.Context, address, symLink string) (*ast.Script, error) {
@@ -42,4 +44,11 @@ func getStorageType(ctx *config.Context, address, symLink string) (*ast.TypedAst
 		return nil, err
 	}
 	return script.StorageType()
+}
+
+func getSymLink(network types.Network) string {
+	if network == types.Jakartanet {
+		return bcd.SymLinkJakarta
+	}
+	return bcd.SymLinkBabylon
 }
