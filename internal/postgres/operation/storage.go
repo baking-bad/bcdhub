@@ -123,8 +123,7 @@ func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters m
 
 // Last - get last operation by `filters` with not empty deffated_storage
 func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (op operation.Operation, err error) {
-	// +0 in order by is a dirty hack for Postgres limit 1 performance
-	query := storage.DB.Model((*operation.Operation)(nil)).Where("deffated_storage is not null").OrderExpr("operation.id + 0 desc").Limit(1)
+	query := storage.DB.Model((*operation.Operation)(nil)).Where("deffated_storage is not null").OrderExpr("operation.id desc").Limit(1)
 
 	for key, value := range filters {
 		query.Where("? = ?", pg.Ident(key), value)
