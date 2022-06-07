@@ -49,7 +49,7 @@ share_path: /etc/bcd
 base_url: https://better-call.dev
 
 ipfs:
-  - ${SANDBOX_IPFS_GATEWAY:-https://ipfs.baking-bad.org}
+  - ${SANDBOX_IPFS_GATEWAY:-http://ipfs_ipfs-node:8080}
 
 api:
   project_name: api
