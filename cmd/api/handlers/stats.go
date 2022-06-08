@@ -346,13 +346,15 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 			var res RecentlyCalledContract
 			res.FromModel(contracts[i])
 
-			if contractMetadata, err := ctx.Cache.ContractMetadata(contracts[i].Account.Address); err == nil && contractMetadata != nil {
-				if res.Alias == "" && contractMetadata.Name != consts.Unknown {
-					res.Alias = contractMetadata.Name
+			if res.Alias == "" {
+				if contractMetadata, err := ctx.Cache.ContractMetadata(contracts[i].Account.Address); err == nil && contractMetadata != nil {
+					if res.Alias == "" && contractMetadata.Name != consts.Unknown {
+						res.Alias = contractMetadata.Name
+					}
+				} else if !ctx.Storage.IsRecordNotFound(err) {
+					handleError(c, ctx.Storage, err, 0)
+					return
 				}
-			} else if !ctx.Storage.IsRecordNotFound(err) {
-				handleError(c, ctx.Storage, err, 0)
-				return
 			}
 
 			response[i] = res
