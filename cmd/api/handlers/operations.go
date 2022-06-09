@@ -455,7 +455,7 @@ func getStorageDiff(ctx *config.Context, destinationID int64, bmd []bigmapdiff.B
 					return nil, err
 				}
 			} else {
-				if err := prepareStorage(prevStorage, prev.DeffatedStorage, bmd); err != nil {
+				if err := prepareStorage(prevStorage, prev.DeffatedStorage, nil); err != nil {
 					return nil, err
 				}
 			}
