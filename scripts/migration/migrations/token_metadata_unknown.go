@@ -3,6 +3,8 @@ package migrations
 import (
 	"context"
 	"errors"
+	"log"
+	"sync"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -17,7 +19,10 @@ import (
 )
 
 // TokenMetadataUnknown - migration that requests again token metadata
-type TokenMetadataUnknown struct{}
+type TokenMetadataUnknown struct {
+	once    sync.Once
+	network types.Network
+}
 
 // Key -
 func (m *TokenMetadataUnknown) Key() string {
@@ -31,6 +36,24 @@ func (m *TokenMetadataUnknown) Description() string {
 
 // Do - migrate function
 func (m *TokenMetadataUnknown) Do(ctx *config.Context) error {
+	m.once.Do(func() {
+		value, err := ask("Select network:")
+		if err != nil {
+			log.Print(err)
+		}
+		if value != "" {
+			m.network = types.NewNetwork(value)
+		} else {
+			m.network = types.Empty
+		}
+	})
+
+	if m.network != types.Empty && m.network != ctx.Network {
+		return nil
+	}
+
+	logger.Info().Str("network", m.network.String()).Msg("fetching metadata...")
+
 	metadata, err := ctx.TokenMetadata.GetRecent(time.Time{}, tokenmetadata.GetContext{
 		Name: consts.Unknown,
 	})
