@@ -219,12 +219,6 @@ func (bi *BlockchainIndexer) createIndices() {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
-	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_timestamp_idx ON ?TableName (timestamp)
-	`); err != nil {
-		logger.Error().Err(err).Msg("can't create index")
-	}
-
 	// Token metadata
 	if _, err := bi.Context.StorageDB.DB.Model((*tokenmetadata.TokenMetadata)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS token_metadata_level_idx ON ?TableName (level)
