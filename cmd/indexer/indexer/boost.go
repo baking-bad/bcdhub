@@ -232,7 +232,7 @@ func (bi *BlockchainIndexer) Index(ctx context.Context, head noderpc.Header) err
 		}
 	}
 
-	bi.indicesInit.Do(bi.createIndices)
+	// bi.indicesInit.Do(bi.createIndices)
 
 	return nil
 }
