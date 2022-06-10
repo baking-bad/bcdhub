@@ -59,7 +59,7 @@ func Get(ctx *config.Context, protocol string) (*Specific, error) {
 		"PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
 		"PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV":
 		return &Specific{
-			StorageParser:         storage.NewLazyBabylon(ctx.BigMapDiffs),
+			StorageParser:         storage.NewLazyBabylon(ctx.BigMapDiffs, ctx.Operations, ctx.Accounts),
 			ContractParser:        contract.NewBabylon(ctx),
 			MigrationParser:       migrations.NewCarthage(),
 			NeedReceiveRawStorage: true,
@@ -69,14 +69,14 @@ func Get(ctx *config.Context, protocol string) (*Specific, error) {
 		"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP",
 		"Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A":
 		return &Specific{
-			StorageParser:         storage.NewLazyBabylon(ctx.BigMapDiffs),
+			StorageParser:         storage.NewLazyBabylon(ctx.BigMapDiffs, ctx.Operations, ctx.Accounts),
 			ContractParser:        contract.NewHangzhou(ctx),
 			MigrationParser:       migrations.NewCarthage(),
 			NeedReceiveRawStorage: true,
 		}, nil
 	case "PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY":
 		return &Specific{
-			StorageParser:         storage.NewLazyBabylon(ctx.BigMapDiffs),
+			StorageParser:         storage.NewLazyBabylon(ctx.BigMapDiffs, ctx.Operations, ctx.Accounts),
 			ContractParser:        contract.NewJakarta(ctx),
 			MigrationParser:       migrations.NewJakarta(),
 			NeedReceiveRawStorage: true,

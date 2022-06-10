@@ -65,6 +65,26 @@ func TestLazyStorageDiff_UnmarshalJSON(t *testing.T) {
 					}
 				}
 			}`),
+		}, {
+			name: "test 2",
+			lsd: LazyStorageDiff{
+				LazyStorageDiffKind: LazyStorageDiffKind{
+					Kind: "big_map",
+					ID:   154,
+				},
+				Diff: &Diff{
+					BigMap: &LazyBigMapDiff{
+						Action: "remove",
+					},
+				},
+			},
+			data: []byte(`{
+				"kind": "big_map",
+				"id": "154",
+				"diff": {
+					"action": "remove"
+				}
+			}`),
 		},
 	}
 	for _, tt := range tests {

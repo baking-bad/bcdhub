@@ -2,6 +2,7 @@ package storage
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -13,16 +14,20 @@ import (
 
 // LazyBabylon -
 type LazyBabylon struct {
-	repo bigmapdiff.Repository
+	repo       bigmapdiff.Repository
+	operations operation.Repository
+	accounts   account.Repository
 
 	ptrMap            map[int64]int64
 	temporaryPointers map[int64]*ast.BigMap
 }
 
 // NewLazyBabylon -
-func NewLazyBabylon(repo bigmapdiff.Repository) *LazyBabylon {
+func NewLazyBabylon(repo bigmapdiff.Repository, operations operation.Repository, accounts account.Repository) *LazyBabylon {
 	return &LazyBabylon{
-		repo: repo,
+		repo:       repo,
+		operations: operations,
+		accounts:   accounts,
 
 		ptrMap:            make(map[int64]int64),
 		temporaryPointers: make(map[int64]*ast.BigMap),
@@ -63,6 +68,26 @@ func (b *LazyBabylon) initPointersTypes(result *noderpc.OperationResult, operati
 
 	if err := storage.SettleFromBytes(data); err != nil {
 		return errors.Wrapf(err, "settleStorage %s %d", operation.Destination.Address, level)
+	}
+
+	if err := b.checkPointers(result, storage); err == nil {
+		return nil
+	}
+
+	account, err := b.accounts.Get(operation.Destination.Address)
+	if err != nil {
+		return err
+	}
+
+	operaiton, err := b.operations.Last(map[string]interface{}{
+		"destination_id": account.ID,
+		"status":         types.OperationStatusApplied,
+	}, 0)
+	if err != nil {
+		return err
+	}
+	if err := storage.SettleFromBytes(operaiton.DeffatedStorage); err != nil {
+		return errors.Wrapf(err, "Settle %s %d", operation.Destination.Address, level)
 	}
 
 	return b.checkPointers(result, storage)
