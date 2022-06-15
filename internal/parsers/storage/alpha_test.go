@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -84,7 +83,7 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 			tt.args.operation.AST = tree
 
 			store := parsers.NewTestStore()
-			if _, err := a.ParseOrigination(context.Background(), content, &tt.args.operation, store); (err != nil) != tt.wantErr {
+			if err := a.ParseOrigination(content, &tt.args.operation, store); (err != nil) != tt.wantErr {
 				t.Errorf("Alpha.ParseOrigination() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

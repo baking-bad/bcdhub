@@ -1,11 +1,11 @@
 package core
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
 	pg "github.com/go-pg/pg/v10"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_parseConncetionString(t *testing.T) {
@@ -30,14 +30,17 @@ func Test_parseConncetionString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := parseConnectionString(tt.connection)
+			got, err := parseConnectionString(tt.connection, "")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseConncetionString() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("parseConncetionString() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want.Addr, got.Addr)
+			assert.Equal(t, tt.want.User, got.User)
+			assert.Equal(t, tt.want.Password, got.Password)
+			assert.Equal(t, tt.want.Database, got.Database)
+			assert.Equal(t, tt.want.IdleTimeout, got.IdleTimeout)
+			assert.Equal(t, tt.want.IdleCheckFrequency, got.IdleCheckFrequency)
 		})
 	}
 }

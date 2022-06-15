@@ -1,6 +1,8 @@
 package bcd
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestIsContract(t *testing.T) {
 	tests := []struct {
@@ -20,6 +22,10 @@ func TestIsContract(t *testing.T) {
 			name:    "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 			address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 			want:    true,
+		}, {
+			name:    "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UAi",
+			address: "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UAi",
+			want:    false,
 		},
 	}
 	for _, tt := range tests {
@@ -42,9 +48,17 @@ func TestIsAddress(t *testing.T) {
 			address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 			want:    true,
 		}, {
+			name:    "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UAi",
+			address: "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UAi",
+			want:    true,
+		}, {
 			name:    "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 			address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 			want:    true,
+		}, {
+			name:    "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UA",
+			address: "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UA",
+			want:    false,
 		},
 	}
 	for _, tt := range tests {

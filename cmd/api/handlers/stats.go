@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -344,6 +345,18 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 		for i := range contracts {
 			var res RecentlyCalledContract
 			res.FromModel(contracts[i])
+
+			if res.Alias == "" {
+				if contractMetadata, err := ctx.Cache.ContractMetadata(contracts[i].Account.Address); err == nil && contractMetadata != nil {
+					if res.Alias == "" && contractMetadata.Name != consts.Unknown {
+						res.Alias = contractMetadata.Name
+					}
+				} else if !ctx.Storage.IsRecordNotFound(err) {
+					handleError(c, ctx.Storage, err, 0)
+					return
+				}
+			}
+
 			response[i] = res
 		}
 

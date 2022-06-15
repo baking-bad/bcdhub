@@ -2,13 +2,13 @@ rpc:
   mainnet:
     uri: https://rpc.tzkt.io/archive
     timeout: 20
-    requests_per_second: 10
-  hangzhou2net:
-    uri: https://rpc.tzkt.io/hangzhou2net
-    timeout: 20
-    requests_per_second: 10
+    requests_per_second: 15
   ithacanet:
     uri: https://rpc.tzkt.io/ithacanet
+    timeout: 20
+    requests_per_second: 10
+  jakartanet:
+    uri: https://rpc.tzkt.io/jakartanet
     timeout: 20
     requests_per_second: 10
 
@@ -19,7 +19,7 @@ tzkt:
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-  hangzhou2net:
+  jakartanet:
     mempool: https://mempool.dipdup.net/v1/graphql
   ithacanet:
     mempool: https://mempool.dipdup.net/v1/graphql
@@ -29,7 +29,7 @@ storage:
     host: ${DB_HOSTNAME:-127.0.0.1}
     port: 5432
     user: ${POSTGRES_USER}
-    # dbname: ${POSTGRES_DB:-indexer}
+    dbname: ${POSTGRES_DB:-bcd}
     password: ${POSTGRES_PASSWORD}
     sslmode: disable
   elastic:
@@ -65,12 +65,12 @@ api:
     sandbox_mode: false
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
-      hangzhou2net: https://rpc.tzkt.io/hangzhou2net
       ithacanet: https://rpc.tzkt.io/ithacanet
+      jakartanet: https://rpc.tzkt.io/jakartanet
   networks:
     - mainnet
-    - hangzhou2net
     - ithacanet
+    - jakartanet
   connections:
     max: 50
     idle: 50
@@ -83,10 +83,10 @@ indexer:
   networks:
     mainnet:
       receiver_threads: 5
-    hangzhou2net:
-      receiver_threads: 2
     ithacanet:
-      receiver_threads: 2
+      receiver_threads: 5
+    jakartanet:
+      receiver_threads: 5
   connections:
     max: 5
     idle: 5
@@ -97,8 +97,8 @@ metrics:
   cache_aliases_seconds: 30
   networks:
     - mainnet
-    - hangzhou2net
     - ithacanet
+    - jakartanet
   connections:
     max: 10
     idle: 10
@@ -111,8 +111,8 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - hangzhou2net
     - ithacanet
+    - jakartanet
   connections:
     max: 5
     idle: 5

@@ -177,6 +177,101 @@ type OperationResult struct {
 	BigMapDiffs                  []BigMapDiff       `json:"big_map_diff,omitempty"`
 	Errors                       stdJSON.RawMessage `json:"errors,omitempty"`
 	GlobalAddress                string             `json:"global_address,omitempty"`
+	LazyStorageDiff              []LazyStorageDiff  `json:"lazy_storage_diff,omitempty"`
+	OriginatedRollup             string             `json:"originated_rollup,omitempty"`
+}
+
+// LazyStorageDiff -
+type LazyStorageDiff struct {
+	LazyStorageDiffKind
+	Diff *Diff `json:"omitempty"`
+}
+
+// LazyStorageDiffKind -
+type LazyStorageDiffKind struct {
+	Kind string             `json:"kind"`
+	ID   int64              `json:"id,string"`
+	Raw  stdJSON.RawMessage `json:"diff,omitempty"`
+}
+
+// UnmarshalJSON -
+func (lsd *LazyStorageDiff) UnmarshalJSON(data []byte) error {
+	lsd.LazyStorageDiffKind = LazyStorageDiffKind{}
+	if err := json.Unmarshal(data, &lsd.LazyStorageDiffKind); err != nil {
+		return err
+	}
+
+	switch lsd.Kind {
+	case "big_map":
+		lsd.Diff = &Diff{
+			BigMap: new(LazyBigMapDiff),
+		}
+		return json.Unmarshal(lsd.Raw, lsd.Diff.BigMap)
+	case "sapling_state":
+		lsd.Diff = &Diff{
+			SaplingState: new(LazySaplingStateDiff),
+		}
+		return json.Unmarshal(lsd.Raw, lsd.Diff.SaplingState)
+	}
+	return nil
+}
+
+// Diff -
+type Diff struct {
+	BigMap       *LazyBigMapDiff
+	SaplingState *LazySaplingStateDiff
+}
+
+// LazySaplingStateDiff -
+type LazySaplingStateDiff struct {
+	Action   string                 `json:"action"`
+	Updates  LazySaplingStateUpdate `json:"updates"`
+	Source   *int64                 `json:"source,omitempty,string"`
+	MemoSize *int64                 `json:"memo_size,omitempty"`
+}
+
+// LazyBigMapUpdate -
+type LazySaplingStateUpdate struct {
+	CommitmentsAndCiphertexts []CommitmentsAndCiphertexts `json:"commitments_and_ciphertexts"`
+	Nullifiers                []string                    `json:"nullifiers"`
+}
+
+// CommitmentsAndCiphertexts -
+type CommitmentsAndCiphertexts struct {
+	Commitment string
+	CipherText CipherText
+}
+
+// UnmarshalJSON -
+func (c *CommitmentsAndCiphertexts) UnmarshalJSON(data []byte) error {
+	buf := []any{&c.Commitment, &c.CipherText}
+	return json.Unmarshal(data, &buf)
+}
+
+// CipherText -
+type CipherText struct {
+	CV         string `json:"cv"`
+	EPK        string `json:"epk"`
+	PayloadEnc string `json:"payload_enc"`
+	NonceEnc   string `json:"nonce_enc"`
+	PayloadOut string `json:"payload_out"`
+	NonceOut   string `json:"nonce_out"`
+}
+
+// LazyBigMapDiff -
+type LazyBigMapDiff struct {
+	Action    string             `json:"action"`
+	Updates   []LazyBigMapUpdate `json:"updates"`
+	Source    *int64             `json:"source,omitempty,string"`
+	KeyType   stdJSON.RawMessage `json:"key_type,omitempty"`
+	ValueType stdJSON.RawMessage `json:"value_type,omitempty"`
+}
+
+// LazyBigMapUpdate -
+type LazyBigMapUpdate struct {
+	KeyHash string             `json:"key_hash"`
+	Key     stdJSON.RawMessage `json:"key"`
+	Value   stdJSON.RawMessage `json:"value,omitempty"`
 }
 
 // BigMapDiff -

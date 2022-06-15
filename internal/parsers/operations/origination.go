@@ -72,7 +72,7 @@ func (p Origination) Parse(data noderpc.Operation, store parsers.Store) error {
 	p.stackTrace.Add(origination)
 
 	if origination.IsApplied() {
-		if err := p.appliedHandler(data, &origination, store); err != nil {
+		if err := p.appliedHandler(context.Background(), data, &origination, store); err != nil {
 			return err
 		}
 	}
@@ -82,12 +82,20 @@ func (p Origination) Parse(data noderpc.Operation, store parsers.Store) error {
 	return nil
 }
 
-func (p Origination) appliedHandler(item noderpc.Operation, origination *operation.Operation, store parsers.Store) error {
+func (p Origination) appliedHandler(ctx context.Context, item noderpc.Operation, origination *operation.Operation, store parsers.Store) error {
 	if origination == nil || store == nil {
 		return nil
 	}
 
-	if err := p.contractParser.Parse(origination, p.protocol.SymLink, store); err != nil {
+	if p.specific.NeedReceiveRawStorage {
+		rawStorage, err := p.ctx.RPC.GetScriptStorageRaw(ctx, origination.Destination.Address, origination.Level)
+		if err != nil {
+			return err
+		}
+		origination.DeffatedStorage = rawStorage
+	}
+
+	if err := p.specific.ContractParser.Parse(origination, store); err != nil {
 		return err
 	}
 
@@ -96,7 +104,7 @@ func (p Origination) appliedHandler(item noderpc.Operation, origination *operati
 		return err
 	}
 
-	if err := p.storageParser.Parse(context.Background(), item, origination, store); err != nil {
+	if err := p.specific.StorageParser.ParseOrigination(item, origination, store); err != nil {
 		return err
 	}
 

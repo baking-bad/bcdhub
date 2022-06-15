@@ -23,6 +23,7 @@ import (
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
 	mock_contract "github.com/baking-bad/bcdhub/internal/models/mock/contract"
 	mock_cm "github.com/baking-bad/bcdhub/internal/models/mock/contract_metadata"
+	mock_operations "github.com/baking-bad/bcdhub/internal/models/mock/operation"
 	mock_proto "github.com/baking-bad/bcdhub/internal/models/mock/protocol"
 	mock_token_balance "github.com/baking-bad/bcdhub/internal/models/mock/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -76,6 +77,10 @@ func TestGroup_Parse(t *testing.T) {
 	ctrlTokenBalanceRepo := gomock.NewController(t)
 	defer ctrlTokenBalanceRepo.Finish()
 	tbRepo := mock_token_balance.NewMockRepository(ctrlTokenBalanceRepo)
+
+	ctrlOperationsRepo := gomock.NewController(t)
+	defer ctrlOperationsRepo.Finish()
+	operaitonsRepo := mock_operations.NewMockRepository(ctrlOperationsRepo)
 
 	ctrlRPC := gomock.NewController(t)
 	defer ctrlRPC.Finish()
@@ -168,9 +173,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	bmdRepo.
 		EXPECT().
-		GetByPtr(
-			gomock.Eq("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU"),
-			gomock.Eq(int64(2416))).
+		GetByPtr("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU", int64(2416)).
 		Return([]bigmapdiff.BigMapState{
 			{
 				Ptr:             2416,
@@ -187,9 +190,7 @@ func TestGroup_Parse(t *testing.T) {
 	for _, ptr := range []int{25167, 25166, 25165, 25164} {
 		bmdRepo.
 			EXPECT().
-			GetByPtr(
-				gomock.Eq("KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264"),
-				gomock.Eq(int64(ptr))).
+			GetByPtr("KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264", int64(ptr)).
 			Return([]bigmapdiff.BigMapState{}, nil).
 			AnyTimes()
 	}
@@ -197,18 +198,14 @@ func TestGroup_Parse(t *testing.T) {
 	for _, ptr := range []int{40067, 40065} {
 		bmdRepo.
 			EXPECT().
-			GetByPtr(
-				gomock.Eq("KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6"),
-				gomock.Eq(int64(ptr))).
+			GetByPtr("KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6", int64(ptr)).
 			Return([]bigmapdiff.BigMapState{}, nil).
 			AnyTimes()
 	}
 
 	bmdRepo.
 		EXPECT().
-		GetByPtr(
-			gomock.Eq("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ"),
-			gomock.Eq(int64(2417))).
+		GetByPtr("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ", int64(2417)).
 		Return([]bigmapdiff.BigMapState{
 			{
 				Ptr:             2417,
@@ -224,9 +221,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get(
-			gomock.Eq("PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"),
-			gomock.Eq(int64(-1))).
+		Get("PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 			SymLink: bcd.SymLinkBabylon,
@@ -236,9 +231,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get(
-			gomock.Eq("PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"),
-			gomock.Eq(int64(-1))).
+		Get("PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 			SymLink: bcd.SymLinkBabylon,
@@ -248,9 +241,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get(
-			gomock.Eq("PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP"),
-			gomock.Eq(int64(-1))).
+		Get("PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
 			SymLink: bcd.SymLinkAlpha,
@@ -260,9 +251,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get(
-			gomock.Eq("PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA"),
-			gomock.Eq(int64(-1))).
+		Get("PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
 			SymLink: bcd.SymLinkBabylon,
@@ -272,9 +261,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get(
-			gomock.Eq("PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i"),
-			gomock.Eq(int64(-1))).
+		Get("PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
 			SymLink: bcd.SymLinkBabylon,
@@ -284,9 +271,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get(
-			gomock.Eq("PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r"),
-			gomock.Eq(int64(-1))).
+		Get("PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
 			SymLink: bcd.SymLinkBabylon,
@@ -296,9 +281,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get(
-			gomock.Eq("Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A"),
-			gomock.Eq(int64(-1))).
+		Get("Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A",
 			SymLink: bcd.SymLinkBabylon,
@@ -308,7 +291,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(gomock.Eq(int64(0))).
+		GetByID(int64(0)).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 			SymLink: bcd.SymLinkBabylon,
@@ -317,7 +300,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(gomock.Eq(int64(1))).
+		GetByID(int64(1)).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 			SymLink: bcd.SymLinkBabylon,
@@ -327,7 +310,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(gomock.Eq(int64(2))).
+		GetByID(int64(2)).
 		Return(protocol.Protocol{
 			Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
 			SymLink: bcd.SymLinkAlpha,
@@ -337,7 +320,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(gomock.Eq(int64(3))).
+		GetByID(int64(3)).
 		Return(protocol.Protocol{
 			Hash:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
 			SymLink: bcd.SymLinkBabylon,
@@ -347,7 +330,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(gomock.Eq(int64(4))).
+		GetByID(int64(4)).
 		Return(protocol.Protocol{
 			Hash:    "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
 			SymLink: bcd.SymLinkBabylon,
@@ -357,7 +340,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(gomock.Eq(int64(5))).
+		GetByID(int64(5)).
 		Return(protocol.Protocol{
 			Hash:    "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
 			SymLink: bcd.SymLinkBabylon,
@@ -367,11 +350,31 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(gomock.Eq(int64(6))).
+		GetByID(int64(6)).
 		Return(protocol.Protocol{
 			Hash:    "Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A",
 			SymLink: bcd.SymLinkBabylon,
 			ID:      6,
+		}, nil).
+		AnyTimes()
+
+	accountsRepo.
+		EXPECT().
+		Get("KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264").
+		Return(account.Account{
+			Address: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+			Type:    types.AccountTypeContract,
+			ID:      6,
+		}, nil).
+		AnyTimes()
+
+	operaitonsRepo.
+		EXPECT().
+		Last(gomock.Any(), int64(0)).
+		Return(operation.Operation{
+			Status:          types.OperationStatusApplied,
+			DestinationID:   6,
+			DeffatedStorage: []byte(`{"prim":"Pair","args":[{"string":"tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN"},{"prim":"Right","args":[{"prim":"Pair","args":[{"bytes":"050200001531051f02000002e807430765076507650765076003680369075e076507650765076503620760036803690765036e036207650765036b0362055f0765036e03620765076507650765036e076003680369076507610765036e03620362076103680369076507650764036c0764036e036e07610765036e036e036c0765036e036207650765076505660765036b03690761036907650765076503620760036803690765036e036207650765036b0362055f0765036e036207650362036e03620765055f036d0765076507650765036e076003680369076507610765036e03620362076103680369076507650764036c0764036e036e07610765036e036e036c0765036e036207650765076505660765036b03690761036907650765076503620760036803690765036e036207650765036b0362055f0765036e036207650362036e036207650362036207650765036203620765036203620765075e0765076503620760036803690765076507650765036e076003680369076507610765036e03620362076103680369076507650764036c0764036e036e07610765036e036e036c0765036e036207650765076505660765036b03690761036907650765076503620760036803690765036e036207650765036b0362055f0765036e036207650362036e03620359075e076507650765076503620760036803690765036e036207650765036b0362055f0765036e03620765076507650765036e076003680369076507610765036e03620362076103680369076507650764036c0764036e036e07610765036e036e036c0765036e036207650765076505660765036b03690761036907650765076503620760036803690765036e036207650765036b0362055f0765036e036207650362036e0362036207070707070707070200000000020000001a020000000d03210316051f020000000203170320053d036d0342070700b40700a80f0707070700a80f0080b4bc0207070001000107070200000008032007430359030a0200000008032007430362000003210316051f02000000020317051f0200000050051f020000000607430362000b051f0200000027074307650362036e070700020a00000016000038bb193df0965b3a87badd3600f294493b5cd608074305660765036b0369020000000003420342034203210316051f02000000020317051f0200000042051f020000002707430765036e036207070a00000016000038bb193df0965b3a87badd3600f294493b5cd608000007430764036c0764036e036e0505030b0342034203210316051f02000000020317051f0200000000034207430765036e07600368036907070a00000016000038bb193df0965b3a87badd3600f294493b5cd608020000000003420342034203420743036a0000053e035d051d020000111f0500076407640865036803690000000b2563616c6c437573746f6d0764076407640764046c00000011256163636570745f6f776e6572736869700865046e000000062566726f6d5f076504620000000925746f6b656e5f696404620000000725616d6f756e7400000005256275726e0764086407640865065f0765046e00000006256f776e657204620000000925746f6b656e5f696400000009257265717565737473065a055f07650865046e00000006256f776e657204620000000925746f6b656e5f69640000000825726571756573740462000000082562616c616e6365000000092563616c6c6261636b0000000b2562616c616e63655f6f66065f0765046e000000062566726f6d5f065f0765046e0000000425746f5f076504620000000925746f6b656e5f696404620000000725616d6f756e74000000042574787300000009257472616e73666572065f07640865046e00000006256f776e65720765046e00000009256f70657261746f7204620000000925746f6b656e5f69640000000d256164645f6f70657261746f720865046e00000006256f776e65720765046e00000009256f70657261746f7204620000000925746f6b656e5f6964000000102572656d6f76655f6f70657261746f7200000011257570646174655f6f70657261746f7273000000092563616c6c5f464132046c0000001225636f6e6669726d5f6d6967726174696f6e0764076404690000000e2564726f705f70726f706f73616c04620000000625666c75736807640865046c0000000625706172616d065a0362000000092563616c6c6261636b0000001525676574566f74655065726d6974436f756e746572046e00000008256d6967726174650764076407640865046e0000000425746f5f076504620000000925746f6b656e5f696404620000000725616d6f756e7400000005256d696e74086504620000000d2566726f7a656e5f746f6b656e086003680369000000122570726f706f73616c5f6d65746164617461000000082570726f706f73650764046200000015257365745f71756f72756d5f7468726573686f6c64046200000012257365745f766f74696e675f706572696f640764046e00000013257472616e736665725f6f776e657273686970065f0765086504690000000d2570726f706f73616c5f6b6579076504590000000a25766f74655f7479706504620000000c25766f74655f616d6f756e740000000925617267756d656e7406630765045c00000004256b657904670000000a257369676e617475726500000007257065726d69740000000525766f74650865046e0000001125636f6e74726163745f61646472657373065f0765046e000000062566726f6d5f065f0765046e0000000425746f5f076504620000000925746f6b656e5f696404620000000725616d6f756e7400000004257478730000000725706172616d7300000019257472616e736665725f636f6e74726163745f746f6b656e73050107650765076507650765046e000000062561646d696e08600368036900000006256578747261076508610765036e0362036200000007256c656467657208610368036900000009256d65746164617461076507650864046c00000011256e6f745f696e5f6d6967726174696f6e0764046e0000000c256d6967726174696e67546f046e0000000b256d69677261746564546f00000011256d6967726174696f6e5f73746174757308610765046e00000006256f776e6572046e00000009256f70657261746f72036c0000000a256f70657261746f72730765046e0000000e2570656e64696e675f6f776e6572046200000010257065726d6974735f636f756e74657207650765076506660765036b03690000001f2570726f706f73616c5f6b65795f6c6973745f736f72745f62795f646174650861036907650765076504620000000a25646f776e766f74657308600368036900000009256d657461646174610765046e000000092570726f706f7365720462000000162570726f706f7365725f66726f7a656e5f746f6b656e07650765046b0000000b2573746172745f64617465046200000008257570766f746573065f0765036e03620000000725766f746572730000000a2570726f706f73616c7307650462000000112571756f72756d5f7468726573686f6c64046e0000000e25746f6b656e5f6164647265737304620000000e25766f74696e675f706572696f6407650765076507650860036803690000001325637573746f6d5f656e747279706f696e7473085e076507650765076504620000000a25646f776e766f74657308600368036900000009256d657461646174610765046e000000092570726f706f7365720462000000162570726f706f7365725f66726f7a656e5f746f6b656e07650765046b0000000b2573746172745f64617465046200000008257570766f746573065f0765036e03620000000725766f746572730765076507650765046e000000062561646d696e08600368036900000006256578747261076508610765036e0362036200000007256c656467657208610368036900000009256d65746164617461076507650864046c00000011256e6f745f696e5f6d6967726174696f6e0764046e0000000c256d6967726174696e67546f046e0000000b256d69677261746564546f00000011256d6967726174696f6e5f73746174757308610765046e00000006256f776e6572046e00000009256f70657261746f72036c0000000a256f70657261746f72730765046e0000000e2570656e64696e675f6f776e6572046200000010257065726d6974735f636f756e74657207650765076506660765036b03690000001f2570726f706f73616c5f6b65795f6c6973745f736f72745f62795f646174650861036907650765076504620000000a25646f776e766f74657308600368036900000009256d657461646174610765046e000000092570726f706f7365720462000000162570726f706f7365725f66726f7a656e5f746f6b656e07650765046b0000000b2573746172745f64617465046200000008257570766f746573065f0765036e03620000000725766f746572730000000a2570726f706f73616c7307650462000000112571756f72756d5f7468726573686f6c64046e0000000e25746f6b656e5f6164647265737304620000000e25766f74696e675f706572696f640765055f036d0765076507650765046e000000062561646d696e08600368036900000006256578747261076508610765036e0362036200000007256c656467657208610368036900000009256d65746164617461076507650864046c00000011256e6f745f696e5f6d6967726174696f6e0764046e0000000c256d6967726174696e67546f046e0000000b256d69677261746564546f00000011256d6967726174696f6e5f73746174757308610765046e00000006256f776e6572046e00000009256f70657261746f72036c0000000a256f70657261746f72730765046e0000000e2570656e64696e675f6f776e6572046200000010257065726d6974735f636f756e74657207650765076506660765036b03690000001f2570726f706f73616c5f6b65795f6c6973745f736f72745f62795f646174650861036907650765076504620000000a25646f776e766f74657308600368036900000009256d657461646174610765046e000000092570726f706f7365720462000000162570726f706f7365725f66726f7a656e5f746f6b656e07650765046b0000000b2573746172745f64617465046200000008257570766f746573065f0765036e03620000000725766f746572730000000a2570726f706f73616c7307650462000000112571756f72756d5f7468726573686f6c64046e0000000e25746f6b656e5f6164647265737304620000000e25766f74696e675f706572696f6400000010256465636973696f6e5f6c616d626461076504620000000e256d61785f70726f706f73616c73046200000015256d61785f71756f72756d5f7468726573686f6c640765076504620000000a256d61785f766f746573046200000012256d61785f766f74696e675f706572696f640765046200000015256d696e5f71756f72756d5f7468726573686f6c64046200000012256d696e5f766f74696e675f706572696f640765085e0765076504620000000d2566726f7a656e5f746f6b656e086003680369000000122570726f706f73616c5f6d657461646174610765076507650765046e000000062561646d696e08600368036900000006256578747261076508610765036e0362036200000007256c656467657208610368036900000009256d65746164617461076507650864046c00000011256e6f745f696e5f6d6967726174696f6e0764046e0000000c256d6967726174696e67546f046e0000000b256d69677261746564546f00000011256d6967726174696f6e5f73746174757308610765046e00000006256f776e6572046e00000009256f70657261746f72036c0000000a256f70657261746f72730765046e0000000e2570656e64696e675f6f776e6572046200000010257065726d6974735f636f756e74657207650765076506660765036b03690000001f2570726f706f73616c5f6b65795f6c6973745f736f72745f62795f646174650861036907650765076504620000000a25646f776e766f74657308600368036900000009256d657461646174610765046e000000092570726f706f7365720462000000162570726f706f7365725f66726f7a656e5f746f6b656e07650765046b0000000b2573746172745f64617465046200000008257570766f746573065f0765036e03620000000725766f746572730000000a2570726f706f73616c7307650462000000112571756f72756d5f7468726573686f6c64046e0000000e25746f6b656e5f6164647265737304620000000e25766f74696e675f706572696f6403590000000f2570726f706f73616c5f636865636b085e076507650765076504620000000a25646f776e766f74657308600368036900000009256d657461646174610765046e000000092570726f706f7365720462000000162570726f706f7365725f66726f7a656e5f746f6b656e07650765046b0000000b2573746172745f64617465046200000008257570766f746573065f0765036e03620000000725766f746572730765076507650765046e000000062561646d696e08600368036900000006256578747261076508610765036e0362036200000007256c656467657208610368036900000009256d65746164617461076507650864046c00000011256e6f745f696e5f6d6967726174696f6e0764046e0000000c256d6967726174696e67546f046e0000000b256d69677261746564546f00000011256d6967726174696f6e5f73746174757308610765046e00000006256f776e6572046e00000009256f70657261746f72036c0000000a256f70657261746f72730765046e0000000e2570656e64696e675f6f776e6572046200000010257065726d6974735f636f756e74657207650765076506660765036b03690000001f2570726f706f73616c5f6b65795f6c6973745f736f72745f62795f646174650861036907650765076504620000000a25646f776e766f74657308600368036900000009256d657461646174610765046e000000092570726f706f7365720462000000162570726f706f7365725f66726f7a656e5f746f6b656e07650765046b0000000b2573746172745f64617465046200000008257570766f746573065f0765036e03620000000725766f746572730000000a2570726f706f73616c7307650462000000112571756f72756d5f7468726573686f6c64046e0000000e25746f6b656e5f6164647265737304620000000e25766f74696e675f706572696f6403620000001f2572656a65637465645f70726f706f73616c5f72657475726e5f76616c7565050202000000230743036801000000184641325f494e53554646494349454e545f42414c414e43450327053d036d034c031b034c0342"},{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"25164"},{"int":"25165"}]},{"int":"25166"}]},{"int":"25167"}]}]}]}`),
 		}, nil).
 		AnyTimes()
 
@@ -395,6 +398,7 @@ func TestGroup_Parse(t *testing.T) {
 				Blocks:           blockRepo,
 				Protocols:        protoRepo,
 				ContractMetadata: cmRepo,
+				Operations:       operaitonsRepo,
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
@@ -432,6 +436,7 @@ func TestGroup_Parse(t *testing.T) {
 				Blocks:           blockRepo,
 				Protocols:        protoRepo,
 				ContractMetadata: cmRepo,
+				Operations:       operaitonsRepo,
 				TokenBalances:    tbRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
@@ -555,7 +560,7 @@ func TestGroup_Parse(t *testing.T) {
 						Level:    1068669,
 						Counter:  5791164,
 						Hash:     "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
-						Nonce:    setInt64(0),
+						Nonce:    getInt64Pointer(0),
 						Entrypoint: types.NullString{
 							Str:   "validateAccounts",
 							Valid: true,
@@ -584,7 +589,7 @@ func TestGroup_Parse(t *testing.T) {
 						Level:    1068669,
 						Counter:  5791164,
 						Hash:     "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
-						Nonce:    setInt64(1),
+						Nonce:    getInt64Pointer(1),
 						Entrypoint: types.NullString{
 							Str:   "validateRules",
 							Valid: true,
@@ -651,6 +656,7 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:        protoRepo,
 				ContractMetadata: cmRepo,
 				TokenBalances:    tbRepo,
+				Operations:       operaitonsRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
 					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
@@ -731,7 +737,7 @@ func TestGroup_Parse(t *testing.T) {
 						ProtocolID:   1,
 						Hash:         "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 						Internal:     true,
-						Nonce:        setInt64(0),
+						Nonce:        getInt64Pointer(0),
 						Status:       types.OperationStatusApplied,
 						Timestamp:    timestamp,
 						Level:        1151495,
@@ -883,6 +889,7 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:        protoRepo,
 				ContractMetadata: cmRepo,
 				TokenBalances:    tbRepo,
+				Operations:       operaitonsRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
 					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
@@ -979,6 +986,7 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:        protoRepo,
 				ContractMetadata: cmRepo,
 				TokenBalances:    tbRepo,
+				Operations:       operaitonsRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
 					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
@@ -1074,6 +1082,7 @@ func TestGroup_Parse(t *testing.T) {
 			name: "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
 			ctx: &config.Context{
 				RPC:              rpc,
+				Accounts:         accountsRepo,
 				Storage:          generalRepo,
 				Contracts:        contractRepo,
 				BigMapDiffs:      bmdRepo,
@@ -1081,6 +1090,7 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:        protoRepo,
 				ContractMetadata: cmRepo,
 				TokenBalances:    tbRepo,
+				Operations:       operaitonsRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
 					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
@@ -1146,25 +1156,25 @@ func TestGroup_Parse(t *testing.T) {
 						BigMapActions: []*bigmapaction.BigMapAction{
 							{
 								Action:    types.BigMapActionRemove,
-								SourcePtr: setInt64(25167),
+								SourcePtr: getInt64Pointer(25167),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 								Timestamp: timestamp,
 							}, {
 								Action:    types.BigMapActionRemove,
-								SourcePtr: setInt64(25166),
+								SourcePtr: getInt64Pointer(25166),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 								Timestamp: timestamp,
 							}, {
 								Action:    types.BigMapActionRemove,
-								SourcePtr: setInt64(25165),
+								SourcePtr: getInt64Pointer(25165),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 								Timestamp: timestamp,
 							}, {
 								Action:    types.BigMapActionRemove,
-								SourcePtr: setInt64(25164),
+								SourcePtr: getInt64Pointer(25164),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 								Timestamp: timestamp,
@@ -1176,7 +1186,7 @@ func TestGroup_Parse(t *testing.T) {
 							Address: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 							Type:    types.AccountTypeContract,
 						},
-						Nonce: setInt64(0),
+						Nonce: getInt64Pointer(0),
 						Destination: account.Account{
 							Address: "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 							Type:    types.AccountTypeContract,
@@ -1200,29 +1210,29 @@ func TestGroup_Parse(t *testing.T) {
 						BigMapActions: []*bigmapaction.BigMapAction{
 							{
 								Action:         types.BigMapActionCopy,
-								SourcePtr:      setInt64(25167),
-								DestinationPtr: setInt64(25171),
+								SourcePtr:      getInt64Pointer(25167),
+								DestinationPtr: getInt64Pointer(25171),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 								Timestamp:      timestamp,
 							}, {
 								Action:         types.BigMapActionCopy,
-								SourcePtr:      setInt64(25166),
-								DestinationPtr: setInt64(25170),
+								SourcePtr:      getInt64Pointer(25166),
+								DestinationPtr: getInt64Pointer(25170),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 								Timestamp:      timestamp,
 							}, {
 								Action:         types.BigMapActionCopy,
-								SourcePtr:      setInt64(25165),
-								DestinationPtr: setInt64(25169),
+								SourcePtr:      getInt64Pointer(25165),
+								DestinationPtr: getInt64Pointer(25169),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 								Timestamp:      timestamp,
 							}, {
 								Action:         types.BigMapActionCopy,
-								SourcePtr:      setInt64(25164),
-								DestinationPtr: setInt64(25168),
+								SourcePtr:      getInt64Pointer(25164),
+								DestinationPtr: getInt64Pointer(25168),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 								Timestamp:      timestamp,
@@ -1268,6 +1278,7 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:        protoRepo,
 				ContractMetadata: cmRepo,
 				TokenBalances:    tbRepo,
+				Operations:       operaitonsRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
 					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
@@ -1409,6 +1420,7 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:        protoRepo,
 				ContractMetadata: cmRepo,
 				TokenBalances:    tbRepo,
+				Operations:       operaitonsRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
 					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
@@ -1545,6 +1557,7 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:        protoRepo,
 				ContractMetadata: cmRepo,
 				TokenBalances:    tbRepo,
+				Operations:       operaitonsRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
 					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
@@ -1615,6 +1628,7 @@ func TestGroup_Parse(t *testing.T) {
 				Protocols:        protoRepo,
 				ContractMetadata: cmRepo,
 				TokenBalances:    tbRepo,
+				Operations:       operaitonsRepo,
 				Scripts:          scriptRepo,
 				Cache: cache.NewCache(
 					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
@@ -1715,18 +1729,18 @@ func TestGroup_Parse(t *testing.T) {
 						BigMapDiffs: []*bigmapdiff.BigMapDiff{
 							{
 								Ptr:        34843,
-								Key:        []byte(`{"bytes":"000042a7bb84edce2af4cc8ab0bc83ded699efc9300a"}`),
-								Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"9999999989999000000"}]}],{"prim":"Pair","args":[{"int":"1649845320"},[{"bytes":"01308a4d463c798401eb231fb386ac223e8d44987400"},{"bytes":"016f7656dd6c6df9f8294efae0235ccb7f27025c4900"},{"bytes":"01c14ac0a868ad16d8115a2153bd700cdf0d7898f100"}]]}]}`),
-								KeyHash:    "exprtj5G3z2kcdmxvy3y9nFqs57enTtDSyrRttFHm7tL7PdLqR2ek5",
+								Key:        []byte(`{"bytes":"000098b9732c83017e938ba48cb91cf53e5f919dc844"}`),
+								Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"0"}]}],{"prim":"Pair","args":[{"int":"1649845410"},[]]}]}`),
+								KeyHash:    "exprvHCaW3fmGXHKV22BNVUkR7TLNCca84z3ANPRSaY9ubZUj7QrF6",
 								Level:      381735,
 								Timestamp:  timestamp,
 								Contract:   "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
 								ProtocolID: 6,
 							}, {
 								Ptr:        34843,
-								Key:        []byte(`{"bytes":"000098b9732c83017e938ba48cb91cf53e5f919dc844"}`),
-								Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"0"}]}],{"prim":"Pair","args":[{"int":"1649845410"},[]]}]}`),
-								KeyHash:    "exprvHCaW3fmGXHKV22BNVUkR7TLNCca84z3ANPRSaY9ubZUj7QrF6",
+								Key:        []byte(`{"bytes":"000042a7bb84edce2af4cc8ab0bc83ded699efc9300a"}`),
+								Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"9999999989999000000"}]}],{"prim":"Pair","args":[{"int":"1649845320"},[{"bytes":"01308a4d463c798401eb231fb386ac223e8d44987400"},{"bytes":"016f7656dd6c6df9f8294efae0235ccb7f27025c4900"},{"bytes":"01c14ac0a868ad16d8115a2153bd700cdf0d7898f100"}]]}]}`),
+								KeyHash:    "exprtj5G3z2kcdmxvy3y9nFqs57enTtDSyrRttFHm7tL7PdLqR2ek5",
 								Level:      381735,
 								Timestamp:  timestamp,
 								Contract:   "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
@@ -1765,18 +1779,18 @@ func TestGroup_Parse(t *testing.T) {
 						BigMapDiffs: []*bigmapdiff.BigMapDiff{
 							{
 								Ptr:        34843,
-								Key:        []byte(`{"bytes":"016f7656dd6c6df9f8294efae0235ccb7f27025c4900"}`),
-								Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"0"}]}],{"prim":"Pair","args":[{"int":"1649854355"},[]]}]}`),
-								KeyHash:    "exprtXp227aTXC9hWQC3H6y5M9rP38UD1qSHDeaEL4hXqxb5ceurBr",
+								Key:        []byte(`{"bytes":"000042a7bb84edce2af4cc8ab0bc83ded699efc9300a"}`),
+								Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"9999999989999000000"}]}],{"prim":"Pair","args":[{"int":"1649845320"},[{"bytes": "01308a4d463c798401eb231fb386ac223e8d44987400"},{"bytes": "016f7656dd6c6df9f8294efae0235ccb7f27025c4900"},{"bytes": "01c14ac0a868ad16d8115a2153bd700cdf0d7898f100"}]]}]}`),
+								KeyHash:    "exprtj5G3z2kcdmxvy3y9nFqs57enTtDSyrRttFHm7tL7PdLqR2ek5",
 								Level:      381735,
 								Timestamp:  timestamp,
 								Contract:   "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
 								ProtocolID: 6,
 							}, {
 								Ptr:        34843,
-								Key:        []byte(`{"bytes":"000042a7bb84edce2af4cc8ab0bc83ded699efc9300a"}`),
-								Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"9999999989999000000"}]}],{"prim":"Pair","args":[{"int":"1649845320"},[{"bytes": "01308a4d463c798401eb231fb386ac223e8d44987400"},{"bytes": "016f7656dd6c6df9f8294efae0235ccb7f27025c4900"},{"bytes": "01c14ac0a868ad16d8115a2153bd700cdf0d7898f100"}]]}]}`),
-								KeyHash:    "exprtj5G3z2kcdmxvy3y9nFqs57enTtDSyrRttFHm7tL7PdLqR2ek5",
+								Key:        []byte(`{"bytes":"016f7656dd6c6df9f8294efae0235ccb7f27025c4900"}`),
+								Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"0"}]}],{"prim":"Pair","args":[{"int":"1649854355"},[]]}]}`),
+								KeyHash:    "exprtXp227aTXC9hWQC3H6y5M9rP38UD1qSHDeaEL4hXqxb5ceurBr",
 								Level:      381735,
 								Timestamp:  timestamp,
 								Contract:   "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
@@ -1823,18 +1837,18 @@ func TestGroup_Parse(t *testing.T) {
 								ProtocolID: 6,
 							}, {
 								Ptr:        40077,
-								Key:        []byte(`{"string":""}`),
-								Value:      []byte(`{"bytes":"74657a6f732d73746f726167653a646578"}`),
-								KeyHash:    "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
+								Key:        []byte(`{"string":"dex"}`),
+								Value:      []byte(`{"bytes":"7b226e616d65223a2251756970755377617020537461626c652044455820706f6f6c222c2276657273696f6e223a2276312e302e30222c226465736372697074696f6e223a22506f6f6c20666f72207377617070696e6720746f6b656e732077697468206c6f7720736c697070616765222c22617574686f7273223a5b224d6164666973682e536f6c7574696f6e73203c68747470733a2f2f7777772e6d6164666973682e736f6c7574696f6e733e225d2c22736f75726365223a7b22746f6f6c73223a5b224c69676f222c22466c657874657361225d2c226c6f636174696f6e223a2268747470733a2f2f6769746875622e636f6d2f6d6164666973682d736f6c7574696f6e732f7175697075737761702d737461626c652d636f72652f626c6f622f6d61696e2f636f6e7472616374732f6d61696e2f6465782e6c69676f227d2c22686f6d6570616765223a2268747470733a2f2f7175697075737761702e636f6d222c22696e7465726661636573223a5b22545a49502d313220676974203137323866636665222c22545a49502d3136225d2c226572726f7273223a5b5d2c227669657773223a5b5d7d"}`),
+								KeyHash:    "exprupXFsHdKsx5MFzpvfXijjEPBt18ipyXfJcPbpri7K9zYf1Fb7o",
 								Level:      381735,
 								Timestamp:  timestamp,
 								Contract:   "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 								ProtocolID: 6,
 							}, {
 								Ptr:        40077,
-								Key:        []byte(`{"string":"dex"}`),
-								Value:      []byte(`{"bytes":"7b226e616d65223a2251756970755377617020537461626c652044455820706f6f6c222c2276657273696f6e223a2276312e302e30222c226465736372697074696f6e223a22506f6f6c20666f72207377617070696e6720746f6b656e732077697468206c6f7720736c697070616765222c22617574686f7273223a5b224d6164666973682e536f6c7574696f6e73203c68747470733a2f2f7777772e6d6164666973682e736f6c7574696f6e733e225d2c22736f75726365223a7b22746f6f6c73223a5b224c69676f222c22466c657874657361225d2c226c6f636174696f6e223a2268747470733a2f2f6769746875622e636f6d2f6d6164666973682d736f6c7574696f6e732f7175697075737761702d737461626c652d636f72652f626c6f622f6d61696e2f636f6e7472616374732f6d61696e2f6465782e6c69676f227d2c22686f6d6570616765223a2268747470733a2f2f7175697075737761702e636f6d222c22696e7465726661636573223a5b22545a49502d313220676974203137323866636665222c22545a49502d3136225d2c226572726f7273223a5b5d2c227669657773223a5b5d7d"}`),
-								KeyHash:    "exprupXFsHdKsx5MFzpvfXijjEPBt18ipyXfJcPbpri7K9zYf1Fb7o",
+								Key:        []byte(`{"string":""}`),
+								Value:      []byte(`{"bytes":"74657a6f732d73746f726167653a646578"}`),
+								KeyHash:    "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
 								Level:      381735,
 								Timestamp:  timestamp,
 								Contract:   "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
@@ -1968,15 +1982,6 @@ func TestGroup_Parse(t *testing.T) {
 						LastUpdateTime:  timestamp,
 						LastUpdateLevel: 381735,
 						Ptr:             34843,
-						KeyHash:         "exprtj5G3z2kcdmxvy3y9nFqs57enTtDSyrRttFHm7tL7PdLqR2ek5",
-						Contract:        "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
-						Key:             []byte(`{"bytes":"000042a7bb84edce2af4cc8ab0bc83ded699efc9300a"}`),
-						Value:           []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"9999999989999000000"}]}],{"prim":"Pair","args":[{"int":"1649845320"},[{"bytes":"01308a4d463c798401eb231fb386ac223e8d44987400"},{"bytes":"016f7656dd6c6df9f8294efae0235ccb7f27025c4900"},{"bytes":"01c14ac0a868ad16d8115a2153bd700cdf0d7898f100"}]]}]}`),
-					},
-					{
-						LastUpdateTime:  timestamp,
-						LastUpdateLevel: 381735,
-						Ptr:             34843,
 						KeyHash:         "exprvHCaW3fmGXHKV22BNVUkR7TLNCca84z3ANPRSaY9ubZUj7QrF6",
 						Contract:        "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
 						Key:             []byte(`{"bytes":"000098b9732c83017e938ba48cb91cf53e5f919dc844"}`),
@@ -1986,10 +1991,10 @@ func TestGroup_Parse(t *testing.T) {
 						LastUpdateTime:  timestamp,
 						LastUpdateLevel: 381735,
 						Ptr:             34843,
-						KeyHash:         "exprtXp227aTXC9hWQC3H6y5M9rP38UD1qSHDeaEL4hXqxb5ceurBr",
+						KeyHash:         "exprtj5G3z2kcdmxvy3y9nFqs57enTtDSyrRttFHm7tL7PdLqR2ek5",
 						Contract:        "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
-						Key:             []byte(`{"bytes":"016f7656dd6c6df9f8294efae0235ccb7f27025c4900"}`),
-						Value:           []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"0"}]}],{"prim":"Pair","args":[{"int":"1649854355"},[]]}]}`),
+						Key:             []byte(`{"bytes":"000042a7bb84edce2af4cc8ab0bc83ded699efc9300a"}`),
+						Value:           []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"9999999989999000000"}]}],{"prim":"Pair","args":[{"int":"1649845320"},[{"bytes":"01308a4d463c798401eb231fb386ac223e8d44987400"},{"bytes":"016f7656dd6c6df9f8294efae0235ccb7f27025c4900"},{"bytes":"01c14ac0a868ad16d8115a2153bd700cdf0d7898f100"}]]}]}`),
 					},
 					{
 						LastUpdateTime:  timestamp,
@@ -1999,6 +2004,15 @@ func TestGroup_Parse(t *testing.T) {
 						Contract:        "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
 						Key:             []byte(`{"bytes":"000042a7bb84edce2af4cc8ab0bc83ded699efc9300a"}`),
 						Value:           []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"9999999989999000000"}]}],{"prim":"Pair","args":[{"int":"1649845320"},[{"bytes":"01308a4d463c798401eb231fb386ac223e8d44987400"},{"bytes":"016f7656dd6c6df9f8294efae0235ccb7f27025c4900"},{"bytes":"01c14ac0a868ad16d8115a2153bd700cdf0d7898f100"}]]}]}`),
+					},
+					{
+						LastUpdateTime:  timestamp,
+						LastUpdateLevel: 381735,
+						Ptr:             34843,
+						KeyHash:         "exprtXp227aTXC9hWQC3H6y5M9rP38UD1qSHDeaEL4hXqxb5ceurBr",
+						Contract:        "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
+						Key:             []byte(`{"bytes":"016f7656dd6c6df9f8294efae0235ccb7f27025c4900"}`),
+						Value:           []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"int":"0"},{"int":"0"}]}],{"prim":"Pair","args":[{"int":"1649854355"},[]]}]}`),
 					},
 					{
 						LastUpdateTime:  timestamp,
@@ -2013,19 +2027,19 @@ func TestGroup_Parse(t *testing.T) {
 						LastUpdateTime:  timestamp,
 						LastUpdateLevel: 381735,
 						Ptr:             40077,
-						KeyHash:         "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
 						Contract:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
-						Key:             []byte(`{"string":""}`),
-						Value:           []byte(`{"bytes":"74657a6f732d73746f726167653a646578"}`),
+						Key:             []byte(`{"string":"dex"}`),
+						Value:           []byte(`{"bytes":"7b226e616d65223a2251756970755377617020537461626c652044455820706f6f6c222c2276657273696f6e223a2276312e302e30222c226465736372697074696f6e223a22506f6f6c20666f72207377617070696e6720746f6b656e732077697468206c6f7720736c697070616765222c22617574686f7273223a5b224d6164666973682e536f6c7574696f6e73203c68747470733a2f2f7777772e6d6164666973682e736f6c7574696f6e733e225d2c22736f75726365223a7b22746f6f6c73223a5b224c69676f222c22466c657874657361225d2c226c6f636174696f6e223a2268747470733a2f2f6769746875622e636f6d2f6d6164666973682d736f6c7574696f6e732f7175697075737761702d737461626c652d636f72652f626c6f622f6d61696e2f636f6e7472616374732f6d61696e2f6465782e6c69676f227d2c22686f6d6570616765223a2268747470733a2f2f7175697075737761702e636f6d222c22696e7465726661636573223a5b22545a49502d313220676974203137323866636665222c22545a49502d3136225d2c226572726f7273223a5b5d2c227669657773223a5b5d7d"}`),
+						KeyHash:         "exprupXFsHdKsx5MFzpvfXijjEPBt18ipyXfJcPbpri7K9zYf1Fb7o",
 					},
 					{
 						LastUpdateTime:  timestamp,
 						LastUpdateLevel: 381735,
 						Ptr:             40077,
+						KeyHash:         "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
 						Contract:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
-						Key:             []byte(`{"string":"dex"}`),
-						Value:           []byte(`{"bytes":"7b226e616d65223a2251756970755377617020537461626c652044455820706f6f6c222c2276657273696f6e223a2276312e302e30222c226465736372697074696f6e223a22506f6f6c20666f72207377617070696e6720746f6b656e732077697468206c6f7720736c697070616765222c22617574686f7273223a5b224d6164666973682e536f6c7574696f6e73203c68747470733a2f2f7777772e6d6164666973682e736f6c7574696f6e733e225d2c22736f75726365223a7b22746f6f6c73223a5b224c69676f222c22466c657874657361225d2c226c6f636174696f6e223a2268747470733a2f2f6769746875622e636f6d2f6d6164666973682d736f6c7574696f6e732f7175697075737761702d737461626c652d636f72652f626c6f622f6d61696e2f636f6e7472616374732f6d61696e2f6465782e6c69676f227d2c22686f6d6570616765223a2268747470733a2f2f7175697075737761702e636f6d222c22696e7465726661636573223a5b22545a49502d313220676974203137323866636665222c22545a49502d3136225d2c226572726f7273223a5b5d2c227669657773223a5b5d7d"}`),
-						KeyHash:         "exprupXFsHdKsx5MFzpvfXijjEPBt18ipyXfJcPbpri7K9zYf1Fb7o",
+						Key:             []byte(`{"string":""}`),
+						Value:           []byte(`{"bytes":"74657a6f732d73746f726167653a646578"}`),
 					},
 					{
 						Ptr:             40071,

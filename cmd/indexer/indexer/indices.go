@@ -61,7 +61,7 @@ func createStartIndices(db pg.DBI) error {
 		}
 
 		// Contract Metadata
-		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS tzips_address_idx ON ?TableName (address)`); err != nil {
+		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_address_idx ON ?TableName (address)`); err != nil {
 			return err
 		}
 
@@ -69,7 +69,7 @@ func createStartIndices(db pg.DBI) error {
 			return err
 		}
 
-		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_address_idx ON ?TableName (updated_at)`); err != nil {
+		if _, err := db.Model(new(contract_metadata.ContractMetadata)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS contract_metadata_updated_at_idx ON ?TableName (updated_at)`); err != nil {
 			return err
 		}
 
@@ -77,7 +77,7 @@ func createStartIndices(db pg.DBI) error {
 	})
 }
 
-func (bi *BoostIndexer) createIndices() {
+func (bi *BlockchainIndexer) createIndices() {
 	logger.Info().Str("network", bi.Network.String()).Msg("creating database indices...")
 
 	// Big map action
@@ -215,6 +215,12 @@ func (bi *BoostIndexer) createIndices() {
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_status_idx ON ?TableName (status)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_timestamp_idx ON ?TableName (timestamp)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}

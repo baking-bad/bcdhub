@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"context"
-
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -20,7 +18,7 @@ func NewAlpha() *Alpha {
 }
 
 // ParseTransaction -
-func (a *Alpha) ParseTransaction(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
+func (a *Alpha) ParseTransaction(content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	result := content.GetResult()
 	if result == nil {
 		return nil
@@ -31,13 +29,13 @@ func (a *Alpha) ParseTransaction(ctx context.Context, content noderpc.Operation,
 }
 
 // ParseOrigination -
-func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) (bool, error) {
+func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	if content.Script == nil {
-		return false, nil
+		return nil
 	}
 	storage, err := operation.AST.StorageType()
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	var storageData struct {
@@ -45,11 +43,11 @@ func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation,
 	}
 
 	if err := json.Unmarshal(content.Script, &storageData); err != nil {
-		return false, err
+		return err
 	}
 
 	if err := storage.Settle(storageData.Storage); err != nil {
-		return false, err
+		return err
 	}
 
 	pair, ok := storage.Nodes[0].(*ast.Pair)
@@ -58,7 +56,7 @@ func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation,
 		if ok {
 			result := content.GetResult()
 			if result == nil {
-				return false, nil
+				return nil
 			}
 
 			operation.BigMapDiffs = make([]*bigmapdiff.BigMapDiff, 0)
@@ -100,7 +98,7 @@ func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation,
 				store.AddBigMapStates(state)
 				return false, nil
 			}); err != nil {
-				return false, err
+				return err
 			}
 
 			if len(operation.BigMapDiffs) > 0 {
@@ -111,10 +109,10 @@ func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation,
 
 	b, err := storage.ToParameters(ast.DocsFull)
 	if err != nil {
-		return false, err
+		return err
 	}
 	operation.DeffatedStorage = b
-	return true, nil
+	return nil
 }
 
 func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation *operation.Operation, store parsers.Store) error {

@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -34,7 +33,8 @@ func GetEntrypoints() gin.HandlerFunc {
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
-		script, err := getScript(ctx, req.Address, bcd.SymLinkBabylon)
+
+		script, err := getScript(ctx, req.Address, getSymLink(req.NetworkID()))
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -94,7 +94,7 @@ func GetEntrypointData() gin.HandlerFunc {
 			return
 		}
 
-		result, err := buildParametersForExecution(ctx, req.Address, bcd.SymLinkBabylon, reqData.Name, reqData.Data)
+		result, err := buildParametersForExecution(ctx, req.Address, getSymLink(req.NetworkID()), reqData.Name, reqData.Data)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -142,7 +142,7 @@ func GetEntrypointSchema() gin.HandlerFunc {
 			return
 		}
 
-		script, err := getScript(ctx, req.Address, bcd.SymLinkBabylon)
+		script, err := getScript(ctx, req.Address, getSymLink(req.NetworkID()))
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

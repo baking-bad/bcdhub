@@ -67,7 +67,7 @@ func GetBigMap() gin.HandlerFunc {
 			}
 			res.ContractAlias = destination.Alias
 
-			script, err := ctx.Contracts.ScriptPart(res.Address, bcd.SymLinkBabylon, consts.STORAGE)
+			script, err := ctx.Contracts.ScriptPart(res.Address, getSymLink(ctx.Network), consts.STORAGE)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -398,7 +398,7 @@ func prepareBigMapItem(ctx *config.Context, data []bigmapdiff.BigMapDiff, keyHas
 }
 
 func getBigMapType(ctx *config.Context, data bigmapdiff.BigMapDiff) (*ast.BigMap, error) {
-	storageType, err := getStorageType(ctx, data.Contract, bcd.GetCurrentSymLink())
+	storageType, err := getStorageType(ctx, data.Contract, getSymLink(ctx.Network))
 	if err != nil {
 		return nil, err
 	}

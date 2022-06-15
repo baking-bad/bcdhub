@@ -16,7 +16,13 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 	}
 
 	tx.Status = types.NewOperationStatus(result.Status)
-	tx.ConsumedGas = result.ConsumedGas
+
+	if result.ConsumedMilligas != nil {
+		tx.ConsumedGas = *result.ConsumedMilligas
+	} else {
+		tx.ConsumedGas = result.ConsumedGas * 100
+	}
+
 	if result.StorageSize != nil {
 		tx.StorageSize = *result.StorageSize
 	}
@@ -27,6 +33,13 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 		tx.Destination = account.Account{
 			Address: result.Originated[0],
 			Type:    types.AccountTypeContract,
+		}
+	}
+
+	if len(result.OriginatedRollup) > 0 {
+		tx.Destination = account.Account{
+			Address: result.OriginatedRollup,
+			Type:    types.AccountTypeRollup,
 		}
 	}
 

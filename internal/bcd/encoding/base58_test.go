@@ -41,6 +41,11 @@ func TestDecodeBase58String(t *testing.T) {
 			data: "sppk7bMuoa8w2LSKz3XEuPsKx1WavsMLCWgbWG9CZNAsJg9eTmkXRPd",
 			want: "030ed412d33412ab4b71df0aaba07df7ddd2a44eb55c87bf81868ba09a358bc0e0",
 		},
+		{
+			name: "rollup address",
+			data: "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UAi",
+			want: "76a57f87ee7624b92ab1453c75ba5d29ed8fe0bf",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -159,6 +164,12 @@ func TestEncodeBase58String(t *testing.T) {
 			data:   "031a3ad5ea94de6912f9bc83fd31de49816e90602c5252d77b5b233bfe711b0dd2",
 			prefix: "p2pk",
 			want:   "p2pk66iTZwLmRPshQgUr2HE3RUzSFwAN5MNaBQ5rfduT1dGKXd25pNN",
+		},
+		{
+			name:   "rollup address",
+			data:   "76a57f87ee7624b92ab1453c75ba5d29ed8fe0bf",
+			prefix: "txr1",
+			want:   "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UAi",
 		},
 	}
 	for _, tt := range tests {

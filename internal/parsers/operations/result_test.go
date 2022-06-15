@@ -21,21 +21,21 @@ func Test_parseOperationResult(t *testing.T) {
 			fileName: "./data/result/test1.json",
 			want: operation.Operation{
 				Status:      types.OperationStatusApplied,
-				ConsumedGas: 10207,
+				ConsumedGas: 1020700,
 			},
 		}, {
 			name:     "test 2",
 			fileName: "./data/result/test2.json",
 			want: operation.Operation{
 				Status:      types.OperationStatusApplied,
-				ConsumedGas: 10207,
+				ConsumedGas: 1020700,
 			},
 		}, {
 			name:     "test 3",
 			fileName: "./data/result/test3.json",
 			want: operation.Operation{
 				Status:              types.OperationStatusApplied,
-				ConsumedGas:         15555,
+				ConsumedGas:         1555500,
 				StorageSize:         232,
 				PaidStorageSizeDiff: 232,
 				Destination: account.Account{

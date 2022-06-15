@@ -133,7 +133,7 @@ var primKeywords = []string{
 	"bls12_381_g2",
 	"bls12_381_fr",
 	"sapling_state",
-	"sapling_transaction",
+	"sapling_transaction_deprecated",
 	"SAPLING_EMPTY_STATE",
 	"SAPLING_VERIFY_UPDATE",
 	"ticket",
@@ -149,6 +149,9 @@ var primKeywords = []string{
 	"view",
 	"constant",
 	"SUB_MUTEZ",
+	"tx_rollup_l2_address",
+	"MIN_BLOCK_TIME",
+	"sapling_transaction",
 }
 
 // first bytes

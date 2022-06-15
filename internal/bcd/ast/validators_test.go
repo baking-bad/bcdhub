@@ -183,6 +183,14 @@ func TestSignatureValidator(t *testing.T) {
 			name:    "test 3",
 			value:   "0x4991b4e938cc42d6c01c42be3649a81a9f80d244d9b90e7ec4edf8e0a7b68b6c212da2fef076e48fed66802fa83442b960a36afdb3e60c3cf14d4010f41f03",
 			wantErr: true,
+		}, {
+			name:    "test 4",
+			value:   "edsigthTzJ8X7MPmNeEwybRAvdxS1pupqcM5Mk4uCuyZAe7uEk68YpuGDeViW8wSXMrCi5CwoNgqs8V2w8ayB5dMJzrYCHhD8C7",
+			wantErr: false,
+		}, {
+			name:    "test 5",
+			value:   "spsig1PPUFZucuAQybs5wsqsNQ68QNgFaBnVKMFaoZZfi1BtNnuCAWnmL9wVy5HfHkR6AeodjVGxpBVVSYcJKyMURn6K1yknYLm",
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

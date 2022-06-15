@@ -14,21 +14,22 @@ import (
 
 // VestingParser -
 type VestingParser struct {
-	ctx *config.Context
+	parser   contract.Parser
+	protocol protocol.Protocol
 }
 
 // NewVestingParser -
-func NewVestingParser(ctx *config.Context) *VestingParser {
+func NewVestingParser(ctx *config.Context, contractParser contract.Parser, proto protocol.Protocol) (*VestingParser, error) {
 	return &VestingParser{
-		ctx: ctx,
-	}
+		parser:   contractParser,
+		protocol: proto,
+	}, nil
 }
 
 // Parse -
-func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, address string, proto protocol.Protocol, store parsers.Store) error {
-	parser := contract.NewParser(p.ctx)
-	if err := parser.Parse(&operation.Operation{
-		ProtocolID: proto.ID,
+func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, address string, store parsers.Store) error {
+	if err := p.parser.Parse(&operation.Operation{
+		ProtocolID: p.protocol.ID,
 		Status:     types.OperationStatusApplied,
 		Kind:       types.OperationKindOrigination,
 		Amount:     data.Balance,
@@ -48,7 +49,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ad
 		Level:     head.Level,
 		Timestamp: head.Timestamp,
 		Script:    data.RawScript,
-	}, proto.SymLink, store); err != nil {
+	}, store); err != nil {
 		return err
 	}
 
@@ -57,7 +58,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ad
 		if contracts[i].Account.Address == address {
 			store.AddMigrations(&migration.Migration{
 				Level:      head.Level,
-				ProtocolID: proto.ID,
+				ProtocolID: p.protocol.ID,
 				Timestamp:  head.Timestamp,
 				Kind:       types.MigrationKindBootstrap,
 				Contract:   contracts[i],

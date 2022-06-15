@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/tokens"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
 )
@@ -46,6 +47,10 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []domains.BigM
 		storageType, err := ast.NewTypedAstFromBytes(storageTypeBytes)
 		if err != nil {
 			return errors.Errorf("[TokenMetadata.Handle] can't parse storage type for '%s' in %s: %s", items[i].Contract, tm.Network.String(), err)
+		}
+
+		if node := storageType.FindByName(tokens.TokenMetadataStorageKey, false); node == nil {
+			continue
 		}
 
 		localWg.Add(1)

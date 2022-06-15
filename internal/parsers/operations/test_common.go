@@ -30,11 +30,13 @@ func newInt64Ptr(val int64) *int64 {
 }
 
 func readJSONFile(name string, response interface{}) error {
-	bytes, err := ioutil.ReadFile(name)
+	f, err := os.Open(name)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(bytes, response)
+	defer f.Close()
+
+	return json.NewDecoder(f).Decode(response)
 }
 
 func readTestScript(address, symLink string) ([]byte, error) {
@@ -122,11 +124,6 @@ func readTestContractModel(address string) (contract.Contract, error) {
 
 	err = json.NewDecoder(f).Decode(&c)
 	return c, err
-}
-
-func readStorage(_ context.Context, address string, level int64) ([]byte, error) {
-	storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", address, level)
-	return ioutil.ReadFile(storageFile)
 }
 
 func compareParserResponse(t *testing.T, got, want *parsers.TestStore) bool {
@@ -477,4 +474,8 @@ func compareScript(t *testing.T, one, two contract.Script) bool {
 
 func compareInt64Ptr(one, two *int64) bool {
 	return (one != nil && two != nil && *one == *two) || (one == nil && two == nil)
+}
+
+func getInt64Pointer(x int64) *int64 {
+	return &x
 }

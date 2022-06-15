@@ -4,6 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -29,7 +30,7 @@ func (storage *Storage) Get(address string) (response contract.Contract, err err
 		return
 	}
 
-	err = storage.DB.Model(&response).Where("contract.account_id = ?", accountID).Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").Select()
+	err = storage.DB.Model(&response).Where("contract.account_id = ?", accountID).Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").Relation("Jakarta").Select()
 	return
 }
 
@@ -51,7 +52,7 @@ func (storage *Storage) GetRandom() (response contract.Contract, err error) {
 	}
 
 	err = storage.DB.Model(&response).Where("contract.id = ?", rand.Int63n(id)).
-		Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").First()
+		Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").Relation("Jakarta").First()
 	return
 }
 
@@ -95,6 +96,9 @@ func (storage *Storage) SameCount(c contract.Contract) (int, error) {
 	if c.BabylonID > 0 {
 		query.WhereOr("babylon_id = ?", c.BabylonID)
 	}
+	if c.JakartaID > 0 {
+		query.WhereOr("jakarta_id = ?", c.JakartaID)
+	}
 	return query.Count()
 }
 
@@ -120,6 +124,9 @@ func (storage *Storage) Script(address string, symLink string) (contract.Script,
 	case bcd.SymLinkBabylon:
 		err := query.Relation("Babylon").Select()
 		return c.Babylon, err
+	case bcd.SymLinkJakarta:
+		err := query.Relation("Jakarta").Select()
+		return c.Jakarta, err
 	}
 	return c.Alpha, errors.Errorf("unknown protocol symbolic link: %s", symLink)
 }
@@ -176,29 +183,40 @@ func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte
 	query := storage.DB.Model((*contract.Contract)(nil)).Where("account_id = ?", accountID)
 
 	switch symLink {
-	case "alpha":
+	case bcd.SymLinkAlpha:
 		switch part {
-		case "parameter":
+		case consts.PARAMETER:
 			query.Column("alpha.parameter").Relation("Alpha._")
-		case "code":
+		case consts.CODE:
 			query.Column("alpha.code").Relation("Alpha._")
-		case "storage":
+		case consts.STORAGE:
 			query.Column("alpha.storage").Relation("Alpha._")
 		case "views":
 			query.Column("alpha.views").Relation("Alpha._")
 		default:
 			return nil, errors.Errorf("unknown script part name: %s", part)
 		}
-	case "babylon":
+	case bcd.SymLinkBabylon:
 		switch part {
-		case "parameter":
+		case consts.PARAMETER:
 			query.Column("babylon.parameter").Relation("Babylon._")
-		case "code":
+		case consts.CODE:
 			query.Column("babylon.code").Relation("Babylon._")
-		case "storage":
+		case consts.STORAGE:
 			query.Column("babylon.storage").Relation("Babylon._")
 		case "views":
 			query.Column("babylon.views").Relation("Babylon._")
+		default:
+			return nil, errors.Errorf("unknown script part name: %s", part)
+		}
+	case bcd.SymLinkJakarta:
+		switch part {
+		case consts.PARAMETER:
+			query.Column("jakarta.parameter").Relation("Jakarta._")
+		case consts.CODE:
+			query.Column("jakarta.code").Relation("Jakarta._")
+		case consts.STORAGE:
+			query.Column("jakarta.storage").Relation("Jakarta._")
 		default:
 			return nil, errors.Errorf("unknown script part name: %s", part)
 		}

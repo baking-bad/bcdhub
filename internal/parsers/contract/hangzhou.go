@@ -1,9 +1,7 @@
 package contract
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
@@ -15,18 +13,18 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Parser -
-type Parser struct {
+// Hangzhou -
+type Hangzhou struct {
 	ctx *config.Context
 }
 
-// NewParser -
-func NewParser(ctx *config.Context) *Parser {
-	return &Parser{ctx: ctx}
+// NewHangzhou -
+func NewHangzhou(ctx *config.Context) *Hangzhou {
+	return &Hangzhou{ctx: ctx}
 }
 
 // Parse -
-func (p *Parser) Parse(operation *operation.Operation, symLink string, store parsers.Store) error {
+func (p *Hangzhou) Parse(operation *operation.Operation, store parsers.Store) error {
 	if !operation.IsOrigination() {
 		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
@@ -40,7 +38,7 @@ func (p *Parser) Parse(operation *operation.Operation, symLink string, store par
 		LastAction: operation.Timestamp,
 	}
 
-	if err := p.computeMetrics(operation, symLink, &contract); err != nil {
+	if err := p.computeMetrics(operation, &contract); err != nil {
 		return err
 	}
 
@@ -48,7 +46,7 @@ func (p *Parser) Parse(operation *operation.Operation, symLink string, store par
 	return nil
 }
 
-func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, c *contract.Contract) error {
+func (p *Hangzhou) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
 	script, err := astContract.NewParser(operation.Script)
 	if err != nil {
 		return errors.Wrap(err, "astContract.NewParser")
@@ -76,7 +74,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, 
 				return err
 			}
 			contractScript.Constants = globalConstants
-			p.replaceConstants(&contractScript, operation)
+			replaceConstants(&contractScript, operation)
 
 			script, err = astContract.NewParser(operation.Script)
 			if err != nil {
@@ -106,35 +104,13 @@ func (p *Parser) computeMetrics(operation *operation.Operation, symLink string, 
 		contractScript.Hardcoded = script.HardcodedAddresses.Values()
 		contractScript.Entrypoints = params.GetEntrypoints()
 
-		switch symLink {
-		case bcd.SymLinkAlpha:
-			c.Alpha = contractScript
-		case bcd.SymLinkBabylon:
-			c.Babylon = contractScript
-		}
+		c.Babylon = contractScript
 	} else {
-		switch symLink {
-		case bcd.SymLinkAlpha:
-			c.AlphaID = contractScript.ID
-			c.Alpha = contractScript
-		case bcd.SymLinkBabylon:
-			c.BabylonID = contractScript.ID
-			c.Babylon = contractScript
-		}
+		c.BabylonID = contractScript.ID
+		c.Babylon = contractScript
 	}
 
 	c.Tags = contractScript.Tags
 
 	return nil
-}
-
-func (p *Parser) replaceConstants(c *contract.Script, operation *operation.Operation) {
-	pattern := `{"prim":"constant","args":[{"string":"%s"}]}`
-	for i := range c.Constants {
-		operation.Script = bytes.ReplaceAll(
-			operation.Script,
-			[]byte(fmt.Sprintf(pattern, c.Constants[i].Address)),
-			c.Constants[i].Value,
-		)
-	}
 }

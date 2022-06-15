@@ -128,6 +128,17 @@ func SignatureValidator(value string) error {
 			return nil
 		}
 		return errors.Wrapf(ErrValidation, "invalid signature '%s'", value)
+	case 98:
+		if strings.HasPrefix(value, encoding.PrefixP256Signature) {
+			return nil
+		}
+		return errors.Wrapf(ErrValidation, "invalid signature '%s'", value)
+	case 99:
+		if strings.HasPrefix(value, encoding.PrefixED25519Signature) ||
+			strings.HasPrefix(value, encoding.PrefixSecp256k1Signature) {
+			return nil
+		}
+		return errors.Wrapf(ErrValidation, "invalid signature '%s'", value)
 	default:
 		return errors.Wrap(ErrValidation, "invalid signature length")
 	}

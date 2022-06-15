@@ -52,7 +52,7 @@ func (Group) needParse(item noderpc.LightOperation) bool {
 	}
 	prefixCondition := bcd.IsContract(item.Source) || bcd.IsContract(destination)
 	transactionCondition := item.Kind == consts.Transaction && prefixCondition
-	originationCondition := (item.Kind == consts.Origination || item.Kind == consts.OriginationNew)
+	originationCondition := (item.Kind == consts.Origination || item.Kind == consts.OriginationNew || item.Kind == consts.TxRollupOrigination)
 	registerGlobalConstantCondition := item.Kind == consts.RegisterGlobalConstant
 	return originationCondition || transactionCondition || registerGlobalConstantCondition
 }
@@ -80,6 +80,10 @@ func (content Content) Parse(data noderpc.Operation, store parsers.Store) error 
 		}
 	case consts.RegisterGlobalConstant:
 		if err := NewRegisterGlobalConstant(content.ParseParams).Parse(data, store); err != nil {
+			return err
+		}
+	case consts.TxRollupOrigination:
+		if err := NewTxRollupOrigination(content.ParseParams).Parse(data, store); err != nil {
 			return err
 		}
 	default:

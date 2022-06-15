@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -186,7 +187,7 @@ func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Co
 
 	if contractMetadata, err := ctx.Cache.ContractMetadata(contract.Account.Address); err == nil && contractMetadata != nil {
 		res.Slug = contractMetadata.Slug
-		if res.Alias == "" {
+		if res.Alias == "" && contractMetadata.Name != consts.Unknown {
 			res.Alias = contractMetadata.Name
 		}
 	} else if !ctx.Storage.IsRecordNotFound(err) {
@@ -233,6 +234,15 @@ func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, 
 				return res, err
 			}
 			buf.BabylonID = script.ID
+		case contractModel.JakartaID > 0:
+			script, err := cur.Scripts.ByHash(contractModel.Jakarta.Hash)
+			if err != nil {
+				if cur.Storage.IsRecordNotFound(err) {
+					continue
+				}
+				return res, err
+			}
+			buf.JakartaID = script.ID
 		}
 		stats, err := cur.Contracts.SameCount(buf)
 		if err != nil {

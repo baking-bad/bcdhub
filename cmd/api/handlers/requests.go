@@ -146,7 +146,7 @@ func (req getTokensByVersion) NetworkID() types.Network {
 
 type bigMapSearchRequest struct {
 	pageableRequest
-	Search   string `form:"q"`
+	Search   string `form:"q,omitempty" binding:"omitempty,search"`
 	MaxLevel *int64 `form:"max_level,omitempty" binding:"omitempty,gt_int64_ptr=MinLevel"`
 	MinLevel *int64 `form:"min_level,omitempty" binding:"omitempty"`
 }

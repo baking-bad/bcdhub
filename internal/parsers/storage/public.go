@@ -1,10 +1,8 @@
 package storage
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
 
@@ -39,21 +37,4 @@ func EnrichFromState(storage *ast.TypedAst, bmd []bigmapdiff.BigMapState, skipEm
 
 	data := prepareBigMapStatesToEnrich(bmd, skipEmpty)
 	return storage.EnrichBigMap(data)
-}
-
-// MakeStorageParser -
-func MakeStorageParser(repo bigmapdiff.Repository, rpc noderpc.INode, protocol string) (Parser, error) {
-	protoSymLink, err := bcd.GetProtoSymLink(protocol)
-	if err != nil {
-		return nil, err
-	}
-
-	switch protoSymLink {
-	case bcd.SymLinkBabylon:
-		return NewBabylon(repo, rpc), nil
-	case bcd.SymLinkAlpha:
-		return NewAlpha(), nil
-	default:
-		return nil, errors.Errorf("Unknown protocol %s", protocol)
-	}
 }

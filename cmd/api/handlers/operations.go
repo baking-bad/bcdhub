@@ -47,7 +47,7 @@ func GetContractOperations() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var req getContractRequest
+		var req getAccountRequest
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
@@ -455,7 +455,7 @@ func getStorageDiff(ctx *config.Context, destinationID int64, bmd []bigmapdiff.B
 					return nil, err
 				}
 			} else {
-				if err := prepareStorage(prevStorage, prev.DeffatedStorage, bmd); err != nil {
+				if err := prepareStorage(prevStorage, prev.DeffatedStorage, nil); err != nil {
 					return nil, err
 				}
 			}

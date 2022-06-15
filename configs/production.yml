@@ -2,13 +2,13 @@ rpc:
   mainnet:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
-    requests_per_second: 10
-  hangzhou2net:
-    uri: https://rpc.tzkt.io/hangzhou2net
-    timeout: 20  
-    requests_per_second: 10
+    requests_per_second: 15
   ithacanet:
     uri: https://rpc.tzkt.io/ithacanet
+    timeout: 20
+    requests_per_second: 10
+  jakartanet:
+    uri: https://rpc.tzkt.io/jakartanet
     timeout: 20
     requests_per_second: 10
 
@@ -20,17 +20,17 @@ tzkt:
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-  hangzhou2net:
-    mempool: https://mempool.dipdup.net/v1/graphql 
   ithacanet:
-    mempool: https://mempool.dipdup.net/v1/graphql 
+    mempool: https://mempool.dipdup.net/v1/graphql
+  jakartanet:
+    mempool: https://mempool.dipdup.net/v1/graphql
 
 storage:
   pg: 
     host: ${DB_HOSTNAME:-db}
     port: 5432
     user: ${POSTGRES_USER}
-    # dbname: ${POSTGRES_DB:-indexer}
+    dbname: ${POSTGRES_DB:-bcd}
     password: ${POSTGRES_PASSWORD}
     sslmode: disable
   elastic:
@@ -49,7 +49,7 @@ share_path: /etc/bcd
 base_url: https://better-call.dev
 
 ipfs:
-  - ${SANDBOX_IPFS_GATEWAY:-https://ipfs.baking-bad.org}
+  - ${SANDBOX_IPFS_GATEWAY:-http://ipfs_ipfs-node:8080}
 
 api:
   project_name: api
@@ -65,12 +65,12 @@ api:
     sandbox_mode: false
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
-      hangzhou2net: https://rpc.tzkt.io/hangzhou2net
       ithacanet: https://rpc.tzkt.io/ithacanet
+      jakartanet: https://rpc.tzkt.io/jakartanet
   networks:
     - mainnet
-    - hangzhou2net
     - ithacanet
+    - jakartanet
   connections:
     max: 50
     idle: 10
@@ -83,9 +83,9 @@ indexer:
   networks:
     mainnet:
       receiver_threads: ${MAINNET_THREADS:-1}
-    hangzhou2net:
-      receiver_threads: ${TESTNET_THREADS:-1}
     ithacanet:
+      receiver_threads: ${TESTNET_THREADS:-1}
+    jakartanet:
       receiver_threads: ${TESTNET_THREADS:-1}
   connections:
     max: 5
@@ -97,8 +97,8 @@ metrics:
   cache_aliases_seconds: 30
   networks:
     - mainnet
-    - hangzhou2net
     - ithacanet
+    - jakartanet
   connections:
     max: 20
     idle: 20
@@ -111,8 +111,8 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - hangzhou2net
     - ithacanet
+    - jakartanet
   connections:
     max: 5
     idle: 5

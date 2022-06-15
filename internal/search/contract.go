@@ -38,8 +38,11 @@ type Contract struct {
 func NewContract(network types.Network, model *contract.Contract) Contract {
 	var c Contract
 	script := model.Alpha
-	if model.BabylonID > 0 {
+	switch {
+	case model.BabylonID > 0:
 		script = model.Babylon
+	case model.JakartaID > 0:
+		script = model.Jakarta
 	}
 
 	c.Address = model.Account.Address

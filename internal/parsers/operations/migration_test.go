@@ -78,7 +78,7 @@ func TestMigration_Parse(t *testing.T) {
 				AnyTimes()
 
 			store := parsers.NewTestStore()
-			if err := NewMigration(contractRepo).Parse(op, tt.operation, store); err != nil {
+			if err := NewMigration(contractRepo).Parse(op, tt.operation, "PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq", store); err != nil {
 				t.Errorf("Migration.Parse() = %s", err)
 				return
 			}

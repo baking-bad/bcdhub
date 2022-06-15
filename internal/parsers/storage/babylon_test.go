@@ -1,9 +1,6 @@
 package storage
 
 import (
-	"context"
-	"fmt"
-	"io/ioutil"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -19,23 +16,10 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-func readStorage(_ context.Context, address string, level int64) ([]byte, error) {
-	storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", address, level)
-	return ioutil.ReadFile(storageFile)
-}
-
-func newTestBabylon(repoCtrl *gomock.Controller, rpcCtrl *gomock.Controller) (*Babylon, *mock_bmd.MockRepository) {
+func newTestBabylon(repoCtrl *gomock.Controller) (*Babylon, *mock_bmd.MockRepository) {
 	repo := mock_bmd.NewMockRepository(repoCtrl)
-	rpc := noderpc.NewMockINode(rpcCtrl)
-
-	rpc.
-		EXPECT().
-		GetScriptStorageRaw(gomock.Any(), gomock.Any(), gomock.Any()).
-		DoAndReturn(readStorage).
-		AnyTimes()
 	return &Babylon{
-		repo: repo,
-		rpc:  rpc,
+		bigmapdiffs: repo,
 
 		ptrMap:            make(map[int64]int64),
 		temporaryPointers: make(map[int64]*ast.BigMap),
@@ -101,10 +85,7 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			ctrlRPC := gomock.NewController(t)
-			defer ctrlRPC.Finish()
-
-			b, repo := newTestBabylon(ctrl, ctrlRPC)
+			b, repo := newTestBabylon(ctrl)
 
 			repo.
 				EXPECT().
@@ -126,7 +107,7 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 			tt.args.operation.AST = tree
 
 			store := parsers.NewTestStore()
-			if err := b.ParseTransaction(context.Background(), content, &tt.args.operation, store); (err != nil) != tt.wantErr {
+			if err := b.ParseTransaction(content, &tt.args.operation, store); (err != nil) != tt.wantErr {
 				t.Errorf("Babylon.ParseTransaction() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

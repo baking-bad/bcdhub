@@ -19,14 +19,15 @@ import (
 
 // ImplicitParser -
 type ImplicitParser struct {
-	ctx      *config.Context
-	rpc      noderpc.INode
-	protocol protocol.Protocol
+	ctx            *config.Context
+	rpc            noderpc.INode
+	contractParser contract.Parser
+	protocol       protocol.Protocol
 }
 
 // NewImplicitParser -
-func NewImplicitParser(ctx *config.Context, rpc noderpc.INode, protocol protocol.Protocol) *ImplicitParser {
-	return &ImplicitParser{ctx, rpc, protocol}
+func NewImplicitParser(ctx *config.Context, rpc noderpc.INode, contractParser contract.Parser, protocol protocol.Protocol) (*ImplicitParser, error) {
+	return &ImplicitParser{ctx, rpc, contractParser, protocol}, nil
 }
 
 // Parse -
@@ -38,11 +39,11 @@ func (p *ImplicitParser) Parse(ctx context.Context, metadata noderpc.Metadata, h
 	for i := range metadata.ImplicitOperationsResults {
 		switch metadata.ImplicitOperationsResults[i].Kind {
 		case consts.Origination:
-			if err := p.origination(ctx, metadata.ImplicitOperationsResults[i], head, p.protocol.ID, store); err != nil {
+			if err := p.origination(ctx, metadata.ImplicitOperationsResults[i], head, store); err != nil {
 				return err
 			}
 		case consts.Transaction:
-			if err := p.transaction(metadata.ImplicitOperationsResults[i], head, p.protocol.ID, store); err != nil {
+			if err := p.transaction(metadata.ImplicitOperationsResults[i], head, store); err != nil {
 				return err
 			}
 		}
@@ -50,9 +51,9 @@ func (p *ImplicitParser) Parse(ctx context.Context, metadata noderpc.Metadata, h
 	return nil
 }
 
-func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, store parsers.Store) error {
+func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.ImplicitOperationsResult, head noderpc.Header, store parsers.Store) error {
 	origination := operation.Operation{
-		ProtocolID: protocolID,
+		ProtocolID: p.protocol.ID,
 		Level:      head.Level,
 		Timestamp:  head.Timestamp,
 		Kind:       types.OperationKindOrigination,
@@ -72,8 +73,7 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 	}
 	origination.Script = script
 
-	contractParser := contract.NewParser(p.ctx)
-	if err := contractParser.Parse(&origination, p.protocol.SymLink, store); err != nil {
+	if err := p.contractParser.Parse(&origination, store); err != nil {
 		return err
 	}
 
@@ -81,7 +81,7 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 	for i := range contracts {
 		if contracts[i].Account.Address == implicit.OriginatedContracts[0] {
 			store.AddMigrations(&migration.Migration{
-				ProtocolID: protocolID,
+				ProtocolID: p.protocol.ID,
 				Level:      head.Level,
 				Timestamp:  head.Timestamp,
 				Kind:       types.MigrationKindBootstrap,
@@ -96,9 +96,9 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 	return nil
 }
 
-func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, store parsers.Store) error {
+func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, head noderpc.Header, store parsers.Store) error {
 	tx := operation.Operation{
-		ProtocolID:      protocolID,
+		ProtocolID:      p.protocol.ID,
 		Level:           head.Level,
 		Timestamp:       head.Timestamp,
 		Kind:            types.OperationKindTransaction,

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
@@ -21,7 +20,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/postgres/transfer"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
-	"github.com/go-pg/pg/v10"
 
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/postgres/block"
@@ -57,56 +55,34 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 			panic("Please set connection strings to storage in config")
 		}
 
-		if createDatabaseIfNotExists {
-			defaultConn := pgCore.WaitNew(cfg.Postgres.ConnectionString(), appName, cfg.Timeout)
-			defer defaultConn.Close()
-
-			if result, err := defaultConn.DB.Exec(`SELECT datname FROM pg_catalog.pg_database WHERE datname = ?`, ctx.Network.String()); err != nil || result.RowsReturned() == 0 {
-				if errors.Is(err, pg.ErrNoRows) || result.RowsReturned() == 0 {
-					if _, err := defaultConn.DB.Exec("create database ?", pg.Ident(ctx.Network.String())); err != nil {
-						panic(err)
-					}
-				} else {
-					panic(err)
-				}
-			}
-		}
-
-		networkConfig := PostgresConfig{
-			Host:     cfg.Postgres.Host,
-			Port:     cfg.Postgres.Port,
-			User:     cfg.Postgres.User,
-			Password: cfg.Postgres.Password,
-			DBName:   ctx.Network.String(),
-			SslMode:  cfg.Postgres.SslMode,
-		}
-
-		pg := pgCore.WaitNew(networkConfig.ConnectionString(), appName, cfg.Timeout,
+		conn := pgCore.WaitNew(
+			cfg.Postgres.ConnectionString(), ctx.Network.String(),
+			appName, cfg.Timeout,
 			pgCore.WithPageSize(maxPageSize),
 			pgCore.WithIdleConnections(idleConnCount),
 			pgCore.WithMaxConnections(maxConnCount),
 			// pgCore.WithQueryLogging(),
 		)
 
-		contractStorage := contract.NewStorage(pg)
-		ctx.StorageDB = pg
-		ctx.Storage = pg
-		ctx.Accounts = account.NewStorage(pg)
-		ctx.BigMapActions = bigmapaction.NewStorage(pg)
-		ctx.Blocks = block.NewStorage(pg)
-		ctx.BigMapDiffs = bigmapdiff.NewStorage(pg)
-		ctx.DApps = dapp.NewStorage(pg)
+		contractStorage := contract.NewStorage(conn)
+		ctx.StorageDB = conn
+		ctx.Storage = conn
+		ctx.Accounts = account.NewStorage(conn)
+		ctx.BigMapActions = bigmapaction.NewStorage(conn)
+		ctx.Blocks = block.NewStorage(conn)
+		ctx.BigMapDiffs = bigmapdiff.NewStorage(conn)
+		ctx.DApps = dapp.NewStorage(conn)
 		ctx.Contracts = contractStorage
-		ctx.ContractMetadata = cm.NewStorage(pg)
-		ctx.Migrations = migration.NewStorage(pg)
-		ctx.Operations = operation.NewStorage(pg)
-		ctx.Protocols = protocol.NewStorage(pg)
-		ctx.TokenBalances = tokenbalance.NewStorage(pg)
-		ctx.TokenMetadata = tokenmetadata.NewStorage(pg)
-		ctx.Transfers = transfer.NewStorage(pg)
-		ctx.GlobalConstants = global_constant.NewStorage(pg)
-		ctx.Domains = domains.NewStorage(pg)
-		ctx.Services = service.NewStorage(pg)
+		ctx.ContractMetadata = cm.NewStorage(conn)
+		ctx.Migrations = migration.NewStorage(conn)
+		ctx.Operations = operation.NewStorage(conn)
+		ctx.Protocols = protocol.NewStorage(conn)
+		ctx.TokenBalances = tokenbalance.NewStorage(conn)
+		ctx.TokenMetadata = tokenmetadata.NewStorage(conn)
+		ctx.Transfers = transfer.NewStorage(conn)
+		ctx.GlobalConstants = global_constant.NewStorage(conn)
+		ctx.Domains = domains.NewStorage(conn)
+		ctx.Services = service.NewStorage(conn)
 		ctx.Scripts = contractStorage
 	}
 }
