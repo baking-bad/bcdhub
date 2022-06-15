@@ -781,6 +781,73 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/bigmap/{network}/{ptr}/keys/{key_hash}/current": {
+            "get": {
+                "description": "Get current big map value by pointer and key hash",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bigmap"
+                ],
+                "summary": "Get current big map value by pointer and key hash",
+                "operationId": "get-bigmap-keyhash-current",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Big map pointer",
+                        "name": "ptr",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 54,
+                        "minLength": 54,
+                        "type": "string",
+                        "description": "Key hash in big map",
+                        "name": "key_hash",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.BigMapDiffByKeyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/contract/{network}/{address}": {
             "get": {
                 "description": "Get full contract info",
@@ -1170,6 +1237,82 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/handlers.Operation"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/contract/{network}/{address}/global_constants": {
+            "get": {
+                "description": "Get global constants used by contract",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Get global constants used by contract",
+                "operationId": "get-contract-global-constants",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Constants count",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.GlobalConstant"
                             }
                         }
                     },
@@ -2224,6 +2367,73 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/global_constants/{network}": {
+            "get": {
+                "description": "List global constants",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "global-constants"
+                ],
+                "summary": "List global constants",
+                "operationId": "list-global-constants",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Constants count",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.GlobalConstant"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/global_constants/{network}/{address}": {
             "get": {
                 "description": "Get global constant",
@@ -2234,7 +2444,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "contract"
+                    "global-constants"
                 ],
                 "summary": "Get global constant",
                 "operationId": "get-global-constant",
@@ -2260,10 +2470,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.GlobalConstant"
-                            }
+                            "$ref": "#/definitions/handlers.GlobalConstant"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
                         }
                     },
                     "404": {
@@ -2369,7 +2582,7 @@ const docTemplate = `{
                 "operationId": "get-json-schema",
                 "parameters": [
                     {
-                        "description": "Micheline",
+                        "description": "Micheline. Limit: 1MB",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -2390,12 +2603,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -2563,50 +2770,6 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/pick_random": {
-            "get": {
-                "description": "Get random contract with 2 or more operations",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contract"
-                ],
-                "summary": "Show random contract",
-                "operationId": "get-random-contract",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ContractWithStats"
-                        }
-                    },
-                    "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
                         }
                     },
                     "500": {
@@ -3924,13 +4087,25 @@ const docTemplate = `{
                     "type": "string",
                     "example": "NetXdQprcVkpaWU"
                 },
+                "cost_per_byte": {
+                    "type": "integer",
+                    "example": 250
+                },
+                "hard_gas_limit_per_operation": {
+                    "type": "integer",
+                    "example": 1040000
+                },
+                "hard_storage_limit_per_operation": {
+                    "type": "integer",
+                    "example": 60000
+                },
                 "hash": {
                     "type": "string",
                     "example": "BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT"
                 },
                 "level": {
                     "type": "integer",
-                    "example": 24
+                    "example": 100
                 },
                 "network": {
                     "type": "string",
@@ -3943,6 +4118,10 @@ const docTemplate = `{
                 "protocol": {
                     "type": "string",
                     "example": "PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"
+                },
+                "time_between_blocks": {
+                    "type": "integer",
+                    "example": 30
                 },
                 "timestamp": {
                     "type": "string",
@@ -4143,9 +4322,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "level": {
-                    "type": "integer"
-                },
-                "network": {
                     "type": "integer"
                 },
                 "timestamp": {
@@ -4456,9 +4632,6 @@ const docTemplate = `{
                 "last_action": {
                     "type": "string",
                     "x-nullable": true
-                },
-                "network": {
-                    "type": "string"
                 },
                 "tx_count": {
                     "type": "integer",

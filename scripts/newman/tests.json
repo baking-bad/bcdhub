@@ -150,51 +150,6 @@
 			]
 		},
 		{
-			"name": "pick_random",
-			"item": [
-				{
-					"name": "pick_random",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const contract = pm.response.json();",
-									"",
-									"    pm.expect(contract).to.have.property('network');",
-									"    pm.expect(contract).to.have.property('level');",
-									"    pm.expect(contract).to.have.property('timestamp');",
-									"    pm.expect(contract).to.have.property('hash');",
-									"    pm.expect(contract).to.have.property('address');",
-									"    pm.expect(contract).to.have.property('same_count');",
-									"    pm.expect(contract).to.have.property('tx_count');",
-									"    pm.expect(contract).to.have.property('last_action');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/pick_random",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"pick_random"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
 			"name": "config",
 			"item": [
 				{

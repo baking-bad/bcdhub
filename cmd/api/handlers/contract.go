@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"math/rand"
 	"net/http"
-	"reflect"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -52,58 +50,6 @@ func GetContract() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		c.SecureJSON(http.StatusOK, res)
-	}
-}
-
-// GetRandomContract godoc
-// @Summary Show random contract
-// @Description Get random contract with 2 or more operations
-// @Tags contract
-// @ID get-random-contract
-// @Param network query string false "Network"
-// @Accept  json
-// @Produce  json
-// @Success 200 {object} ContractWithStats
-// @Success 204 {object} gin.H
-// @Failure 500 {object} Error
-// @Router /v1/pick_random [get]
-func GetRandomContract() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctxs := c.MustGet("contexts").(config.Contexts)
-		anyContext := ctxs.Any()
-
-		var req networkQueryRequest
-		if err := c.BindQuery(&req); handleError(c, anyContext.Storage, err, http.StatusBadRequest) {
-			return
-		}
-
-		network := req.NetworkID()
-		if network == types.Empty {
-			keys := reflect.ValueOf(ctxs).MapKeys()
-			network = keys[rand.Intn(len(keys))].Interface().(types.Network)
-		}
-
-		ctx, err := ctxs.Get(network)
-		if handleError(c, anyContext.Storage, err, 0) {
-			return
-		}
-
-		contract, err := ctx.Contracts.GetRandom()
-		if err != nil {
-			if ctx.Storage.IsRecordNotFound(err) {
-				c.SecureJSON(http.StatusNoContent, gin.H{})
-				return
-			}
-			handleError(c, ctx.Storage, err, 0)
-			return
-		}
-
-		res, err := contractWithStatsPostprocessing(ctxs, ctx, contract)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
-		res.Network = ctx.Network.String()
 		c.SecureJSON(http.StatusOK, res)
 	}
 }

@@ -301,11 +301,20 @@ definitions:
       chain_id:
         example: NetXdQprcVkpaWU
         type: string
+      cost_per_byte:
+        example: 250
+        type: integer
+      hard_gas_limit_per_operation:
+        example: 1040000
+        type: integer
+      hard_storage_limit_per_operation:
+        example: 60000
+        type: integer
       hash:
         example: BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT
         type: string
       level:
-        example: 24
+        example: 100
         type: integer
       network:
         example: mainnet
@@ -316,6 +325,9 @@ definitions:
       protocol:
         example: PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY
         type: string
+      time_between_blocks:
+        example: 30
+        type: integer
       timestamp:
         example: "2018-06-30T18:05:27Z"
         type: string
@@ -453,8 +465,6 @@ definitions:
       address:
         type: string
       level:
-        type: integer
-      network:
         type: integer
       timestamp:
         type: string
@@ -674,8 +684,6 @@ definitions:
       last_action:
         type: string
         x-nullable: true
-      network:
-        type: string
       tx_count:
         type: integer
         x-nullable: true
@@ -1784,6 +1792,52 @@ paths:
       summary: Get big map diffs by pointer and key hash
       tags:
       - bigmap
+  /v1/bigmap/{network}/{ptr}/keys/{key_hash}/current:
+    get:
+      consumes:
+      - application/json
+      description: Get current big map value by pointer and key hash
+      operationId: get-bigmap-keyhash-current
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Big map pointer
+        in: path
+        name: ptr
+        required: true
+        type: integer
+      - description: Key hash in big map
+        in: path
+        maxLength: 54
+        minLength: 54
+        name: key_hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.BigMapDiffByKeyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get current big map value by pointer and key hash
+      tags:
+      - bigmap
   /v1/contract/{network}/{address}:
     get:
       consumes:
@@ -2064,6 +2118,58 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Execute entrypoint with passed arguments
+      tags:
+      - contract
+  /v1/contract/{network}/{address}/global_constants:
+    get:
+      consumes:
+      - application/json
+      description: Get global constants used by contract
+      operationId: get-contract-global-constants
+      parameters:
+      - description: network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      - description: Constants count
+        in: query
+        maximum: 10
+        name: size
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.GlobalConstant'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get global constants used by contract
       tags:
       - contract
   /v1/contract/{network}/{address}/mempool:
@@ -2769,6 +2875,51 @@ paths:
       summary: Get view schemas of contract metadata
       tags:
       - contract
+  /v1/global_constants/{network}:
+    get:
+      consumes:
+      - application/json
+      description: List global constants
+      operationId: list-global-constants
+      parameters:
+      - description: network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Constants count
+        in: query
+        maximum: 10
+        name: size
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.GlobalConstant'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: List global constants
+      tags:
+      - global-constants
   /v1/global_constants/{network}/{address}:
     get:
       consumes:
@@ -2794,9 +2945,11 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/handlers.GlobalConstant'
-            type: array
+            $ref: '#/definitions/handlers.GlobalConstant'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "404":
           description: Not Found
           schema:
@@ -2807,7 +2960,7 @@ paths:
             $ref: '#/definitions/handlers.Error'
       summary: Get global constant
       tags:
-      - contract
+      - global-constants
   /v1/head:
     get:
       consumes:
@@ -2863,7 +3016,7 @@ paths:
       description: Get JSON schema from micheline
       operationId: get-json-schema
       parameters:
-      - description: Micheline
+      - description: 'Micheline. Limit: 1MB'
         in: body
         name: body
         required: true
@@ -2880,10 +3033,6 @@ paths:
             $ref: '#/definitions/ast.JSONSchema'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "404":
-          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -3004,35 +3153,6 @@ paths:
       summary: Get operation group
       tags:
       - operations
-  /v1/pick_random:
-    get:
-      consumes:
-      - application/json
-      description: Get random contract with 2 or more operations
-      operationId: get-random-contract
-      parameters:
-      - description: Network
-        in: query
-        name: network
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.ContractWithStats'
-        "204":
-          description: No Content
-          schema:
-            $ref: '#/definitions/gin.H'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Show random contract
-      tags:
-      - contract
   /v1/search:
     get:
       consumes:

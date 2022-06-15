@@ -325,6 +325,18 @@ type BigMapDiffByKeyResponse struct {
 	Total   int64            `json:"total"`
 }
 
+// BigMapKeyStateResponse -
+type BigMapKeyStateResponse struct {
+	Key             interface{} `json:"key,omitempty" extensions:"x-nullable"`
+	KeyHash         string      `json:"key_hash"`
+	KeyString       string      `json:"key_string"`
+	Value           interface{} `json:"value"`
+	LastUpdateLevel int64       `json:"last_update_level"`
+	LastUpdateTime  time.Time   `json:"last_update_time"`
+	Removed         bool        `json:"removed"`
+	UpdatesCount    int64       `json:"updates_count"`
+}
+
 // CodeDiffResponse -
 type CodeDiffResponse struct {
 	Left  CodeDiffLeg          `json:"left"`
