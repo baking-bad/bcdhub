@@ -300,6 +300,58 @@ func GetBigMapByKeyHash() gin.HandlerFunc {
 	}
 }
 
+// GetCurrentBigMapKeyHash godoc
+// @Summary Get current big map value by pointer and key hash
+// @Description Get current big map value by pointer and key hash
+// @Tags bigmap
+// @ID get-bigmap-keyhash-current
+// @Param network path string true "Network"
+// @Param ptr path integer true "Big map pointer"
+// @Param key_hash path string true "Key hash in big map" minlength(54) maxlength(54)
+// @Accept json
+// @Produce json
+// @Success 200 {object} BigMapDiffByKeyResponse
+// @Success 404 {object} Error
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/bigmap/{network}/{ptr}/keys/{key_hash}/current [get]
+func GetCurrentBigMapKeyHash() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getBigMapByKeyHashRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		state, err := ctx.BigMapDiffs.Current(req.KeyHash, req.Ptr)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		bigMapType, err := getBigMapType(ctx, state.Contract, state.Ptr)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		key, value, keyString, err := prepareItem(state.Key, state.Value, bigMapType)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		c.SecureJSON(http.StatusOK, BigMapKeyStateResponse{
+			Key:             key,
+			KeyString:       keyString,
+			Value:           value,
+			Removed:         state.Removed,
+			KeyHash:         state.KeyHash,
+			UpdatesCount:    state.Count,
+			LastUpdateLevel: state.LastUpdateLevel,
+			LastUpdateTime:  state.LastUpdateTime,
+		})
+	}
+}
+
 // GetBigMapDiffCount godoc
 // @Summary Get big map diffs count info by pointer
 // @Description Get big map diffs count info by pointer
@@ -339,7 +391,7 @@ func prepareBigMapKeys(ctx *config.Context, data []bigmapdiff.BigMapState) ([]Bi
 		return []BigMapResponseItem{}, nil
 	}
 
-	bigMapType, err := getBigMapType(ctx, data[0].ToDiff())
+	bigMapType, err := getBigMapType(ctx, data[0].Contract, data[0].Ptr)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +423,7 @@ func prepareBigMapItem(ctx *config.Context, data []bigmapdiff.BigMapDiff, keyHas
 		return
 	}
 
-	bigMapType, err := getBigMapType(ctx, data[0])
+	bigMapType, err := getBigMapType(ctx, data[0].Contract, data[0].Ptr)
 	if err != nil {
 		return
 	}
@@ -397,13 +449,13 @@ func prepareBigMapItem(ctx *config.Context, data []bigmapdiff.BigMapDiff, keyHas
 	return
 }
 
-func getBigMapType(ctx *config.Context, data bigmapdiff.BigMapDiff) (*ast.BigMap, error) {
-	storageType, err := getStorageType(ctx, data.Contract, getSymLink(ctx.Network))
+func getBigMapType(ctx *config.Context, contract string, ptr int64) (*ast.BigMap, error) {
+	storageType, err := getStorageType(ctx, contract, getSymLink(ctx.Network))
 	if err != nil {
 		return nil, err
 	}
 
-	actions, err := ctx.BigMapActions.Get(data.Ptr, 2, 0)
+	actions, err := ctx.BigMapActions.Get(ptr, 2, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +474,7 @@ func getBigMapType(ctx *config.Context, data bigmapdiff.BigMapDiff) (*ast.BigMap
 		}
 		deffatedStorage = operation.DeffatedStorage
 	} else {
-		contract, err := ctx.Accounts.Get(data.Contract)
+		contract, err := ctx.Accounts.Get(contract)
 		if err != nil {
 			return nil, err
 		}
@@ -441,9 +493,9 @@ func getBigMapType(ctx *config.Context, data bigmapdiff.BigMapDiff) (*ast.BigMap
 		return nil, err
 	}
 	bigMaps := storageType.FindBigMapByPtr()
-	bigMapType, ok := bigMaps[data.Ptr]
+	bigMapType, ok := bigMaps[ptr]
 	if !ok {
-		return nil, errors.Errorf("can't find ptr in storage: %d", data.Ptr)
+		return nil, errors.Errorf("can't find ptr in storage: %d", ptr)
 	}
 	return bigMapType, nil
 }

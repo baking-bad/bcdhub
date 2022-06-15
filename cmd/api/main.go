@@ -92,7 +92,6 @@ func (api *app) makeRouter() {
 		v1.GET("head", handlers.ContextsMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHead()))
 		v1.GET("head/:network", handlers.NetworkMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHeadByNetwork()))
 		v1.GET("opg/:hash", handlers.ContextsMiddleware(api.Contexts), handlers.GetOperation())
-		v1.GET("pick_random", handlers.ContextsMiddleware(api.Contexts), handlers.GetRandomContract())
 		v1.GET("search", handlers.ContextsMiddleware(api.Contexts), handlers.Search())
 		v1.POST("json_schema", handlers.MainnetMiddleware(api.Contexts), handlers.JSONSchema())
 		v1.POST("fork", handlers.ForkContract(api.Contexts))
@@ -134,6 +133,7 @@ func (api *app) makeRouter() {
 			{
 				keys.GET("", handlers.GetBigMapKeys())
 				keys.GET(":key_hash", handlers.GetBigMapByKeyHash())
+				keys.GET(":key_hash/state", handlers.GetCurrentBigMapKeyHash())
 			}
 		}
 
