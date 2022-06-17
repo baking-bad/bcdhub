@@ -5,7 +5,6 @@ import (
 	"context"
 	stdJSON "encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -98,10 +97,12 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 		return NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
 	case checkStatusCode:
 		invalidResponseErr := newInvalidNodeResponse()
-		buffer := new(bytes.Buffer)
-		stream := io.TeeReader(resp.Body, buffer)
-		invalidResponseErr.Raw = buffer.Bytes()
-		if err := json.NewDecoder(stream).Decode(&invalidResponseErr.Errors); err != nil {
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		invalidResponseErr.Raw = data
+		if err := json.Unmarshal(data, &invalidResponseErr.Errors); err != nil {
 			return errors.Wrap(invalidResponseErr, err.Error())
 		}
 		return invalidResponseErr

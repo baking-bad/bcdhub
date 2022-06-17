@@ -296,7 +296,8 @@ type RunCodeResponse struct {
 
 // RunCodeError -
 type RunCodeError struct {
-	ID string `json:"id"`
+	ID   string `json:"id"`
+	Kind string `json:"kind,omitempty"`
 }
 
 // OperationError -
