@@ -47,6 +47,11 @@ func (p *Hangzhou) Parse(operation *operation.Operation, store parsers.Store) er
 }
 
 func (p *Hangzhou) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
+	constants, err := getGlobalConstants(p.ctx.GlobalConstants, operation)
+	if err != nil {
+		return errors.Wrap(err, "getGlobalConstants")
+	}
+
 	script, err := astContract.NewParser(operation.Script)
 	if err != nil {
 		return errors.Wrap(err, "astContract.NewParser")
@@ -61,26 +66,6 @@ func (p *Hangzhou) computeMetrics(operation *operation.Operation, c *contract.Co
 		var s bcd.RawScript
 		if err := json.Unmarshal(script.CodeRaw, &s); err != nil {
 			return err
-		}
-
-		constants, err := script.FindConstants()
-		if err != nil {
-			return errors.Wrap(err, "script.FindConstants")
-		}
-
-		if len(constants) > 0 {
-			globalConstants, err := p.ctx.GlobalConstants.All(constants...)
-			if err != nil {
-				return err
-			}
-			contractScript.Constants = globalConstants
-			replaceConstants(&contractScript, operation)
-
-			script, err = astContract.NewParser(operation.Script)
-			if err != nil {
-				return errors.Wrap(err, "astContract.NewParser")
-			}
-			operation.AST = script.Code
 		}
 
 		if err := script.Parse(); err != nil {
@@ -103,6 +88,7 @@ func (p *Hangzhou) computeMetrics(operation *operation.Operation, c *contract.Co
 		contractScript.Tags = types.NewTags(script.Tags.Values())
 		contractScript.Hardcoded = script.HardcodedAddresses.Values()
 		contractScript.Entrypoints = params.GetEntrypoints()
+		contractScript.Constants = constants
 
 		c.Babylon = contractScript
 	} else {

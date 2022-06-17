@@ -6,7 +6,9 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
+	bcdTypes "github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -49,6 +51,11 @@ func (p *Jakarta) Parse(operation *operation.Operation, store parsers.Store) err
 }
 
 func (p *Jakarta) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
+	constants, err := getGlobalConstants(p.ctx.GlobalConstants, operation)
+	if err != nil {
+		return errors.Wrap(err, "getGlobalConstants")
+	}
+
 	script, err := astContract.NewParser(operation.Script)
 	if err != nil {
 		return errors.Wrap(err, "astContract.NewParser")
@@ -63,26 +70,6 @@ func (p *Jakarta) computeMetrics(operation *operation.Operation, c *contract.Con
 		var s bcd.RawScript
 		if err := json.Unmarshal(script.CodeRaw, &s); err != nil {
 			return err
-		}
-
-		constants, err := script.FindConstants()
-		if err != nil {
-			return errors.Wrap(err, "script.FindConstants")
-		}
-
-		if len(constants) > 0 {
-			globalConstants, err := p.ctx.GlobalConstants.All(constants...)
-			if err != nil {
-				return err
-			}
-			contractScript.Constants = globalConstants
-			replaceConstants(&contractScript, operation)
-
-			script, err = astContract.NewParser(operation.Script)
-			if err != nil {
-				return errors.Wrap(err, "astContract.NewParser")
-			}
-			operation.AST = script.Code
 		}
 
 		if err := script.Parse(); err != nil {
@@ -105,6 +92,7 @@ func (p *Jakarta) computeMetrics(operation *operation.Operation, c *contract.Con
 		contractScript.Tags = types.NewTags(script.Tags.Values())
 		contractScript.Hardcoded = script.HardcodedAddresses.Values()
 		contractScript.Entrypoints = params.GetEntrypoints()
+		contractScript.Constants = constants
 
 		c.Jakarta = contractScript
 	} else {
@@ -117,13 +105,61 @@ func (p *Jakarta) computeMetrics(operation *operation.Operation, c *contract.Con
 	return nil
 }
 
-func replaceConstants(c *contract.Script, operation *operation.Operation) {
+func replaceConstants(constants []contract.GlobalConstant, operation *operation.Operation) {
 	pattern := `{"prim":"constant","args":[{"string":"%s"}]}`
-	for i := range c.Constants {
+	for i := range constants {
 		operation.Script = bytes.ReplaceAll(
 			operation.Script,
-			[]byte(fmt.Sprintf(pattern, c.Constants[i].Address)),
-			c.Constants[i].Value,
+			[]byte(fmt.Sprintf(pattern, constants[i].Address)),
+			constants[i].Value,
 		)
 	}
+}
+
+func getGlobalConstants(repo contract.ConstantRepository, operation *operation.Operation) ([]contract.GlobalConstant, error) {
+	var cd astContract.ContractData
+	if err := json.Unmarshal(operation.Script, &cd); err != nil {
+		return nil, err
+	}
+
+	var tree ast.UntypedAST
+	if err := json.Unmarshal(cd.Code, &tree); err != nil {
+		return nil, err
+	}
+
+	constants, err := astContract.FindConstants(tree)
+	if err != nil {
+		return nil, err
+	}
+
+	globalConstants := make(bcdTypes.Set)
+	globalContantsModels := make([]contract.GlobalConstant, 0)
+
+	for len(constants) > 0 {
+		addresses := make([]string, 0)
+		for address := range constants {
+			if !globalConstants.Has(address) {
+				addresses = append(addresses, address)
+				globalConstants.Add(address)
+			}
+		}
+
+		entities, err := repo.All(addresses...)
+		if err != nil {
+			return nil, err
+		}
+		globalContantsModels = append(globalContantsModels, entities...)
+		replaceConstants(entities, operation)
+
+		var tree ast.UntypedAST
+		if err := json.Unmarshal(operation.Script, &tree); err != nil {
+			return nil, err
+		}
+		constants, err = astContract.FindConstants(tree)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return globalContantsModels, nil
 }

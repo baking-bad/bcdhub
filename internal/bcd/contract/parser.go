@@ -13,7 +13,8 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-type contractData struct {
+// ContractData -
+type ContractData struct {
 	Code    stdJSON.RawMessage `json:"code"`
 	Storage stdJSON.RawMessage `json:"storage"`
 }
@@ -36,7 +37,7 @@ type Parser struct {
 
 // NewParser -
 func NewParser(data []byte) (*Parser, error) {
-	var cd contractData
+	var cd ContractData
 	if err := json.Unmarshal(data, &cd); err != nil {
 		return nil, err
 	}
@@ -296,4 +297,20 @@ func parseFail(node *base.Node) string {
 	}
 
 	return ""
+}
+
+// FindConstants -
+func FindConstants(tree ast.UntypedAST) (types.Set, error) {
+	if len(tree) == 0 {
+		return nil, nil
+	}
+
+	constants := make(types.Set)
+	for i := range tree {
+		if constant := parseConstants(tree[i]); constant != "" {
+			constants.Add(constant)
+		}
+	}
+
+	return constants, nil
 }
