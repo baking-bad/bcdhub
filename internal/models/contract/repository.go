@@ -1,5 +1,7 @@
 package contract
 
+import "time"
+
 // Repository -
 type Repository interface {
 	Get(address string) (Contract, error)
@@ -32,6 +34,15 @@ type ScriptRepository interface {
 type ConstantRepository interface {
 	Get(address string) (GlobalConstant, error)
 	All(addresses ...string) ([]GlobalConstant, error)
-	List(size, offset int64) ([]GlobalConstant, error)
+	List(size, offset int64, orderBy, sort string) ([]ListGlobalConstantItem, error)
 	ForContract(address string, size, offset int64) ([]GlobalConstant, error)
+	ContractList(address string, size, offset int64) ([]Contract, error)
+}
+
+// ListGlobalConstantItem -
+type ListGlobalConstantItem struct {
+	Timestamp  time.Time `json:"timestamp" pg:"timestamp"`
+	Level      int64     `json:"level" pg:"level"`
+	Address    string    `json:"address" pg:"address"`
+	LinksCount uint64    `json:"links_count" pg:"links_count"`
 }

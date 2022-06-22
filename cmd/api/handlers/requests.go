@@ -307,3 +307,15 @@ type tokensCountByContractRequest struct {
 type getGlobalConstantRequest struct {
 	Address string `uri:"address" binding:"required,global_constant"`
 }
+
+type globalConstantsListRequest struct {
+	pageableRequest
+
+	OrderBy string `form:"order_by" binding:"omitempty,oneof=level timestamp links_count address"`
+	Sort    string `form:"sort" binding:"omitempty,oneof=asc desc"`
+}
+
+type globalConstantsContractsRequest struct {
+	getGlobalConstantRequest
+	pageableRequest
+}
