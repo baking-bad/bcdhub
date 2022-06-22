@@ -86,7 +86,7 @@ func (storage *Storage) ForContract(address string, size, offset int64) (respons
 	err = storage.DB.Model((*contract.Contract)(nil)).
 		ColumnExpr("global_constants.*").
 		Join("LEFT JOIN accounts on account_id = accounts.id").
-		Join("LEFT JOIN (select distinct global_constant_id, script_id from ithacanet.script_constants) as t on t.script_id = jakarta_id or t.script_id = babylon_id").
+		Join("LEFT JOIN (select distinct global_constant_id, script_id from script_constants) as t on t.script_id = jakarta_id or t.script_id = babylon_id").
 		Join("LEFT JOIN global_constants on t.global_constant_id = global_constants.id").
 		Where("accounts.address = ?", address).
 		Limit(int(size)).
