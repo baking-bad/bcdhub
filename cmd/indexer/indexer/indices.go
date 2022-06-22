@@ -287,4 +287,17 @@ func (bi *BlockchainIndexer) createIndices() {
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
+
+	// Scripts to global constants
+	if _, err := bi.Context.StorageDB.DB.Model(new(contract.ScriptConstants)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS script_id_idx ON ?TableName (script_id)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	if _, err := bi.Context.StorageDB.DB.Model(new(contract.ScriptConstants)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS global_constant_id_idx ON ?TableName (global_constant_id)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
 }

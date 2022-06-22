@@ -225,7 +225,11 @@ func (api *app) makeRouter() {
 		globalConstants.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
 			globalConstants.GET("", handlers.ListGlobalConstants())
-			globalConstants.GET(":address", handlers.GetGlobalConstant())
+			globalConstant := globalConstants.Group(":address")
+			{
+				globalConstant.GET("", handlers.GetGlobalConstant())
+				globalConstant.GET("contracts", handlers.GetGlobalConstantContracts())
+			}
 		}
 	}
 	api.Router = r

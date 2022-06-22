@@ -339,18 +339,18 @@ func (mr *MockConstantRepositoryMockRecorder) All(addresses ...interface{}) *gom
 }
 
 // List mocks base method
-func (m *MockConstantRepository) List(size, offset int64) ([]model.GlobalConstant, error) {
+func (m *MockConstantRepository) List(size, offset int64, orderBy, sort string) ([]model.ListGlobalConstantItem, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", size, offset)
-	ret0, _ := ret[0].([]model.GlobalConstant)
+	ret := m.ctrl.Call(m, "List", size, offset, orderBy, sort)
+	ret0, _ := ret[0].([]model.ListGlobalConstantItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List
-func (mr *MockConstantRepositoryMockRecorder) List(size, offset interface{}) *gomock.Call {
+func (mr *MockConstantRepositoryMockRecorder) List(size, offset, orderBy, sort interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockConstantRepository)(nil).List), size, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockConstantRepository)(nil).List), size, offset, orderBy, sort)
 }
 
 // ForContract mocks base method
@@ -366,4 +366,19 @@ func (m *MockConstantRepository) ForContract(address string, size, offset int64)
 func (mr *MockConstantRepositoryMockRecorder) ForContract(address, size, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForContract", reflect.TypeOf((*MockConstantRepository)(nil).ForContract), address, size, offset)
+}
+
+// ContractList mocks base method
+func (m *MockConstantRepository) ContractList(address string, size, offset int64) ([]model.Contract, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ContractList", address, size, offset)
+	ret0, _ := ret[0].([]model.Contract)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ContractList indicates an expected call of ContractList
+func (mr *MockConstantRepositoryMockRecorder) ContractList(address, size, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractList", reflect.TypeOf((*MockConstantRepository)(nil).ContractList), address, size, offset)
 }

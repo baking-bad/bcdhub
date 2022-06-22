@@ -47,9 +47,11 @@ func GetGlobalConstant() gin.HandlerFunc {
 // @Param network path string true "network"
 // @Param size query integer false "Constants count" mininum(1) maximum(10)
 // @Param offset query integer false "Offset" mininum(1)
+// @Param order_by query string false "Order by" Enums(level, timestamp, links_count, address)
+// @Param sort query string false "Sort order" Enums(asc, desc)
 // @Accept json
 // @Produce json
-// @Success 200 {array} GlobalConstant
+// @Success 200 {array} contract.ListGlobalConstantItem
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
@@ -58,22 +60,16 @@ func ListGlobalConstants() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var args pageableRequest
+		var args globalConstantsListRequest
 		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
-		constants, err := ctx.GlobalConstants.List(args.Size, args.Offset)
+		constants, err := ctx.GlobalConstants.List(args.Size, args.Offset, args.OrderBy, args.Sort)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-
-		response := make([]GlobalConstant, 0, len(constants))
-		for i := range constants {
-			response = append(response, NewGlobalConstantFromModel(constants[i]))
-		}
-
-		c.SecureJSON(http.StatusOK, response)
+		c.SecureJSON(http.StatusOK, constants)
 	}
 }
 
@@ -115,6 +111,53 @@ func GetContractGlobalConstants() gin.HandlerFunc {
 		response := make([]GlobalConstant, 0, len(constants))
 		for i := range constants {
 			response = append(response, NewGlobalConstantFromModel(constants[i]))
+		}
+
+		c.SecureJSON(http.StatusOK, response)
+	}
+}
+
+// GetGlobalConstantContracts godoc
+// @Summary Get contracts that use the global constant
+// @Description Get contracts that use the global constant
+// @Tags global-constants
+// @ID get-global-constant-contracts
+// @Param network path string true "network"
+// @Param address path string true "expr address of constant" minlength(54) maxlength(54)
+// @Param size query integer false "Constants count" mininum(1) maximum(10)
+// @Param offset query integer false "Offset" mininum(1)
+// @Accept json
+// @Produce json
+// @Success 200 {array} Contract
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/global_constants/{network}/{address}/contracts [get]
+func GetGlobalConstantContracts() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var args globalConstantsContractsRequest
+		if err := c.BindUri(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		contracts, err := ctx.GlobalConstants.ContractList(args.Address, args.Size, args.Offset)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		response := make([]Contract, 0, len(contracts))
+		for i := range contracts {
+			item, err := contractPostprocessing(ctx, contracts[i])
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			response = append(response, item)
 		}
 
 		c.SecureJSON(http.StatusOK, response)

@@ -140,7 +140,7 @@ type Contract struct {
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
 
-	Hash        string   `json:"hash"`
+	Hash        string   `json:"hash,omitempty"`
 	Tags        []string `json:"tags,omitempty" extensions:"x-nullable"`
 	Hardcoded   []string `json:"hardcoded,omitempty" extensions:"x-nullable"`
 	FailStrings []string `json:"fail_strings,omitempty" extensions:"x-nullable"`
