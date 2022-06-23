@@ -132,6 +132,11 @@ func (o *Operation) IsTransaction() bool {
 	return o.Kind == types.OperationKindTransaction
 }
 
+// IsImplicit  -
+func (o *Operation) IsImplicit() bool {
+	return o.Hash == ""
+}
+
 // IsApplied -
 func (o *Operation) IsApplied() bool {
 	return o.Status == types.OperationStatusApplied

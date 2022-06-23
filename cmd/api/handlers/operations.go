@@ -226,7 +226,7 @@ func GetOperationDiff() gin.HandlerFunc {
 		var result Operation
 		result.FromModel(operation)
 
-		if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
+		if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination() || operation.IsImplicit()) && operation.IsApplied() {
 			proto, err := ctx.Cache.ProtocolByID(operation.ProtocolID)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
@@ -340,7 +340,7 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 			if err != nil {
 				return op, err
 			}
-			if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination() || operation.Hash == "") && operation.IsApplied() {
+			if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination() || operation.IsImplicit()) && operation.IsApplied() {
 				if err := setStorageDiff(ctx, operation.DestinationID, operation.DeffatedStorage, &op, bmd, storageType); err != nil {
 					return op, err
 				}
