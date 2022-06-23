@@ -3,8 +3,10 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
 )
 
 // GetGlobalConstant godoc
@@ -35,7 +37,15 @@ func GetGlobalConstant() gin.HandlerFunc {
 			return
 		}
 
-		c.SecureJSON(http.StatusOK, NewGlobalConstantFromModel(constant))
+		michelson, err := formatter.MichelineToMichelson(gjson.ParseBytes(constant.Value), false, formatter.DefLineSize)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		globalConstant := NewGlobalConstantFromModel(constant)
+		globalConstant.Code = michelson
+
+		c.SecureJSON(http.StatusOK, globalConstant)
 	}
 }
 

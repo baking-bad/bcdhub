@@ -765,6 +765,7 @@ type GlobalConstant struct {
 	Level     int64              `json:"level"`
 	Address   string             `json:"address"`
 	Value     stdJSON.RawMessage `json:"value,omitempty"`
+	Code      string             `json:"code,omitempty"`
 }
 
 // NewGlobalConstantFromModel -
