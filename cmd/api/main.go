@@ -94,6 +94,7 @@ func (api *app) makeRouter() {
 		v1.GET("opg/:hash", handlers.ContextsMiddleware(api.Contexts), handlers.GetOperation())
 		v1.GET("search", handlers.ContextsMiddleware(api.Contexts), handlers.Search())
 		v1.POST("json_schema", handlers.MainnetMiddleware(api.Contexts), handlers.JSONSchema())
+		v1.POST("michelson", handlers.ContextsMiddleware(api.Contexts), handlers.CodeFromMichelson())
 		v1.POST("fork", handlers.ForkContract(api.Contexts))
 
 		operation := v1.Group("operation/:network/:id")

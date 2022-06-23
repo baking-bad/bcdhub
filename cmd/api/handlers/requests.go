@@ -201,9 +201,9 @@ type entrypointSchemaRequest struct {
 }
 
 type forkRequest struct {
-	Address string `json:"address" binding:"required_with=Network,omitempty,address"`
-	Network string `json:"network" binding:"required_with=Address,omitempty,network"`
-	Script  string `json:"script" binding:"omitempty"`
+	Address string `json:"address,omitempty" binding:"omitempty,address,required_with=Network"`
+	Network string `json:"network,omitempty" binding:"omitempty,network,required_with=Address"`
+	Script  string `json:"script,omitempty" binding:"omitempty"`
 
 	Storage map[string]interface{} `json:"storage" binding:"required"`
 }
