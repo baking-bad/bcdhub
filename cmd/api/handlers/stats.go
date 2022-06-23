@@ -269,7 +269,7 @@ func getHistogramOptions(name string, network types.Network, addresses ...string
 // GetContractsStats godoc
 // @Summary Show contracts stats
 // @Description Show total volume, unique users and transactions count for period
-// @Tags contract
+// @Tags statistics
 // @ID get-stats-contracts
 // @Param network path string true "Network"
 // @Param contracts query string true "Comma-separated KT addresses" minlength(36)
@@ -308,7 +308,7 @@ func GetContractsStats() gin.HandlerFunc {
 // RecentlyCalledContracts godoc
 // @Summary Show recently called contracts
 // @Description Show recently called contracts
-// @Tags contract
+// @Tags statistics
 // @ID get-recenly-called-contracts
 // @Param network path string true "Network"
 // @Param size query integer false "Contracts count" mininum(1) maximum(10)

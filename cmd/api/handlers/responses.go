@@ -776,3 +776,16 @@ func NewGlobalConstantFromModel(gc contract.GlobalConstant) GlobalConstant {
 		Value:     stdJSON.RawMessage(gc.Value),
 	}
 }
+
+// CodeFromMichelsonResponse -
+type CodeFromMichelsonResponse struct {
+	Script  stdJSON.RawMessage       `json:"script"`
+	Storage CodeFromMichelsonStorage `json:"storage"`
+}
+
+// CodeFromMichelsonStorage -
+type CodeFromMichelsonStorage struct {
+	Type         []ast.Typedef   `json:"type,omitempty" extensions:"x-nullable"`
+	Schema       *ast.JSONSchema `json:"schema"`
+	DefaultModel ast.JSONModel   `json:"default_model,omitempty" extensions:"x-nullable"`
+}
