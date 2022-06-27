@@ -377,6 +377,7 @@ func (storage *Storage) GetByHashAndCounter(hash string, counter int64) ([]opera
 	err := storage.DB.Model((*operation.Operation)(nil)).
 		Where("hash = ?", hash).
 		Where("counter = ?", counter).
+		Relation("Destination").Relation("Source").Relation("Initiator").Relation("Delegate").
 		Order("id asc").
 		Select(&operations)
 	return operations, err

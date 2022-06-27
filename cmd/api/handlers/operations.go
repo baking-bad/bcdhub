@@ -309,7 +309,7 @@ func GetOperationGroups() gin.HandlerFunc {
 // @Param network query string false "You can set network field for better performance"
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} operation.OPG
+// @Success 200 {array} Operation
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
@@ -338,16 +338,16 @@ func GetByHashAndCounter() gin.HandlerFunc {
 				return
 			}
 			foundContext = ctx
-		}
-
-		for _, ctx := range ctxs {
-			opg, err = ctx.Operations.GetByHashAndCounter(req.Hash, req.Counter)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-			if len(opg) > 0 {
-				foundContext = ctx
-				break
+		} else {
+			for _, ctx := range ctxs {
+				opg, err = ctx.Operations.GetByHashAndCounter(req.Hash, req.Counter)
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
+				if len(opg) > 0 {
+					foundContext = ctx
+					break
+				}
 			}
 		}
 
