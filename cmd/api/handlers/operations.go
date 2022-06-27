@@ -259,7 +259,7 @@ func GetOperationDiff() gin.HandlerFunc {
 // GetOperationGroups -
 // @Summary Get operation groups by account
 // @Description Get operation groups by account
-// @Tags operations
+// @Tags contract
 // @ID get-operation-groups-by-account
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
@@ -298,7 +298,7 @@ func GetOperationGroups() gin.HandlerFunc {
 // @Summary Get operations by hash and counter
 // @Description Get operations by hash and counter
 // @Tags operations
-// @ID get-operationsby-hash-and-counter
+// @ID get-operations-by-hash-and-counter
 // @Param hash path string true "Operation group hash"  minlength(51) maxlength(51)
 // @Param counter path integer true "Counter of main operation"
 // @Param network query string false "You can set network field for better performance"
@@ -308,7 +308,7 @@ func GetOperationGroups() gin.HandlerFunc {
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
-// @Router /v1/contract/{network}/{address}/opg [get]
+// @Router /v1/opg/{hash}/{counter} [get]
 func GetByHashAndCounter() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)

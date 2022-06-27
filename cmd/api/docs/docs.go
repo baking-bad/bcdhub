@@ -1567,7 +1567,7 @@ const docTemplate = `{
         },
         "/v1/contract/{network}/{address}/opg": {
             "get": {
-                "description": "Get operations by hash and counter",
+                "description": "Get operation groups by account",
                 "consumes": [
                     "application/json"
                 ],
@@ -1575,31 +1575,37 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "operations"
+                    "contract"
                 ],
-                "summary": "Get operations by hash and counter",
-                "operationId": "get-operationsby-hash-and-counter",
+                "summary": "Get operation groups by account",
+                "operationId": "get-operation-groups-by-account",
                 "parameters": [
                     {
-                        "maxLength": 51,
-                        "minLength": 51,
                         "type": "string",
-                        "description": "Operation group hash",
-                        "name": "hash",
+                        "description": "Network",
+                        "name": "network",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Last operation ID",
+                        "name": "last_id",
+                        "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Counter of main operation",
-                        "name": "counter",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "You can set network field for better performance",
-                        "name": "network",
+                        "description": "Expected OPG count",
+                        "name": "size",
                         "in": "query"
                     }
                 ],
@@ -2948,6 +2954,75 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/opg/{hash}/{counter}": {
+            "get": {
+                "description": "Get operations by hash and counter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "operations"
+                ],
+                "summary": "Get operations by hash and counter",
+                "operationId": "get-operations-by-hash-and-counter",
+                "parameters": [
+                    {
+                        "maxLength": 51,
+                        "minLength": 51,
+                        "type": "string",
+                        "description": "Operation group hash",
+                        "name": "hash",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Counter of main operation",
+                        "name": "counter",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "You can set network field for better performance",
+                        "name": "network",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/operation.OPG"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/search": {
             "get": {
                 "description": "Search any data in contracts, operations and big map diff with filters",
@@ -3178,7 +3253,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "contract"
+                    "statistics"
                 ],
                 "summary": "Show contracts stats",
                 "operationId": "get-stats-contracts",
@@ -3245,7 +3320,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "contract"
+                    "statistics"
                 ],
                 "summary": "Show recently called contracts",
                 "operationId": "get-recenly-called-contracts",
@@ -4597,6 +4672,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
+                    "type": "string"
+                },
+                "code": {
                     "type": "string"
                 },
                 "level": {

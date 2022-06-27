@@ -542,6 +542,8 @@ definitions:
     properties:
       address:
         type: string
+      code:
+        type: string
       level:
         type: integer
       timestamp:
@@ -2432,25 +2434,29 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get operations by hash and counter
-      operationId: get-operationsby-hash-and-counter
+      description: Get operation groups by account
+      operationId: get-operation-groups-by-account
       parameters:
-      - description: Operation group hash
+      - description: Network
         in: path
-        maxLength: 51
-        minLength: 51
-        name: hash
-        required: true
-        type: string
-      - description: Counter of main operation
-        in: path
-        name: counter
-        required: true
-        type: integer
-      - description: You can set network field for better performance
-        in: query
         name: network
+        required: true
         type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      - description: Last operation ID
+        in: query
+        name: last_id
+        type: string
+      - description: Expected OPG count
+        in: query
+        name: size
+        type: integer
       produces:
       - application/json
       responses:
@@ -2472,9 +2478,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.Error'
-      summary: Get operations by hash and counter
+      summary: Get operation groups by account
       tags:
-      - operations
+      - contract
   /v1/contract/{network}/{address}/same:
     get:
       consumes:
@@ -3369,6 +3375,53 @@ paths:
       summary: Get operation group
       tags:
       - operations
+  /v1/opg/{hash}/{counter}:
+    get:
+      consumes:
+      - application/json
+      description: Get operations by hash and counter
+      operationId: get-operations-by-hash-and-counter
+      parameters:
+      - description: Operation group hash
+        in: path
+        maxLength: 51
+        minLength: 51
+        name: hash
+        required: true
+        type: string
+      - description: Counter of main operation
+        in: path
+        name: counter
+        required: true
+        type: integer
+      - description: You can set network field for better performance
+        in: query
+        name: network
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/operation.OPG'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get operations by hash and counter
+      tags:
+      - operations
   /v1/search:
     get:
       consumes:
@@ -3564,7 +3617,7 @@ paths:
             $ref: '#/definitions/handlers.Error'
       summary: Show contracts stats
       tags:
-      - contract
+      - statistics
   /v1/stats/{network}/recently_called_contracts:
     get:
       consumes:
@@ -3605,7 +3658,7 @@ paths:
             $ref: '#/definitions/handlers.Error'
       summary: Show recently called contracts
       tags:
-      - contract
+      - statistics
   /v1/stats/{network}/series:
     get:
       consumes:
