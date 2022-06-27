@@ -179,8 +179,9 @@ func GetOperationErrorLocation() gin.HandlerFunc {
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		operation := operation.Operation{ID: req.ID}
-		if err := ctx.Storage.GetByID(&operation); handleError(c, ctx.Storage, err, 0) {
+
+		operation, err := ctx.Operations.GetByID(req.ID)
+		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
