@@ -92,6 +92,11 @@ type operationsRequest struct {
 	WithStorageDiff bool   `form:"with_storage_diff"`
 }
 
+type opgForAddressRequest struct {
+	LastID int64  `form:"last_id" binding:"omitempty"`
+	Size   uint64 `form:"size" binding:"min=0"`
+}
+
 type pageableRequest struct {
 	Offset int64 `form:"offset" binding:"min=0"`
 	Size   int64 `form:"size" binding:"min=0,bcd_max_size=10"`
@@ -116,6 +121,13 @@ type searchRequest struct {
 // OPGRequest -
 type OPGRequest struct {
 	Hash string `uri:"hash" binding:"required,opg" example:"ooy4c6G2BZzybYEY3vRQ7WXGL63tFmamTeGTHdjUxhd6ckbSNnb"`
+}
+
+// OperationGroupContentRequest -
+type OperationGroupContentRequest struct {
+	OPGRequest
+
+	Counter int64 `uri:"counter" binding:"required" example:"123456"`
 }
 
 // FormatterRequest -

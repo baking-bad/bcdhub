@@ -79,6 +79,36 @@ func (mr *MockRepositoryMockRecorder) GetByHash(hash interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByHash", reflect.TypeOf((*MockRepository)(nil).GetByHash), hash)
 }
 
+// GetByHashAndCounter mocks base method
+func (m *MockRepository) GetByHashAndCounter(hash string, counter int64) ([]model.Operation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByHashAndCounter", hash, counter)
+	ret0, _ := ret[0].([]model.Operation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByHashAndCounter indicates an expected call of GetByHashAndCounter
+func (mr *MockRepositoryMockRecorder) GetByHashAndCounter(hash, counter interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByHashAndCounter", reflect.TypeOf((*MockRepository)(nil).GetByHashAndCounter), hash, counter)
+}
+
+// OPG mocks base method
+func (m *MockRepository) OPG(address string, size, lastID int64) ([]model.OPG, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OPG", address, size, lastID)
+	ret0, _ := ret[0].([]model.OPG)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// OPG indicates an expected call of OPG
+func (mr *MockRepositoryMockRecorder) OPG(address, size, lastID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OPG", reflect.TypeOf((*MockRepository)(nil).OPG), address, size, lastID)
+}
+
 // Get mocks base method
 func (m *MockRepository) Get(filter map[string]interface{}, size int64, sort bool) ([]model.Operation, error) {
 	m.ctrl.T.Helper()

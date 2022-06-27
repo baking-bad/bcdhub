@@ -10,6 +10,8 @@ type Repository interface {
 	// Last -  get last operation by `filters` with not empty deffated_storage.
 	Last(filter map[string]interface{}, lastID int64) (Operation, error)
 	GetByHash(hash string) ([]Operation, error)
+	GetByHashAndCounter(hash string, counter int64) ([]Operation, error)
+	OPG(address string, size, lastID int64) ([]OPG, error)
 
 	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
 	// `Sort` - sort by time and content index by desc

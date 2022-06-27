@@ -1565,6 +1565,75 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/contract/{network}/{address}/opg": {
+            "get": {
+                "description": "Get operations by hash and counter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "operations"
+                ],
+                "summary": "Get operations by hash and counter",
+                "operationId": "get-operationsby-hash-and-counter",
+                "parameters": [
+                    {
+                        "maxLength": 51,
+                        "minLength": 51,
+                        "type": "string",
+                        "description": "Operation group hash",
+                        "name": "hash",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Counter of main operation",
+                        "name": "counter",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "You can set network field for better performance",
+                        "name": "network",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/operation.OPG"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/contract/{network}/{address}/same": {
             "get": {
                 "description": "Get same contracts",
@@ -2401,6 +2470,28 @@ const docTemplate = `{
                         "description": "Offset",
                         "name": "offset",
                         "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "level",
+                            "timestamp",
+                            "links_count",
+                            "address"
+                        ],
+                        "type": "string",
+                        "description": "Order by",
+                        "name": "order_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "sort",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2409,7 +2500,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.GlobalConstant"
+                                "$ref": "#/definitions/contract.ListGlobalConstantItem"
                             }
                         }
                     },
@@ -2471,6 +2562,82 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.GlobalConstant"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/global_constants/{network}/{address}/contracts": {
+            "get": {
+                "description": "Get contracts that use the global constant",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "global-constants"
+                ],
+                "summary": "Get contracts that use the global constant",
+                "operationId": "get-global-constant-contracts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 54,
+                        "minLength": 54,
+                        "type": "string",
+                        "description": "expr address of constant",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Constants count",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.Contract"
+                            }
                         }
                     },
                     "400": {
@@ -3757,6 +3924,23 @@ const docTemplate = `{
                 }
             }
         },
+        "contract.ListGlobalConstantItem": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "links_count": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
         "contract_metadata.Event": {
             "type": "object",
             "properties": {
@@ -4126,6 +4310,100 @@ const docTemplate = `{
                 "timestamp": {
                     "type": "string",
                     "example": "2018-06-30T18:05:27Z"
+                }
+            }
+        },
+        "handlers.Contract": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "alias": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "annotations": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-nullable": true
+                },
+                "delegate": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "delegate_alias": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "entrypoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-nullable": true
+                },
+                "fail_strings": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-nullable": true
+                },
+                "found_by": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "hardcoded": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-nullable": true
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_action": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "manager": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "migrations_count": {
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "network": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-nullable": true
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "tx_count": {
+                    "type": "integer",
+                    "x-nullable": true
                 }
             }
         },
@@ -5381,6 +5659,41 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "volume": {
+                    "type": "integer"
+                }
+            }
+        },
+        "operation.OPG": {
+            "type": "object",
+            "properties": {
+                "content_index": {
+                    "type": "integer"
+                },
+                "counter": {
+                    "type": "integer"
+                },
+                "entrypoint": {
+                    "type": "string"
+                },
+                "flow": {
+                    "type": "integer"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "internals": {
+                    "type": "integer"
+                },
+                "last_id": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "total_cost": {
                     "type": "integer"
                 }
             }

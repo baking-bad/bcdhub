@@ -256,6 +256,105 @@ func GetOperationDiff() gin.HandlerFunc {
 	}
 }
 
+// GetOperationGroups -
+// @Summary Get operation groups by account
+// @Description Get operation groups by account
+// @Tags operations
+// @ID get-operation-groups-by-account
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param last_id query string false "Last operation ID"
+// @Param size query integer false "Expected OPG count" mininum(1)
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} operation.OPG
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/contract/{network}/{address}/opg [get]
+func GetOperationGroups() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getAccountRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
+
+		var args opgForAddressRequest
+		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		opg, err := ctx.Operations.OPG(req.Address, int64(args.Size), args.LastID)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, opg)
+	}
+}
+
+// GetByHashAndCounter -
+// @Summary Get operations by hash and counter
+// @Description Get operations by hash and counter
+// @Tags operations
+// @ID get-operationsby-hash-and-counter
+// @Param hash path string true "Operation group hash"  minlength(51) maxlength(51)
+// @Param counter path integer true "Counter of main operation"
+// @Param network query string false "You can set network field for better performance"
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} operation.OPG
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/contract/{network}/{address}/opg [get]
+func GetByHashAndCounter() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctxs := c.MustGet("contexts").(config.Contexts)
+
+		var req OperationGroupContentRequest
+		if err := c.BindUri(&req); handleError(c, ctxs.Any().Storage, err, http.StatusNotFound) {
+			return
+		}
+
+		var args networkQueryRequest
+		if err := c.BindQuery(&args); handleError(c, ctxs.Any().Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		var opg []operation.Operation
+		var foundContext *config.Context
+
+		ctx, err := ctxs.Get(modelTypes.NewNetwork(args.Network))
+		if err == nil {
+			opg, err = ctx.Operations.GetByHashAndCounter(req.Hash, req.Counter)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			foundContext = ctx
+		}
+
+		for _, ctx := range ctxs {
+			opg, err = ctx.Operations.GetByHashAndCounter(req.Hash, req.Counter)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			if len(opg) > 0 {
+				foundContext = ctx
+				break
+			}
+		}
+
+		resp, err := PrepareOperations(foundContext, opg, false)
+		if handleError(c, foundContext.Storage, err, 0) {
+			return
+		}
+
+		c.SecureJSON(http.StatusOK, resp)
+	}
+}
+
 func getOperationFromMempool(ctx *config.Context, hash string) (*Operation, error) {
 	res, err := ctx.Mempool.GetByHash(hash)
 	if err != nil {

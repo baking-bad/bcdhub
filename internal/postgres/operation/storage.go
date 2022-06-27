@@ -322,6 +322,63 @@ func (storage *Storage) GetDAppStats(addresses []string, period string) (stats o
 	return
 }
 
+// OPG -
+func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG, error) {
+	var accountID int64
+	if err := storage.DB.Model((*account.Account)(nil)).
+		Column("id").
+		Where("address = ?", address).
+		Select(&accountID); err != nil {
+		return nil, err
+	}
+
+	limit := storage.GetPageSize(size)
+
+	subQuery := storage.DB.Model(new(operation.Operation)).
+		Column("id", "hash", "counter").
+		Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID).
+		Order("id desc").
+		Limit(1000)
+
+	if lastID > 0 {
+		subQuery.Where("id < ?", lastID)
+	}
+
+	var opg []operation.OPG
+	_, err := storage.DB.Query(&opg, `
+		select ta.last_id, 
+			ta.counter,
+			(select sum(case when source_id = ? then -"amount" else "amount" end) as "flow"
+			from operations
+			where hash = ta.hash and counter = ta.counter) as "flow",
+			(select sum(internal::integer) as internals
+			from operations
+			where hash = ta.hash and counter = ta.counter),
+			(select sum("burned") + sum("fee") as total_cost
+			from operations
+			where hash = ta.hash and counter = ta.counter),
+			ta.hash, operations.level, operations.timestamp, operations.entrypoint, operations.content_index from (
+			select min(id) as last_id, hash, counter from (?) as t
+			group by hash, counter
+			order by last_id desc
+			limit ?
+		) as ta
+		join operations on operations.id = ta.last_id
+	`, accountID, subQuery, limit)
+	return opg, err
+}
+
+// GetByHashAndCounter -
+func (storage *Storage) GetByHashAndCounter(hash string, counter int64) ([]operation.Operation, error) {
+	var operations []operation.Operation
+	err := storage.DB.Model((*operation.Operation)(nil)).
+		Where("hash = ?", hash).
+		Where("counter = ?", counter).
+		Order("id asc").
+		Select(&operations)
+	return operations, err
+}
+
 func getDAppQuery(db pg.DBI, ids []int64, period string) (*orm.Query, error) {
 	query := db.Model((*operation.Operation)(nil)).
 		Where("status = ?", types.OperationStatusApplied)
