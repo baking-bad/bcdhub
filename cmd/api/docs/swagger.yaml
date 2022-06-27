@@ -82,6 +82,17 @@ definitions:
       value:
         type: string
     type: object
+  contract.ListGlobalConstantItem:
+    properties:
+      address:
+        type: string
+      level:
+        type: integer
+      links_count:
+        type: integer
+      timestamp:
+        type: string
+    type: object
   contract_metadata.Event:
     properties:
       description:
@@ -331,6 +342,73 @@ definitions:
       timestamp:
         example: "2018-06-30T18:05:27Z"
         type: string
+    type: object
+  handlers.Contract:
+    properties:
+      address:
+        type: string
+      alias:
+        type: string
+        x-nullable: true
+      annotations:
+        items:
+          type: string
+        type: array
+        x-nullable: true
+      delegate:
+        type: string
+        x-nullable: true
+      delegate_alias:
+        type: string
+        x-nullable: true
+      entrypoints:
+        items:
+          type: string
+        type: array
+        x-nullable: true
+      fail_strings:
+        items:
+          type: string
+        type: array
+        x-nullable: true
+      found_by:
+        type: string
+        x-nullable: true
+      hardcoded:
+        items:
+          type: string
+        type: array
+        x-nullable: true
+      hash:
+        type: string
+      id:
+        type: integer
+      last_action:
+        type: string
+        x-nullable: true
+      level:
+        type: integer
+      manager:
+        type: string
+        x-nullable: true
+      migrations_count:
+        type: integer
+        x-nullable: true
+      network:
+        type: string
+      slug:
+        type: string
+        x-nullable: true
+      tags:
+        items:
+          type: string
+        type: array
+        x-nullable: true
+      timestamp:
+        type: string
+      tx_count:
+        type: integer
+        x-nullable: true
     type: object
   handlers.ContractWithStats:
     properties:
@@ -1206,6 +1284,29 @@ definitions:
       users:
         type: integer
       volume:
+        type: integer
+    type: object
+  operation.OPG:
+    properties:
+      content_index:
+        type: integer
+      counter:
+        type: integer
+      entrypoint:
+        type: string
+      flow:
+        type: integer
+      hash:
+        type: string
+      internals:
+        type: integer
+      last_id:
+        type: integer
+      level:
+        type: integer
+      timestamp:
+        type: string
+      total_cost:
         type: integer
     type: object
   search.Group:
@@ -2327,6 +2428,53 @@ paths:
       summary: Get contract operations
       tags:
       - contract
+  /v1/contract/{network}/{address}/opg:
+    get:
+      consumes:
+      - application/json
+      description: Get operations by hash and counter
+      operationId: get-operationsby-hash-and-counter
+      parameters:
+      - description: Operation group hash
+        in: path
+        maxLength: 51
+        minLength: 51
+        name: hash
+        required: true
+        type: string
+      - description: Counter of main operation
+        in: path
+        name: counter
+        required: true
+        type: integer
+      - description: You can set network field for better performance
+        in: query
+        name: network
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/operation.OPG'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get operations by hash and counter
+      tags:
+      - operations
   /v1/contract/{network}/{address}/same:
     get:
       consumes:
@@ -2896,6 +3044,22 @@ paths:
         in: query
         name: offset
         type: integer
+      - description: Order by
+        enum:
+        - level
+        - timestamp
+        - links_count
+        - address
+        in: query
+        name: order_by
+        type: string
+      - description: Sort order
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sort
+        type: string
       produces:
       - application/json
       responses:
@@ -2903,7 +3067,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.GlobalConstant'
+              $ref: '#/definitions/contract.ListGlobalConstantItem'
             type: array
         "400":
           description: Bad Request
@@ -2959,6 +3123,58 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Get global constant
+      tags:
+      - global-constants
+  /v1/global_constants/{network}/{address}/contracts:
+    get:
+      consumes:
+      - application/json
+      description: Get contracts that use the global constant
+      operationId: get-global-constant-contracts
+      parameters:
+      - description: network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: expr address of constant
+        in: path
+        maxLength: 54
+        minLength: 54
+        name: address
+        required: true
+        type: string
+      - description: Constants count
+        in: query
+        maximum: 10
+        name: size
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.Contract'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get contracts that use the global constant
       tags:
       - global-constants
   /v1/head:

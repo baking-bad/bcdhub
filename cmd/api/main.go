@@ -91,7 +91,11 @@ func (api *app) makeRouter() {
 
 		v1.GET("head", handlers.ContextsMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHead()))
 		v1.GET("head/:network", handlers.NetworkMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHeadByNetwork()))
-		v1.GET("opg/:hash", handlers.ContextsMiddleware(api.Contexts), handlers.GetOperation())
+		opg := v1.Group("opg/:hash")
+		{
+			opg.GET("", handlers.ContextsMiddleware(api.Contexts), handlers.GetOperation())
+			opg.GET(":counter", handlers.ContextsMiddleware(api.Contexts), handlers.GetByHashAndCounter())
+		}
 		v1.GET("search", handlers.ContextsMiddleware(api.Contexts), handlers.Search())
 		v1.POST("json_schema", handlers.MainnetMiddleware(api.Contexts), handlers.JSONSchema())
 		v1.POST("fork", handlers.ForkContract(api.Contexts))
@@ -143,6 +147,7 @@ func (api *app) makeRouter() {
 			contract.GET("", handlers.ContextsMiddleware(api.Contexts), handlers.GetContract())
 			contract.GET("code", handlers.GetContractCode())
 			contract.GET("operations", handlers.GetContractOperations())
+			contract.GET("opg", handlers.GetOperationGroups())
 			contract.GET("migrations", handlers.GetContractMigrations())
 			contract.GET("transfers", handlers.GetContractTransfers())
 			contract.GET("global_constants", handlers.GetContractGlobalConstants())
