@@ -790,3 +790,37 @@ type CodeFromMichelsonStorage struct {
 	Schema       *ast.JSONSchema `json:"schema"`
 	DefaultModel ast.JSONModel   `json:"default_model,omitempty" extensions:"x-nullable"`
 }
+
+// OPGResponse -
+type OPGResponse struct {
+	LastID       int64     `json:"last_id"`
+	ContentIndex int64     `json:"content_index"`
+	Counter      int64     `json:"counter"`
+	Level        int64     `json:"level"`
+	TotalCost    int64     `json:"total_cost"`
+	Flow         int64     `json:"flow"`
+	Internals    int       `json:"internals"`
+	Hash         string    `json:"hash"`
+	Entrypoint   string    `json:"entrypoint"`
+	Timestamp    time.Time `json:"timestamp"`
+	Status       string    `json:"status"`
+	Kind         string    `json:"kind"`
+}
+
+// NewOPGResponse -
+func NewOPGResponse(opg operation.OPG) OPGResponse {
+	return OPGResponse{
+		LastID:       opg.LastID,
+		ContentIndex: opg.ContentIndex,
+		Counter:      opg.Counter,
+		Level:        opg.Level,
+		TotalCost:    opg.TotalCost,
+		Flow:         opg.Flow,
+		Internals:    opg.Internals,
+		Hash:         opg.Hash,
+		Entrypoint:   opg.Entrypoint,
+		Timestamp:    opg.Timestamp,
+		Status:       opg.Status.String(),
+		Kind:         opg.Kind.String(),
+	}
+}

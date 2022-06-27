@@ -1,6 +1,10 @@
 package operation
 
-import "time"
+import (
+	"time"
+
+	"github.com/baking-bad/bcdhub/internal/models/types"
+)
 
 // DAppStats -
 type DAppStats struct {
@@ -11,14 +15,16 @@ type DAppStats struct {
 
 // OPG -
 type OPG struct {
-	LastID       int64     `json:"last_id"`
-	ContentIndex int64     `json:"content_index"`
-	Counter      int64     `json:"counter"`
-	Level        int64     `json:"level"`
-	TotalCost    int64     `json:"total_cost"`
-	Flow         int64     `json:"flow"`
-	Internals    int       `json:"internals"`
-	Hash         string    `json:"hash"`
-	Entrypoint   string    `json:"entrypoint"`
-	Timestamp    time.Time `json:"timestamp"`
+	LastID       int64
+	ContentIndex int64
+	Counter      int64
+	Level        int64
+	TotalCost    int64
+	Flow         int64
+	Internals    int
+	Hash         string
+	Entrypoint   string
+	Timestamp    time.Time
+	Status       types.OperationStatus
+	Kind         types.OperationKind
 }

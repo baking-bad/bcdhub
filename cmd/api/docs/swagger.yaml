@@ -612,6 +612,33 @@ definitions:
         example: 100
         type: integer
     type: object
+  handlers.OPGResponse:
+    properties:
+      content_index:
+        type: integer
+      counter:
+        type: integer
+      entrypoint:
+        type: string
+      flow:
+        type: integer
+      hash:
+        type: string
+      internals:
+        type: integer
+      kind:
+        type: string
+      last_id:
+        type: integer
+      level:
+        type: integer
+      status:
+        type: string
+      timestamp:
+        type: string
+      total_cost:
+        type: integer
+    type: object
   handlers.Operation:
     properties:
       allocated_destination_contract:
@@ -1290,7 +1317,7 @@ definitions:
     type: object
   operation.OPG:
     properties:
-      content_index:
+      contentIndex:
         type: integer
       counter:
         type: integer
@@ -1302,13 +1329,17 @@ definitions:
         type: string
       internals:
         type: integer
-      last_id:
+      kind:
+        type: integer
+      lastID:
         type: integer
       level:
         type: integer
+      status:
+        type: integer
       timestamp:
         type: string
-      total_cost:
+      totalCost:
         type: integer
     type: object
   search.Group:
@@ -2464,7 +2495,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/operation.OPG'
+              $ref: '#/definitions/handlers.OPGResponse'
             type: array
         "400":
           description: Bad Request

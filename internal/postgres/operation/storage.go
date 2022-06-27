@@ -335,7 +335,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 	limit := storage.GetPageSize(size)
 
 	subQuery := storage.DB.Model(new(operation.Operation)).
-		Column("id", "hash", "counter").
+		Column("id", "hash", "counter", "status", "kind").
 		Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID).
 		Order("id desc").
 		Limit(1000)
@@ -346,8 +346,11 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 
 	var opg []operation.OPG
 	_, err := storage.DB.Query(&opg, `
-		select ta.last_id, 
+		select 
+			ta.last_id, 
+			ta.status,
 			ta.counter,
+			ta.kind,
 			(select sum(case when source_id = ? then -"amount" else "amount" end) as "flow"
 			from operations
 			where hash = ta.hash and counter = ta.counter) as "flow",
@@ -358,7 +361,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			from operations
 			where hash = ta.hash and counter = ta.counter),
 			ta.hash, operations.level, operations.timestamp, operations.entrypoint, operations.content_index from (
-			select min(id) as last_id, hash, counter from (?) as t
+			select min(id) as last_id, hash, counter, max(status) as status, max(kind) as kind from (?) as t
 			group by hash, counter
 			order by last_id desc
 			limit ?

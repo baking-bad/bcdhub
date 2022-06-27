@@ -267,7 +267,7 @@ func GetOperationDiff() gin.HandlerFunc {
 // @Param size query integer false "Expected OPG count" mininum(1)
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} operation.OPG
+// @Success 200 {array} OPGResponse
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
@@ -290,7 +290,12 @@ func GetOperationGroups() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		c.SecureJSON(http.StatusOK, opg)
+
+		response := make([]OPGResponse, len(opg))
+		for i := range opg {
+			response[i] = NewOPGResponse(opg[i])
+		}
+		c.SecureJSON(http.StatusOK, response)
 	}
 }
 

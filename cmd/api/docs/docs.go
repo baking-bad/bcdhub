@@ -1615,7 +1615,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/operation.OPG"
+                                "$ref": "#/definitions/handlers.OPGResponse"
                             }
                         }
                     },
@@ -4778,6 +4778,47 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.OPGResponse": {
+            "type": "object",
+            "properties": {
+                "content_index": {
+                    "type": "integer"
+                },
+                "counter": {
+                    "type": "integer"
+                },
+                "entrypoint": {
+                    "type": "string"
+                },
+                "flow": {
+                    "type": "integer"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "internals": {
+                    "type": "integer"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "last_id": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "total_cost": {
+                    "type": "integer"
+                }
+            }
+        },
         "handlers.Operation": {
             "type": "object",
             "properties": {
@@ -5744,7 +5785,7 @@ const docTemplate = `{
         "operation.OPG": {
             "type": "object",
             "properties": {
-                "content_index": {
+                "contentIndex": {
                     "type": "integer"
                 },
                 "counter": {
@@ -5762,16 +5803,22 @@ const docTemplate = `{
                 "internals": {
                     "type": "integer"
                 },
-                "last_id": {
+                "kind": {
+                    "type": "integer"
+                },
+                "lastID": {
                     "type": "integer"
                 },
                 "level": {
                     "type": "integer"
                 },
+                "status": {
+                    "type": "integer"
+                },
                 "timestamp": {
                     "type": "string"
                 },
-                "total_cost": {
+                "totalCost": {
                     "type": "integer"
                 }
             }
