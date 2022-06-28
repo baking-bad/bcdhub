@@ -104,7 +104,7 @@ func GetEntrypointData() gin.HandlerFunc {
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
-			c.Data(http.StatusOK, gin.MIMEPlain, []byte(michelson))
+			c.SecureJSON(http.StatusOK, michelson)
 			return
 		}
 
