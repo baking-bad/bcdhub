@@ -130,6 +130,7 @@ func fillTypeValidator() validator.Func {
 		return helpers.StringInArray(fillType, []string{
 			"empty",
 			"current",
+			"initial",
 		})
 	}
 }

@@ -1966,7 +1966,8 @@ const docTemplate = `{
                     {
                         "enum": [
                             "empty",
-                            "current"
+                            "current",
+                            "initial"
                         ],
                         "type": "string",
                         "description": "Fill storage type",
@@ -2998,7 +2999,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/operation.OPG"
+                                "$ref": "#/definitions/handlers.Operation"
                             }
                         }
                     },
@@ -5778,47 +5779,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "volume": {
-                    "type": "integer"
-                }
-            }
-        },
-        "operation.OPG": {
-            "type": "object",
-            "properties": {
-                "contentIndex": {
-                    "type": "integer"
-                },
-                "counter": {
-                    "type": "integer"
-                },
-                "entrypoint": {
-                    "type": "string"
-                },
-                "flow": {
-                    "type": "integer"
-                },
-                "hash": {
-                    "type": "string"
-                },
-                "internals": {
-                    "type": "integer"
-                },
-                "kind": {
-                    "type": "integer"
-                },
-                "lastID": {
-                    "type": "integer"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "totalCost": {
                     "type": "integer"
                 }
             }
