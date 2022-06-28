@@ -1315,33 +1315,6 @@ definitions:
       volume:
         type: integer
     type: object
-  operation.OPG:
-    properties:
-      contentIndex:
-        type: integer
-      counter:
-        type: integer
-      entrypoint:
-        type: string
-      flow:
-        type: integer
-      hash:
-        type: string
-      internals:
-        type: integer
-      kind:
-        type: integer
-      lastID:
-        type: integer
-      level:
-        type: integer
-      status:
-        type: integer
-      timestamp:
-        type: string
-      totalCost:
-        type: integer
-    type: object
   search.Group:
     properties:
       count:
@@ -2734,6 +2707,7 @@ paths:
         enum:
         - empty
         - current
+        - initial
         in: query
         name: fill_type
         type: string
@@ -3436,7 +3410,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/operation.OPG'
+              $ref: '#/definitions/handlers.Operation'
             type: array
         "400":
           description: Bad Request

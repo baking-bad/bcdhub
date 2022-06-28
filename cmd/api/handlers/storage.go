@@ -199,7 +199,7 @@ func GetContractStorageRich() gin.HandlerFunc {
 // @ID get-contract-storage-schema
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
-// @Param fill_type query string false "Fill storage type" Enums(empty, current)
+// @Param fill_type query string false "Fill storage type" Enums(empty, current, initial)
 // @Accept json
 // @Produce json
 // @Success 200 {object} EntrypointSchema
@@ -238,7 +238,8 @@ func GetContractStorageSchema() gin.HandlerFunc {
 			return
 		}
 
-		if ssReq.FillType == "current" {
+		switch ssReq.FillType {
+		case "current":
 			storage, err := getDeffattedStorage(c, ctx, req.Address, 0)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
@@ -250,6 +251,19 @@ func GetContractStorageSchema() gin.HandlerFunc {
 
 			schema.DefaultModel = make(ast.JSONModel)
 			storageType.GetJSONModel(schema.DefaultModel)
+		case "initial":
+			storage, err := getInitialStorage(c, ctx, req.Address)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+
+			if err := storageType.SettleFromBytes(storage); handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+
+			schema.DefaultModel = make(ast.JSONModel)
+			storageType.GetJSONModel(schema.DefaultModel)
+		default:
 		}
 
 		c.SecureJSON(http.StatusOK, schema)
@@ -275,6 +289,25 @@ func getDeffattedStorage(c *gin.Context, ctx *config.Context, address string, le
 	}
 	if len(operation.DeffatedStorage) == 0 || ctx.Storage.IsRecordNotFound(err) {
 		return ctx.RPC.GetScriptStorageRaw(c, address, level)
+	}
+	return operation.DeffatedStorage, nil
+
+}
+
+func getInitialStorage(c *gin.Context, ctx *config.Context, address string) ([]byte, error) {
+	destination, err := ctx.Accounts.Get(address)
+	if err != nil {
+		return nil, err
+	}
+
+	filters := map[string]interface{}{
+		"destination_id": destination.ID,
+		"status":         types.OperationStatusApplied,
+		"kind":           types.OperationKindOrigination,
+	}
+	operation, err := ctx.Operations.Last(filters, 0)
+	if err != nil && !ctx.Storage.IsRecordNotFound(err) {
+		return nil, err
 	}
 	return operation.DeffatedStorage, nil
 
