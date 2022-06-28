@@ -289,9 +289,9 @@ type BigMapDiff struct {
 
 // RunCodeResponse -
 type RunCodeResponse struct {
-	Operations  []Operation        `json:"operations"`
-	Storage     stdJSON.RawMessage `json:"storage"`
-	BigMapDiffs []BigMapDiff       `json:"big_map_diff,omitempty"`
+	Operations       []Operation        `json:"operations"`
+	Storage          stdJSON.RawMessage `json:"storage"`
+	LazyStorageDiffs []LazyStorageDiff  `json:"lazy_storage_diff,omitempty"`
 }
 
 // RunCodeError -
