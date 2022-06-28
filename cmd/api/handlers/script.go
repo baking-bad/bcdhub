@@ -47,7 +47,7 @@ func getStorageType(ctx *config.Context, address, symLink string) (*ast.TypedAst
 }
 
 func getSymLink(network types.Network) string {
-	if network == types.Jakartanet {
+	if network == types.Jakartanet || network == types.Ithacanet {
 		return bcd.SymLinkJakarta
 	}
 	return bcd.SymLinkBabylon
