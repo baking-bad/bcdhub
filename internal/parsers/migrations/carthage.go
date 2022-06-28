@@ -71,3 +71,8 @@ func (p *Carthage) Parse(script noderpc.Script, old *modelsContract.Contract, pr
 
 	return m.Save(tx)
 }
+
+// IsMigratable -
+func (p *Carthage) IsMigratable(address string) bool {
+	return true
+}

@@ -70,3 +70,8 @@ func (p *Alpha) Parse(script noderpc.Script, old *modelsContract.Contract, previ
 
 	return m.Save(tx)
 }
+
+// IsMigratable -
+func (p *Alpha) IsMigratable(address string) bool {
+	return true
+}

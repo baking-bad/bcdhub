@@ -80,6 +80,11 @@ func (p *Babylon) Parse(script noderpc.Script, old *modelsContract.Contract, pre
 	return m.Save(tx)
 }
 
+// IsMigratable -
+func (p *Babylon) IsMigratable(address string) bool {
+	return true
+}
+
 func (p *Babylon) getUpdates(script noderpc.Script, contract modelsContract.Contract, tx pg.DBI) error {
 	storage, err := script.GetSettledStorage()
 	if err != nil {

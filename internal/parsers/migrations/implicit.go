@@ -51,6 +51,11 @@ func (p *ImplicitParser) Parse(ctx context.Context, metadata noderpc.Metadata, h
 	return nil
 }
 
+// IsMigratable -
+func (p *ImplicitParser) IsMigratable(address string) bool {
+	return true
+}
+
 func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.ImplicitOperationsResult, head noderpc.Header, store parsers.Store) error {
 	origination := operation.Operation{
 		ProtocolID: p.protocol.ID,

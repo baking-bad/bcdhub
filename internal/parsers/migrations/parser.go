@@ -12,4 +12,5 @@ import (
 // Parser -
 type Parser interface {
 	Parse(script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx pg.DBI) error
+	IsMigratable(address string) bool
 }
