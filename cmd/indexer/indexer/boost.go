@@ -469,18 +469,12 @@ func (bi *BlockchainIndexer) standartMigration(ctx context.Context, newProtocol 
 	}
 
 	for i := range contracts {
-		if !specific.MigrationParser.IsMigratable(contracts[i].Account.Address) {
-			switch newProtocol.SymLink {
-			case bcd.SymLinkBabylon:
-				_, err = bi.StorageDB.DB.Model((*contract.Contract)(nil)).
-					Set("babylon_id = alpha_id").
-					WherePK().
-					Update(&contracts[i])
-			case bcd.SymLinkJakarta:
-				_, err = bi.StorageDB.DB.Model((*contract.Contract)(nil)).
-					Set("jakarta_id = babylon_id").
-					WherePK().
-					Update(&contracts[i])
+		if !specific.MigrationParser.IsMigratable(contracts[i].Account.Address) && newProtocol.SymLink == bcd.SymLinkJakarta {
+			if _, err = bi.StorageDB.DB.Model(&contracts[i]).
+				Set("jakarta_id = babylon_id").
+				WherePK().
+				Update(&contracts[i]); err != nil {
+				return err
 			}
 			continue
 		}
