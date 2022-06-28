@@ -288,9 +288,9 @@ func parseBigMapDiffs(c *gin.Context, ctx *config.Context, response noderpc.RunC
 		Delegate:     operation.Delegate,
 
 		Result: &noderpc.OperationResult{
-			Status:      consts.Applied,
-			Storage:     response.Storage,
-			BigMapDiffs: response.BigMapDiffs,
+			Status:          consts.Applied,
+			Storage:         response.Storage,
+			LazyStorageDiff: response.LazyStorageDiffs,
 		},
 	}
 
