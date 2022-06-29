@@ -2,6 +2,7 @@ package translator
 
 import (
 	"io/ioutil"
+	"regexp"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/yhirose/go-peg"
@@ -57,6 +58,8 @@ func (c Converter) FromFile(filename string) (string, error) {
 func (c Converter) FromString(input string) (string, error) {
 	c.trace()
 
+	input = removeComments(input)
+
 	ast, err := c.parser.ParseAndGetAst(input, nil)
 	if err != nil {
 		return "", err
@@ -84,4 +87,12 @@ func readFileToString(filename string) (string, error) {
 		return "", err
 	}
 	return string(data), nil
+}
+
+var oneLineComment = regexp.MustCompile("#[^\n]*")
+var multiLineComment = regexp.MustCompile(`\/\*[^\*]*\*/`)
+
+func removeComments(data string) string {
+	data = oneLineComment.ReplaceAllString(data, "")
+	return multiLineComment.ReplaceAllString(data, "")
 }
