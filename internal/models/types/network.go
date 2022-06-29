@@ -23,6 +23,7 @@ const (
 	Hangzhou2net
 	Ithacanet
 	Jakartanet
+	Ghostnet
 )
 
 var networkNames = map[Network]string{
@@ -37,6 +38,7 @@ var networkNames = map[Network]string{
 	Hangzhou2net: "hangzhou2net",
 	Ithacanet:    "ithacanet",
 	Jakartanet:   "jakartanet",
+	Ghostnet:     "ghostnet",
 }
 
 var namesToNetwork = map[string]Network{
@@ -51,6 +53,7 @@ var namesToNetwork = map[string]Network{
 	"hangzhou2net": Hangzhou2net,
 	"ithacanet":    Ithacanet,
 	"jakartanet":   Jakartanet,
+	"ghostnet":     Ghostnet,
 }
 
 // String - convert enum to string for printing

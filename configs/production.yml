@@ -3,8 +3,8 @@ rpc:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
     requests_per_second: 15
-  ithacanet:
-    uri: https://rpc.tzkt.io/ithacanet
+  ghostnet:
+    uri: https://rpc.tzkt.io/ghostnet
     timeout: 20
     requests_per_second: 10
   jakartanet:
@@ -20,7 +20,7 @@ tzkt:
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-  ithacanet:
+  ghostnet:
     mempool: https://mempool.dipdup.net/v1/graphql
   jakartanet:
     mempool: https://mempool.dipdup.net/v1/graphql
@@ -65,11 +65,11 @@ api:
     sandbox_mode: false
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
-      ithacanet: https://rpc.tzkt.io/ithacanet
+      ghostnet: https://rpc.tzkt.io/ghostnet
       jakartanet: https://rpc.tzkt.io/jakartanet
   networks:
     - mainnet
-    - ithacanet
+    - ghostnet
     - jakartanet
   connections:
     max: 50
@@ -83,7 +83,7 @@ indexer:
   networks:
     mainnet:
       receiver_threads: ${MAINNET_THREADS:-1}
-    ithacanet:
+    ghostnet:
       receiver_threads: ${TESTNET_THREADS:-1}
     jakartanet:
       receiver_threads: ${TESTNET_THREADS:-1}
@@ -97,7 +97,7 @@ metrics:
   cache_aliases_seconds: 30
   networks:
     - mainnet
-    - ithacanet
+    - ghostnet
     - jakartanet
   connections:
     max: 20
@@ -111,7 +111,7 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - ithacanet
+    - ghostnet
     - jakartanet
   connections:
     max: 5
