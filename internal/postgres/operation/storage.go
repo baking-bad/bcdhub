@@ -336,7 +336,11 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 
 	subQuery := storage.DB.Model(new(operation.Operation)).
 		Column("id", "hash", "counter", "status", "kind").
-		Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID).
+		WhereGroup(
+			func(q *orm.Query) (*orm.Query, error) {
+				return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
+			},
+		).
 		Order("id desc").
 		Limit(1000)
 
