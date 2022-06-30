@@ -10,8 +10,6 @@ type Repository interface {
 	GetTokens(tokenInterface string, offset, size int64) ([]Contract, int64, error)
 	RecentlyCalled(offset, size int64) ([]Contract, error)
 
-	SameCount(c Contract) (int, error)
-
 	Script(address string, symLink string) (Script, error)
 
 	// ScriptPart - returns part of script type. Part can be `storage`, `parameter` or `code`.

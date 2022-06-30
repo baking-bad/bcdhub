@@ -11,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata/tokens"
-	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
 )
 
@@ -78,9 +77,6 @@ func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []domains.BigM
 
 	logger.Info().Str("network", tm.Network.String()).Msgf("%3d token metadata are processed", len(updates))
 
-	if err := search.Save(ctx, tm.Searcher, tm.Network, updates); err != nil {
-		return err
-	}
 	return save(ctx, tm.StorageDB.DB, updates)
 }
 

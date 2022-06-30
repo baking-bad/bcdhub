@@ -7,19 +7,19 @@ BACKUP?=dump_latest.gz
 .ONESHELL:
 
 api:
-	docker-compose up -d elastic db
+	docker-compose up -d db
 	cd cmd/api && go run .
 
 api-tester:
-	docker-compose up -d elastic db
+	docker-compose up -d db
 	cd scripts/api_tester && go run .
 
 indexer:
-	docker-compose up -d elastic db
+	docker-compose up -d db
 	cd cmd/indexer && go run .
 
 metrics:
-	docker-compose up -d elastic db
+	docker-compose up -d db
 	cd cmd/metrics && go run .
 
 seo:
@@ -61,14 +61,6 @@ endif
 	gunzip -dc $(LATEST_DUMP) | docker-compose exec -T db psql -U $(POSTGRES_USER) -v ON_ERROR_STOP=on $(POSTGRES_DB)
 	rm $(LATEST_DUMP)
 
-s3-es-restore:
-	echo "Elasticsearch restore..."
-ifeq ($(BCD_ENV), development)
-	cd scripts/bcdctl && go run . restore
-else
-	docker-compose exec api bcdctl restore
-endif
-
 s3-db-snapshot:
 	echo "Database snapshot..."
 	docker-compose exec db pg_dump $(POSTGRES_DB) --create -U $(POSTGRES_USER) | gzip -c > $(LATEST_DUMP)	
@@ -77,14 +69,6 @@ s3-db-snapshot:
 s3-list:
 	echo "Database snapshots"
 	aws s3 ls --profile bcd s3://bcd-db-snaps
-
-	echo "Elasticsearch snapshots"
-	aws s3 ls --profile bcd s3://bcd-elastic-snapshots
-
-es-reset:
-	docker-compose rm -s -v -f elastic || true
-	docker volume rm $$(docker volume ls -q | grep esdata | grep $$COMPOSE_PROJECT_NAME) || true
-	docker-compose up -d elastic
 
 test:
 	go test ./...

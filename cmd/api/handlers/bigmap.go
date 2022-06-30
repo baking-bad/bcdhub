@@ -12,7 +12,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -204,43 +203,18 @@ func GetBigMapKeys() gin.HandlerFunc {
 		}
 
 		var states []bigmapdiff.BigMapState
-		if pageReq.Search == "" {
-			keys, err := ctx.BigMapDiffs.Keys(bigmapdiff.GetContext{
-				Ptr:      &req.Ptr,
-				Size:     pageReq.Size,
-				Offset:   pageReq.Offset,
-				MaxLevel: pageReq.MaxLevel,
-				MinLevel: pageReq.MinLevel,
-			})
+		keys, err := ctx.BigMapDiffs.Keys(bigmapdiff.GetContext{
+			Ptr:      &req.Ptr,
+			Size:     pageReq.Size,
+			Offset:   pageReq.Offset,
+			MaxLevel: pageReq.MaxLevel,
+			MinLevel: pageReq.MinLevel,
+		})
 
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-			states = keys
-		} else {
-			searchResult, err := ctx.Searcher.BigMapDiffs(search.BigMapDiffSearchArgs{
-				Ptr:      &req.Ptr,
-				Network:  req.NetworkID(),
-				Query:    pageReq.Search,
-				Size:     pageReq.Size,
-				Offset:   pageReq.Offset,
-				MaxLevel: pageReq.MaxLevel,
-				MinLevel: pageReq.MinLevel,
-			})
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-
-			states = make([]bigmapdiff.BigMapState, len(searchResult))
-			for i := range searchResult {
-				state, err := ctx.BigMapDiffs.Current(searchResult[i].Key, req.Ptr)
-				if handleError(c, ctx.Storage, err, 0) {
-					return
-				}
-				state.Count = searchResult[i].Count
-				states[i] = state
-			}
+		if handleError(c, ctx.Storage, err, 0) {
+			return
 		}
+		states = keys
 
 		symLink, err := getCurrentSymLink(ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {

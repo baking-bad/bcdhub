@@ -31,25 +31,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Elastic
-
-      - name: Elastic image tags & labels
-        id: meta-elastic
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_BASE }}-elastic
-
-      - name: Elastic image build & push
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: build/elastic/Dockerfile
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: ${{ steps.meta-elastic.outputs.tags }}
-          labels: ${{ steps.meta-elastic.outputs.labels }}
-
       # DB
 
       # - name: DB image tags & labels

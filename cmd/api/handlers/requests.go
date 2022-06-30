@@ -108,17 +108,6 @@ type cursorRequest struct {
 	Size   int64  `form:"size" binding:"min=0,bcd_max_size=10"`
 }
 
-type searchRequest struct {
-	Text     string `form:"q" binding:"required,search"`
-	Fields   string `form:"f,omitempty"`
-	Networks string `form:"n,omitempty"`
-	Offset   uint   `form:"o,omitempty"`
-	DateFrom uint   `form:"s,omitempty"`
-	DateTo   uint   `form:"e,omitempty"`
-	Grouping uint   `form:"g,omitempty"`
-	Indices  string `form:"i,omitempty"`
-}
-
 // OPGRequest -
 type OPGRequest struct {
 	Hash string `uri:"hash" binding:"required,opg" example:"ooy4c6G2BZzybYEY3vRQ7WXGL63tFmamTeGTHdjUxhd6ckbSNnb"`
@@ -166,7 +155,6 @@ func (req getTokensByVersion) NetworkID() types.Network {
 
 type bigMapSearchRequest struct {
 	pageableRequest
-	Search   string `form:"q,omitempty" binding:"omitempty,search"`
 	MaxLevel *int64 `form:"max_level,omitempty" binding:"omitempty,gt_int64_ptr=MinLevel"`
 	MinLevel *int64 `form:"min_level,omitempty" binding:"omitempty"`
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
-	"github.com/baking-bad/bcdhub/internal/search"
 )
 
 // ContractMetadataHandler -
@@ -61,10 +60,6 @@ func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []domains.B
 	}
 
 	logger.Info().Str("network", cm.Network.String()).Msgf("%3d contract metadata are processed", len(updates))
-
-	if err := search.Save(ctx, cm.Searcher, cm.Network, updates); err != nil {
-		return err
-	}
 
 	return save(ctx, cm.StorageDB.DB, updates)
 }

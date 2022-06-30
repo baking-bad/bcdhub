@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/postgres/account"
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/postgres/contract"
@@ -85,16 +84,6 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		ctx.Services = service.NewStorage(conn)
 		ctx.Scripts = contractStorage
 	}
-}
-
-// WithSearch -
-func WithSearch(cfg StorageConfig) ContextOption {
-	return func(ctx *Context) {
-		searcher := elastic.WaitNew(cfg.Elastic, cfg.Timeout)
-		ctx.Searcher = searcher
-		ctx.Statistics = searcher
-	}
-
 }
 
 // WithConfigCopy -

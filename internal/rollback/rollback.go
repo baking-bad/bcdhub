@@ -18,7 +18,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
 )
@@ -26,7 +25,6 @@ import (
 // Manager -
 type Manager struct {
 	rpc           noderpc.INode
-	searcher      search.Searcher
 	storage       models.GeneralRepository
 	transfersRepo transfer.Repository
 	blockRepo     block.Repository
@@ -34,9 +32,9 @@ type Manager struct {
 }
 
 // NewManager -
-func NewManager(rpc noderpc.INode, searcher search.Searcher, storage models.GeneralRepository, blockRepo block.Repository, bmdRepo bigmapdiff.Repository, transfersRepo transfer.Repository) Manager {
+func NewManager(rpc noderpc.INode, storage models.GeneralRepository, blockRepo block.Repository, bmdRepo bigmapdiff.Repository, transfersRepo transfer.Repository) Manager {
 	return Manager{
-		rpc, searcher, storage, transfersRepo, blockRepo, bmdRepo,
+		rpc, storage, transfersRepo, blockRepo, bmdRepo,
 	}
 }
 
@@ -72,7 +70,7 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network
 			if err := rm.rollbackBigMapState(tx, level); err != nil {
 				return err
 			}
-			return rm.searcher.Rollback(network.String(), toLevel)
+			return nil
 		})
 		if err != nil {
 			return err

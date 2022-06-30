@@ -25,8 +25,6 @@ var migrationsList = []migrations.Migration{
 	&migrations.NFTMetadata{},
 	&migrations.TokenMetadataUnknown{},
 	&migrations.DefaultEntrypoint{},
-	&migrations.FixLostSearchContracts{},
-	&migrations.FixEntrypointSearch{},
 	&migrations.FindLostContracts{},
 	&migrations.BigMapStateCount{},
 }
@@ -52,7 +50,6 @@ func main() {
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions(),
-		config.WithSearch(cfg.Storage),
 	)
 	defer ctxs.Close()
 

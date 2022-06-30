@@ -83,7 +83,6 @@ type ServiceConfig struct {
 // StorageConfig -
 type StorageConfig struct {
 	Postgres PostgresConfig `yaml:"pg"`
-	Elastic  []string       `yaml:"elastic"`
 	Timeout  int            `yaml:"timeout"`
 }
 

@@ -50,7 +50,6 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network types.
 		network,
 		config.WithConfigCopy(cfg),
 		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle, true),
-		config.WithSearch(cfg.Storage),
 		config.WithRPC(cfg.RPC),
 	)
 	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
@@ -280,7 +279,7 @@ func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.RPC, bi.Searcher, bi.Storage, bi.Blocks, bi.BigMapDiffs, bi.Transfers)
+	manager := rollback.NewManager(bi.RPC, bi.Storage, bi.Blocks, bi.BigMapDiffs, bi.Transfers)
 	if err := manager.Rollback(ctx, bi.StorageDB.DB, bi.Network, bi.state, lastLevel); err != nil {
 		return err
 	}

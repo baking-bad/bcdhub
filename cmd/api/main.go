@@ -43,7 +43,6 @@ func newApp() *app {
 		Contexts: config.NewContexts(cfg, cfg.API.Networks,
 			config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize), cfg.API.Connections.Open, cfg.API.Connections.Idle, false),
 			config.WithRPC(cfg.RPC),
-			config.WithSearch(cfg.Storage),
 			config.WithMempool(cfg.Services),
 			config.WithLoadErrorDescriptions(),
 			config.WithConfigCopy(cfg)),
@@ -97,7 +96,6 @@ func (api *app) makeRouter() {
 			opg.GET(":counter", handlers.ContextsMiddleware(api.Contexts), handlers.GetByHashAndCounter())
 		}
 		v1.GET("implicit/:network/:counter", handlers.NetworkMiddleware(api.Contexts), handlers.GetImplicitOperation())
-		v1.GET("search", handlers.ContextsMiddleware(api.Contexts), handlers.Search())
 		v1.POST("off_chain_view", handlers.MainnetMiddleware(api.Contexts), handlers.OffChainView())
 		v1.POST("michelson", handlers.ContextsMiddleware(api.Contexts), handlers.CodeFromMichelson())
 		v1.POST("fork", handlers.ForkContract(api.Contexts))

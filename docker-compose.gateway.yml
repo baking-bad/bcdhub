@@ -1,19 +1,5 @@
 version: "3.6"
-services:
-  elastic:
-    image: ghcr.io/baking-bad/bcdhub-elastic:${TAG}
-    restart: always
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
-    environment:
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"  # CHANGEME: ElasticSearch RAM comsumption
-    logging: &bcd-logging
-      options:
-        max-size: 10m
-        max-file: "5"
-
+services: 
   db:
     image: postgres:14
     shm_size: 1g
@@ -25,7 +11,10 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - db:/var/lib/postgresql/data
-    logging: *bcd-logging
+    logging: &bcd-logging
+      options:
+        max-size: 10m
+        max-file: "5"
 
   api:
     restart: always
@@ -38,7 +27,6 @@ services:
       - PAGE_SIZE=100
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
-      - elastic
       - db
     ports:
       - 127.0.0.1:14000:14000
@@ -55,7 +43,6 @@ services:
       - POSTGRES_PASSWORD=root
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
-      - elastic
       - metrics
     volumes:
       - bcdshare:/etc/bcd
@@ -70,7 +57,6 @@ services:
       - POSTGRES_PASSWORD=root
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
-      - elastic
       - db
     volumes:
       - bcdshare:/etc/bcd

@@ -22,7 +22,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
@@ -58,8 +57,6 @@ type Context struct {
 	Domains          domains.Repository
 	Services         service.Repository
 	Scripts          contract.ScriptRepository
-
-	Searcher search.Searcher
 
 	Cache     *cache.Cache
 	Sanitizer *bluemonday.Policy

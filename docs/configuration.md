@@ -25,15 +25,6 @@ tzkt:
         timeout: 20
 ```
 
-#### `elastic`
-Elastic Search configuration
-```yml
-elastic:
-    uri:
-        - http://elastic:9200
-    timeout: 10
-```
-
 #### `db`
 PostgreSQL connection string
 ```yml

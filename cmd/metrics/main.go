@@ -11,10 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
-	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 var ctxs config.Contexts
@@ -39,15 +36,9 @@ func main() {
 		cfg, cfg.Metrics.Networks,
 		config.WithStorage(cfg.Storage, cfg.Metrics.ProjectName, 0, cfg.Metrics.Connections.Open, cfg.Metrics.Connections.Idle, false),
 		config.WithRPC(cfg.RPC),
-		config.WithSearch(cfg.Storage),
 		config.WithConfigCopy(cfg),
 	)
 	defer ctxs.Close()
-
-	if err := ctxs.Any().Searcher.CreateIndexes(); err != nil {
-		logger.Err(err)
-		return
-	}
 
 	workers := make([]services.Service, 0)
 
@@ -64,27 +55,6 @@ func main() {
 			"token_metadata",
 			ctx.Services,
 			services.NewTokenMetadataHandler(ctx),
-			time.Second*15,
-			bulkSize,
-		))
-		workers = append(workers, services.NewStorageBased[*operation.Operation](
-			"operations",
-			ctx.Services,
-			services.NewOperationsHandler(ctx),
-			time.Second*15,
-			bulkSize,
-		))
-		workers = append(workers, services.NewStorageBased[*contract.Contract](
-			"contracts",
-			ctx.Services,
-			services.NewContractsHandler(ctx),
-			time.Second*15,
-			bulkSize,
-		))
-		workers = append(workers, services.NewStorageBased[*bigmapdiff.BigMapDiff](
-			"big_map_diffs",
-			ctx.Services,
-			services.NewBigMapDiffHandler(ctx),
 			time.Second*15,
 			bulkSize,
 		))

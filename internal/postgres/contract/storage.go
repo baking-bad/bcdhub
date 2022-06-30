@@ -87,21 +87,6 @@ func (storage *Storage) GetTokens(tokenInterface string, offset, size int64) ([]
 	return contracts, int64(count), err
 }
 
-// SameCount -
-func (storage *Storage) SameCount(c contract.Contract) (int, error) {
-	query := storage.DB.Model((*contract.Contract)(nil))
-	if c.AlphaID > 0 {
-		query.WhereOr("alpha_id = ?", c.AlphaID)
-	}
-	if c.BabylonID > 0 {
-		query.WhereOr("babylon_id = ?", c.BabylonID)
-	}
-	if c.JakartaID > 0 {
-		query.WhereOr("jakarta_id = ?", c.JakartaID)
-	}
-	return query.Count()
-}
-
 // ByHash -
 func (storage *Storage) ByHash(hash string) (result contract.Script, err error) {
 	err = storage.DB.Model(&result).Where("hash = ?", hash).First()

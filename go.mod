@@ -5,9 +5,7 @@ go 1.18
 require (
 	github.com/aws/aws-sdk-go v1.36.1
 	github.com/btcsuite/btcutil v1.0.1
-	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/ebellocchia/go-base58 v0.1.0
-	github.com/elastic/go-elasticsearch/v7 v7.17.1
 	github.com/fatih/color v1.10.0
 	github.com/getsentry/sentry-go v0.5.1
 	github.com/gin-contrib/cache v1.1.0
