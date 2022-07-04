@@ -2740,6 +2740,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/implicit/{network}/{counter}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "operations"
+                ],
+                "summary": "Get implicit operation",
+                "operationId": "get-implicit-operation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Counter",
+                        "name": "counter",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.Operation"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/json_schema": {
             "post": {
                 "description": "Get JSON schema from micheline",
@@ -2921,6 +2981,18 @@ const docTemplate = `{
                         "type": "boolean",
                         "description": "Search operation in mempool or not",
                         "name": "with_mempool",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include storage diff to operations or not",
+                        "name": "with_storage_diff",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
                         "in": "query"
                     }
                 ],

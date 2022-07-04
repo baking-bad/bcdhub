@@ -181,7 +181,7 @@ func GetOperation() gin.HandlerFunc {
 // @Tags operations
 // @ID get-implicit-operation
 // @Param network path string true "Network"
-// @Param counter path interger true "Counter"
+// @Param counter path integer true "Counter"
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Operation
