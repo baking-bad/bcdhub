@@ -94,6 +94,21 @@ func (mr *MockRepositoryMockRecorder) GetByHashAndCounter(hash, counter interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByHashAndCounter", reflect.TypeOf((*MockRepository)(nil).GetByHashAndCounter), hash, counter)
 }
 
+// GetImplicitOperation mocks base method
+func (m *MockRepository) GetImplicitOperation(counter int64) (model.Operation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetImplicitOperation", counter)
+	ret0, _ := ret[0].(model.Operation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetImplicitOperation indicates an expected call of GetImplicitOperation
+func (mr *MockRepositoryMockRecorder) GetImplicitOperation(counter interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetImplicitOperation", reflect.TypeOf((*MockRepository)(nil).GetImplicitOperation), counter)
+}
+
 // OPG mocks base method
 func (m *MockRepository) OPG(address string, size, lastID int64) ([]model.OPG, error) {
 	m.ctrl.T.Helper()

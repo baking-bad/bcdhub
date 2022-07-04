@@ -86,6 +86,8 @@ func GetContractOperations() gin.HandlerFunc {
 // @ID get-opg
 // @Param hash path string true "Operation group hash"  minlength(51) maxlength(51)
 // @Param with_mempool query bool false "Search operation in mempool or not"
+// @Param with_storage_diff query bool false "Include storage diff to operations or not"
+// @Param network query string false "Network"
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Operation
@@ -110,19 +112,34 @@ func GetOperation() gin.HandlerFunc {
 
 		operations := make([]operation.Operation, 0)
 		var foundContext *config.Context
-		for _, ctx := range ctxs {
+
+		network := modelTypes.NewNetwork(queryReq.Network)
+		if ctx, ok := ctxs[network]; ok {
 			op, err := ctx.Operations.GetByHash(req.Hash)
 			if err != nil {
 				if !ctx.Storage.IsRecordNotFound(err) {
 					handleError(c, ctx.Storage, err, 0)
 					return
 				}
-				continue
-			}
-			operations = append(operations, op...)
-			if len(operations) > 0 {
+			} else {
 				foundContext = ctx
-				break
+				operations = append(operations, op...)
+			}
+		} else {
+			for _, ctx := range ctxs {
+				op, err := ctx.Operations.GetByHash(req.Hash)
+				if err != nil {
+					if !ctx.Storage.IsRecordNotFound(err) {
+						handleError(c, ctx.Storage, err, 0)
+						return
+					}
+					continue
+				}
+				operations = append(operations, op...)
+				if len(operations) > 0 {
+					foundContext = ctx
+					break
+				}
 			}
 		}
 
@@ -149,8 +166,45 @@ func GetOperation() gin.HandlerFunc {
 			return
 		}
 
-		resp, err := PrepareOperations(foundContext, operations, true)
+		resp, err := PrepareOperations(foundContext, operations, queryReq.WithStorageDiff)
 		if handleError(c, foundContext.Storage, err, 0) {
+			return
+		}
+
+		c.SecureJSON(http.StatusOK, resp)
+	}
+}
+
+// GetImplicitOperation godoc
+// @Summary Get implicit operation
+// @DescriptionGet implicit operation
+// @Tags operations
+// @ID get-implicit-operation
+// @Param network path string true "Network"
+// @Param counter path interger true "Counter"
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Operation
+// @Success 204 {object} gin.H
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/implicit/{network}/{counter} [get]
+func GetImplicitOperation() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req ImplicitOperationRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		op, err := ctx.Operations.GetImplicitOperation(req.Counter)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		resp, err := PrepareOperations(ctx, []operation.Operation{op}, false)
+		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 

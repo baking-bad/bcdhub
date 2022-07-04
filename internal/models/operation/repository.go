@@ -11,6 +11,7 @@ type Repository interface {
 	Last(filter map[string]interface{}, lastID int64) (Operation, error)
 	GetByHash(hash string) ([]Operation, error)
 	GetByHashAndCounter(hash string, counter int64) ([]Operation, error)
+	GetImplicitOperation(counter int64) (Operation, error)
 	OPG(address string, size, lastID int64) ([]OPG, error)
 
 	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
