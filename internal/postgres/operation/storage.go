@@ -387,6 +387,18 @@ func (storage *Storage) GetByHashAndCounter(hash string, counter int64) ([]opera
 	return operations, err
 }
 
+// GetImplicitOperation -
+func (storage *Storage) GetImplicitOperation(counter int64) (operation.Operation, error) {
+	var op operation.Operation
+	err := storage.DB.Model((*operation.Operation)(nil)).
+		Where("hash is null").
+		Where("counter = ?", counter).
+		Relation("Destination").Relation("Source").Relation("Initiator").Relation("Delegate").
+		Order("id asc").
+		Select(&op)
+	return op, err
+}
+
 func getDAppQuery(db pg.DBI, ids []int64, period string) (*orm.Query, error) {
 	query := db.Model((*operation.Operation)(nil)).
 		Where("status = ?", types.OperationStatusApplied)

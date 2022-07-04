@@ -130,6 +130,13 @@ type OperationGroupContentRequest struct {
 	Counter int64 `uri:"counter" binding:"required" example:"123456"`
 }
 
+// ImplicitOperationRequest -
+type ImplicitOperationRequest struct {
+	getByNetwork
+
+	Counter int64 `uri:"counter" binding:"required" example:"123456"`
+}
+
 // FormatterRequest -
 type FormatterRequest struct {
 	Inline   bool   `form:"inline"`
@@ -164,7 +171,9 @@ type bigMapSearchRequest struct {
 }
 
 type opgRequest struct {
-	WithMempool bool `form:"with_mempool"`
+	WithMempool     bool   `form:"with_mempool" binding:"omitempty"`
+	WithStorageDiff bool   `form:"with_storage_diff" binding:"omitempty"`
+	Network         string `form:"network" binding:"omitempty,network" example:"mainnet"`
 }
 
 type getEntrypointDataRequest struct {

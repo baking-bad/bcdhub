@@ -96,6 +96,7 @@ func (api *app) makeRouter() {
 			opg.GET("", handlers.ContextsMiddleware(api.Contexts), handlers.GetOperation())
 			opg.GET(":counter", handlers.ContextsMiddleware(api.Contexts), handlers.GetByHashAndCounter())
 		}
+		v1.GET("implicit/:network/:counter", handlers.NetworkMiddleware(api.Contexts), handlers.GetImplicitOperation())
 		v1.GET("search", handlers.ContextsMiddleware(api.Contexts), handlers.Search())
 		v1.POST("json_schema", handlers.MainnetMiddleware(api.Contexts), handlers.JSONSchema())
 		v1.POST("michelson", handlers.ContextsMiddleware(api.Contexts), handlers.CodeFromMichelson())
