@@ -5,7 +5,6 @@
 package transfer
 
 import (
-	dapp "github.com/baking-bad/bcdhub/internal/models/dapp"
 	model "github.com/baking-bad/bcdhub/internal/models/transfer"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -77,21 +76,6 @@ func (m *MockRepository) GetToken24HoursVolume(contract string, initiators, entr
 func (mr *MockRepositoryMockRecorder) GetToken24HoursVolume(contract, initiators, entrypoints, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken24HoursVolume", reflect.TypeOf((*MockRepository)(nil).GetToken24HoursVolume), contract, initiators, entrypoints, tokenID)
-}
-
-// GetTokenVolumeSeries mocks base method
-func (m *MockRepository) GetTokenVolumeSeries(period string, contracts []string, entrypoints []dapp.DAppContract, tokenID uint64) ([][]float64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTokenVolumeSeries", period, contracts, entrypoints, tokenID)
-	ret0, _ := ret[0].([][]float64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetTokenVolumeSeries indicates an expected call of GetTokenVolumeSeries
-func (mr *MockRepositoryMockRecorder) GetTokenVolumeSeries(period, contracts, entrypoints, tokenID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokenVolumeSeries", reflect.TypeOf((*MockRepository)(nil).GetTokenVolumeSeries), period, contracts, entrypoints, tokenID)
 }
 
 // CalcBalances mocks base method

@@ -2,7 +2,6 @@ package elastic
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
 )
 
 type getDateHistogramResponse struct {
@@ -53,24 +52,6 @@ func buildHistogramContext(ctx models.HistogramContext) Base {
 				}
 				matches = append(matches, Bool(
 					Should(addresses...),
-					MinimumShouldMatch(1),
-				))
-			}
-		case models.HistogramFilterDexEnrtypoints:
-			if value, ok := fltr.Value.([]dapp.DAppContract); ok {
-				entrypoints := make([]Item, 0)
-				for i := range value {
-					for j := range value[i].Entrypoint {
-						entrypoints = append(entrypoints, Bool(
-							Filter(
-								MatchPhrase("initiator", value[i].Address),
-								Match("parent", value[i].Entrypoint[j]),
-							),
-						))
-					}
-				}
-				matches = append(matches, Bool(
-					Should(entrypoints...),
 					MinimumShouldMatch(1),
 				))
 			}

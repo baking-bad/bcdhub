@@ -5,7 +5,6 @@ import (
 	"time"
 
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
 )
 
 // Item -
@@ -26,7 +25,6 @@ type Metadata struct {
 			Extras   map[string]interface{} `json:"extras"`
 		} `json:"static"`
 	} `json:"tokens"`
-	DApps []dapp.DApp `json:"dapps"`
 }
 
 // ToModel -

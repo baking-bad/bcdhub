@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -29,7 +28,7 @@ type Model interface {
 type Constraint interface {
 	*account.Account | *bigmapaction.BigMapAction | *bigmapdiff.BigMapDiff | *bigmapdiff.BigMapState |
 		*block.Block | *contract.Contract | *contract.Script | *contract.GlobalConstant | *contract.ScriptConstants |
-		*contract_metadata.ContractMetadata | *dapp.DApp | *migration.Migration | *operation.Operation |
+		*contract_metadata.ContractMetadata | *migration.Migration | *operation.Operation |
 		*protocol.Protocol | *service.State | *tokenbalance.TokenBalance | *tokenmetadata.TokenMetadata |
 		*transfer.Transfer | domains.BigMapDiff
 

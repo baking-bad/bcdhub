@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -26,7 +25,6 @@ const (
 	DocBlocks           = "blocks"
 	DocContracts        = "contracts"
 	DocContractMetadata = "contract_metadata"
-	DocDApps            = "dapps"
 	DocGlobalConstants  = "global_constants"
 	DocMigrations       = "migrations"
 	DocOperations       = "operations"
@@ -48,7 +46,6 @@ func AllDocuments() []string {
 		DocBigMapState,
 		DocBlocks,
 		DocContracts,
-		DocDApps,
 		DocGlobalConstants,
 		DocMigrations,
 		DocOperations,
@@ -81,7 +78,6 @@ func AllModels() []Model {
 		&tokenbalance.TokenBalance{},
 		&tokenmetadata.TokenMetadata{},
 		&cm.ContractMetadata{},
-		&dapp.DApp{},
 	}
 }
 

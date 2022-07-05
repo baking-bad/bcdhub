@@ -7,7 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
+	cmModel "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
@@ -35,20 +35,13 @@ func (initializer Initializer) Init(ctx context.Context) error {
 	}
 
 	if initializer.offchainBaseURL != "" && initializer.network == types.Mainnet {
-		count, err := initializer.db.Model((*dapp.DApp)(nil)).Context(ctx).Count()
+		count, err := initializer.db.Model((*cmModel.ContractMetadata)(nil)).Context(ctx).Count()
 		if err != nil {
 			return err
 		}
 		if count == 0 {
 			logger.Info().Msg("loading offchain metadata...")
 			offchainParser := contract_metadata.NewOffchain(initializer.offchainBaseURL)
-			dapps, err := offchainParser.GetDApps(ctx)
-			if err != nil {
-				return err
-			}
-			if _, err := initializer.db.Model(&dapps).Context(ctx).Returning("id").Insert(); err != nil {
-				return err
-			}
 
 			metadata, err := offchainParser.GetContractMetadata(ctx)
 			if err != nil {

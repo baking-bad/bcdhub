@@ -9,7 +9,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
 )
 
 const (
@@ -57,18 +56,9 @@ const locationTemplate = `
 		sub_filter_once on;
 	}`
 
-func makeNginxConfig(dapps []dapp.DApp, _ []contract_metadata.ContractMetadata, filepath, baseURL string) error {
+func makeNginxConfig(_ []contract_metadata.ContractMetadata, filepath, baseURL string) error {
 	var locations strings.Builder
 	tmpl := template.Must(template.New("").Parse(locationTemplate))
-
-	for _, dapp := range dapps {
-		loc, err := makeDappLocation(tmpl, dapp, baseURL)
-		if err != nil {
-			return err
-		}
-		locations.WriteString(loc)
-		locations.WriteString("\n")
-	}
 
 	loc, err := makeDappRootLocation(tmpl, "list", baseURL)
 	if err != nil {
@@ -101,34 +91,6 @@ func makeNginxConfig(dapps []dapp.DApp, _ []contract_metadata.ContractMetadata, 
 	logger.Info().Msgf("Nginx default config created in %s", filepath)
 
 	return nil
-}
-
-func makeDappLocation(tmpl *template.Template, dapp dapp.DApp, baseURL string) (string, error) {
-	var logoURL string
-	for _, picture := range dapp.Pictures {
-		if picture.Type == "logo" {
-			logoURL = picture.Link
-		}
-	}
-
-	buf := new(bytes.Buffer)
-	err := tmpl.Execute(buf, map[string]interface{}{
-		"location":        fmt.Sprintf("/dapps/%s", sanitizeQuotes(dapp.Slug)),
-		"url":             fmt.Sprintf("%s/dapps/%s", baseURL, sanitizeQuotes(dapp.Slug)),
-		"title":           fmt.Sprintf("%s — %s", sanitizeQuotes(dapp.Name), sanitizeQuotes(dapp.ShortDescription)),
-		"description":     sanitizeQuotes(dapp.FullDescription),
-		"ogTitle":         ogTitle,
-		"ogDescription":   ogDescription,
-		"ogImage":         ogImage,
-		"pageTitle":       pageTitle,
-		"pageDescription": pageDescription,
-		"logoURL":         logoURL,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
 }
 
 func makeDappRootLocation(tmpl *template.Template, path, baseURL string) (string, error) {
@@ -172,7 +134,3 @@ func makeDappRootLocation(tmpl *template.Template, path, baseURL string) (string
 
 // 	return buf.String(), nil
 // }
-
-func sanitizeQuotes(str string) string {
-	return strings.ReplaceAll(str, "'", "’")
-}

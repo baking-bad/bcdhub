@@ -9,7 +9,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -200,22 +199,6 @@ func processTzipItem(ctx *config.Context, item repository.Item, tx pg.DBI) error
 			Type:    types.NewAccountType(model.ContractMetadata.Address),
 		}
 		if _, err := tx.Model(&acc).OnConflict("(address) DO UPDATE").Set(`alias = excluded.alias`).Returning("id").Insert(); err != nil {
-			return err
-		}
-	}
-
-	for i := range model.DApps {
-		d, err := ctx.DApps.Get(model.DApps[i].Slug)
-		switch {
-		case err == nil:
-			model.DApps[i].ID = d.ID
-		case ctx.Storage.IsRecordNotFound(err):
-		default:
-			logger.Err(err)
-			return err
-		}
-
-		if err := model.DApps[i].Save(tx); err != nil {
 			return err
 		}
 	}

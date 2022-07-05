@@ -1,15 +1,11 @@
 package transfer
 
 import (
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/go-pg/pg/v10"
 )
 
 // Storage -
@@ -74,79 +70,6 @@ func (storage *Storage) GetToken24HoursVolume(contract string, initiators, entry
 	err := query.Select(&volume)
 
 	return volume, err
-}
-
-const (
-	tokenVolumeSeriesRequestTemplate = `
-		with f as (
-			select generate_series(
-			date_trunc(?period, ?start_date),
-			date_trunc(?period, now()),
-			?interval ::interval
-			) as val
-		)
-		select
-			extract(epoch from f.val) as date_part,
-			sum(amount) as value
-		from f
-		left join transfers on date_trunc(?period, transfers.timestamp) = f.val where (transfers.from_id != transfers.to_id) and (status = 1) and token_id = ?token_id ?conditions
-		group by 1
-		order by date_part
-	`
-)
-
-// GetTokenVolumeSeries -
-func (storage *Storage) GetTokenVolumeSeries(period string, contracts []string, entrypoints []dapp.DAppContract, tokenID uint64) ([][]float64, error) {
-	if err := core.ValidateHistogramPeriod(period); err != nil {
-		return nil, err
-	}
-
-	conditions := make([]string, 0)
-
-	if len(contracts) > 0 {
-		contractConditions := make([]string, len(contracts))
-		for i := range contracts {
-			contractConditions[i] = fmt.Sprintf("contract = '%s'", contracts[i])
-		}
-		conditions = append(conditions, strings.Join(contractConditions, " or "))
-	}
-
-	if len(entrypoints) > 0 {
-		entrypointConditions := make([]string, 0)
-		for _, e := range entrypoints {
-			var initiatorID int64
-			if err := storage.DB.Model((*account.Account)(nil)).Column("id").Where("address = ?", e.Address).Select(&initiatorID); err != nil {
-				return nil, err
-			}
-			for j := range e.Entrypoint {
-				entrypointConditions = append(entrypointConditions, fmt.Sprintf("(initiator_id = %d and parent = '%s')", initiatorID, e.Entrypoint[j]))
-			}
-		}
-		conditions = append(conditions, strings.Join(entrypointConditions, " or "))
-	}
-
-	stringConditions := strings.Join(conditions, ") and (")
-	if len(stringConditions) > 0 {
-		stringConditions = "and (" + stringConditions
-		stringConditions += ")"
-	}
-
-	var resp []core.HistogramResponse
-	if _, err := storage.DB.
-		WithParam("token_id", tokenID).
-		WithParam("period", period).
-		WithParam("start_date", pg.Safe(core.GetHistogramInterval(period))).
-		WithParam("interval", fmt.Sprintf("1 %s", period)).
-		WithParam("conditions", pg.Safe(stringConditions)).
-		Query(&resp, tokenVolumeSeriesRequestTemplate); err != nil {
-		return nil, err
-	}
-
-	histogram := make([][]float64, 0, len(resp))
-	for i := range resp {
-		histogram = append(histogram, []float64{resp[i].DatePart * 1000, resp[i].Value})
-	}
-	return histogram, nil
 }
 
 const (

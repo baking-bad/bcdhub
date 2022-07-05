@@ -204,27 +204,11 @@ func (api *app) makeRouter() {
 		fa12.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
 			fa12.GET("", handlers.GetFA())
-			fa12.GET("series", handlers.GetTokenVolumeSeries())
 			fa12.GET("version/:faversion", handlers.GetFAByVersion())
 			fa12.GET("metadata", handlers.GetTokenMetadata())
 			transfers := fa12.Group("transfers")
 			{
 				transfers.GET(":address", handlers.GetFA12OperationsForAddress())
-			}
-		}
-
-		dapps := v1.Group("dapps")
-		dapps.Use(handlers.MainnetMiddleware(api.Contexts))
-		{
-			dapps.GET("", handlers.GetDAppList())
-			dappsBySlug := dapps.Group(":slug")
-			{
-				dappsBySlug.GET("", handlers.GetDApp())
-				dex := dappsBySlug.Group("dex")
-				{
-					dex.GET("tokens", handlers.GetDexTokens())
-					dex.GET("tezos_volume", cache.CachePage(store, time.Minute, handlers.GetDexTezosVolume()))
-				}
 			}
 		}
 

@@ -164,50 +164,6 @@ func GetFA12OperationsForAddress() gin.HandlerFunc {
 	}
 }
 
-// GetTokenVolumeSeries godoc
-// @Summary Get volume series for token
-// @Description Get volume series for token
-// @Tags tokens
-// @ID get-token-series
-// @Param network path string true "Network"
-// @Param period query string true "One of periods"  Enums(year, month, week, day)
-// @Param contract path string true "KT address" minlength(36) maxlength(36)
-// @Param token_id query int true "Token ID" minimum(0)
-// @Param slug query string true "DApp slug"
-// @Accept json
-// @Produce  json
-// @Success 200 {object} SeriesFloat
-// @Failure 400 {object} Error
-// @Failure 500 {object} Error
-// @Router /v1/tokens/{network}/series [get]
-func GetTokenVolumeSeries() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := c.MustGet("context").(*config.Context)
-
-		var req getByNetwork
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
-			return
-		}
-
-		var args getTokenSeriesRequest
-		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
-			return
-		}
-
-		dapp, err := ctx.DApps.Get(args.Slug)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
-
-		series, err := ctx.Transfers.GetTokenVolumeSeries(args.Period, []string{args.Contract}, dapp.Contracts, args.TokenID)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
-
-		c.SecureJSON(http.StatusOK, series)
-	}
-}
-
 func contractToTokens(ctx *config.Context, contracts []contract.Contract, version string) (PageableTokenContracts, error) {
 	tokens := make([]TokenContract, len(contracts))
 	addresses := make([]string, len(contracts))

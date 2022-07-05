@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -133,13 +132,6 @@ func (bi *BlockchainIndexer) createIndices() {
 
 	if _, err := bi.Context.StorageDB.DB.Model((*contract.Contract)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS contracts_babylon_id_idx ON ?TableName (babylon_id)
-	`); err != nil {
-		logger.Error().Err(err).Msg("can't create index")
-	}
-
-	// DApps
-	if _, err := bi.Context.StorageDB.DB.Model((*dapp.DApp)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS dapps_slug_idx ON ?TableName (slug)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}

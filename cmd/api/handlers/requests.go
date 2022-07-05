@@ -254,17 +254,6 @@ func (req GetTokenStatsRequest) Addresses() []string {
 	return strings.Split(req.Contracts, ",")
 }
 
-type getTokenSeriesRequest struct {
-	Contract string `form:"contract" binding:"required,address"`
-	Period   string `form:"period" binding:"oneof=year month week day hour" example:"year"`
-	TokenID  uint64 `form:"token_id"`
-	Slug     string `form:"slug" binding:"required"`
-}
-
-type getDappRequest struct {
-	Slug string `uri:"slug" binding:"required"`
-}
-
 type getContractTransfers struct {
 	pageableRequest
 	TokenID *uint64 `form:"token_id"  binding:"omitempty,min=0"`

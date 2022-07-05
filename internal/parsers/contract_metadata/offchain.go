@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	jsoniter "github.com/json-iterator/go"
@@ -36,12 +35,6 @@ func NewOffchain(baseURL string) *Offchain {
 		},
 		baseURL: baseURL,
 	}
-}
-
-// GetDApps -
-func (o *Offchain) GetDApps(ctx context.Context) (dapps []dapp.DApp, err error) {
-	err = o.get(ctx, helpers.URLJoin(o.baseURL, "dapps_legacy.json"), &dapps)
-	return
 }
 
 // Metadata

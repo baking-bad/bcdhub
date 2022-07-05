@@ -23,12 +23,6 @@ func main() {
 	)
 	defer ctx.Close()
 
-	dapps, err := ctx.DApps.All()
-	if err != nil {
-		logger.Err(err)
-		return
-	}
-
 	aliases, err := ctx.ContractMetadata.GetAliases()
 	if err != nil {
 		logger.Err(err)
@@ -45,13 +39,13 @@ func main() {
 	}
 
 	nginxConfigFilename := fmt.Sprintf("%s/default.%s.conf", outputDir, env)
-	if err := makeNginxConfig(dapps, aliases, nginxConfigFilename, ctx.Config.BaseURL); err != nil {
+	if err := makeNginxConfig(aliases, nginxConfigFilename, ctx.Config.BaseURL); err != nil {
 		logger.Err(err)
 		return
 	}
 
 	sitemapFilename := fmt.Sprintf("%s/sitemap.%s.xml", outputDir, env)
-	if err := makeSitemap(dapps, aliases, sitemapFilename, ctx.Config); err != nil {
+	if err := makeSitemap(aliases, sitemapFilename, ctx.Config); err != nil {
 		logger.Err(err)
 		return
 	}
