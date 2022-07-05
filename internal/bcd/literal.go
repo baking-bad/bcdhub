@@ -41,6 +41,7 @@ var (
 	addressRegex   = regexp.MustCompile("(tz|KT|txr)[0-9A-Za-z]{34}")
 	contractRegex  = regexp.MustCompile("(KT1)[0-9A-Za-z]{33}")
 	bakerHashRegex = regexp.MustCompile("(SG1)[0-9A-Za-z]{33}")
+	operationRegex = regexp.MustCompile("^o[1-9A-HJ-NP-Za-km-z]{50}$")
 )
 
 // IsAddress -
@@ -56,4 +57,9 @@ func IsContract(str string) bool {
 // IsBakerHash -
 func IsBakerHash(str string) bool {
 	return bakerHashRegex.MatchString(str)
+}
+
+// IsOperationHash -
+func IsOperationHash(str string) bool {
+	return operationRegex.MatchString(str)
 }

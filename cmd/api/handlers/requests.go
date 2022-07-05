@@ -217,8 +217,10 @@ type storageSchemaRequest struct {
 }
 
 type entrypointSchemaRequest struct {
-	FillType       string `form:"fill_type,omitempty" binding:"omitempty"`
-	EntrypointName string `form:"entrypoint" binding:"required"`
+	FillType       string  `form:"fill_type,omitempty" binding:"omitempty"`
+	EntrypointName string  `form:"entrypoint" binding:"required"`
+	Hash           string  `form:"hash,omitempty" binding:"omitempty"`
+	Counter        *uint64 `form:"counter,omitempty" binding:"omitempty"`
 }
 
 type forkRequest struct {

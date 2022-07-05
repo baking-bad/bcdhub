@@ -3,12 +3,15 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 // GetEntrypoints godoc
@@ -171,28 +174,47 @@ func GetEntrypointSchema() gin.HandlerFunc {
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
-			if esReq.FillType != "latest" {
+
+			var usingOperation operation.Operation
+			switch esReq.FillType {
+			case "latest":
+				account, err := ctx.Accounts.Get(req.Address)
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
+
+				op, err := ctx.Operations.Last(
+					map[string]interface{}{
+						"destination_id": account.ID,
+						"kind":           modelTypes.OperationKindTransaction,
+						"entrypoint":     esReq.EntrypointName,
+						"status":         modelTypes.OperationStatusApplied,
+					}, 0)
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
+				usingOperation = op
+			case "operation":
+				if !bcd.IsOperationHash(esReq.Hash) || esReq.Counter == nil {
+					handleError(c, ctx.Storage, errors.Errorf("invalid hash or counter for 'operation' type: hash=%s counter=%v", esReq.Hash, esReq.Counter), http.StatusBadRequest)
+					return
+				}
+
+				opg, err := ctx.Operations.GetByHashAndCounter(esReq.Hash, int64(*esReq.Counter))
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
+				if len(opg) == 0 {
+					break
+				}
+
+				usingOperation = opg[0]
+			default:
 				break
 			}
 
-			account, err := ctx.Accounts.Get(req.Address)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-
-			op, err := ctx.Operations.Last(
-				map[string]interface{}{
-					"destination_id": account.ID,
-					"kind":           modelTypes.OperationKindTransaction,
-					"entrypoint":     esReq.EntrypointName,
-					"status":         modelTypes.OperationStatusApplied,
-				}, 0)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-
-			if op.Parameters != nil {
-				parameters := types.NewParameters(op.Parameters)
+			if usingOperation.Parameters != nil {
+				parameters := types.NewParameters(usingOperation.Parameters)
 				subTree, err := parameter.FromParameters(parameters)
 				if handleError(c, ctx.Storage, err, 0) {
 					return
