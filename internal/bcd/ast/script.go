@@ -36,7 +36,7 @@ func (s *Script) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &ast); err != nil {
 		return err
 	}
-	if len(ast) == 1 && ast[0].Prim == consts.PrimArray {
+	for len(ast) == 1 && ast[0].Prim == consts.PrimArray {
 		ast = ast[0].Args
 	}
 	for i := range ast {
