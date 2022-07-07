@@ -89,6 +89,7 @@ func (storage *Storage) ForContract(address string, size, offset int64) (respons
 		Join("LEFT JOIN (select distinct global_constant_id, script_id from script_constants) as t on t.script_id = jakarta_id or t.script_id = babylon_id").
 		Join("LEFT JOIN global_constants on t.global_constant_id = global_constants.id").
 		Where("accounts.address = ?", address).
+		Where("global_constant_id is not null").
 		Limit(int(size)).
 		Offset(int(offset)).
 		Order("id desc").
