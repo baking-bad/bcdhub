@@ -37,11 +37,12 @@ func GetEntrypoints() gin.HandlerFunc {
 			return
 		}
 
-		script, err := getScript(ctx, req.Address, getSymLink(req.NetworkID()))
+		symLink, err := getCurrentSymLink(ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		parameter, err := script.ParameterType()
+
+		parameter, err := getParameterType(ctx.Contracts, req.Address, symLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -97,7 +98,12 @@ func GetEntrypointData() gin.HandlerFunc {
 			return
 		}
 
-		result, err := buildParametersForExecution(ctx, req.Address, getSymLink(req.NetworkID()), reqData.Name, reqData.Data)
+		symLink, err := getCurrentSymLink(ctx.Blocks)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		result, err := buildParametersForExecution(ctx, req.Address, symLink, reqData.Name, reqData.Data)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -145,11 +151,12 @@ func GetEntrypointSchema() gin.HandlerFunc {
 			return
 		}
 
-		script, err := getScript(ctx, req.Address, getSymLink(req.NetworkID()))
+		symLink, err := getCurrentSymLink(ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		parameter, err := script.ParameterType()
+
+		parameter, err := getParameterType(ctx.Contracts, req.Address, symLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -231,7 +238,7 @@ func GetEntrypointSchema() gin.HandlerFunc {
 }
 
 func buildParametersForExecution(ctx *config.Context, address, symLink, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
-	parameterType, err := getParameterType(ctx, address, symLink)
+	parameterType, err := getParameterType(ctx.Contracts, address, symLink)
 	if err != nil {
 		return nil, err
 	}

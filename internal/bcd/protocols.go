@@ -44,11 +44,6 @@ func GetProtoSymLink(protocol string) (string, error) {
 	return "", errors.Errorf("Unknown protocol: %s", protocol)
 }
 
-// GetCurrentSymLink -
-func GetCurrentSymLink() string {
-	return SymLinkBabylon
-}
-
 // GetCurrentProtocol - returns last supported protocol
 func GetCurrentProtocol() string {
 	return "Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A"

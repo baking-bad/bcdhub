@@ -489,13 +489,8 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 			return op, err
 		}
 
-		script, err := getScript(ctx, op.Destination, proto.SymLink)
-		if err != nil {
-			return op, err
-		}
-
 		if withStorageDiff {
-			storageType, err := script.StorageType()
+			storageType, err := getStorageType(ctx.Contracts, op.Destination, proto.SymLink)
 			if err != nil {
 				return op, err
 			}
@@ -511,7 +506,11 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 		}
 
 		if operation.IsCall() && !tezerrors.HasParametersError(op.Errors) {
-			if err := setParameters(operation.Parameters, script, &op); err != nil {
+			parameterType, err := getParameterType(ctx.Contracts, op.Destination, proto.SymLink)
+			if err != nil {
+				return op, err
+			}
+			if err := setParameters(operation.Parameters, parameterType, &op); err != nil {
 				return op, err
 			}
 		}
@@ -544,21 +543,17 @@ func PrepareOperations(ctx *config.Context, ops []operation.Operation, withStora
 	return resp, nil
 }
 
-func setParameters(data []byte, script *ast.Script, op *Operation) error {
+func setParameters(data []byte, parameter *ast.TypedAst, op *Operation) error {
 	if len(data) == 0 {
 		return nil
 	}
 	params := types.NewParameters(data)
-	return setParatemetersWithType(params, script, op)
+	return setParatemetersWithType(params, parameter, op)
 }
 
-func setParatemetersWithType(params *types.Parameters, script *ast.Script, op *Operation) error {
+func setParatemetersWithType(params *types.Parameters, parameter *ast.TypedAst, op *Operation) error {
 	if params == nil {
 		return errors.New("Empty parameters")
-	}
-	parameter, err := script.ParameterType()
-	if err != nil {
-		return err
 	}
 	tree, err := parameter.FromParameters(params)
 	if err != nil {
@@ -658,7 +653,7 @@ func getErrorLocation(ctx *config.Context, operation operation.Operation, window
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}
-	code, err := getScriptBytes(ctx, operation.Destination.Address, proto.SymLink)
+	code, err := getScriptBytes(ctx.Contracts, operation.Destination.Address, proto.SymLink)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}

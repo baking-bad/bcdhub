@@ -82,7 +82,7 @@ func (p Transaction) Parse(data noderpc.Operation, store parsers.Store) error {
 		}
 	}
 
-	script, err := p.ctx.Cache.ScriptBytes(tx.Destination.Address, p.protocol.SymLink)
+	scriptEntity, err := p.ctx.Contracts.Script(tx.Destination.Address, p.protocol.SymLink)
 	if err != nil {
 		if !tx.Internal {
 			return nil
@@ -93,17 +93,17 @@ func (p Transaction) Parse(data noderpc.Operation, store parsers.Store) error {
 			if tx.Destination.Address == contracts[i].Account.Address {
 				switch p.protocol.SymLink {
 				case bcd.SymLinkAlpha:
-					script, err = contracts[i].Alpha.Full()
+					tx.Script, err = contracts[i].Alpha.Full()
 					if err != nil {
 						return err
 					}
 				case bcd.SymLinkBabylon:
-					script, err = contracts[i].Babylon.Full()
+					tx.Script, err = contracts[i].Babylon.Full()
 					if err != nil {
 						return err
 					}
 				case bcd.SymLinkJakarta:
-					script, err = contracts[i].Jakarta.Full()
+					tx.Script, err = contracts[i].Jakarta.Full()
 					if err != nil {
 						return err
 					}
@@ -112,13 +112,17 @@ func (p Transaction) Parse(data noderpc.Operation, store parsers.Store) error {
 				}
 			}
 		}
-		if script == nil {
+		if tx.Script == nil {
+			return err
+		}
+	} else {
+		tx.Script, err = scriptEntity.Full()
+		if err != nil {
 			return err
 		}
 	}
-	tx.Script = script
 
-	tx.AST, err = ast.NewScriptWithoutCode(script)
+	tx.AST, err = ast.NewScriptWithoutCode(tx.Script)
 	if err != nil {
 		return err
 	}

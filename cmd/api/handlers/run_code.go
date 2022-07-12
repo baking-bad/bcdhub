@@ -150,7 +150,7 @@ func RunCode() gin.HandlerFunc {
 			return
 		}
 
-		scriptBytes, err := getScriptBytes(ctx, req.Address, state.Protocol.SymLink)
+		scriptBytes, err := getScriptBytes(ctx.Contracts, req.Address, state.Protocol.SymLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -206,7 +206,11 @@ func RunCode() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		if err := setParatemetersWithType(input, script, &main); handleError(c, ctx.Storage, err, 0) {
+		parameterType, err := script.ParameterType()
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		if err := setParatemetersWithType(input, parameterType, &main); handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 		main.Storage = response.Storage
@@ -243,13 +247,17 @@ func parseAppliedRunCode(c *gin.Context, ctx *config.Context, response noderpc.R
 			s = script
 		} else {
 			var err error
-			s, err = getScript(ctx, op.Destination, proto.SymLink)
+			s, err = getScript(ctx.Contracts, op.Destination, proto.SymLink)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		if err := setParameters(response.Operations[i].Parameters, s, &op); err != nil {
+		parameterType, err := s.ParameterType()
+		if err != nil {
+			return nil, err
+		}
+		if err := setParameters(response.Operations[i].Parameters, parameterType, &op); err != nil {
 			return nil, err
 		}
 

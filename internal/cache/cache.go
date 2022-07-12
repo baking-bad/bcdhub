@@ -139,24 +139,24 @@ func (cache *Cache) TezosBalance(ctx context.Context, address string, level int6
 }
 
 // ScriptBytes -
-func (cache *Cache) ScriptBytes(address, symLink string) ([]byte, error) {
-	if !bcd.IsContract(address) {
-		return nil, nil
-	}
+// func (cache *Cache) ScriptBytes(address, symLink string) ([]byte, error) {
+// 	if !bcd.IsContract(address) {
+// 		return nil, nil
+// 	}
 
-	key := fmt.Sprintf("script_bytes:%s", address)
-	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		script, err := cache.contracts.Script(address, symLink)
-		if err != nil {
-			return nil, err
-		}
-		return script.Full()
-	})
-	if err != nil {
-		return nil, err
-	}
-	return item.Value().([]byte), nil
-}
+// 	key := fmt.Sprintf("script_bytes:%s", address)
+// 	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
+// 		script, err := cache.contracts.Script(address, symLink)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		return script.Full()
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return item.Value().([]byte), nil
+// }
 
 // StorageTypeBytes -
 func (cache *Cache) StorageTypeBytes(address, symLink string) ([]byte, error) {

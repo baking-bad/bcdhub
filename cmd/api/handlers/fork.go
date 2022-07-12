@@ -41,7 +41,11 @@ func buildStorageDataFromForkRequest(ctxs config.Contexts, req forkRequest) (*Fo
 		if err != nil {
 			return nil, err
 		}
-		scriptData, err = getScriptBytes(ctx, req.Address, "")
+		symLink, err := getCurrentSymLink(ctx.Blocks)
+		if err != nil {
+			return nil, err
+		}
+		scriptData, err = getScriptBytes(ctx.Contracts, req.Address, symLink)
 		if err != nil {
 			return nil, err
 		}

@@ -159,11 +159,7 @@ func buildMempoolOperationParameters(ctx *config.Context, data []byte, op *Opera
 	if err != nil {
 		return err
 	}
-	script, err := getScript(ctx, op.Destination, proto.SymLink)
-	if err != nil {
-		return err
-	}
-	parameter, err := script.ParameterType()
+	parameter, err := getParameterType(ctx.Contracts, op.Destination, proto.SymLink)
 	if err != nil {
 		return err
 	}

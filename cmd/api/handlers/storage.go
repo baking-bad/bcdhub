@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -59,7 +58,7 @@ func GetContractStorage() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		storageType, err := getStorageType(ctx, req.Address, header.Protocol.SymLink)
+		storageType, err := getStorageType(ctx.Contracts, req.Address, header.Protocol.SymLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -153,18 +152,13 @@ func GetContractStorageRich() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		var symLink string
-		if sReq.Level == 0 {
-			symLink = bcd.GetCurrentSymLink()
-		} else {
-			block, err := ctx.Blocks.Get(int64(sReq.Level))
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-			symLink = block.Protocol.SymLink
+
+		block, err := ctx.Blocks.Get(int64(sReq.Level))
+		if handleError(c, ctx.Storage, err, 0) {
+			return
 		}
 
-		storageType, err := getStorageType(ctx, req.Address, symLink)
+		storageType, err := getStorageType(ctx.Contracts, req.Address, block.Protocol.SymLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -219,7 +213,12 @@ func GetContractStorageSchema() gin.HandlerFunc {
 			return
 		}
 
-		storageType, err := getStorageType(ctx, req.Address, getSymLink(req.NetworkID()))
+		symLink, err := getCurrentSymLink(ctx.Blocks)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		storageType, err := getStorageType(ctx.Contracts, req.Address, symLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
