@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/views"
@@ -57,7 +58,7 @@ func GetViewsSchema() gin.HandlerFunc {
 			}
 		}
 
-		onChain, err := getOnChainViewsSchema(ctx.Contracts, req.Address)
+		onChain, err := getOnChainViewsSchema(ctx.Contracts, ctx.Blocks, req.Address)
 		if err != nil {
 			if !ctx.Storage.IsRecordNotFound(err) {
 				handleError(c, ctx.Storage, err, 0)
@@ -164,8 +165,12 @@ func getOffChainViewsSchema(contractMetadata contract_metadata.Repository, addre
 	return schemas, nil
 }
 
-func getOnChainViewsSchema(contracts contract.Repository, address string) ([]ViewSchema, error) {
-	rawViews, err := contracts.ScriptPart(address, bcd.GetCurrentProtocol(), consts.VIEWS)
+func getOnChainViewsSchema(contracts contract.Repository, blocks block.Repository, address string) ([]ViewSchema, error) {
+	block, err := blocks.Last()
+	if err != nil {
+		return nil, err
+	}
+	rawViews, err := contracts.ScriptPart(address, block.Protocol.SymLink, consts.VIEWS)
 	if err != nil {
 		return nil, err
 	}

@@ -46,7 +46,7 @@ func GetProtoSymLink(protocol string) (string, error) {
 
 // GetCurrentProtocol - returns last supported protocol
 func GetCurrentProtocol() string {
-	return "Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A"
+	return "PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY"
 }
 
 // Symbolic links
