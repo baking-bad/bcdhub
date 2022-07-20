@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
@@ -71,11 +70,17 @@ func getContractCodeJSON(ctx *config.Context, address string, protocol string) (
 	if err != nil {
 		return res, err
 	}
-	script, err := ctx.Contracts.ScriptPart(address, symLink, consts.STORAGE)
+	script, err := ctx.Contracts.Script(address, symLink)
 	if err != nil {
 		return res, err
 	}
-	contract := gjson.ParseBytes(script)
+
+	bScript, err := script.Full()
+	if err != nil {
+		return res, err
+	}
+	contract := gjson.ParseBytes(bScript)
+
 	if !contract.IsArray() && !contract.IsObject() {
 		return res, errors.Errorf("Unknown contract: %s", address)
 	}
