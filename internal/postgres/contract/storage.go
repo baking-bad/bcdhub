@@ -191,7 +191,7 @@ func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte
 			query.Column("alpha.code").Relation("Alpha._")
 		case consts.STORAGE:
 			query.Column("alpha.storage").Relation("Alpha._")
-		case "views":
+		case consts.VIEWS:
 			query.Column("alpha.views").Relation("Alpha._")
 		default:
 			return nil, errors.Errorf("unknown script part name: %s", part)
@@ -204,7 +204,7 @@ func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte
 			query.Column("babylon.code").Relation("Babylon._")
 		case consts.STORAGE:
 			query.Column("babylon.storage").Relation("Babylon._")
-		case "views":
+		case consts.VIEWS:
 			query.Column("babylon.views").Relation("Babylon._")
 		default:
 			return nil, errors.Errorf("unknown script part name: %s", part)
@@ -217,6 +217,8 @@ func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte
 			query.Column("jakarta.code").Relation("Jakarta._")
 		case consts.STORAGE:
 			query.Column("jakarta.storage").Relation("Jakarta._")
+		case consts.VIEWS:
+			query.Column("jakarta.views").Relation("Jakarta._")
 		default:
 			return nil, errors.Errorf("unknown script part name: %s", part)
 		}
