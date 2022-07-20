@@ -165,7 +165,7 @@ func getOffChainViewsSchema(contractMetadata contract_metadata.Repository, addre
 }
 
 func getOnChainViewsSchema(contracts contract.Repository, address string) ([]ViewSchema, error) {
-	rawViews, err := contracts.ScriptPart(address, bcd.SymLinkBabylon, "views")
+	rawViews, err := contracts.ScriptPart(address, bcd.GetCurrentProtocol(), consts.VIEWS)
 	if err != nil {
 		return nil, err
 	}

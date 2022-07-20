@@ -14,6 +14,7 @@ const (
 	PARAMETER          = "parameter"
 	STORAGE            = "storage"
 	CODE               = "code"
+	VIEWS              = "views"
 	CREATECONTRACT     = "create_contract"
 	SETDELEGATE        = "set_delegate"
 	CHECKSIGNATURE     = "check_signature"
