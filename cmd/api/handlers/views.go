@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -247,7 +246,7 @@ func ExecuteView() gin.HandlerFunc {
 			return
 		}
 
-		view, parameters, err := getViewForExecute(ctx.ContractMetadata, ctx.Contracts, req.Address, execView)
+		view, parameters, err := getViewForExecute(ctx.ContractMetadata, ctx.Contracts, ctx.Blocks, req.Address, execView)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -303,10 +302,14 @@ func ExecuteView() gin.HandlerFunc {
 	}
 }
 
-func getViewForExecute(contractMetadata contract_metadata.Repository, contracts contract.Repository, address string, req executeViewRequest) (views.View, []byte, error) {
+func getViewForExecute(contractMetadata contract_metadata.Repository, contracts contract.Repository, blocks block.Repository, address string, req executeViewRequest) (views.View, []byte, error) {
 	switch req.Kind {
 	case OnchainView:
-		rawViews, err := contracts.ScriptPart(address, bcd.SymLinkBabylon, "views")
+		block, err := blocks.Last()
+		if err != nil {
+			return nil, nil, err
+		}
+		rawViews, err := contracts.ScriptPart(address, block.Protocol.SymLink, consts.VIEWS)
 		if err != nil {
 			return nil, nil, err
 		}
