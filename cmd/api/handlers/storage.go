@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
@@ -251,12 +252,17 @@ func GetContractStorageSchema() gin.HandlerFunc {
 			schema.DefaultModel = make(ast.JSONModel)
 			storageType.GetJSONModel(schema.DefaultModel)
 		case "initial":
-			storage, err := getInitialStorage(c, ctx, req.Address)
+			operation, err := getInitialOperation(c, ctx, req.Address)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 
-			if err := storageType.SettleFromBytes(storage); handleError(c, ctx.Storage, err, 0) {
+			bmd, err := ctx.BigMapDiffs.GetForOperation(operation.ID)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+
+			if err := prepareStorage(storageType, operation.DeffatedStorage, bmd); handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 
@@ -293,10 +299,10 @@ func getDeffattedStorage(c *gin.Context, ctx *config.Context, address string, le
 
 }
 
-func getInitialStorage(c *gin.Context, ctx *config.Context, address string) ([]byte, error) {
+func getInitialOperation(c *gin.Context, ctx *config.Context, address string) (operation.Operation, error) {
 	destination, err := ctx.Accounts.Get(address)
 	if err != nil {
-		return nil, err
+		return operation.Operation{}, err
 	}
 
 	filters := map[string]interface{}{
@@ -304,10 +310,6 @@ func getInitialStorage(c *gin.Context, ctx *config.Context, address string) ([]b
 		"status":         types.OperationStatusApplied,
 		"kind":           types.OperationKindOrigination,
 	}
-	operation, err := ctx.Operations.Last(filters, 0)
-	if err != nil && !ctx.Storage.IsRecordNotFound(err) {
-		return nil, err
-	}
-	return operation.DeffatedStorage, nil
+	return ctx.Operations.Last(filters, 0)
 
 }
