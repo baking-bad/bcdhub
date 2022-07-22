@@ -628,12 +628,7 @@ func getStorageDiff(ctx *config.Context, destinationID int64, bmd []bigmapdiff.B
 }
 
 func prepareStorage(storageType *ast.TypedAst, deffatedStorage []byte, bmd []bigmapdiff.BigMapDiff) error {
-	var data ast.UntypedAST
-	if err := json.Unmarshal(deffatedStorage, &data); err != nil {
-		return err
-	}
-
-	if err := storageType.Settle(data); err != nil {
+	if err := storageType.SettleFromBytes(deffatedStorage); err != nil {
 		return err
 	}
 
