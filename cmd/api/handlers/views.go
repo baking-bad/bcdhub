@@ -19,9 +19,8 @@ import (
 )
 
 var (
-	errNoViews               = errors.New("there aren't views in the metadata")
-	errInvalidImplementation = errors.New("invalid implementation index")
-	errEmptyImplementation   = errors.New("empty implementation")
+	errNoViews             = errors.New("there aren't views in the metadata")
+	errEmptyImplementation = errors.New("empty implementation")
 )
 
 // GetViewsSchema godoc
@@ -338,33 +337,15 @@ func getViewForExecute(contractMetadata contract_metadata.Repository, contracts 
 
 		return nil, nil, errNoViews
 
-	case OffchainView, EmptyView: // TODO: remove empty kind. It's workaround for current UI version
-		tzipValue, err := contractMetadata.Get(address)
-		if err != nil {
-			return nil, nil, err
+	case OffchainView:
+		if req.View == nil {
+			return nil, nil, errors.New("empty off-chain-view")
 		}
-
-		if len(tzipValue.Views) == 0 {
-			return nil, nil, errNoViews
-		}
-
-		var impl contract_metadata.ViewImplementation
-		for _, view := range tzipValue.Views {
-			if view.Name != req.Name {
-				continue
-			}
-			idx := *req.Implementation
-			if len(view.Implementations) <= idx {
-				return nil, nil, errInvalidImplementation
-			}
-			impl = view.Implementations[idx]
-			break
-		}
-		if impl.MichelsonStorageView.Empty() {
+		if req.View.MichelsonStorageView.Empty() {
 			return nil, nil, errEmptyImplementation
 		}
 
-		tree, err := getOffChainViewTree(impl)
+		tree, err := getOffChainViewTree(*req.View)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -376,7 +357,7 @@ func getViewForExecute(contractMetadata contract_metadata.Repository, contracts 
 			return nil, nil, err
 		}
 
-		return views.NewMichelsonStorageView(impl, req.Name), parameters, nil
+		return views.NewMichelsonStorageView(*req.View, req.Name), parameters, nil
 	default:
 		return nil, nil, errors.New("invalid view kind")
 	}

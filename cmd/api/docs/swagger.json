@@ -5762,9 +5762,7 @@
             "type": "object",
             "required": [
                 "data",
-                "implementation",
-                "kind",
-                "name"
+                "kind"
             ],
             "properties": {
                 "amount": {
@@ -5791,6 +5789,9 @@
                 },
                 "source": {
                     "type": "string"
+                },
+                "view": {
+                    "$ref": "#/definitions/contract_metadata.ViewImplementation"
                 }
             }
         },

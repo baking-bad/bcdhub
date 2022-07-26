@@ -5772,9 +5772,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "data",
-                "implementation",
-                "kind",
-                "name"
+                "kind"
             ],
             "properties": {
                 "amount": {
@@ -5801,6 +5799,9 @@ const docTemplate = `{
                 },
                 "source": {
                     "type": "string"
+                },
+                "view": {
+                    "$ref": "#/definitions/contract_metadata.ViewImplementation"
                 }
             }
         },

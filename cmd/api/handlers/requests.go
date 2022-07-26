@@ -3,6 +3,7 @@ package handlers
 import (
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
@@ -284,14 +285,15 @@ type byTokenIDRequest struct {
 }
 
 type executeViewRequest struct {
-	Data           map[string]interface{} `json:"data" binding:"required"`
-	Name           string                 `json:"name" binding:"required"`
-	Implementation *int                   `json:"implementation" binding:"required"`
-	Kind           ViewSchemaKind         `json:"kind" binding:"required"`
-	Amount         int64                  `json:"amount,omitempty"`
-	GasLimit       int64                  `json:"gas_limit,omitempty"`
-	Source         string                 `json:"source,omitempty" binding:"omitempty,address"`
-	Sender         string                 `json:"sender,omitempty" binding:"omitempty,address"`
+	Data           map[string]interface{}                `json:"data" binding:"required"`
+	Name           string                                `json:"name" binding:"required_if=Kind on-chain"`
+	Implementation *int                                  `json:"implementation" binding:"required_if=Kind on-chain"`
+	Kind           ViewSchemaKind                        `json:"kind" binding:"required"`
+	Amount         int64                                 `json:"amount,omitempty"`
+	GasLimit       int64                                 `json:"gas_limit,omitempty"`
+	Source         string                                `json:"source,omitempty" binding:"omitempty,address"`
+	Sender         string                                `json:"sender,omitempty" binding:"omitempty,address"`
+	View           *contract_metadata.ViewImplementation `json:"view,omitempty" binding:"required_if=Kind off-chain"`
 }
 
 type minMaxLevel struct {
