@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -23,7 +22,6 @@ var (
 	errNoViews               = errors.New("there aren't views in the metadata")
 	errInvalidImplementation = errors.New("invalid implementation index")
 	errEmptyImplementation   = errors.New("empty implementation")
-	errInvalidMicheline      = errors.New("invalid micheline")
 )
 
 // GetViewsSchema godoc
@@ -33,6 +31,7 @@ var (
 // @ID get-contract-tzip-views-schema
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param kind query string false "Views kind" Enums(on-chain, off-chain)
 // @Accept json
 // @Produce json
 // @Success 200 {array} ViewSchema
@@ -49,69 +48,98 @@ func GetViewsSchema() gin.HandlerFunc {
 			return
 		}
 
-		offChain, err := getOffChainViewsSchema(ctx.ContractMetadata, req.Address)
-		if err != nil {
-			if !ctx.Storage.IsRecordNotFound(err) {
-				handleError(c, ctx.Storage, err, 0)
-				return
-			}
-		}
-
-		onChain, err := getOnChainViewsSchema(ctx.Contracts, ctx.Blocks, req.Address)
-		if err != nil {
-			if !ctx.Storage.IsRecordNotFound(err) {
-				handleError(c, ctx.Storage, err, 0)
-				return
-			}
-		}
-
-		if len(onChain) == 0 && len(offChain) == 0 {
-			c.SecureJSON(http.StatusOK, []ViewSchema{})
+		var args getViewsArgs
+		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
-		c.SecureJSON(http.StatusOK, append(offChain, onChain...))
+		views := make([]ViewSchema, 0)
+
+		if args.Kind == EmptyView || args.Kind == OffchainView {
+			offChain, err := getOffChainViewsSchema(ctx.ContractMetadata, req.Address)
+			if err != nil {
+				if !ctx.Storage.IsRecordNotFound(err) {
+					handleError(c, ctx.Storage, err, 0)
+					return
+				}
+			}
+			views = append(views, offChain...)
+		}
+
+		if args.Kind == EmptyView || args.Kind == OnchainView {
+			onChain, err := getOnChainViewsSchema(ctx.Contracts, ctx.Blocks, req.Address)
+			if err != nil {
+				if !ctx.Storage.IsRecordNotFound(err) {
+					handleError(c, ctx.Storage, err, 0)
+					return
+				}
+			}
+			views = append(views, onChain...)
+		}
+
+		c.SecureJSON(http.StatusOK, views)
 	}
 }
 
-// JSONSchema godoc
-// @Summary Get JSON schema from micheline
-// @Description Get JSON schema from micheline
+// OffChainView godoc
+// @Summary Get JSON schema for off-chain view
+// @Description Get JSON schema for off-chain view
 // @Tags contract
-// @ID get-json-schema
+// @ID get-off-chain-view
 // @Param body body json.RawMessage true "Micheline. Limit: 1MB"
 // @Accept json
 // @Produce json
-// @Success 200 {object} ast.JSONSchema
+// @Success 200 {object} ViewSchema
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /v1/json_schema [post]
-func JSONSchema() gin.HandlerFunc {
+// @Router /v1/off_chain_view [post]
+func OffChainView() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		body, err := ioutil.ReadAll(io.LimitReader(c.Request.Body, 1024*1024))
-		if handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		var view contract_metadata.View
+		if err := json.NewDecoder(io.LimitReader(c.Request.Body, 1024*1024)).Decode(&view); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
-		if !json.Valid(body) {
-			handleError(c, ctx.Storage, errInvalidMicheline, http.StatusBadRequest)
-			return
-		}
-
-		tree, err := ast.NewTypedAstFromBytes(body)
-		if handleError(c, ctx.Storage, err, http.StatusInternalServerError) {
-			return
-		}
-
-		schema, err := tree.ToJSONSchema()
-		if handleError(c, ctx.Storage, err, http.StatusInternalServerError) {
-			return
-		}
-
-		c.SecureJSON(http.StatusOK, schema)
+		c.SecureJSON(http.StatusOK, getOffChainViewSchema(view))
 	}
+}
+
+func getOffChainViewSchema(view contract_metadata.View) *ViewSchema {
+	var schema ViewSchema
+	for i, impl := range view.Implementations {
+		if impl.MichelsonStorageView.Empty() {
+			continue
+		}
+
+		schema.Name = view.Name
+		schema.Description = view.Description
+		schema.Implementation = i
+		schema.Kind = OffchainView
+
+		tree, err := getOffChainViewTree(impl)
+		if err != nil {
+			schema.Error = err.Error()
+			return &schema
+		}
+		entrypoints, err := tree.GetEntrypointsDocs()
+		if err != nil {
+			schema.Error = err.Error()
+			return &schema
+		}
+		if len(entrypoints) != 1 {
+			continue
+		}
+		schema.Type = entrypoints[0].Type
+		schema.Schema, err = tree.ToJSONSchema()
+		if err != nil {
+			schema.Error = err.Error()
+		}
+		return &schema
+	}
+
+	return nil
 }
 
 func getOffChainViewsSchema(contractMetadata contract_metadata.Repository, address string) ([]ViewSchema, error) {
@@ -123,41 +151,8 @@ func getOffChainViewsSchema(contractMetadata contract_metadata.Repository, addre
 	schemas := make([]ViewSchema, 0)
 
 	for _, view := range tzip.Views {
-		for i, impl := range view.Implementations {
-			if impl.MichelsonStorageView.Empty() {
-				continue
-			}
-
-			schema := ViewSchema{
-				Name:           view.Name,
-				Description:    view.Description,
-				Implementation: i,
-				Kind:           OffchainView,
-			}
-
-			tree, err := getOffChainViewTree(impl)
-			if err != nil {
-				schema.Error = err.Error()
-				schemas = append(schemas, schema)
-				continue
-			}
-			entrypoints, err := tree.GetEntrypointsDocs()
-			if err != nil {
-				schema.Error = err.Error()
-				schemas = append(schemas, schema)
-				continue
-			}
-			if len(entrypoints) != 1 {
-				continue
-			}
-			schema.Type = entrypoints[0].Type
-			schema.Schema, err = tree.ToJSONSchema()
-			if err != nil {
-				schema.Error = err.Error()
-				schemas = append(schemas, schema)
-				continue
-			}
-			schemas = append(schemas, schema)
+		if schema := getOffChainViewSchema(view); schema != nil {
+			schemas = append(schemas, *schema)
 		}
 	}
 

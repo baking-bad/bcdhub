@@ -342,3 +342,7 @@ type globalConstantsContractsRequest struct {
 	getGlobalConstantRequest
 	pageableRequest
 }
+
+type getViewsArgs struct {
+	Kind ViewSchemaKind `form:"kind" binding:"omitempty,oneof=off-chain on-chain"`
+}

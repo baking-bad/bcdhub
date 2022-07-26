@@ -98,7 +98,7 @@ func (api *app) makeRouter() {
 		}
 		v1.GET("implicit/:network/:counter", handlers.NetworkMiddleware(api.Contexts), handlers.GetImplicitOperation())
 		v1.GET("search", handlers.ContextsMiddleware(api.Contexts), handlers.Search())
-		v1.POST("json_schema", handlers.MainnetMiddleware(api.Contexts), handlers.JSONSchema())
+		v1.POST("off_chain_view", handlers.MainnetMiddleware(api.Contexts), handlers.OffChainView())
 		v1.POST("michelson", handlers.ContextsMiddleware(api.Contexts), handlers.CodeFromMichelson())
 		v1.POST("fork", handlers.ForkContract(api.Contexts))
 

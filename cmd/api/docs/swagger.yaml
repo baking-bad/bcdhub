@@ -3010,6 +3010,13 @@ paths:
         name: address
         required: true
         type: string
+      - description: Views kind
+        enum:
+        - on-chain
+        - off-chain
+        in: query
+        name: kind
+        type: string
       produces:
       - application/json
       responses:
@@ -3276,12 +3283,12 @@ paths:
       summary: Get implicit operation
       tags:
       - operations
-  /v1/json_schema:
+  /v1/off_chain_view:
     post:
       consumes:
       - application/json
-      description: Get JSON schema from micheline
-      operationId: get-json-schema
+      description: Get JSON schema for off-chain view
+      operationId: get-off-chain-view
       parameters:
       - description: 'Micheline. Limit: 1MB'
         in: body
@@ -3297,7 +3304,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/ast.JSONSchema'
+            $ref: '#/definitions/handlers.ViewSchema'
         "400":
           description: Bad Request
           schema:
@@ -3306,7 +3313,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.Error'
-      summary: Get JSON schema from micheline
+      summary: Get JSON schema for off-chain view
       tags:
       - contract
   /v1/operation/{network}/{id}/diff:

@@ -61,7 +61,7 @@ func (s Sections) Empty() bool {
 
 // IsParameterEmpty -
 func (s Sections) IsParameterEmpty() bool {
-	return bytes.HasSuffix(s.Parameter, null)
+	return s.Parameter == nil || bytes.HasSuffix(s.Parameter, null)
 }
 
 // MichelsonInitialStorageEvent -

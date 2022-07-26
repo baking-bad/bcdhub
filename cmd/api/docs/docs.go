@@ -2410,6 +2410,16 @@ const docTemplate = `{
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "enum": [
+                            "on-chain",
+                            "off-chain"
+                        ],
+                        "type": "string",
+                        "description": "Views kind",
+                        "name": "kind",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2800,9 +2810,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/json_schema": {
+        "/v1/off_chain_view": {
             "post": {
-                "description": "Get JSON schema from micheline",
+                "description": "Get JSON schema for off-chain view",
                 "consumes": [
                     "application/json"
                 ],
@@ -2812,8 +2822,8 @@ const docTemplate = `{
                 "tags": [
                     "contract"
                 ],
-                "summary": "Get JSON schema from micheline",
-                "operationId": "get-json-schema",
+                "summary": "Get JSON schema for off-chain view",
+                "operationId": "get-off-chain-view",
                 "parameters": [
                     {
                         "description": "Micheline. Limit: 1MB",
@@ -2832,7 +2842,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ast.JSONSchema"
+                            "$ref": "#/definitions/handlers.ViewSchema"
                         }
                     },
                     "400": {
