@@ -133,6 +133,8 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 		query.Where("operation.id < ?", lastID)
 	}
 
+	query.Limit(2) // It's a hack to avoid postgres "optimization". Limit = 1 is extremely slow.
+
 	var ops []operation.Operation
 	if err := storage.DB.Model().TableExpr("(?) as operation", query).
 		ColumnExpr("operation.*").
@@ -140,7 +142,6 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 		ColumnExpr("destination.address as destination__address").
 		Join("LEFT JOIN accounts as source ON source.id = operation.source_id").
 		Join("LEFT JOIN accounts as destination ON destination.id = operation.destination_id").
-		Limit(2). // It's a hack to avoid postgres "optimization". Limit = 1 is extremely slow.
 		Select(&ops); err != nil {
 		return operation.Operation{}, err
 	}
