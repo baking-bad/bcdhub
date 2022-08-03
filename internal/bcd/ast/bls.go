@@ -40,6 +40,11 @@ func (b *BLS12381fr) FindByName(name string, isEntrypoint bool) Node {
 	return nil
 }
 
+// FromJSONSchema -
+func (b *BLS12381fr) FromJSONSchema(data map[string]interface{}) error {
+	return setBytesJSONSchema(&b.Default, data)
+}
+
 //
 //  bls12_381_g1
 //
@@ -78,6 +83,11 @@ func (b *BLS12381g1) FindByName(name string, isEntrypoint bool) Node {
 	return nil
 }
 
+// FromJSONSchema -
+func (b *BLS12381g1) FromJSONSchema(data map[string]interface{}) error {
+	return setBytesJSONSchema(&b.Default, data)
+}
+
 //
 //  bls12_381_g2
 //
@@ -114,4 +124,9 @@ func (b *BLS12381g2) FindByName(name string, isEntrypoint bool) Node {
 		return b
 	}
 	return nil
+}
+
+// FromJSONSchema -
+func (b *BLS12381g2) FromJSONSchema(data map[string]interface{}) error {
+	return setBytesJSONSchema(&b.Default, data)
 }
