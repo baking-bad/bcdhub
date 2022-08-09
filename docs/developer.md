@@ -2,9 +2,7 @@
 BCDHub is a set of microservices written in Golang:
 
 * `indexer`  
-Loads and decodes operations related to smart contracts and also keeps track of the block chain and handles protocol updates.    
-* `metrics`  
-Receives new contract/operation events from the indexer and calculates various metrics that are used for ranking, linking, and labelling contracts and operations.
+Loads and decodes operations related to smart contracts and also keeps track of the block chain and handles protocol updates.
 * `API`  
 Exposes RESTful JSON API for accessing indexed data (with on-the-fly decoding). Also provides a set of methods for authentication and managing user profiles.
 
@@ -102,7 +100,7 @@ There are several predefined configurations serving different purposes.
 #### Development `localhost`
 * `/configs/development.yml` file is used
 * You can spawn local instances of databases or _ssh_ to staging host with port forwarding
-* Run services `make {service}` (where service is one of `api` `indexer` `metrics`)
+* Run services `make {service}` (where service is one of `api` `indexer`)
 
 #### Sandbox `bbbox`
 * `/configs/sandbox.yml` file is used

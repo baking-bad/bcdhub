@@ -88,25 +88,6 @@ jobs:
           tags: ${{ steps.meta-indexer.outputs.tags }}
           labels: ${{ steps.meta-indexer.outputs.labels }}
 
-      # Metrics
-
-      - name: Metrics image tags & labels
-        id: meta-metrics
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_BASE }}-metrics
-
-      - name: Metrics image build & push
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: build/metrics/Dockerfile
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: ${{ steps.meta-metrics.outputs.tags }}
-          labels: ${{ steps.meta-metrics.outputs.labels }}
-
       # Sandbox GUI
 
       - name: GUI image tags & labels

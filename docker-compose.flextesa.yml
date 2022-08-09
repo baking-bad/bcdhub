@@ -47,24 +47,6 @@ services:
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - db
-      - metrics
-    links:
-      - "flextesa:sandbox"
-    volumes:
-      - bcdshare:/etc/bcd
-    logging: *bcd-logging
-
-  metrics:
-    restart: always
-    image: ghcr.io/baking-bad/bcdhub-metrics:${TAG}
-    environment:
-      - BCD_ENV=sandbox
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=root
-      - SANDBOX_NODE_URI=http://sandbox:20000
-      - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
-    depends_on:
-      - db
     links:
       - "flextesa:sandbox"
     volumes:

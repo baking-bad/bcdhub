@@ -40,14 +40,6 @@ type Config struct {
 		OffchainBaseURL string                   `yaml:"offchain_base_url"`
 	} `yaml:"indexer"`
 
-	Metrics struct {
-		ProjectName         string      `yaml:"project_name"`
-		SentryEnabled       bool        `yaml:"sentry_enabled"`
-		CacheAliasesSeconds int         `yaml:"cache_aliases_seconds"`
-		Connections         Connections `yaml:"connections"`
-		Networks            []string    `yaml:"networks"`
-	} `yaml:"metrics"`
-
 	Scripts struct {
 		AWS         AWSConfig   `yaml:"aws"`
 		Networks    []string    `yaml:"networks"`

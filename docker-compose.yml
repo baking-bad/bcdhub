@@ -50,22 +50,6 @@ services:
       dockerfile: build/indexer/Dockerfile
     env_file:
       - .env
-    depends_on:
-      - metrics
-    volumes:
-      - ${SHARE_PATH}:/etc/bcd
-    logging: *bcd-logging
-
-  metrics:
-    restart: always
-    image: ghcr.io/baking-bad/bcdhub-metrics:${TAG:-master}
-    build:
-      context: .
-      dockerfile: build/metrics/Dockerfile
-    env_file:
-      - .env
-    depends_on:
-      - db
     volumes:
       - ${SHARE_PATH}:/etc/bcd
     logging: *bcd-logging

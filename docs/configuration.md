@@ -99,14 +99,6 @@ indexer:
           boost: tzkt
 ```
 
-#### `metrics`
-Metrics service settings
-```yml
-metrics:
-    project_name: metrics
-    sentry_enabled: true
-```
-
 #### `scripts`
 Scripts settings for data migrations and [AWS S3](https://aws.amazon.com/s3/) snapshot registry
 ```yml

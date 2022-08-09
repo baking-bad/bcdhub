@@ -89,18 +89,6 @@ indexer:
     max: 5
     idle: 5
 
-metrics:
-  project_name: metrics
-  sentry_enabled: false
-  cache_aliases_seconds: 30
-  networks:
-    - mainnet
-    - ghostnet
-    - jakartanet
-  connections:
-    max: 10
-    idle: 10
-
 scripts:
   aws:
     bucket_name: bcd-elastic-snapshots

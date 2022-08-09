@@ -6,12 +6,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/baking-bad/bcdhub/cmd/indexer/services"
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -29,6 +31,8 @@ import (
 var errBcdQuit = errors.New("bcd-quit")
 var errSameLevel = errors.New("Same level")
 
+const bulkSize = 100
+
 // BlockchainIndexer -
 type BlockchainIndexer struct {
 	*config.Context
@@ -40,6 +44,8 @@ type BlockchainIndexer struct {
 
 	updateTicker *time.Ticker
 	Network      types.Network
+
+	services []services.Service
 
 	indicesInit sync.Once
 }
@@ -59,6 +65,23 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network types.
 		receiver: NewReceiver(internalCtx.RPC, 20, indexerConfig.ReceiverThreads),
 		blocks:   make(map[int64]*Block),
 		Network:  network,
+		services: []services.Service{
+			services.NewUnknown(internalCtx, time.Minute*30, time.Second*2, -time.Hour*24),
+			services.NewStorageBased[domains.BigMapDiff](
+				"contract_metadata",
+				internalCtx.Services,
+				services.NewContractMetadataHandler(internalCtx),
+				time.Second*15,
+				bulkSize,
+			),
+			services.NewStorageBased[domains.BigMapDiff](
+				"token_metadata",
+				internalCtx.Services,
+				services.NewTokenMetadataHandler(internalCtx),
+				time.Second*15,
+				bulkSize,
+			),
+		},
 	}
 
 	if err := bi.init(ctx, bi.Context.StorageDB); err != nil {
@@ -70,6 +93,11 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network types.
 
 // Close -
 func (bi *BlockchainIndexer) Close() error {
+	for i := range bi.services {
+		if err := bi.services[i].Close(); err != nil {
+			return err
+		}
+	}
 	return bi.Context.Close()
 }
 
@@ -127,6 +155,13 @@ func (bi *BlockchainIndexer) Sync(ctx context.Context, wg *sync.WaitGroup) {
 
 	wg.Add(1)
 	go bi.indexBlock(ctx, wg)
+
+	for i := range bi.services {
+		if err := bi.services[i].Init(); err != nil {
+			logger.Err(err)
+		}
+		bi.services[i].Start(ctx)
+	}
 
 	bi.receiver.Start(ctx)
 

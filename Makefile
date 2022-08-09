@@ -18,10 +18,6 @@ indexer:
 	docker-compose up -d db
 	cd cmd/indexer && go run .
 
-metrics:
-	docker-compose up -d db
-	cd cmd/metrics && go run .
-
 seo:
 ifeq ($(BCD_ENV), development)
 	cd scripts/nginx && go run .
@@ -44,12 +40,6 @@ else
 	docker-compose exec api bcdctl rollback -n $(NETWORK) -l $(LEVEL)
 endif
 
-list-metrics:
-ifeq ($(BCD_ENV), development)
-	cd scripts/bcdctl && go run . list_services
-else
-	docker-compose exec api bcdctl list_services
-endif
 
 s3-db-restore:
 	echo "Database restore..."
@@ -88,7 +78,7 @@ docs:
 	cd cmd/api && swag init --parseDependency --parseInternal --parseDepth 2
 
 stable:
-	TAG=master docker-compose up -d api metrics indexer
+	TAG=master docker-compose up -d api indexer
 
 db-dump:
 	docker-compose exec db pg_dump -c $(POSTGRES_DB) > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
