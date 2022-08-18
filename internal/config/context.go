@@ -34,7 +34,6 @@ type Context struct {
 
 	Storage         models.GeneralRepository
 	Accounts        account.Repository
-	Statistics      models.Statistics
 	BigMapActions   bigmapaction.Repository
 	BigMapDiffs     bigmapdiff.Repository
 	Blocks          block.Repository

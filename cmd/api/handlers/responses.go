@@ -528,15 +528,11 @@ type ForkResponse struct {
 
 // HeadResponse -
 type HeadResponse struct {
-	Network         string    `json:"network"`
-	Level           int64     `json:"level"`
-	Timestamp       time.Time `json:"time"`
-	Protocol        string    `json:"protocol"`
-	Total           int64     `json:"total"`
-	ContractCalls   int64     `json:"contract_calls"`
-	UniqueContracts int64     `json:"unique_contracts"`
-	FACount         int64     `json:"fa_count"`
-	Synced          bool      `json:"synced"`
+	Network   string    `json:"network"`
+	Level     int64     `json:"level"`
+	Timestamp time.Time `json:"time"`
+	Protocol  string    `json:"protocol"`
+	Synced    bool      `json:"synced"`
 }
 
 // GlobalConstant -

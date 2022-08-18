@@ -18,10 +18,8 @@ type Repository interface {
 	// `Sort` - sort by time and content index by desc
 	Get(filter map[string]interface{}, size int64, sort bool) ([]Operation, error)
 
-	GetContract24HoursVolume(address string, entrypoints []string) (float64, error)
-	GetTokensStats(addresses, entrypoints []string) (map[string]TokenUsageStats, error)
-
-	GetDAppStats(addresses []string, period string) (DAppStats, error)
 	GetByIDs(ids ...int64) ([]Operation, error)
 	GetByID(id int64) (Operation, error)
+
+	ContractStats(address string) (ContractStats, error)
 }

@@ -35,7 +35,7 @@ func GetInfo() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		stats, err := ctx.Statistics.ContractStats(ctx.Network, acc.Address)
+		stats, err := ctx.Operations.ContractStats(acc.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

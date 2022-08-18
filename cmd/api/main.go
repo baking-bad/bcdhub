@@ -114,9 +114,6 @@ func (api *app) makeRouter() {
 			networkStats := stats.Group(":network")
 			networkStats.Use(handlers.NetworkMiddleware(api.Contexts))
 			{
-				networkStats.GET("", cache.CachePage(store, time.Minute*10, handlers.GetNetworkStats()))
-				networkStats.GET("series", cache.CachePage(store, time.Minute*10, handlers.GetSeries()))
-				networkStats.GET("contracts", cache.CachePage(store, time.Minute*10, handlers.GetContractsStats()))
 				networkStats.GET("recently_called_contracts", cache.CachePage(store, time.Second*10, handlers.RecentlyCalledContracts()))
 			}
 		}

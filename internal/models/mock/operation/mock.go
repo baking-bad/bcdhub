@@ -139,36 +139,6 @@ func (mr *MockRepositoryMockRecorder) Get(filter, size, sort interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), filter, size, sort)
 }
 
-// GetContract24HoursVolume mocks base method
-func (m *MockRepository) GetContract24HoursVolume(address string, entrypoints []string) (float64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetContract24HoursVolume", address, entrypoints)
-	ret0, _ := ret[0].(float64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetContract24HoursVolume indicates an expected call of GetContract24HoursVolume
-func (mr *MockRepositoryMockRecorder) GetContract24HoursVolume(address, entrypoints interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContract24HoursVolume", reflect.TypeOf((*MockRepository)(nil).GetContract24HoursVolume), address, entrypoints)
-}
-
-// GetTokensStats mocks base method
-func (m *MockRepository) GetTokensStats(addresses, entrypoints []string) (map[string]model.TokenUsageStats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTokensStats", addresses, entrypoints)
-	ret0, _ := ret[0].(map[string]model.TokenUsageStats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetTokensStats indicates an expected call of GetTokensStats
-func (mr *MockRepositoryMockRecorder) GetTokensStats(addresses, entrypoints interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokensStats", reflect.TypeOf((*MockRepository)(nil).GetTokensStats), addresses, entrypoints)
-}
-
 // GetDAppStats mocks base method
 func (m *MockRepository) GetDAppStats(addresses []string, period string) (model.DAppStats, error) {
 	m.ctrl.T.Helper()
@@ -216,4 +186,19 @@ func (m *MockRepository) GetByID(id int64) (model.Operation, error) {
 func (mr *MockRepositoryMockRecorder) GetByID(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), id)
+}
+
+// ContractStats mocks base method
+func (m *MockRepository) ContractStats(address string) (model.ContractStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ContractStats", address)
+	ret0, _ := ret[0].(model.ContractStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ContractStats indicates an expected call of ContractStats
+func (mr *MockRepositoryMockRecorder) ContractStats(address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractStats", reflect.TypeOf((*MockRepository)(nil).ContractStats), address)
 }

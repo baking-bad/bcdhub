@@ -7,7 +7,6 @@ package mock
 import (
 	context "context"
 	models "github.com/baking-bad/bcdhub/internal/models"
-	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -160,92 +159,4 @@ func (m *MockGeneralRepository) BulkDelete(arg0 context.Context, arg1 []models.M
 func (mr *MockGeneralRepositoryMockRecorder) BulkDelete(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockGeneralRepository)(nil).BulkDelete), arg0, arg1)
-}
-
-// MockStatistics is a mock of Statistics interface
-type MockStatistics struct {
-	ctrl     *gomock.Controller
-	recorder *MockStatisticsMockRecorder
-}
-
-// MockStatisticsMockRecorder is the mock recorder for MockStatistics
-type MockStatisticsMockRecorder struct {
-	mock *MockStatistics
-}
-
-// NewMockStatistics creates a new mock instance
-func NewMockStatistics(ctrl *gomock.Controller) *MockStatistics {
-	mock := &MockStatistics{ctrl: ctrl}
-	mock.recorder = &MockStatisticsMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockStatistics) EXPECT() *MockStatisticsMockRecorder {
-	return m.recorder
-}
-
-// NetworkCountStats mocks base method
-func (m *MockStatistics) NetworkCountStats(network types.Network) (map[string]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NetworkCountStats", network)
-	ret0, _ := ret[0].(map[string]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// NetworkCountStats indicates an expected call of NetworkCountStats
-func (mr *MockStatisticsMockRecorder) NetworkCountStats(network interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NetworkCountStats", reflect.TypeOf((*MockStatistics)(nil).NetworkCountStats), network)
-}
-
-// Histogram mocks base method
-func (m *MockStatistics) Histogram(period string, opts ...models.HistogramOption) ([][]float64, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{period}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "Histogram", varargs...)
-	ret0, _ := ret[0].([][]float64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Histogram indicates an expected call of Histogram
-func (mr *MockStatisticsMockRecorder) Histogram(period interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{period}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Histogram", reflect.TypeOf((*MockStatistics)(nil).Histogram), varargs...)
-}
-
-// NetworkStats mocks base method
-func (m *MockStatistics) NetworkStats(network types.Network) (map[string]*models.NetworkStats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NetworkStats", network)
-	ret0, _ := ret[0].(map[string]*models.NetworkStats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// NetworkStats indicates an expected call of NetworkStats
-func (mr *MockStatisticsMockRecorder) NetworkStats(network interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NetworkStats", reflect.TypeOf((*MockStatistics)(nil).NetworkStats), network)
-}
-
-// ContractStats mocks base method
-func (m *MockStatistics) ContractStats(network types.Network, address string) (models.ContractStats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ContractStats", network, address)
-	ret0, _ := ret[0].(models.ContractStats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ContractStats indicates an expected call of ContractStats
-func (mr *MockStatisticsMockRecorder) ContractStats(network, address interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractStats", reflect.TypeOf((*MockStatistics)(nil).ContractStats), network, address)
 }
