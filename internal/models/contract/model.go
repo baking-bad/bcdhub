@@ -1,6 +1,8 @@
 package contract
 
 import (
+	"bytes"
+	stdJSON "encoding/json"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -59,4 +61,38 @@ func (c *Contract) LogFields() map[string]interface{} {
 		"address": c.Account,
 		"block":   c.Level,
 	}
+}
+
+// Sections -
+type Sections struct {
+	Parameter  stdJSON.RawMessage `json:"parameter"`
+	ReturnType stdJSON.RawMessage `json:"returnType"`
+	Code       stdJSON.RawMessage `json:"code"`
+}
+
+var null = []byte("null")
+
+// Empty -
+func (s Sections) Empty() bool {
+	return bytes.HasSuffix(s.Code, null) && bytes.HasSuffix(s.Parameter, null) && bytes.HasSuffix(s.ReturnType, null)
+}
+
+// IsParameterEmpty -
+func (s Sections) IsParameterEmpty() bool {
+	return s.Parameter == nil || bytes.HasSuffix(s.Parameter, null)
+}
+
+// Views -
+type Views []View
+
+// View -
+type View struct {
+	Name            string               `json:"name"`
+	Description     string               `json:"description"`
+	Implementations []ViewImplementation `json:"implementations"`
+}
+
+// ViewImplementation -
+type ViewImplementation struct {
+	MichelsonStorageView Sections `json:"michelsonStorageView"`
 }

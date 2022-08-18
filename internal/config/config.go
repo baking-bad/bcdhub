@@ -14,30 +14,26 @@ const (
 	EnvironmentVar  = "BCD_ENV"
 	EnvironmentDev  = "development"
 	EnvironmentProd = "production"
-	EnvironmentYou  = "you"
 	EnvironmentBox  = "sandbox"
 )
 
 // Config -
 type Config struct {
-	RPC          map[string]RPCConfig     `yaml:"rpc"`
-	TzKT         map[string]TzKTConfig    `yaml:"tzkt"`
-	Services     map[string]ServiceConfig `yaml:"services"`
-	Storage      StorageConfig            `yaml:"storage"`
-	Sentry       SentryConfig             `yaml:"sentry"`
-	SharePath    string                   `yaml:"share_path"`
-	BaseURL      string                   `yaml:"base_url"`
-	IPFSGateways []string                 `yaml:"ipfs"`
-	Domains      TezosDomainsConfig       `yaml:"domains"`
+	RPC       map[string]RPCConfig     `yaml:"rpc"`
+	TzKT      map[string]TzKTConfig    `yaml:"tzkt"`
+	Services  map[string]ServiceConfig `yaml:"services"`
+	Storage   StorageConfig            `yaml:"storage"`
+	Sentry    SentryConfig             `yaml:"sentry"`
+	SharePath string                   `yaml:"share_path"`
+	BaseURL   string                   `yaml:"base_url"`
 
 	API APIConfig `yaml:"api"`
 
 	Indexer struct {
-		Networks        map[string]IndexerConfig `yaml:"networks"`
-		ProjectName     string                   `yaml:"project_name"`
-		SentryEnabled   bool                     `yaml:"sentry_enabled"`
-		Connections     Connections              `yaml:"connections"`
-		OffchainBaseURL string                   `yaml:"offchain_base_url"`
+		Networks      map[string]IndexerConfig `yaml:"networks"`
+		ProjectName   string                   `yaml:"project_name"`
+		SentryEnabled bool                     `yaml:"sentry_enabled"`
+		Connections   Connections              `yaml:"connections"`
 	} `yaml:"indexer"`
 
 	Scripts struct {
@@ -199,7 +195,6 @@ type Connections struct {
 func LoadDefaultConfig() (Config, error) {
 	configurations := map[string]string{
 		EnvironmentProd: "production.yml",
-		EnvironmentYou:  "you.yml",
 		EnvironmentBox:  "sandbox.yml",
 		EnvironmentDev:  "../../configs/development.yml",
 	}

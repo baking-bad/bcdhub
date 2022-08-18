@@ -3,7 +3,7 @@ package handlers
 import (
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
@@ -103,11 +103,6 @@ type pageableRequest struct {
 	Size   int64 `form:"size" binding:"min=0,bcd_max_size=10"`
 }
 
-type cursorRequest struct {
-	LastID string `form:"last_id" binding:"omitempty,numeric"`
-	Size   int64  `form:"size" binding:"min=0,bcd_max_size=10"`
-}
-
 // OPGRequest -
 type OPGRequest struct {
 	Hash string `uri:"hash" binding:"required,opg" example:"ooy4c6G2BZzybYEY3vRQ7WXGL63tFmamTeGTHdjUxhd6ckbSNnb"`
@@ -177,10 +172,6 @@ type getSeriesRequest struct {
 	Address string `form:"address,omitempty" binding:"omitempty"`
 }
 
-type getBySlugRequest struct {
-	Slug string `uri:"slug"  binding:"required"`
-}
-
 type getOperationByIDRequest struct {
 	ID int64 `uri:"id" binding:"required"`
 }
@@ -243,78 +234,16 @@ func (req GetTokenStatsRequest) Addresses() []string {
 	return strings.Split(req.Contracts, ",")
 }
 
-type getTokenSeriesRequest struct {
-	Contract string `form:"contract" binding:"required,address"`
-	Period   string `form:"period" binding:"oneof=year month week day hour" example:"year"`
-	TokenID  uint64 `form:"token_id"`
-	Slug     string `form:"slug" binding:"required"`
-}
-
-type getDappRequest struct {
-	Slug string `uri:"slug" binding:"required"`
-}
-
-type getContractTransfers struct {
-	pageableRequest
-	TokenID *uint64 `form:"token_id"  binding:"omitempty,min=0"`
-}
-
-type getTransfersRequest struct {
-	cursorRequest
-	Start     uint    `form:"start"  binding:"omitempty,min=1"`
-	End       uint    `form:"end"  binding:"omitempty,min=1,gtfield=Start"`
-	Contracts string  `form:"contracts"  binding:"omitempty"`
-	Sort      string  `form:"sort" binding:"omitempty,oneof=asc desc"`
-	TokenID   *uint64 `form:"token_id" binding:"omitempty,min=0"`
-}
-
-type byTokenIDRequest struct {
-	TokenID *uint64 `form:"token_id" binding:"min=0"`
-}
-
 type executeViewRequest struct {
-	Data           map[string]interface{}                `json:"data" binding:"required"`
-	Name           string                                `json:"name" binding:"required_if=Kind on-chain"`
-	Implementation *int                                  `json:"implementation" binding:"required_if=Kind on-chain"`
-	Kind           ViewSchemaKind                        `json:"kind" binding:"required"`
-	Amount         int64                                 `json:"amount,omitempty"`
-	GasLimit       int64                                 `json:"gas_limit,omitempty"`
-	Source         string                                `json:"source,omitempty" binding:"omitempty,address"`
-	Sender         string                                `json:"sender,omitempty" binding:"omitempty,address"`
-	View           *contract_metadata.ViewImplementation `json:"view,omitempty" binding:"required_if=Kind off-chain"`
-}
-
-type minMaxLevel struct {
-	MaxLevel int64 `form:"max_level,omitempty" binding:"omitempty,gt_int64_ptr=MinLevel"`
-	MinLevel int64 `form:"min_level,omitempty" binding:"omitempty"`
-}
-
-type tokenRequest struct {
-	pageableRequest
-	minMaxLevel
-	TokenID *uint64 `form:"token_id" binding:"omitempty"`
-}
-
-type tokenBalanceRequest struct {
-	Offset    int64  `form:"offset" binding:"min=0"`
-	Size      int64  `form:"size" binding:"min=0,max=50"`
-	Contract  string `form:"contract" binding:"omitempty,address"`
-	SortBy    string `form:"sort_by" binding:"omitempty,oneof=token_id balance"`
-	HideEmpty bool   `form:"hide_empty" binding:"omitempty"`
-}
-
-type batchAddressRequest struct {
-	Address string `form:"address" binding:"required"`
-}
-
-type tokenMetadataRequest struct {
-	tokenRequest
-	Creator  string `form:"creator" binding:"omitempty"`
-	Contract string `form:"contract" binding:"omitempty,address"`
-}
-
-type tokensCountByContractRequest struct {
-	HideEmpty bool `form:"hide_empty" binding:"omitempty"`
+	Data           map[string]interface{}       `json:"data" binding:"required"`
+	Name           string                       `json:"name" binding:"required_if=Kind on-chain"`
+	Implementation *int                         `json:"implementation" binding:"required_if=Kind on-chain"`
+	Kind           ViewSchemaKind               `json:"kind" binding:"required"`
+	Amount         int64                        `json:"amount,omitempty"`
+	GasLimit       int64                        `json:"gas_limit,omitempty"`
+	Source         string                       `json:"source,omitempty" binding:"omitempty,address"`
+	Sender         string                       `json:"sender,omitempty" binding:"omitempty,address"`
+	View           *contract.ViewImplementation `json:"view,omitempty" binding:"required_if=Kind off-chain"`
 }
 
 type getGlobalConstantRequest struct {

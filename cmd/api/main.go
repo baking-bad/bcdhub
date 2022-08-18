@@ -121,12 +121,6 @@ func (api *app) makeRouter() {
 			}
 		}
 
-		slug := v1.Group("slug")
-		slug.Use(handlers.MainnetMiddleware(api.Contexts))
-		{
-			slug.GET(":slug", handlers.GetBySlug())
-		}
-
 		bigmap := v1.Group("bigmap/:network/:ptr")
 		bigmap.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
@@ -149,15 +143,7 @@ func (api *app) makeRouter() {
 			contract.GET("operations", handlers.GetContractOperations())
 			contract.GET("opg", handlers.GetOperationGroups())
 			contract.GET("migrations", handlers.GetContractMigrations())
-			contract.GET("transfers", handlers.GetContractTransfers())
 			contract.GET("global_constants", handlers.GetContractGlobalConstants())
-
-			tokens := contract.Group("tokens")
-			{
-				tokens.GET("", handlers.GetContractTokens())
-				tokens.GET("count", handlers.GetContractTokensCount())
-				tokens.GET("holders", handlers.GetTokenHolders())
-			}
 
 			storage := contract.Group("storage")
 			{
@@ -187,42 +173,9 @@ func (api *app) makeRouter() {
 		account := v1.Group("account/:network")
 		account.Use(handlers.NetworkMiddleware(api.Contexts))
 		{
-			account.GET("", handlers.GetBatchTokenBalances())
 			acc := account.Group(":address")
 			{
 				acc.GET("", handlers.GetInfo())
-				acc.GET("metadata", handlers.GetMetadata())
-				acc.GET("token_balances", handlers.GetAccountTokenBalances())
-				acc.GET("count", handlers.GetAccountTokensCountByContract())
-				acc.GET("count_with_metadata", handlers.GetAccountTokensCountByContractWithMetadata())
-			}
-		}
-
-		fa12 := v1.Group("tokens/:network")
-		fa12.Use(handlers.NetworkMiddleware(api.Contexts))
-		{
-			fa12.GET("", handlers.GetFA())
-			fa12.GET("series", handlers.GetTokenVolumeSeries())
-			fa12.GET("version/:faversion", handlers.GetFAByVersion())
-			fa12.GET("metadata", handlers.GetTokenMetadata())
-			transfers := fa12.Group("transfers")
-			{
-				transfers.GET(":address", handlers.GetFA12OperationsForAddress())
-			}
-		}
-
-		dapps := v1.Group("dapps")
-		dapps.Use(handlers.MainnetMiddleware(api.Contexts))
-		{
-			dapps.GET("", handlers.GetDAppList())
-			dappsBySlug := dapps.Group(":slug")
-			{
-				dappsBySlug.GET("", handlers.GetDApp())
-				dex := dappsBySlug.Group("dex")
-				{
-					dex.GET("tokens", handlers.GetDexTokens())
-					dex.GET("tezos_volume", cache.CachePage(store, time.Minute, handlers.GetDexTezosVolume()))
-				}
 			}
 		}
 

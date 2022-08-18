@@ -119,18 +119,6 @@ func GetBigMap() gin.HandlerFunc {
 			}
 		}
 
-		if res.ContractAlias != "" {
-			alias, err := ctx.ContractMetadata.Get(res.Address)
-			if err != nil {
-				if !ctx.Storage.IsRecordNotFound(err) {
-					handleError(c, ctx.Storage, err, 0)
-					return
-				}
-			} else {
-				res.ContractAlias = alias.Name
-			}
-		}
-
 		c.SecureJSON(http.StatusOK, res)
 	}
 }

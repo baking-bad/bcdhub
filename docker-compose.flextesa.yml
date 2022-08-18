@@ -76,7 +76,6 @@ services:
     logging: *bcd-logging
 
 volumes:
-  esdata:
   bcdshare:
   db:
     driver: local

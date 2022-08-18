@@ -5,12 +5,10 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/scripts/nginx/pkg/sitemap"
 )
 
-func makeSitemap(dapps []dapp.DApp, aliases []contract_metadata.ContractMetadata, filepath string, cfg config.Config) error {
+func makeSitemap(filepath string, cfg config.Config) error {
 	s := sitemap.New()
 
 	s.AddLocation(cfg.BaseURL)
@@ -22,15 +20,6 @@ func makeSitemap(dapps []dapp.DApp, aliases []contract_metadata.ContractMetadata
 	for _, network := range cfg.Scripts.Networks {
 		s.AddLocation(fmt.Sprintf("%s/stats/%s", cfg.BaseURL, network))
 	}
-
-	for _, a := range aliases {
-		s.AddLocation(fmt.Sprintf("%s/@%s", cfg.BaseURL, a.Slug))
-	}
-
-	for _, d := range dapps {
-		s.AddLocation(fmt.Sprintf("%s/dapps/%s", cfg.BaseURL, d.Slug))
-	}
-
 	if err := s.SaveToFile(filepath); err != nil {
 		return err
 	}

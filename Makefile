@@ -10,10 +10,6 @@ api:
 	docker-compose up -d db
 	cd cmd/api && go run .
 
-api-tester:
-	docker-compose up -d db
-	cd scripts/api_tester && go run .
-
 indexer:
 	docker-compose up -d db
 	cd cmd/indexer && go run .
@@ -39,7 +35,6 @@ ifeq ($(BCD_ENV), development)
 else
 	docker-compose exec api bcdctl rollback -n $(NETWORK) -l $(LEVEL)
 endif
-
 
 s3-db-restore:
 	echo "Database restore..."

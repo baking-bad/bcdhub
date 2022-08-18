@@ -34,7 +34,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		return nil
 	}
 
-	manager := rollback.NewManager(ctx.RPC, ctx.Storage, ctx.Blocks, ctx.BigMapDiffs, ctx.Transfers)
+	manager := rollback.NewManager(ctx.RPC, ctx.Storage, ctx.Blocks, ctx.BigMapDiffs)
 	if err = manager.Rollback(context.Background(), ctx.StorageDB.DB, network, state, x.Level); err != nil {
 		return err
 	}

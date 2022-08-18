@@ -7,11 +7,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 
-	pgTokenBalance "github.com/baking-bad/bcdhub/internal/postgres/tokenbalance"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -21,7 +18,6 @@ type Store struct {
 	Contracts       []*contract.Contract
 	Migrations      []*migration.Migration
 	Operations      []*operation.Operation
-	TokenBalances   []*tokenbalance.TokenBalance
 	GlobalConstants []*contract.GlobalConstant
 
 	tx pg.DBI
@@ -34,7 +30,6 @@ func NewStore(tx pg.DBI) *Store {
 		Contracts:       make([]*contract.Contract, 0),
 		Migrations:      make([]*migration.Migration, 0),
 		Operations:      make([]*operation.Operation, 0),
-		TokenBalances:   make([]*tokenbalance.TokenBalance, 0),
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
 
 		tx: tx,
@@ -59,11 +54,6 @@ func (store *Store) AddMigrations(migrations ...*migration.Migration) {
 // AddOperations -
 func (store *Store) AddOperations(operations ...*operation.Operation) {
 	store.Operations = append(store.Operations, operations...)
-}
-
-// AddTokenBalances -
-func (store *Store) AddTokenBalances(balances ...*tokenbalance.TokenBalance) {
-	store.TokenBalances = append(store.TokenBalances, balances...)
 }
 
 // AddGlobalConstants -
@@ -99,10 +89,6 @@ func (store *Store) Save() error {
 		if err := store.BigMapState[i].Save(store.tx); err != nil {
 			return err
 		}
-	}
-
-	if err := pgTokenBalance.Save(store.tx, store.TokenBalances); err != nil {
-		return err
 	}
 
 	if len(store.GlobalConstants) > 0 {
@@ -169,9 +155,6 @@ func (store *Store) saveOperations(tx pg.DBI) error {
 		for j := range store.Operations[i].BigMapDiffs {
 			store.Operations[i].BigMapDiffs[j].OperationID = store.Operations[i].ID
 		}
-		for j := range store.Operations[i].Transfers {
-			store.Operations[i].Transfers[j].OperationID = store.Operations[i].ID
-		}
 		for j := range store.Operations[i].BigMapActions {
 			store.Operations[i].BigMapActions[j].OperationID = store.Operations[i].ID
 		}
@@ -180,10 +163,6 @@ func (store *Store) saveOperations(tx pg.DBI) error {
 			if _, err := tx.Model(&store.Operations[i].BigMapDiffs).Returning("id").Insert(); err != nil {
 				return err
 			}
-		}
-
-		if err := store.saveTransfers(tx, store.Operations[i].Transfers); err != nil {
-			return err
 		}
 
 		if len(store.Operations[i].BigMapActions) > 0 {
@@ -336,34 +315,5 @@ func (store *Store) updateContracts(tx pg.DBI) error {
 		Set("last_action = ?last_action, tx_count = contract_updates.tx_count + ?tx_count").
 		Where("contract_updates.account_id = ?account_id").
 		Update()
-	return err
-}
-
-func (store *Store) saveTransfers(tx pg.DBI, transfers []*transfer.Transfer) error {
-	if len(transfers) == 0 {
-		return nil
-	}
-	for j := range transfers {
-		if !transfers[j].Initiator.IsEmpty() {
-			if err := transfers[j].Initiator.Save(tx); err != nil {
-				return err
-			}
-			transfers[j].InitiatorID = transfers[j].Initiator.ID
-		}
-		if !transfers[j].From.IsEmpty() {
-			if err := transfers[j].From.Save(tx); err != nil {
-				return err
-			}
-			transfers[j].FromID = transfers[j].From.ID
-		}
-		if !transfers[j].To.IsEmpty() {
-			if err := transfers[j].To.Save(tx); err != nil {
-				return err
-			}
-			transfers[j].ToID = transfers[j].To.ID
-		}
-	}
-
-	_, err := tx.Model(&transfers).Returning("id").Insert()
 	return err
 }

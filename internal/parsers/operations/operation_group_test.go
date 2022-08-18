@@ -16,27 +16,21 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	modelContract "github.com/baking-bad/bcdhub/internal/models/contract"
-	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
 	mock_accounts "github.com/baking-bad/bcdhub/internal/models/mock/account"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
 	mock_contract "github.com/baking-bad/bcdhub/internal/models/mock/contract"
-	mock_cm "github.com/baking-bad/bcdhub/internal/models/mock/contract_metadata"
 	mock_operations "github.com/baking-bad/bcdhub/internal/models/mock/operation"
 	mock_proto "github.com/baking-bad/bcdhub/internal/models/mock/protocol"
-	mock_token_balance "github.com/baking-bad/bcdhub/internal/models/mock/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/go-pg/pg/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/shopspring/decimal"
 )
 
 func TestGroup_Parse(t *testing.T) {
@@ -62,10 +56,6 @@ func TestGroup_Parse(t *testing.T) {
 	defer ctrlProtoRepo.Finish()
 	protoRepo := mock_proto.NewMockRepository(ctrlProtoRepo)
 
-	ctrlCMRepo := gomock.NewController(t)
-	defer ctrlCMRepo.Finish()
-	cmRepo := mock_cm.NewMockRepository(ctrlCMRepo)
-
 	ctrlContractRepo := gomock.NewController(t)
 	defer ctrlContractRepo.Finish()
 	contractRepo := mock_contract.NewMockRepository(ctrlContractRepo)
@@ -77,10 +67,6 @@ func TestGroup_Parse(t *testing.T) {
 	ctrlGlobalConstantRepo := gomock.NewController(t)
 	defer ctrlGlobalConstantRepo.Finish()
 	globalConstantRepo := mock_contract.NewMockConstantRepository(ctrlGlobalConstantRepo)
-
-	ctrlTokenBalanceRepo := gomock.NewController(t)
-	defer ctrlTokenBalanceRepo.Finish()
-	tbRepo := mock_token_balance.NewMockRepository(ctrlTokenBalanceRepo)
 
 	ctrlOperationsRepo := gomock.NewController(t)
 	defer ctrlOperationsRepo.Finish()
@@ -119,24 +105,6 @@ func TestGroup_Parse(t *testing.T) {
 		EXPECT().
 		GetScriptJSON(gomock.Any(), "KT1S95Dyj2QrJpSnAbHRUSUZr7DhuFqssrog", int64(0)).
 		DoAndReturn(readRPCScript).
-		AnyTimes()
-
-	cmRepo.
-		EXPECT().
-		GetWithEvents(gomock.Any()).
-		Return(make([]cm.ContractMetadata, 0), nil).
-		AnyTimes()
-
-	cmRepo.
-		EXPECT().
-		Events(gomock.Any()).
-		Return(make(cm.Events, 0), nil).
-		AnyTimes()
-
-	cmRepo.
-		EXPECT().
-		Get(gomock.Any()).
-		Return(nil, nil).
 		AnyTimes()
 
 	contractRepo.
@@ -409,18 +377,16 @@ func TestGroup_Parse(t *testing.T) {
 		{
 			name: "opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				Operations:       operaitonsRepo,
-				TokenBalances:    tbRepo,
-				Scripts:          scriptRepo,
+				RPC:         rpc,
+				Storage:     generalRepo,
+				Contracts:   contractRepo,
+				BigMapDiffs: bmdRepo,
+				Blocks:      blockRepo,
+				Protocols:   protoRepo,
+				Operations:  operaitonsRepo,
+				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -446,19 +412,17 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				Accounts:         accountsRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				Operations:       operaitonsRepo,
-				TokenBalances:    tbRepo,
-				Scripts:          scriptRepo,
+				RPC:         rpc,
+				Storage:     generalRepo,
+				Contracts:   contractRepo,
+				Accounts:    accountsRepo,
+				BigMapDiffs: bmdRepo,
+				Blocks:      blockRepo,
+				Protocols:   protoRepo,
+				Operations:  operaitonsRepo,
+				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -520,28 +484,6 @@ func TestGroup_Parse(t *testing.T) {
 						Parameters:      []byte("{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Right\",\"args\":[{\"prim\":\"Right\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq\"},{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV\"},{\"int\":\"8010000\"}]}]}]}]}]}]}}"),
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"}],{\"int\":\"62\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"63\"},{\"string\":\"Aspen Digital Token\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"010d25f77b84dc2164a5d1ce5e8a5d3ca2b1d0cbf900\"}]}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"01796ad78734892d5ae4186e84a30290040732ada700\"},{\"string\":\"ASPD\"}]},{\"int\":\"18000000\"}]}]}"),
 						Tags:            types.FA12Tag,
-						Transfers: []*transfer.Transfer{
-							{
-								Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
-								Initiator: account.Account{
-									Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
-									Type:    types.AccountTypeTz,
-								},
-								Status:    types.OperationStatusApplied,
-								Timestamp: timestamp,
-								Level:     1068669,
-								From: account.Account{
-									Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
-									Type:    types.AccountTypeTz,
-								},
-								To: account.Account{
-									Address: "tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV",
-									Type:    types.AccountTypeTz,
-								},
-								TokenID: 0,
-								Amount:  decimal.RequireFromString("8010000"),
-							},
-						},
 						BigMapDiffs: []*bigmapdiff.BigMapDiff{
 							{
 								Ptr:        63,
@@ -642,42 +584,21 @@ func TestGroup_Parse(t *testing.T) {
 						LastUpdateTime:  timestamp,
 					},
 				},
-				TokenBalances: []*tokenbalance.TokenBalance{
-					{
-						Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
-						Account: account.Account{
-							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
-							Type:    types.AccountTypeTz,
-						},
-						TokenID: 0,
-						Balance: decimal.RequireFromString("-8010000"),
-					}, {
-						Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
-						Account: account.Account{
-							Address: "tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV",
-							Type:    types.AccountTypeTz,
-						},
-						TokenID: 0,
-						Balance: decimal.RequireFromString("8010000"),
-					},
-				},
 			},
 		}, {
 			name: "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				Accounts:         accountsRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				TokenBalances:    tbRepo,
-				Operations:       operaitonsRepo,
-				Scripts:          scriptRepo,
+				RPC:         rpc,
+				Storage:     generalRepo,
+				Contracts:   contractRepo,
+				Accounts:    accountsRepo,
+				BigMapDiffs: bmdRepo,
+				Blocks:      blockRepo,
+				Protocols:   protoRepo,
+				Operations:  operaitonsRepo,
+				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -782,28 +703,6 @@ func TestGroup_Parse(t *testing.T) {
 						Burned:          47000,
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"int\":\"31\"},{\"prim\":\"Pair\",\"args\":[[{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]},{\"prim\":\"DUP\"},{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"DIP\",\"args\":[{\"int\":\"2\"},[{\"prim\":\"DUP\"}]]},{\"prim\":\"DIG\",\"args\":[{\"int\":\"2\"}]}]]},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"code\"}]},{\"prim\":\"PAIR\"},{\"prim\":\"PACK\"},{\"prim\":\"GET\"},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"NONE\",\"args\":[{\"prim\":\"lambda\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]},{\"prim\":\"pair\",\"args\":[{\"prim\":\"list\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}]}]}],[{\"prim\":\"UNPACK\",\"args\":[{\"prim\":\"lambda\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]},{\"prim\":\"pair\",\"args\":[{\"prim\":\"list\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}]}]},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"UStore: failed to unpack code\"}]},{\"prim\":\"FAILWITH\"}],[]]},{\"prim\":\"SOME\"}]]},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"DROP\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"DUP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"bytes\"},{\"bytes\":\"05010000000866616c6c6261636b\"}]},{\"prim\":\"GET\"},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"UStore: no field fallback\"}]},{\"prim\":\"FAILWITH\"}],[]]},{\"prim\":\"UNPACK\",\"args\":[{\"prim\":\"lambda\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"string\"},{\"prim\":\"bytes\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]},{\"prim\":\"pair\",\"args\":[{\"prim\":\"list\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}]}]},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"UStore: failed to unpack fallback\"}]},{\"prim\":\"FAILWITH\"}],[]]},{\"prim\":\"SWAP\"}]]},{\"prim\":\"PAIR\"},{\"prim\":\"EXEC\"}],[{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"SWAP\"},{\"prim\":\"DROP\"},{\"prim\":\"PAIR\"}]]},{\"prim\":\"SWAP\"},{\"prim\":\"EXEC\"}]]}],{\"prim\":\"Pair\",\"args\":[{\"int\":\"1\"},{\"prim\":\"False\"}]}]}]}"),
 						Tags:            types.FA12Tag,
-						Transfers: []*transfer.Transfer{
-							{
-								Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-								Initiator: account.Account{
-									Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-									Type:    types.AccountTypeContract,
-								},
-								Status:    types.OperationStatusApplied,
-								Timestamp: timestamp,
-								Level:     1151495,
-								From: account.Account{
-									Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-									Type:    types.AccountTypeContract,
-								},
-								To: account.Account{
-									Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-									Type:    types.AccountTypeTz,
-								},
-								TokenID: 0,
-								Amount:  decimal.RequireFromString("7874880"),
-							},
-						},
 						BigMapDiffs: []*bigmapdiff.BigMapDiff{
 							{
 								Ptr:        31,
@@ -872,45 +771,20 @@ func TestGroup_Parse(t *testing.T) {
 						LastUpdateTime:  timestamp,
 					},
 				},
-				TokenBalances: []*tokenbalance.TokenBalance{
-					{
-
-						Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Account: account.Account{
-
-							Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-							Type:    types.AccountTypeContract,
-						},
-						TokenID: 0,
-						Balance: decimal.RequireFromString("-7874880"),
-					}, {
-
-						Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Account: account.Account{
-
-							Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-							Type:    types.AccountTypeTz,
-						},
-						TokenID: 0,
-						Balance: decimal.RequireFromString("7874880"),
-					},
-				},
 			},
 		}, {
 			name: "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				TokenBalances:    tbRepo,
-				Operations:       operaitonsRepo,
-				Scripts:          scriptRepo,
+				RPC:         rpc,
+				Storage:     generalRepo,
+				Contracts:   contractRepo,
+				BigMapDiffs: bmdRepo,
+				Blocks:      blockRepo,
+				Protocols:   protoRepo,
+				Operations:  operaitonsRepo,
+				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -996,18 +870,16 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "onv6Q1dNejAGEJeQzwRannWsDSGw85FuFdhLnBrY18TBcC9p8kC",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				TokenBalances:    tbRepo,
-				Operations:       operaitonsRepo,
-				Scripts:          scriptRepo,
+				RPC:         rpc,
+				Storage:     generalRepo,
+				Contracts:   contractRepo,
+				BigMapDiffs: bmdRepo,
+				Blocks:      blockRepo,
+				Protocols:   protoRepo,
+				Operations:  operaitonsRepo,
+				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1099,19 +971,17 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Accounts:         accountsRepo,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				TokenBalances:    tbRepo,
-				Operations:       operaitonsRepo,
-				Scripts:          scriptRepo,
+				RPC:         rpc,
+				Accounts:    accountsRepo,
+				Storage:     generalRepo,
+				Contracts:   contractRepo,
+				BigMapDiffs: bmdRepo,
+				Blocks:      blockRepo,
+				Protocols:   protoRepo,
+				Operations:  operaitonsRepo,
+				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1288,18 +1158,16 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "ooz1bkCQeYsZYP7vb4Dx7pYPRpWN11Z3G3yP1v4HAfdNXuHRv9c",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				TokenBalances:    tbRepo,
-				Operations:       operaitonsRepo,
-				Scripts:          scriptRepo,
+				RPC:         rpc,
+				Storage:     generalRepo,
+				Contracts:   contractRepo,
+				BigMapDiffs: bmdRepo,
+				Blocks:      blockRepo,
+				Protocols:   protoRepo,
+				Operations:  operaitonsRepo,
+				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1359,29 +1227,6 @@ func TestGroup_Parse(t *testing.T) {
 						Parameters:      []byte(`{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb"},[{"prim":"Pair","args":[{"string":"tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi"},{"prim":"Pair","args":[{"int":"12"},{"int":"1"}]}]}]]}]}`),
 						ProtocolID:      4,
 						DeffatedStorage: []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"746"},{"int":"4992269"}]},{"prim":"Pair","args":[{"int":"747"},{"int":"748"}]}]},{"int":"749"}]}`),
-						Transfers: []*transfer.Transfer{
-							{
-								TokenID: 12,
-								From: account.Account{
-									Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
-									Type:    types.AccountTypeTz,
-								},
-								To: account.Account{
-									Address: "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
-									Type:    types.AccountTypeTz,
-								},
-								Amount: decimal.NewFromInt(1),
-
-								Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
-								Initiator: account.Account{
-									Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
-									Type:    types.AccountTypeTz,
-								},
-								Status:    types.OperationStatusApplied,
-								Timestamp: timestamp,
-								Level:     1516349,
-							},
-						},
 						BigMapDiffs: []*bigmapdiff.BigMapDiff{
 							{
 								Ptr:        746,
@@ -1407,41 +1252,20 @@ func TestGroup_Parse(t *testing.T) {
 						LastUpdateTime:  timestamp,
 					},
 				},
-				TokenBalances: []*tokenbalance.TokenBalance{
-					{
-						Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
-						Account: account.Account{
-							Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
-							Type:    types.AccountTypeTz,
-						},
-						TokenID: 12,
-						Balance: decimal.NewFromInt(-1),
-					}, {
-						Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
-						Account: account.Account{
-							Address: "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
-							Type:    types.AccountTypeTz,
-						},
-						TokenID: 12,
-						Balance: decimal.NewFromInt(1),
-					},
-				},
 			},
 		}, {
 			name: "oocFt4vkkgQGfoRH54328cJUbDdWvj3x6KEs5Arm4XhqwwJmnJ8",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				TokenBalances:    tbRepo,
-				Operations:       operaitonsRepo,
-				Scripts:          scriptRepo,
+				RPC:         rpc,
+				Storage:     generalRepo,
+				Contracts:   contractRepo,
+				BigMapDiffs: bmdRepo,
+				Blocks:      blockRepo,
+				Protocols:   protoRepo,
+				Operations:  operaitonsRepo,
+				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1567,18 +1391,16 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "ooffKPL6WmMgqzLGtRtLp2HdEbVL3K2fVzKQLyxsBFMC84wpjRt",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				TokenBalances:    tbRepo,
-				Operations:       operaitonsRepo,
-				Scripts:          scriptRepo,
+				RPC:         rpc,
+				Storage:     generalRepo,
+				Contracts:   contractRepo,
+				BigMapDiffs: bmdRepo,
+				Blocks:      blockRepo,
+				Protocols:   protoRepo,
+				Operations:  operaitonsRepo,
+				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1638,18 +1460,16 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "oozvzXiZmVW9QtYjKmDuYqoHNCEvt32FwM2cUgQee2S1SGWgumA",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				TokenBalances:    tbRepo,
-				Operations:       operaitonsRepo,
-				Scripts:          scriptRepo,
+				RPC:         rpc,
+				Storage:     generalRepo,
+				Contracts:   contractRepo,
+				BigMapDiffs: bmdRepo,
+				Blocks:      blockRepo,
+				Protocols:   protoRepo,
+				Operations:  operaitonsRepo,
+				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			storage: map[string]int64{
@@ -2242,19 +2062,17 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "opPDkVe1nU5xqLyoWYQ2r6H7PaJM5S4Pe4WtTmEE7UMQAwfnuiJ",
 			ctx: &config.Context{
-				RPC:              rpc,
-				Storage:          generalRepo,
-				Contracts:        contractRepo,
-				BigMapDiffs:      bmdRepo,
-				Blocks:           blockRepo,
-				Protocols:        protoRepo,
-				ContractMetadata: cmRepo,
-				TokenBalances:    tbRepo,
-				Operations:       operaitonsRepo,
-				Scripts:          scriptRepo,
-				GlobalConstants:  globalConstantRepo,
+				RPC:             rpc,
+				Storage:         generalRepo,
+				Contracts:       contractRepo,
+				BigMapDiffs:     bmdRepo,
+				Blocks:          blockRepo,
+				Protocols:       protoRepo,
+				Operations:      operaitonsRepo,
+				Scripts:         scriptRepo,
+				GlobalConstants: globalConstantRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, cmRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
 				),
 			},
 			paramsOpts: []ParseParamsOption{

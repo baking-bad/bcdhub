@@ -14,16 +14,7 @@ import (
 )
 
 var migrationsList = []migrations.Migration{
-	&migrations.BigRussianBoss{},
 	&migrations.GetAliases{},
-	&migrations.CreateTransfersTags{},
-	&migrations.CreateTZIP{},
-	&migrations.FillTZIP{},
-	&migrations.ExtendedStorageEvents{},
-	&migrations.ParameterEvents{},
-	&migrations.TokenBalanceRecalc{},
-	&migrations.NFTMetadata{},
-	&migrations.TokenMetadataUnknown{},
 	&migrations.DefaultEntrypoint{},
 	&migrations.FindLostContracts{},
 	&migrations.BigMapStateCount{},

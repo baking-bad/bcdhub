@@ -7,7 +7,6 @@ package domains
 import (
 	contract "github.com/baking-bad/bcdhub/internal/models/contract"
 	model "github.com/baking-bad/bcdhub/internal/models/domains"
-	transfer "github.com/baking-bad/bcdhub/internal/models/transfer"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -33,36 +32,6 @@ func NewMockRepository(ctrl *gomock.Controller) *MockRepository {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
-}
-
-// TokenBalances mocks base method
-func (m *MockRepository) TokenBalances(contract string, accountID, size, offset int64, sort string, hideZeroBalances bool) (model.TokenBalanceResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TokenBalances", contract, accountID, size, offset, sort, hideZeroBalances)
-	ret0, _ := ret[0].(model.TokenBalanceResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// TokenBalances indicates an expected call of TokenBalances
-func (mr *MockRepositoryMockRecorder) TokenBalances(contract, accountID, size, offset, sort, hideZeroBalances interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TokenBalances", reflect.TypeOf((*MockRepository)(nil).TokenBalances), contract, accountID, size, offset, sort, hideZeroBalances)
-}
-
-// Transfers mocks base method
-func (m *MockRepository) Transfers(ctx transfer.GetContext) (model.TransfersResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Transfers", ctx)
-	ret0, _ := ret[0].(model.TransfersResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Transfers indicates an expected call of Transfers
-func (mr *MockRepositoryMockRecorder) Transfers(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transfers", reflect.TypeOf((*MockRepository)(nil).Transfers), ctx)
 }
 
 // BigMapDiffs mocks base method

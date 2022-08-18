@@ -18,9 +18,6 @@ share_path: /etc/bcd
 
 base_url: http://localhost:8000
 
-ipfs:
-  - ${SANDBOX_IPFS_GATEWAY}
-
 api:
   project_name: api
   bind: ":14000"

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 
-	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
@@ -17,7 +17,7 @@ type MichelsonStorageView struct {
 }
 
 // NewMichelsonStorageView -
-func NewMichelsonStorageView(impl cm.ViewImplementation, name string) *MichelsonStorageView {
+func NewMichelsonStorageView(impl contract.ViewImplementation, name string) *MichelsonStorageView {
 	var parameter []byte
 	if !impl.MichelsonStorageView.IsParameterEmpty() {
 		parameter = impl.MichelsonStorageView.Parameter

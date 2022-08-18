@@ -55,6 +55,5 @@ services:
     logging: *bcd-logging
 
 volumes:
-  esdata:
   db:
     driver: local

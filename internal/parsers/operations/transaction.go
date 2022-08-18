@@ -4,16 +4,12 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	modelsTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
-	"github.com/baking-bad/bcdhub/internal/parsers/ledger"
-	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/pkg/errors"
 
 	jsoniter "github.com/json-iterator/go"
@@ -138,22 +134,6 @@ func (p Transaction) Parse(data noderpc.Operation, store parsers.Store) error {
 
 	if tx.IsApplied() {
 		if err := p.appliedHandler(data, &tx, store); err != nil {
-			return err
-		}
-	}
-
-	if !tezerrors.HasParametersError(tx.Errors) {
-		if err := p.transferParser.Parse(tx.BigMapDiffs, p.head.Protocol, &tx); err != nil {
-			if !errors.Is(err, noderpc.InvalidNodeResponse{}) {
-				return err
-			}
-			logger.Warning().Err(err).Msg("transferParser.Parse")
-		}
-		store.AddTokenBalances(transferParsers.UpdateTokenBalances(tx.Transfers)...)
-	}
-
-	if tx.IsApplied() {
-		if err := ledger.New(p.ctx.TokenBalances, p.ctx.Accounts).Parse(&tx, p.stackTrace, store); err != nil {
 			return err
 		}
 	}

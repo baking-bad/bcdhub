@@ -10,11 +10,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
@@ -391,14 +388,6 @@ type Alias struct {
 	Slug    string `json:"slug" example:"contract_slug"`
 }
 
-// FromModel -
-func (a *Alias) FromModel(alias *contract_metadata.ContractMetadata) {
-	a.Alias = alias.Name
-	a.Address = alias.Address
-	a.Slug = alias.Slug
-	a.Network = types.Mainnet.String()
-}
-
 // Protocol -
 type Protocol struct {
 	Hash       string `json:"hash" example:"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"`
@@ -471,58 +460,6 @@ type BigMapHistoryItem struct {
 	Timestamp      time.Time `json:"timestamp"`
 }
 
-// Transfer -
-type Transfer struct {
-	IndexedTime    int64          `json:"indexed_time"`
-	Network        string         `json:"network"`
-	Contract       string         `json:"contract"`
-	Initiator      string         `json:"initiator"`
-	Hash           string         `json:"hash"`
-	Status         string         `json:"status"`
-	Timestamp      time.Time      `json:"timestamp"`
-	Level          int64          `json:"level"`
-	From           string         `json:"from"`
-	To             string         `json:"to"`
-	TokenID        uint64         `json:"token_id"`
-	Amount         string         `json:"amount"`
-	Counter        int64          `json:"counter"`
-	Nonce          *int64         `json:"nonce,omitempty" extensions:"x-nullable"`
-	Parent         string         `json:"parent,omitempty" extensions:"x-nullable"`
-	Token          *TokenMetadata `json:"token,omitempty" extensions:"x-nullable"`
-	Alias          string         `json:"alias,omitempty" extensions:"x-nullable"`
-	InitiatorAlias string         `json:"initiator_alias,omitempty" extensions:"x-nullable"`
-	FromAlias      string         `json:"from_alias,omitempty" extensions:"x-nullable"`
-	ToAlias        string         `json:"to_alias,omitempty" extensions:"x-nullable"`
-	Entrypoint     string         `json:"entrypoint,omitempty" extensions:"x-nullable"`
-}
-
-// TransferFromModel -
-func TransferFromModel(model domains.Transfer) (t Transfer) {
-	t.IndexedTime = model.ID
-	t.Contract = model.Contract
-	t.Initiator = model.Initiator.Address
-	t.Status = model.Status.String()
-	t.Timestamp = model.Timestamp.UTC()
-	t.Level = model.Level
-	t.From = model.From.Address
-	t.To = model.To.Address
-	t.TokenID = model.TokenID
-	t.Amount = model.Amount.String()
-	t.Parent = model.Parent.String()
-	t.Entrypoint = model.Entrypoint
-	t.Hash = model.Hash
-	t.Counter = model.Counter
-	t.Nonce = model.Nonce
-	return
-}
-
-// TransferResponse -
-type TransferResponse struct {
-	Transfers []Transfer `json:"transfers"`
-	Total     int64      `json:"total"`
-	LastID    string     `json:"last_id,omitempty" extensions:"x-nullable"`
-}
-
 // ConfigResponse -
 type ConfigResponse struct {
 	Networks       []string          `json:"networks"`
@@ -535,45 +472,10 @@ type ConfigResponse struct {
 	SandboxMode    bool              `json:"sandbox_mode"`
 }
 
-// DApp -
-type DApp struct {
-	Name             string   `json:"name"`
-	ShortDescription string   `json:"short_description"`
-	FullDescription  string   `json:"full_description"`
-	WebSite          string   `json:"website"`
-	Slug             string   `json:"slug,omitempty" extensions:"x-nullable"`
-	Authors          []string `json:"authors"`
-	SocialLinks      []string `json:"social_links"`
-	Interfaces       []string `json:"interfaces"`
-	Categories       []string `json:"categories"`
-	Soon             bool     `json:"soon"`
-	Logo             string   `json:"logo"`
-	Cover            string   `json:"cover,omitempty" extensions:"x-nullable"`
-
-	Screenshots []Screenshot   `json:"screenshots,omitempty" extensions:"x-nullable"`
-	Contracts   []DAppContract `json:"contracts,omitempty" extensions:"x-nullable"`
-	Tokens      []Token        `json:"tokens,omitempty" extensions:"x-nullable"`
-}
-
-// DAppContract -
-type DAppContract struct {
-	Network     string    `json:"network"`
-	Address     string    `json:"address"`
-	Alias       string    `json:"alias,omitempty" extensions:"x-nullable"`
-	ReleaseDate time.Time `json:"release_date"`
-}
-
 // Screenshot -
 type Screenshot struct {
 	Type string `json:"type"`
 	Link string `json:"link"`
-}
-
-// Token -
-type Token struct {
-	TokenMetadata
-	Supply      string  `json:"supply,omitempty"`
-	Transferred float64 `json:"transfered,omitempty"`
 }
 
 // AccountInfo -
@@ -584,82 +486,6 @@ type AccountInfo struct {
 	Balance    int64     `json:"balance"`
 	TxCount    int64     `json:"tx_count"`
 	LastAction time.Time `json:"last_action"`
-}
-
-// TokenBalance -
-type TokenBalance struct {
-	TokenMetadata
-	Balance string `json:"balance"`
-}
-
-// TokenBalances -
-type TokenBalances struct {
-	Balances []TokenBalance `json:"balances"`
-	Total    int64          `json:"total"`
-}
-
-// TokenMetadata -
-type TokenMetadata struct {
-	Contract           string                 `json:"contract"`
-	Network            string                 `json:"network"`
-	Level              int64                  `json:"level,omitempty" extensions:"x-nullable"`
-	Timestamp          *time.Time             `json:"timestamp,omitempty" extensions:"x-nullable"`
-	TokenID            uint64                 `json:"token_id"`
-	Symbol             string                 `json:"symbol,omitempty" extensions:"x-nullable"`
-	Name               string                 `json:"name,omitempty" extensions:"x-nullable"`
-	Decimals           *int64                 `json:"decimals,omitempty" extensions:"x-nullable"`
-	Description        string                 `json:"description,omitempty" extensions:"x-nullable"`
-	ArtifactURI        string                 `json:"artifact_uri,omitempty" extensions:"x-nullable"`
-	DisplayURI         string                 `json:"display_uri,omitempty" extensions:"x-nullable"`
-	ThumbnailURI       string                 `json:"thumbnail_uri,omitempty" extensions:"x-nullable"`
-	ExternalURI        string                 `json:"external_uri,omitempty" extensions:"x-nullable"`
-	Minter             string                 `json:"minter,omitempty" extensions:"x-nullable"`
-	IsTransferable     bool                   `json:"is_transferable,omitempty" extensions:"x-nullable"`
-	IsBooleanAmount    bool                   `json:"is_boolean_amount,omitempty" extensions:"x-nullable"`
-	ShouldPreferSymbol bool                   `json:"should_prefer_symbol,omitempty" extensions:"x-nullable"`
-	Creators           []string               `json:"creators,omitempty" extensions:"x-nullable"`
-	Tags               []string               `json:"tags,omitempty" extensions:"x-nullable"`
-	Formats            stdJSON.RawMessage     `json:"formats,omitempty" extensions:"x-nullable"`
-	TokenInfo          map[string]interface{} `json:"token_info,omitempty" extensions:"x-nullable"`
-	Volume24Hours      *float64               `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
-}
-
-// TokenMetadataFromModel -
-func TokenMetadataFromModel(model tokenmetadata.TokenMetadata, withTokenInfo bool) (tm TokenMetadata) {
-	tm.TokenID = model.TokenID
-	tm.Symbol = model.Symbol
-	tm.Name = model.Name
-	tm.Decimals = model.Decimals
-	tm.Contract = model.Contract
-	tm.Level = model.Level
-	tm.Description = model.Description
-	tm.ArtifactURI = model.ArtifactURI
-	tm.DisplayURI = model.DisplayURI
-	tm.ThumbnailURI = model.ThumbnailURI
-	tm.ExternalURI = model.ExternalURI
-	tm.Minter = model.Minter
-	tm.IsTransferable = model.IsTransferable
-	tm.IsBooleanAmount = model.IsBooleanAmount
-	tm.ShouldPreferSymbol = model.ShouldPreferSymbol
-	tm.Creators = model.Creators
-	tm.Tags = model.Tags
-	tm.Formats = stdJSON.RawMessage(model.Formats)
-
-	if !model.Timestamp.IsZero() {
-		tm.Timestamp = &model.Timestamp
-	}
-
-	if withTokenInfo {
-		tm.TokenInfo = model.Extras
-	}
-	return
-}
-
-// Empty -
-func (tm TokenMetadata) Empty() bool {
-	return tm.Symbol == "" && tm.Name == "" && tm.Decimals == nil && tm.TokenID == 0 &&
-		tm.Description == "" && tm.ArtifactURI == "" && tm.DisplayURI == "" && tm.ThumbnailURI == "" &&
-		tm.ExternalURI == "" && len(tm.Creators) == 0 && len(tm.Tags) == 0 && len(tm.Formats) == 0 && tm.Minter == ""
 }
 
 // CountResponse -
@@ -700,45 +526,6 @@ type ForkResponse struct {
 	Storage stdJSON.RawMessage `json:"storage"`
 }
 
-// TZIPResponse -
-type TZIPResponse struct {
-	Address     string                     `json:"address,omitempty"`
-	Network     string                     `json:"network,omitempty"`
-	DomainName  string                     `json:"domain,omitempty"`
-	Extras      map[string]interface{}     `json:"extras,omitempty"`
-	Name        string                     `json:"name,omitempty"`
-	Description string                     `json:"description,omitempty"`
-	Version     string                     `json:"version,omitempty"`
-	License     *contract_metadata.License `json:"license,omitempty"`
-	Homepage    string                     `json:"homepage,omitempty"`
-	Authors     []string                   `json:"authors,omitempty"`
-	Interfaces  []string                   `json:"interfaces,omitempty"`
-	Views       contract_metadata.Views    `json:"views,omitempty"`
-	contract_metadata.TZIP20
-}
-
-// FromModel -
-func (t *TZIPResponse) FromModel(model *contract_metadata.ContractMetadata, withViewsAndEvents bool) {
-	t.DomainName = model.DomainName
-	t.Extras = model.Extras
-	t.Address = model.Address
-	t.Name = model.Name
-	t.Description = model.Description
-	t.Version = model.Version
-	t.Homepage = model.Homepage
-	t.Authors = model.Authors
-	t.Interfaces = model.Interfaces
-
-	if !model.License.IsEmpty() {
-		t.License = &model.License
-	}
-
-	if withViewsAndEvents {
-		t.Views = model.Views
-		t.TZIP20 = model.TZIP20
-	}
-}
-
 // HeadResponse -
 type HeadResponse struct {
 	Network         string    `json:"network"`
@@ -750,13 +537,6 @@ type HeadResponse struct {
 	UniqueContracts int64     `json:"unique_contracts"`
 	FACount         int64     `json:"fa_count"`
 	Synced          bool      `json:"synced"`
-}
-
-// TokensCountWithMetadata -
-type TokensCountWithMetadata struct {
-	TZIPResponse
-	Count int64    `json:"count"`
-	Tags  []string `json:"contract_tags"`
 }
 
 // GlobalConstant -

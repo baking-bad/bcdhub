@@ -45,9 +45,6 @@ share_path: /etc/bcd
 
 base_url: https://better-call.dev
 
-ipfs:
-  - ${SANDBOX_IPFS_GATEWAY:-http://ipfs_ipfs-node:8080}
-
 api:
   project_name: api
   bind: ":14000"
@@ -76,7 +73,6 @@ indexer:
   project_name: indexer
   sentry_enabled: true
   skip_delegator_blocks: false
-  offchain_base_url: ${OFFCHAIN_BASE_URL}
   networks:
     mainnet:
       receiver_threads: ${MAINNET_THREADS:-1}
