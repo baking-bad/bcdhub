@@ -188,6 +188,36 @@ func (mr *MockRepositoryMockRecorder) GetByID(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), id)
 }
 
+// ListEvents mocks base method
+func (m *MockRepository) ListEvents(accountID, size, offset int64) ([]model.Operation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListEvents", accountID, size, offset)
+	ret0, _ := ret[0].([]model.Operation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListEvents indicates an expected call of ListEvents
+func (mr *MockRepositoryMockRecorder) ListEvents(accountID, size, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEvents", reflect.TypeOf((*MockRepository)(nil).ListEvents), accountID, size, offset)
+}
+
+// EventsCount mocks base method
+func (m *MockRepository) EventsCount(accountID int64) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EventsCount", accountID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EventsCount indicates an expected call of EventsCount
+func (mr *MockRepositoryMockRecorder) EventsCount(accountID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventsCount", reflect.TypeOf((*MockRepository)(nil).EventsCount), accountID)
+}
+
 // ContractStats mocks base method
 func (m *MockRepository) ContractStats(address string) (model.ContractStats, error) {
 	m.ctrl.T.Helper()

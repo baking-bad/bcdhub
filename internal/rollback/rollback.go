@@ -151,7 +151,7 @@ type lastAction struct {
 }
 
 func (rm Manager) rollbackOperations(tx pg.DBI, level int64) error {
-	logger.Info().Msg("rollback oeprations...")
+	logger.Info().Msg("rollback operations...")
 	var ops []operation.Operation
 	if err := tx.Model(&operation.Operation{}).
 		Where("level = ?", level).

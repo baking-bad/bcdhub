@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -265,7 +266,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			from operations
 			where hash = ta.hash and counter = ta.counter),
 			ta.hash, operations.level, operations.timestamp, operations.entrypoint, operations.content_index from (
-			select min(id) as last_id, hash, counter, max(status) as status, max(kind) as kind from (?) as t
+			select min(id) as last_id, hash, counter, max(status) as status, min(kind) as kind from (?) as t
 			group by hash, counter
 			order by last_id desc
 			limit ?
@@ -299,6 +300,34 @@ func (storage *Storage) GetImplicitOperation(counter int64) (operation.Operation
 	return op, err
 }
 
+// ListEvents -
+func (storage *Storage) ListEvents(accountID int64, size, offset int64) ([]operation.Operation, error) {
+	query := storage.DB.Model((*operation.Operation)(nil)).
+		Where("source_id = ?", accountID).
+		Where("kind = 7").
+		Order("id desc")
+
+	if offset > 0 {
+		query.Offset(int(offset))
+	}
+	if size > 0 {
+		query.Limit(int(size))
+	} else {
+		query.Limit(10)
+	}
+
+	var op []operation.Operation
+	err := query.Select(&op)
+	return op, err
+}
+
+// EventsCount -
+func (storage *Storage) EventsCount(accountID int64) (int, error) {
+	return storage.DB.Model((*operation.Operation)(nil)).
+		Where("source_id = ?", accountID).
+		Where("kind = 7").Count()
+}
+
 // ContractStats -
 func (storage *Storage) ContractStats(address string) (stats operation.ContractStats, err error) {
 	var accountID int64
@@ -330,6 +359,38 @@ func (storage *Storage) ContractStats(address string) (stats operation.ContractS
 	stats.Count = int64(count)
 
 	return
+}
+
+func getDAppQuery(db pg.DBI, ids []int64, period string) (*orm.Query, error) {
+	query := db.Model((*operation.Operation)(nil)).
+		Where("status = ?", types.OperationStatusApplied)
+
+	if len(ids) > 0 {
+		query.WhereIn("destination_id IN (?)", ids)
+	}
+
+	err := periodToRange(query, period)
+	return query, err
+}
+
+func periodToRange(query *orm.Query, period string) error {
+	now := time.Now().UTC()
+	switch period {
+	case "year":
+		now = now.AddDate(-1, 0, 0)
+	case "month":
+		now = now.AddDate(0, -1, 0)
+	case "week":
+		now = now.AddDate(0, 0, -7)
+	case "day":
+		now = now.AddDate(0, 0, -1)
+	case "all":
+		now = consts.BeginningOfTime
+	default:
+		return errors.Errorf("Unknown period value: %s", period)
+	}
+	query.Where("timestamp > ?", now)
+	return nil
 }
 
 func addOperationSorting(query *orm.Query) {

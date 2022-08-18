@@ -21,5 +21,7 @@ type Repository interface {
 	GetByIDs(ids ...int64) ([]Operation, error)
 	GetByID(id int64) (Operation, error)
 
+	ListEvents(accountID int64, size, offset int64) ([]Operation, error)
+	EventsCount(accountID int64) (int, error)
 	ContractStats(address string) (ContractStats, error)
 }

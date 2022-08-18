@@ -18,6 +18,8 @@ func NewOperationKind(value string) OperationKind {
 		return OperationKindRegisterGlobalConstant
 	case "tx_rollup_origination":
 		return OperationKindTxRollupOrigination
+	case "event":
+		return OperationKindEvent
 	default:
 		return 0
 	}
@@ -38,6 +40,8 @@ func (kind OperationKind) String() string {
 		return "register_global_constant"
 	case OperationKindTxRollupOrigination:
 		return "tx_rollup_origination"
+	case OperationKindEvent:
+		return "event"
 	default:
 		return ""
 	}
@@ -50,4 +54,5 @@ const (
 	OperationKindDelegation
 	OperationKindRegisterGlobalConstant
 	OperationKindTxRollupOrigination
+	OperationKindEvent
 )

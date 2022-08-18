@@ -142,6 +142,7 @@ func (api *app) makeRouter() {
 			contract.GET("opg", handlers.GetOperationGroups())
 			contract.GET("migrations", handlers.GetContractMigrations())
 			contract.GET("global_constants", handlers.GetContractGlobalConstants())
+			contract.GET("events", handlers.ListEvents())
 
 			storage := contract.Group("storage")
 			{

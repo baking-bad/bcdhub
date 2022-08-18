@@ -34,6 +34,7 @@ var symLinks = map[string]string{
 	"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP": SymLinkBabylon, // Itacanet
 	"Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A": SymLinkBabylon, // Itacanet 2
 	"PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY": SymLinkJakarta, // Jakarta
+	"PtKathmankSpLLDALzWw7CGD2j2MtyveTwboEYokqUCP4a1LxMg": SymLinkJakarta, // Kathmandu
 }
 
 // GetProtoSymLink -
@@ -61,4 +62,5 @@ var ChainID = map[string]string{
 	"NetXZSsxBpMQeAT": "hangzhou2net",
 	"NetXnHfVqm9iesp": "ithacanet",
 	"NetXLH1uAxK7CCh": "jakarta",
+	"NetXi2ZagzEsXbZ": "kathmandunet",
 }
