@@ -166,7 +166,6 @@ func GetBigMapHistory() gin.HandlerFunc {
 // @ID get-bigmap-keys
 // @Param network path string true "Network"
 // @Param ptr path integer true "Big map pointer"
-// @Param q query string false "Search string"
 // @Param offset query integer false "Offset"
 // @Param size query integer false "Requested count" mininum(1) maximum(10)
 // @Param max_level query integer false "Max level filter" minimum(0)
@@ -376,7 +375,7 @@ func prepareBigMapKeys(ctx *config.Context, data []bigmapdiff.BigMapState, symLi
 
 	res := make([]BigMapResponseItem, len(data))
 	for i := range data {
-		key, value, keyString, err := prepareItem(data[i].Key, data[i].Value, bigMapType)
+		key, keyString, err := prepareKey(data[i].Key, bigMapType)
 		if err != nil {
 			return nil, err
 		}
@@ -387,8 +386,8 @@ func prepareBigMapKeys(ctx *config.Context, data []bigmapdiff.BigMapState, symLi
 				KeyHash:   data[i].KeyHash,
 				KeyString: keyString,
 				Level:     data[i].LastUpdateLevel,
-				Value:     value,
 				Timestamp: data[i].LastUpdateTime,
+				IsActive:  !data[i].Removed,
 			},
 			Count: data[i].Count,
 		}
@@ -480,27 +479,7 @@ func getBigMapType(ctx *config.Context, contract string, ptr int64, symLink stri
 
 func prepareItem(itemKey, itemValue types.Bytes, bigMapType *ast.BigMap) (key, value *ast.MiguelNode, keyString string, err error) {
 	if itemKey != nil {
-		keyType := ast.Copy(bigMapType.KeyType)
-		key, err = createMiguelForType(keyType, itemKey)
-		if err != nil {
-			return nil, nil, "", err
-		}
-
-		if key.Value != nil {
-			switch t := key.Value.(type) {
-			case string:
-				keyString = t
-			case int64:
-				keyString = fmt.Sprintf("%d", t)
-			default:
-				keyString = fmt.Sprintf("%v", t)
-			}
-		} else {
-			keyString, err = formatter.MichelineToMichelsonInline(string(itemKey))
-			if err != nil {
-				return nil, nil, "", err
-			}
-		}
+		key, keyString, err = prepareKey(itemKey, bigMapType)
 	}
 
 	if itemValue != nil {
@@ -512,6 +491,31 @@ func prepareItem(itemKey, itemValue types.Bytes, bigMapType *ast.BigMap) (key, v
 		value = valueMiguel
 	}
 
+	return
+}
+
+func prepareKey(itemKey types.Bytes, bigMapType *ast.BigMap) (key *ast.MiguelNode, keyString string, err error) {
+	if itemKey == nil {
+		return
+	}
+	keyType := ast.Copy(bigMapType.KeyType)
+	key, err = createMiguelForType(keyType, itemKey)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if key.Value != nil {
+		switch t := key.Value.(type) {
+		case string:
+			keyString = t
+		case int64:
+			keyString = fmt.Sprintf("%d", t)
+		default:
+			keyString = fmt.Sprintf("%v", t)
+		}
+	}
+
+	keyString, err = formatter.MichelineToMichelsonInline(string(itemKey))
 	return
 }
 

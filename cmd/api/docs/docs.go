@@ -277,12 +277,6 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Search string",
-                        "name": "q",
-                        "in": "query"
-                    },
-                    {
                         "type": "integer",
                         "description": "Offset",
                         "name": "offset",
@@ -2462,118 +2456,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/stats/{network}": {
-            "get": {
-                "description": "Get detailed statistics for network",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "statistics"
-                ],
-                "summary": "Network statistics",
-                "operationId": "get-network-stats",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.NetworkStats"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/stats/{network}/contracts": {
-            "get": {
-                "description": "Show total volume, unique users and transactions count for period",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "statistics"
-                ],
-                "summary": "Show contracts stats",
-                "operationId": "get-stats-contracts",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "minLength": 36,
-                        "type": "string",
-                        "description": "Comma-separated KT addresses",
-                        "name": "contracts",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "enum": [
-                            "all",
-                            "year",
-                            "month",
-                            "week",
-                            "day"
-                        ],
-                        "type": "string",
-                        "description": "One of periods",
-                        "name": "period",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/operation.DAppStats"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/v1/stats/{network}/recently_called_contracts": {
             "get": {
                 "description": "Show recently called contracts",
@@ -2617,92 +2499,6 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/handlers.RecentlyCalledContract"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/stats/{network}/series": {
-            "get": {
-                "description": "Get count series data for network",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "statistics"
-                ],
-                "summary": "Get network series",
-                "operationId": "get-network-series",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "enum": [
-                            "contract",
-                            "operation",
-                            "paid_storage_size_diff",
-                            "consumed_gas",
-                            "users",
-                            "volume"
-                        ],
-                        "type": "string",
-                        "description": "One of names",
-                        "name": "name",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "enum": [
-                            "year",
-                            "month",
-                            "week",
-                            "day",
-                            "hour"
-                        ],
-                        "type": "string",
-                        "description": "One of periods",
-                        "name": "period",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Comma-separated contract addresses",
-                        "name": "address",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
                             }
                         }
                     },
@@ -2999,6 +2795,9 @@ const docTemplate = `{
         "handlers.BigMapItem": {
             "type": "object",
             "properties": {
+                "is_active": {
+                    "type": "boolean"
+                },
                 "key": {},
                 "key_hash": {
                     "type": "string"
@@ -3011,8 +2810,7 @@ const docTemplate = `{
                 },
                 "timestamp": {
                     "type": "string"
-                },
-                "value": {}
+                }
             }
         },
         "handlers.BigMapResponseItem": {
@@ -3381,12 +3179,6 @@ const docTemplate = `{
         "handlers.HeadResponse": {
             "type": "object",
             "properties": {
-                "contract_calls": {
-                    "type": "integer"
-                },
-                "fa_count": {
-                    "type": "integer"
-                },
                 "level": {
                     "type": "integer"
                 },
@@ -3401,12 +3193,6 @@ const docTemplate = `{
                 },
                 "time": {
                     "type": "string"
-                },
-                "total": {
-                    "type": "integer"
-                },
-                "unique_contracts": {
-                    "type": "integer"
                 }
             }
         },
@@ -3431,37 +3217,6 @@ const docTemplate = `{
                 },
                 "timestamp": {
                     "type": "string"
-                }
-            }
-        },
-        "handlers.NetworkStats": {
-            "type": "object",
-            "properties": {
-                "contract_calls": {
-                    "type": "integer",
-                    "example": 100
-                },
-                "contracts_count": {
-                    "type": "integer",
-                    "example": 10
-                },
-                "fa_count": {
-                    "type": "integer",
-                    "example": 100
-                },
-                "operations_count": {
-                    "type": "integer",
-                    "example": 100
-                },
-                "protocols": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.Protocol"
-                    }
-                },
-                "unique_contracts": {
-                    "type": "integer",
-                    "example": 100
                 }
             }
         },
@@ -3664,28 +3419,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.Protocol": {
-            "type": "object",
-            "properties": {
-                "alias": {
-                    "type": "string",
-                    "example": "Carthage"
-                },
-                "end_level": {
-                    "type": "integer",
-                    "x-nullable": true,
-                    "example": 0
-                },
-                "hash": {
-                    "type": "string",
-                    "example": "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"
-                },
-                "start_level": {
-                    "type": "integer",
-                    "example": 851969
-                }
-            }
-        },
         "handlers.RecentlyCalledContract": {
             "type": "object",
             "properties": {
@@ -3836,20 +3569,6 @@ const docTemplate = `{
                 },
                 "source": {
                     "type": "string"
-                }
-            }
-        },
-        "operation.DAppStats": {
-            "type": "object",
-            "properties": {
-                "txs": {
-                    "type": "integer"
-                },
-                "users": {
-                    "type": "integer"
-                },
-                "volume": {
-                    "type": "integer"
                 }
             }
         },

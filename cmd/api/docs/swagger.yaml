@@ -183,6 +183,8 @@ definitions:
     type: object
   handlers.BigMapItem:
     properties:
+      is_active:
+        type: boolean
       key: {}
       key_hash:
         type: string
@@ -192,7 +194,6 @@ definitions:
         type: integer
       timestamp:
         type: string
-      value: {}
     type: object
   handlers.BigMapResponseItem:
     properties:
@@ -449,10 +450,6 @@ definitions:
     type: object
   handlers.HeadResponse:
     properties:
-      contract_calls:
-        type: integer
-      fa_count:
-        type: integer
       level:
         type: integer
       network:
@@ -463,10 +460,6 @@ definitions:
         type: boolean
       time:
         type: string
-      total:
-        type: integer
-      unique_contracts:
-        type: integer
     type: object
   handlers.Migration:
     properties:
@@ -483,28 +476,6 @@ definitions:
         type: string
       timestamp:
         type: string
-    type: object
-  handlers.NetworkStats:
-    properties:
-      contract_calls:
-        example: 100
-        type: integer
-      contracts_count:
-        example: 10
-        type: integer
-      fa_count:
-        example: 100
-        type: integer
-      operations_count:
-        example: 100
-        type: integer
-      protocols:
-        items:
-          $ref: '#/definitions/handlers.Protocol'
-        type: array
-      unique_contracts:
-        example: 100
-        type: integer
     type: object
   handlers.OPGResponse:
     properties:
@@ -648,22 +619,6 @@ definitions:
           $ref: '#/definitions/handlers.Operation'
         type: array
     type: object
-  handlers.Protocol:
-    properties:
-      alias:
-        example: Carthage
-        type: string
-      end_level:
-        example: 0
-        type: integer
-        x-nullable: true
-      hash:
-        example: PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb
-        type: string
-      start_level:
-        example: 851969
-        type: integer
-    type: object
   handlers.RecentlyCalledContract:
     properties:
       address:
@@ -766,15 +721,6 @@ definitions:
     required:
     - data
     - name
-    type: object
-  operation.DAppStats:
-    properties:
-      txs:
-        type: integer
-      users:
-        type: integer
-      volume:
-        type: integer
     type: object
   tezerrors.Error:
     properties:
@@ -967,10 +913,6 @@ paths:
         name: ptr
         required: true
         type: integer
-      - description: Search string
-        in: query
-        name: q
-        type: string
       - description: Offset
         in: query
         name: offset
@@ -2457,83 +2399,6 @@ paths:
       summary: Show indexer stats
       tags:
       - statistics
-  /v1/stats/{network}:
-    get:
-      consumes:
-      - application/json
-      description: Get detailed statistics for network
-      operationId: get-network-stats
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.NetworkStats'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Network statistics
-      tags:
-      - statistics
-  /v1/stats/{network}/contracts:
-    get:
-      consumes:
-      - application/json
-      description: Show total volume, unique users and transactions count for period
-      operationId: get-stats-contracts
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      - description: Comma-separated KT addresses
-        in: query
-        minLength: 36
-        name: contracts
-        required: true
-        type: string
-      - description: One of periods
-        enum:
-        - all
-        - year
-        - month
-        - week
-        - day
-        in: query
-        name: period
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/operation.DAppStats'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Show contracts stats
-      tags:
-      - statistics
   /v1/stats/{network}/recently_called_contracts:
     get:
       consumes:
@@ -2573,67 +2438,6 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Show recently called contracts
-      tags:
-      - statistics
-  /v1/stats/{network}/series:
-    get:
-      consumes:
-      - application/json
-      description: Get count series data for network
-      operationId: get-network-series
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      - description: One of names
-        enum:
-        - contract
-        - operation
-        - paid_storage_size_diff
-        - consumed_gas
-        - users
-        - volume
-        in: query
-        name: name
-        required: true
-        type: string
-      - description: One of periods
-        enum:
-        - year
-        - month
-        - week
-        - day
-        - hour
-        in: query
-        name: period
-        required: true
-        type: string
-      - description: Comma-separated contract addresses
-        in: query
-        name: address
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              items:
-                type: integer
-              type: array
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Get network series
       tags:
       - statistics
 swagger: "2.0"
