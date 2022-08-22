@@ -40,6 +40,7 @@ type Operation struct {
 	Errors                             []*tezerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
 	Parameters                         interface{}        `json:"parameters,omitempty" extensions:"x-nullable"`
 	StorageDiff                        *ast.MiguelNode    `json:"storage_diff,omitempty" extensions:"x-nullable"`
+	Event                              []*ast.MiguelNode  `json:"event,omitempty" extensions:"x-nullable"`
 	RawMempool                         interface{}        `json:"rawMempool,omitempty" extensions:"x-nullable"`
 	Timestamp                          time.Time          `json:"timestamp"`
 	Protocol                           string             `json:"protocol"`
@@ -55,6 +56,7 @@ type Operation struct {
 	Delegate                           string             `json:"delegate,omitempty" extensions:"x-nullable"`
 	Status                             string             `json:"status"`
 	Entrypoint                         string             `json:"entrypoint,omitempty" extensions:"x-nullable"`
+	Tag                                string             `json:"tag,omitempty" extensions:"x-nullable"`
 	AllocatedDestinationContract       bool               `json:"allocated_destination_contract,omitempty" extensions:"x-nullable" example:"true"`
 	Internal                           bool               `json:"internal"`
 	Mempool                            bool               `json:"mempool"`
@@ -83,6 +85,7 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.Status = operation.Status.String()
 	o.Burned = operation.Burned
 	o.Entrypoint = operation.Entrypoint.String()
+	o.Tag = operation.Tag.String()
 	o.ContentIndex = operation.ContentIndex
 	o.AllocatedDestinationContractBurned = operation.AllocatedDestinationContractBurned
 	o.ConsumedGas = operation.ConsumedGas
@@ -191,7 +194,8 @@ func (c *Contract) FromModel(contract contract.Contract) {
 type ContractWithStats struct {
 	Contract
 
-	SameCount int64 `json:"same_count"`
+	SameCount   int64 `json:"same_count"`
+	EventsCount int   `json:"events_count"`
 }
 
 // RecentlyCalledContract -
@@ -599,4 +603,43 @@ func NewOPGResponse(opg operation.OPG) OPGResponse {
 		Status:       opg.Status.String(),
 		Kind:         opg.Kind.String(),
 	}
+}
+
+// Event -
+type Event struct {
+	Hash      string            `json:"hash"`
+	Status    string            `json:"status"`
+	Timestamp time.Time         `json:"timestamp"`
+	Level     int64             `json:"level"`
+	Tag       string            `json:"tag"`
+	Payload   []*ast.MiguelNode `json:"payload,omitempty" extensions:"x-nullable"`
+}
+
+// NewEvent -
+func NewEvent(o operation.Operation) (*Event, error) {
+	if !o.IsEvent() {
+		return nil, nil
+	}
+
+	e := &Event{
+		Hash:      o.Hash,
+		Status:    o.Status.String(),
+		Timestamp: o.Timestamp,
+		Level:     o.Level,
+		Tag:       o.Tag.String(),
+	}
+
+	eventType, err := ast.NewTypedAstFromBytes(o.EventType)
+	if err != nil {
+		return nil, err
+	}
+	if err := eventType.SettleFromBytes(o.EventPayload); err != nil {
+		return nil, err
+	}
+	eventMiguel, err := eventType.ToMiguel()
+	if err != nil {
+		return nil, err
+	}
+	e.Payload = eventMiguel
+	return e, nil
 }

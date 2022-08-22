@@ -265,7 +265,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			from operations
 			where hash = ta.hash and counter = ta.counter),
 			ta.hash, operations.level, operations.timestamp, operations.entrypoint, operations.content_index from (
-			select min(id) as last_id, hash, counter, max(status) as status, max(kind) as kind from (?) as t
+			select min(id) as last_id, hash, counter, max(status) as status, min(kind) as kind from (?) as t
 			group by hash, counter
 			order by last_id desc
 			limit ?
@@ -297,6 +297,34 @@ func (storage *Storage) GetImplicitOperation(counter int64) (operation.Operation
 		Order("id asc").
 		Select(&op)
 	return op, err
+}
+
+// ListEvents -
+func (storage *Storage) ListEvents(accountID int64, size, offset int64) ([]operation.Operation, error) {
+	query := storage.DB.Model((*operation.Operation)(nil)).
+		Where("source_id = ?", accountID).
+		Where("kind = 7").
+		Order("id desc")
+
+	if offset > 0 {
+		query.Offset(int(offset))
+	}
+	if size > 0 {
+		query.Limit(int(size))
+	} else {
+		query.Limit(10)
+	}
+
+	var op []operation.Operation
+	err := query.Select(&op)
+	return op, err
+}
+
+// EventsCount -
+func (storage *Storage) EventsCount(accountID int64) (int, error) {
+	return storage.DB.Model((*operation.Operation)(nil)).
+		Where("source_id = ?", accountID).
+		Where("kind = 7").Count()
 }
 
 // ContractStats -

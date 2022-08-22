@@ -152,6 +152,7 @@ var primKeywords = []string{
 	"tx_rollup_l2_address",
 	"MIN_BLOCK_TIME",
 	"sapling_transaction",
+	"EMIT",
 }
 
 // first bytes

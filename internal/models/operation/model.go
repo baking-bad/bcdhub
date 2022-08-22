@@ -50,9 +50,12 @@ type Operation struct {
 	Kind      types.OperationKind   `pg:",type:SMALLINT"`
 
 	Entrypoint      types.NullString `pg:",type:text"`
+	Tag             types.NullString `pg:",type:text"`
 	Hash            string
 	Parameters      []byte
 	DeffatedStorage []byte
+	EventPayload    []byte
+	EventType       []byte
 	Script          []byte `pg:"-"`
 
 	Errors tezerrors.Errors `pg:",type:bytea"`
@@ -142,6 +145,11 @@ func (o *Operation) IsApplied() bool {
 // IsCall -
 func (o *Operation) IsCall() bool {
 	return bcd.IsContract(o.Destination.Address) && len(o.Parameters) > 0
+}
+
+// IsEvent -
+func (o *Operation) IsEvent() bool {
+	return o.Kind == types.OperationKindEvent
 }
 
 // Result -

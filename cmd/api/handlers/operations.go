@@ -484,6 +484,22 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 	}
 	op.Protocol = proto.Hash
 
+	if operation.IsEvent() {
+		eventType, err := ast.NewTypedAstFromBytes(operation.EventType)
+		if err != nil {
+			return op, err
+		}
+		if err := eventType.SettleFromBytes(operation.EventPayload); err != nil {
+			return op, err
+		}
+		eventMiguel, err := eventType.ToMiguel()
+		if err != nil {
+			return op, err
+		}
+		op.Event = eventMiguel
+		return op, err
+	}
+
 	if bcd.IsContract(op.Destination) {
 		if err := formatErrors(operation.Errors, &op); err != nil {
 			return op, err

@@ -131,7 +131,13 @@ func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, 
 	if err != nil {
 		return ContractWithStats{}, err
 	}
-	res := ContractWithStats{c, -1}
+	res := ContractWithStats{c, -1, 0}
+
+	eventsCount, err := ctx.Operations.EventsCount(contractModel.AccountID)
+	if err != nil {
+		return res, err
+	}
+	res.EventsCount = eventsCount
 
 	stats, err := ctx.Domains.SameCount(contractModel)
 	if err != nil {

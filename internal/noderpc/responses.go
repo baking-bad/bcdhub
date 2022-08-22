@@ -93,11 +93,14 @@ type Operation struct {
 	StorageLimit int64              `json:"storage_limit,string"`
 	Amount       *int64             `json:"amount,omitempty,string"`
 	Nonce        *int64             `json:"nonce,omitempty"`
+	Tag          *string            `json:"tag,omitempty"`
 	Parameters   stdJSON.RawMessage `json:"parameters,omitempty"`
 	Metadata     *OperationMetadata `json:"metadata,omitempty"`
 	Result       *OperationResult   `json:"result,omitempty"`
 	Script       stdJSON.RawMessage `json:"script,omitempty"`
 	Value        stdJSON.RawMessage `json:"value,omitempty"`
+	Payload      stdJSON.RawMessage `json:"payload,omitempty"`
+	Type         stdJSON.RawMessage `json:"type,omitempty"`
 }
 
 // GetResult -

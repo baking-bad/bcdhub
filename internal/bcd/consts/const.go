@@ -9,6 +9,7 @@ const (
 	OriginationNew         = "origination_new"
 	RegisterGlobalConstant = "register_global_constant"
 	TxRollupOrigination    = "tx_rollup_origination"
+	Event                  = "event"
 )
 
 // Error IDs
