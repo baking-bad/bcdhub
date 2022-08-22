@@ -5,7 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 )
 
 // Store -
@@ -14,7 +13,6 @@ type Store interface {
 	AddContracts(contracts ...*contract.Contract)
 	AddMigrations(migrations ...*migration.Migration)
 	AddOperations(operations ...*operation.Operation)
-	AddTokenBalances(balances ...*tokenbalance.TokenBalance)
 	AddGlobalConstants(constants ...*contract.GlobalConstant)
 	ListContracts() []*contract.Contract
 	ListOperations() []*operation.Operation
@@ -27,7 +25,6 @@ type TestStore struct {
 	Contracts       []*contract.Contract
 	Migrations      []*migration.Migration
 	Operations      []*operation.Operation
-	TokenBalances   []*tokenbalance.TokenBalance
 	GlobalConstants []*contract.GlobalConstant
 }
 
@@ -38,7 +35,6 @@ func NewTestStore() *TestStore {
 		Contracts:       make([]*contract.Contract, 0),
 		Migrations:      make([]*migration.Migration, 0),
 		Operations:      make([]*operation.Operation, 0),
-		TokenBalances:   make([]*tokenbalance.TokenBalance, 0),
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
 	}
 }
@@ -61,11 +57,6 @@ func (store *TestStore) AddMigrations(migrations ...*migration.Migration) {
 // AddOperations -
 func (store *TestStore) AddOperations(operations ...*operation.Operation) {
 	store.Operations = append(store.Operations, operations...)
-}
-
-// AddTokenBalances -
-func (store *TestStore) AddTokenBalances(balances ...*tokenbalance.TokenBalance) {
-	store.TokenBalances = append(store.TokenBalances, balances...)
 }
 
 // AddGlobalConstants -

@@ -13,7 +13,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/views"
 	"github.com/gin-gonic/gin"
 )
@@ -54,17 +53,6 @@ func GetViewsSchema() gin.HandlerFunc {
 
 		views := make([]ViewSchema, 0)
 
-		if args.Kind == EmptyView || args.Kind == OffchainView {
-			offChain, err := getOffChainViewsSchema(ctx.ContractMetadata, req.Address)
-			if err != nil {
-				if !ctx.Storage.IsRecordNotFound(err) {
-					handleError(c, ctx.Storage, err, 0)
-					return
-				}
-			}
-			views = append(views, offChain...)
-		}
-
 		if args.Kind == EmptyView || args.Kind == OnchainView {
 			onChain, err := getOnChainViewsSchema(ctx.Contracts, ctx.Blocks, req.Address)
 			if err != nil {
@@ -96,7 +84,7 @@ func OffChainView() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		var view contract_metadata.View
+		var view contract.View
 		if err := json.NewDecoder(io.LimitReader(c.Request.Body, 1024*1024)).Decode(&view); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
@@ -105,7 +93,7 @@ func OffChainView() gin.HandlerFunc {
 	}
 }
 
-func getOffChainViewSchema(view contract_metadata.View) *ViewSchema {
+func getOffChainViewSchema(view contract.View) *ViewSchema {
 	var schema ViewSchema
 	for i, impl := range view.Implementations {
 		if impl.MichelsonStorageView.Empty() {
@@ -139,23 +127,6 @@ func getOffChainViewSchema(view contract_metadata.View) *ViewSchema {
 	}
 
 	return nil
-}
-
-func getOffChainViewsSchema(contractMetadata contract_metadata.Repository, address string) ([]ViewSchema, error) {
-	tzip, err := contractMetadata.Get(address)
-	if err != nil {
-		return nil, err
-	}
-
-	schemas := make([]ViewSchema, 0)
-
-	for _, view := range tzip.Views {
-		if schema := getOffChainViewSchema(view); schema != nil {
-			schemas = append(schemas, *schema)
-		}
-	}
-
-	return schemas, nil
 }
 
 func getOnChainViewsSchema(contracts contract.Repository, blocks block.Repository, address string) ([]ViewSchema, error) {
@@ -240,7 +211,7 @@ func ExecuteView() gin.HandlerFunc {
 			return
 		}
 
-		view, parameters, err := getViewForExecute(ctx.ContractMetadata, ctx.Contracts, ctx.Blocks, req.Address, execView)
+		view, parameters, err := getViewForExecute(ctx.Contracts, ctx.Blocks, req.Address, execView)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -296,7 +267,7 @@ func ExecuteView() gin.HandlerFunc {
 	}
 }
 
-func getViewForExecute(contractMetadata contract_metadata.Repository, contracts contract.Repository, blocks block.Repository, address string, req executeViewRequest) (views.View, []byte, error) {
+func getViewForExecute(contracts contract.Repository, blocks block.Repository, address string, req executeViewRequest) (views.View, []byte, error) {
 	switch req.Kind {
 	case OnchainView:
 		block, err := blocks.Last()
@@ -363,7 +334,7 @@ func getViewForExecute(contractMetadata contract_metadata.Repository, contracts 
 	}
 }
 
-func getOffChainViewTree(impl contract_metadata.ViewImplementation) (*ast.TypedAst, error) {
+func getOffChainViewTree(impl contract.ViewImplementation) (*ast.TypedAst, error) {
 	if !impl.MichelsonStorageView.IsParameterEmpty() {
 		return ast.NewTypedAstFromBytes(impl.MichelsonStorageView.Parameter)
 	}

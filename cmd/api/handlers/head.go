@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
@@ -27,11 +26,6 @@ func GetHead() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
 
-		stats, err := ctxs.Any().Statistics.NetworkStats(types.Empty)
-		if handleError(c, ctxs.Any().Storage, err, 0) {
-			return
-		}
-
 		body := make([]HeadResponse, 0)
 		for network, ctx := range ctxs {
 			block, err := ctx.Blocks.Last()
@@ -43,7 +37,7 @@ func GetHead() gin.HandlerFunc {
 				return
 			}
 
-			head, err := getHead(ctx, network, block, stats)
+			head, err := getHead(ctx, network, block)
 			if err != nil {
 				logger.Warning().Str("network", network.String()).Err(err).Msg("head API")
 				continue
@@ -76,12 +70,7 @@ func GetHeadByNetwork() gin.HandlerFunc {
 			return
 		}
 
-		stats, err := ctx.Statistics.NetworkStats(ctx.Network)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
-
-		head, err := getHead(ctx, ctx.Network, block, stats)
+		head, err := getHead(ctx, ctx.Network, block)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -90,7 +79,7 @@ func GetHeadByNetwork() gin.HandlerFunc {
 	}
 }
 
-func getHead(ctx *config.Context, network types.Network, block block.Block, stats map[string]*models.NetworkStats) (HeadResponse, error) {
+func getHead(ctx *config.Context, network types.Network, block block.Block) (HeadResponse, error) {
 	var found bool
 	for j := range ctx.Config.API.Networks {
 		if network.String() == ctx.Config.API.Networks[j] {
@@ -103,20 +92,11 @@ func getHead(ctx *config.Context, network types.Network, block block.Block, stat
 		return HeadResponse{}, errors.New("unknown network")
 	}
 
-	head := HeadResponse{
+	return HeadResponse{
 		Network:   network.String(),
 		Level:     block.Level,
 		Timestamp: block.Timestamp.UTC(),
 		Protocol:  block.Protocol.Hash,
 		Synced:    !block.Timestamp.UTC().Add(2 * time.Minute).Before(time.Now().UTC()),
-	}
-	networkStats, ok := stats[network.String()]
-	if !ok {
-		return head, errors.Errorf("can't get stats for %s", network.String())
-	}
-	head.ContractCalls = int64(networkStats.CallsCount)
-	head.FACount = int64(networkStats.FACount)
-	head.UniqueContracts = int64(networkStats.UniqueContractsCount)
-	head.Total = int64(networkStats.ContractsCount)
-	return head, nil
+	}, nil
 }

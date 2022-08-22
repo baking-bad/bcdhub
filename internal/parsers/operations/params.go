@@ -9,15 +9,13 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/protocols"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
-	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
 // ParseParams -
 type ParseParams struct {
 	ctx *config.Context
 
-	specific       *protocols.Specific
-	transferParser *transfer.Parser
+	specific *protocols.Specific
 
 	stackTrace *stacktrace.StackTrace
 
@@ -93,16 +91,5 @@ func NewParseParams(ctx *config.Context, opts ...ParseParamsOption) (*ParseParam
 	}
 	params.specific = specific
 
-	transferParser, err := transfer.NewParser(
-		ctx.RPC,
-		ctx.ContractMetadata, ctx.Blocks, ctx.TokenBalances, ctx.Accounts,
-		transfer.WithStackTrace(params.stackTrace),
-		transfer.WithChainID(params.head.ChainID),
-		transfer.WithGasLimit(params.protocol.Constants.HardGasLimitPerOperation),
-	)
-	if err != nil {
-		return nil, err
-	}
-	params.transferParser = transferParser
 	return params, nil
 }

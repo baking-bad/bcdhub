@@ -32,8 +32,6 @@ storage:
     dbname: ${POSTGRES_DB:-bcd}
     password: ${POSTGRES_PASSWORD}
     sslmode: disable
-  elastic:
-    - http://${ELASTIC_HOSTNAME:-127.0.0.1}:9200
   timeout: 10
 
 sentry:
@@ -45,11 +43,6 @@ sentry:
 share_path: /etc/bcd
 
 base_url: http://localhost:8080
-
-ipfs:
-  - https://cloudflare-ipfs.com
-  - https://ipfs.io
-  - https://dweb.link
 
 api:
   project_name: api
@@ -79,7 +72,6 @@ indexer:
   project_name: indexer
   sentry_enabled: false
   skip_delegator_blocks: true
-  offchain_base_url: ${OFFCHAIN_BASE_URL}
   networks:
     mainnet:
       receiver_threads: 5
@@ -90,18 +82,6 @@ indexer:
   connections:
     max: 5
     idle: 5
-
-metrics:
-  project_name: metrics
-  sentry_enabled: false
-  cache_aliases_seconds: 30
-  networks:
-    - mainnet
-    - ghostnet
-    - jakartanet
-  connections:
-    max: 10
-    idle: 10
 
 scripts:
   aws:

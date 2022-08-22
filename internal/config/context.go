@@ -9,20 +9,13 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
-	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/service"
-	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
@@ -39,27 +32,18 @@ type Context struct {
 	Config     Config
 	TzipSchema string
 
-	Storage          models.GeneralRepository
-	Accounts         account.Repository
-	Statistics       models.Statistics
-	BigMapActions    bigmapaction.Repository
-	BigMapDiffs      bigmapdiff.Repository
-	Blocks           block.Repository
-	Contracts        contract.Repository
-	DApps            dapp.Repository
-	GlobalConstants  contract.ConstantRepository
-	Migrations       migration.Repository
-	Operations       operation.Repository
-	Protocols        protocol.Repository
-	TokenBalances    tokenbalance.Repository
-	TokenMetadata    tokenmetadata.Repository
-	Transfers        transfer.Repository
-	ContractMetadata cm.Repository
-	Domains          domains.Repository
-	Services         service.Repository
-	Scripts          contract.ScriptRepository
-
-	Searcher search.Searcher
+	Storage         models.GeneralRepository
+	Accounts        account.Repository
+	BigMapActions   bigmapaction.Repository
+	BigMapDiffs     bigmapdiff.Repository
+	Blocks          block.Repository
+	Contracts       contract.Repository
+	GlobalConstants contract.ConstantRepository
+	Migrations      migration.Repository
+	Operations      operation.Repository
+	Protocols       protocol.Repository
+	Domains         domains.Repository
+	Scripts         contract.ScriptRepository
 
 	Cache     *cache.Cache
 	Sanitizer *bluemonday.Policy
@@ -78,7 +62,7 @@ func NewContext(network types.Network, opts ...ContextOption) *Context {
 	}
 
 	ctx.Cache = cache.NewCache(
-		ctx.RPC, ctx.Accounts, ctx.Contracts, ctx.Protocols, ctx.ContractMetadata, ctx.Sanitizer,
+		ctx.RPC, ctx.Accounts, ctx.Contracts, ctx.Protocols, ctx.Sanitizer,
 	)
 	return ctx
 }

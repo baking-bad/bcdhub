@@ -10,33 +10,26 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	cm "github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
 )
 
 // Manager -
 type Manager struct {
-	rpc           noderpc.INode
-	searcher      search.Searcher
-	storage       models.GeneralRepository
-	transfersRepo transfer.Repository
-	blockRepo     block.Repository
-	bmdRepo       bigmapdiff.Repository
+	rpc       noderpc.INode
+	storage   models.GeneralRepository
+	blockRepo block.Repository
+	bmdRepo   bigmapdiff.Repository
 }
 
 // NewManager -
-func NewManager(rpc noderpc.INode, searcher search.Searcher, storage models.GeneralRepository, blockRepo block.Repository, bmdRepo bigmapdiff.Repository, transfersRepo transfer.Repository) Manager {
+func NewManager(rpc noderpc.INode, storage models.GeneralRepository, blockRepo block.Repository, bmdRepo bigmapdiff.Repository) Manager {
 	return Manager{
-		rpc, searcher, storage, transfersRepo, blockRepo, bmdRepo,
+		rpc, storage, blockRepo, bmdRepo,
 	}
 }
 
@@ -57,9 +50,6 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network
 		}
 
 		err := db.RunInTransaction(ctx, func(tx *pg.Tx) error {
-			if err := rm.rollbackTokenBalances(tx, level); err != nil {
-				return err
-			}
 			if err := rm.rollbackAll(tx, level); err != nil {
 				return err
 			}
@@ -72,7 +62,7 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network
 			if err := rm.rollbackBigMapState(tx, level); err != nil {
 				return err
 			}
-			return rm.searcher.Rollback(network.String(), toLevel)
+			return nil
 		})
 		if err != nil {
 			return err
@@ -81,52 +71,10 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network
 	return nil
 }
 
-func (rm Manager) rollbackTokenBalances(tx pg.DBI, level int64) error {
-	logger.Info().Msg("rollback token balances...")
-	transfers, err := rm.transfersRepo.GetAll(level)
-	if err != nil {
-		return err
-	}
-	if len(transfers) == 0 {
-		return nil
-	}
-
-	balances := make(map[string]*tokenbalance.TokenBalance)
-	for i := range transfers {
-		if id := transfers[i].GetFromTokenBalanceID(); id != "" {
-			if update, ok := balances[id]; ok {
-				update.Balance = update.Balance.Add(transfers[i].Amount)
-			} else {
-				upd := transfers[i].MakeTokenBalanceUpdate(true, true)
-				balances[id] = upd
-			}
-		}
-
-		if id := transfers[i].GetToTokenBalanceID(); id != "" {
-			if update, ok := balances[id]; ok {
-				update.Balance = update.Balance.Sub(transfers[i].Amount)
-			} else {
-				upd := transfers[i].MakeTokenBalanceUpdate(false, true)
-				balances[id] = upd
-			}
-		}
-	}
-
-	for _, tb := range balances {
-		if err := tb.Save(tx); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (rm Manager) rollbackAll(tx pg.DBI, level int64) error {
 	for _, index := range []models.Model{
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
-		&bigmapaction.BigMapAction{}, &cm.ContractMetadata{},
-		&transfer.Transfer{}, &tokenmetadata.TokenMetadata{},
-		&contract.GlobalConstant{},
+		&bigmapaction.BigMapAction{}, &contract.GlobalConstant{},
 	} {
 		if _, err := tx.Model(index).
 			Where("level = ?", level).

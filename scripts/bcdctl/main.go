@@ -34,7 +34,6 @@ func main() {
 		config.WithStorage(cfg.Storage, "bcdctl", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle, false),
 		config.WithConfigCopy(cfg),
 		config.WithRPC(cfg.RPC),
-		config.WithSearch(cfg.Storage),
 	)
 	defer ctxs.Close()
 
@@ -44,14 +43,6 @@ func main() {
 		"Rollback state",
 		"Rollback network state to certain level",
 		&rollbackCmd); err != nil {
-		logger.Err(err)
-		return
-	}
-
-	if _, err := parser.AddCommand("list_services",
-		"Lists metrics services",
-		"Lists metrics services",
-		&listServicesCmd); err != nil {
 		logger.Err(err)
 		return
 	}

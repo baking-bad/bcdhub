@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/contract_metadata"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -22,15 +21,14 @@ type Cache struct {
 	*ccache.Cache
 	rpc noderpc.INode
 
-	accounts         account.Repository
-	contracts        contract.Repository
-	protocols        protocol.Repository
-	sanitizer        *bluemonday.Policy
-	contractMetadata contract_metadata.Repository
+	accounts  account.Repository
+	contracts contract.Repository
+	protocols protocol.Repository
+	sanitizer *bluemonday.Policy
 }
 
 // NewCache -
-func NewCache(rpc noderpc.INode, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository, cm contract_metadata.Repository, sanitizer *bluemonday.Policy) *Cache {
+func NewCache(rpc noderpc.INode, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository, sanitizer *bluemonday.Policy) *Cache {
 	return &Cache{
 		ccache.New(ccache.Configure().MaxSize(1000)),
 		rpc,
@@ -38,7 +36,6 @@ func NewCache(rpc noderpc.INode, accounts account.Repository, contracts contract
 		contracts,
 		protocols,
 		sanitizer,
-		cm,
 	}
 }
 
@@ -54,14 +51,6 @@ func (cache *Cache) Alias(address string) string {
 			return acc.Alias, nil
 		}
 
-		cm, err := cache.contractMetadata.Get(address)
-		if err == nil {
-			if cm.Name != consts.Unknown {
-				return cm.Name, nil
-			}
-			return "", nil
-		}
-
 		return "", err
 	})
 	if err != nil {
@@ -72,38 +61,6 @@ func (cache *Cache) Alias(address string) string {
 		return cache.sanitizer.Sanitize(data)
 	}
 	return ""
-}
-
-// ContractMetadata -
-func (cache *Cache) ContractMetadata(address string) (*contract_metadata.ContractMetadata, error) {
-	if !bcd.IsContract(address) {
-		return nil, nil
-	}
-	key := fmt.Sprintf("contract_metadata:%s", address)
-	item, err := cache.Fetch(key, time.Minute*30, func() (interface{}, error) {
-		return cache.contractMetadata.Get(address)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return item.Value().(*contract_metadata.ContractMetadata), nil
-}
-
-// Events -
-func (cache *Cache) Events(address string) (contract_metadata.Events, error) {
-	if !bcd.IsContract(address) {
-		return nil, nil
-	}
-	key := fmt.Sprintf("contract_metadata:%s", address)
-	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		return cache.contractMetadata.Events(address)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return item.Value().(contract_metadata.Events), nil
 }
 
 // ContractTags -
@@ -137,26 +94,6 @@ func (cache *Cache) TezosBalance(ctx context.Context, address string, level int6
 	}
 	return item.Value().(int64), nil
 }
-
-// ScriptBytes -
-// func (cache *Cache) ScriptBytes(address, symLink string) ([]byte, error) {
-// 	if !bcd.IsContract(address) {
-// 		return nil, nil
-// 	}
-
-// 	key := fmt.Sprintf("script_bytes:%s", address)
-// 	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
-// 		script, err := cache.contracts.Script(address, symLink)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return script.Full()
-// 	})
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return item.Value().([]byte), nil
-// }
 
 // StorageTypeBytes -
 func (cache *Cache) StorageTypeBytes(address, symLink string) ([]byte, error) {

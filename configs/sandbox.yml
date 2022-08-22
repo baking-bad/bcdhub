@@ -12,16 +12,11 @@ storage:
     dbname: ${POSTGRES_DB:-bcd}
     password: ${POSTGRES_PASSWORD}
     sslmode: disable
-  elastic:
-    - http://${ELASTIC_HOSTNAME:-elastic}:9200
   timeout: 10
 
 share_path: /etc/bcd
 
 base_url: http://localhost:8000
-
-ipfs:
-  - ${SANDBOX_IPFS_GATEWAY}
 
 api:
   project_name: api
@@ -46,13 +41,6 @@ indexer:
   skip_delegator_blocks: false
   networks:
     sandboxnet:
-
-metrics:
-  project_name: metrics
-  sentry_enabled: false
-  cache_aliases_seconds: 30
-  networks:
-    - sandboxnet
 
 scripts:
   networks:

@@ -12,7 +12,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -120,18 +119,6 @@ func GetBigMap() gin.HandlerFunc {
 			}
 		}
 
-		if res.ContractAlias != "" {
-			alias, err := ctx.ContractMetadata.Get(res.Address)
-			if err != nil {
-				if !ctx.Storage.IsRecordNotFound(err) {
-					handleError(c, ctx.Storage, err, 0)
-					return
-				}
-			} else {
-				res.ContractAlias = alias.Name
-			}
-		}
-
 		c.SecureJSON(http.StatusOK, res)
 	}
 }
@@ -179,7 +166,6 @@ func GetBigMapHistory() gin.HandlerFunc {
 // @ID get-bigmap-keys
 // @Param network path string true "Network"
 // @Param ptr path integer true "Big map pointer"
-// @Param q query string false "Search string"
 // @Param offset query integer false "Offset"
 // @Param size query integer false "Requested count" mininum(1) maximum(10)
 // @Param max_level query integer false "Max level filter" minimum(0)
@@ -204,43 +190,18 @@ func GetBigMapKeys() gin.HandlerFunc {
 		}
 
 		var states []bigmapdiff.BigMapState
-		if pageReq.Search == "" {
-			keys, err := ctx.BigMapDiffs.Keys(bigmapdiff.GetContext{
-				Ptr:      &req.Ptr,
-				Size:     pageReq.Size,
-				Offset:   pageReq.Offset,
-				MaxLevel: pageReq.MaxLevel,
-				MinLevel: pageReq.MinLevel,
-			})
+		keys, err := ctx.BigMapDiffs.Keys(bigmapdiff.GetContext{
+			Ptr:      &req.Ptr,
+			Size:     pageReq.Size,
+			Offset:   pageReq.Offset,
+			MaxLevel: pageReq.MaxLevel,
+			MinLevel: pageReq.MinLevel,
+		})
 
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-			states = keys
-		} else {
-			searchResult, err := ctx.Searcher.BigMapDiffs(search.BigMapDiffSearchArgs{
-				Ptr:      &req.Ptr,
-				Network:  req.NetworkID(),
-				Query:    pageReq.Search,
-				Size:     pageReq.Size,
-				Offset:   pageReq.Offset,
-				MaxLevel: pageReq.MaxLevel,
-				MinLevel: pageReq.MinLevel,
-			})
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-
-			states = make([]bigmapdiff.BigMapState, len(searchResult))
-			for i := range searchResult {
-				state, err := ctx.BigMapDiffs.Current(searchResult[i].Key, req.Ptr)
-				if handleError(c, ctx.Storage, err, 0) {
-					return
-				}
-				state.Count = searchResult[i].Count
-				states[i] = state
-			}
+		if handleError(c, ctx.Storage, err, 0) {
+			return
 		}
+		states = keys
 
 		symLink, err := getCurrentSymLink(ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
@@ -414,7 +375,7 @@ func prepareBigMapKeys(ctx *config.Context, data []bigmapdiff.BigMapState, symLi
 
 	res := make([]BigMapResponseItem, len(data))
 	for i := range data {
-		key, value, keyString, err := prepareItem(data[i].Key, data[i].Value, bigMapType)
+		key, keyString, err := prepareKey(data[i].Key, bigMapType)
 		if err != nil {
 			return nil, err
 		}
@@ -425,8 +386,8 @@ func prepareBigMapKeys(ctx *config.Context, data []bigmapdiff.BigMapState, symLi
 				KeyHash:   data[i].KeyHash,
 				KeyString: keyString,
 				Level:     data[i].LastUpdateLevel,
-				Value:     value,
 				Timestamp: data[i].LastUpdateTime,
+				IsActive:  !data[i].Removed,
 			},
 			Count: data[i].Count,
 		}
@@ -518,27 +479,7 @@ func getBigMapType(ctx *config.Context, contract string, ptr int64, symLink stri
 
 func prepareItem(itemKey, itemValue types.Bytes, bigMapType *ast.BigMap) (key, value *ast.MiguelNode, keyString string, err error) {
 	if itemKey != nil {
-		keyType := ast.Copy(bigMapType.KeyType)
-		key, err = createMiguelForType(keyType, itemKey)
-		if err != nil {
-			return nil, nil, "", err
-		}
-
-		if key.Value != nil {
-			switch t := key.Value.(type) {
-			case string:
-				keyString = t
-			case int64:
-				keyString = fmt.Sprintf("%d", t)
-			default:
-				keyString = fmt.Sprintf("%v", t)
-			}
-		} else {
-			keyString, err = formatter.MichelineToMichelsonInline(string(itemKey))
-			if err != nil {
-				return nil, nil, "", err
-			}
-		}
+		key, keyString, err = prepareKey(itemKey, bigMapType)
 	}
 
 	if itemValue != nil {
@@ -550,6 +491,31 @@ func prepareItem(itemKey, itemValue types.Bytes, bigMapType *ast.BigMap) (key, v
 		value = valueMiguel
 	}
 
+	return
+}
+
+func prepareKey(itemKey types.Bytes, bigMapType *ast.BigMap) (key *ast.MiguelNode, keyString string, err error) {
+	if itemKey == nil {
+		return
+	}
+	keyType := ast.Copy(bigMapType.KeyType)
+	key, err = createMiguelForType(keyType, itemKey)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if key.Value != nil {
+		switch t := key.Value.(type) {
+		case string:
+			keyString = t
+		case int64:
+			keyString = fmt.Sprintf("%d", t)
+		default:
+			keyString = fmt.Sprintf("%v", t)
+		}
+	}
+
+	keyString, err = formatter.MichelineToMichelsonInline(string(itemKey))
 	return
 }
 

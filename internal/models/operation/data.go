@@ -28,3 +28,9 @@ type OPG struct {
 	Status       types.OperationStatus
 	Kind         types.OperationKind
 }
+
+// ContractStats -
+type ContractStats struct {
+	Count      int64
+	LastAction time.Time
+}

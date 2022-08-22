@@ -25,15 +25,6 @@ tzkt:
         timeout: 20
 ```
 
-#### `elastic`
-Elastic Search configuration
-```yml
-elastic:
-    uri:
-        - http://elastic:9200
-    timeout: 10
-```
-
 #### `db`
 PostgreSQL connection string
 ```yml
@@ -106,14 +97,6 @@ indexer:
     networks:
         mainnet:
           boost: tzkt
-```
-
-#### `metrics`
-Metrics service settings
-```yml
-metrics:
-    project_name: metrics
-    sentry_enabled: true
 ```
 
 #### `scripts`

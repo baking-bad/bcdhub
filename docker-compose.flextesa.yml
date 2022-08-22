@@ -1,19 +1,5 @@
 version: "3.6"
 services:
-  elastic:
-    image: ghcr.io/baking-bad/bcdhub-elastic:${TAG}
-    restart: always
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
-    environment:
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
-    logging: &bcd-logging
-      options:
-        max-size: 10m
-        max-file: "5"
-
   db:
     image: postgres:14
     shm_size: 1g
@@ -24,8 +10,11 @@ services:
       - POSTGRES_DB=indexer
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - db:/var/lib/postgresql/data
-    logging: *bcd-logging
+      - db:/var/lib/postgresql/data    
+    logging: &bcd-logging
+      options:
+        max-size: 10m
+        max-file: "5"
 
   api:
     restart: always
@@ -38,7 +27,6 @@ services:
       - SANDBOX_NODE_URI=http://sandbox:20000
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
-      - elastic
       - db
     ports:
       - 127.0.0.1:14000:14000
@@ -58,25 +46,6 @@ services:
       - SANDBOX_NODE_URI=http://sandbox:20000
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
-      - db
-      - metrics
-    links:
-      - "flextesa:sandbox"
-    volumes:
-      - bcdshare:/etc/bcd
-    logging: *bcd-logging
-
-  metrics:
-    restart: always
-    image: ghcr.io/baking-bad/bcdhub-metrics:${TAG}
-    environment:
-      - BCD_ENV=sandbox
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=root
-      - SANDBOX_NODE_URI=http://sandbox:20000
-      - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
-    depends_on:
-      - elastic
       - db
     links:
       - "flextesa:sandbox"
@@ -107,7 +76,6 @@ services:
     logging: *bcd-logging
 
 volumes:
-  esdata:
   bcdshare:
   db:
     driver: local

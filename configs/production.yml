@@ -33,9 +33,6 @@ storage:
     dbname: ${POSTGRES_DB:-bcd}
     password: ${POSTGRES_PASSWORD}
     sslmode: disable
-  elastic:
-    - http://${ELASTIC_HOSTNAME:-elastic}:9200
-    - http://${ELASTIC_HOSTNAME:-elastic}:9200
   timeout: 10
 
 sentry:
@@ -47,9 +44,6 @@ sentry:
 share_path: /etc/bcd
 
 base_url: https://better-call.dev
-
-ipfs:
-  - ${SANDBOX_IPFS_GATEWAY:-http://ipfs_ipfs-node:8080}
 
 api:
   project_name: api
@@ -79,7 +73,6 @@ indexer:
   project_name: indexer
   sentry_enabled: true
   skip_delegator_blocks: false
-  offchain_base_url: ${OFFCHAIN_BASE_URL}
   networks:
     mainnet:
       receiver_threads: ${MAINNET_THREADS:-1}
@@ -90,18 +83,6 @@ indexer:
   connections:
     max: 5
     idle: 5
-
-metrics:
-  project_name: metrics
-  sentry_enabled: true
-  cache_aliases_seconds: 30
-  networks:
-    - mainnet
-    - ghostnet
-    - jakartanet
-  connections:
-    max: 20
-    idle: 20
 
 scripts:
   aws:

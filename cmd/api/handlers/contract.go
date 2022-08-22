@@ -3,10 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -61,7 +59,6 @@ func GetContract() gin.HandlerFunc {
 // @ID get-contract-same
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
-// @Param manager query string false "Manager"
 // @Param offset query integer false "Offset"
 // @Param size query integer false "Requested count" mininum(1) maximum(10)
 // @Accept json
@@ -90,35 +87,30 @@ func GetSameContracts() gin.HandlerFunc {
 			return
 		}
 
-		same, err := ctx.Searcher.SameContracts(contract, ctx.Network.String(), page.Offset, page.Size)
+		count, err := ctx.Domains.SameCount(contract)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
 		response := SameContractsResponse{
-			Count:     same.Count,
+			Count:     int64(count),
 			Contracts: make([]ContractWithStats, 0),
 		}
 
-		ctxs := c.MustGet("contexts").(config.Contexts)
-		for i := range same.Contracts {
-			currentContext, ok := ctxs[types.NewNetwork(same.Contracts[i].Network)]
-			if !ok {
-				continue
-			}
+		same, err := ctx.Domains.Same(req.Network, contract, int(page.Size), int(page.Offset))
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
 
-			item, err := currentContext.Contracts.Get(same.Contracts[i].Address)
+		for i := range same {
+			result, err := contractPostprocessing(ctx, same[i].Contract)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
-			itemContract, err := contractPostprocessing(currentContext, item)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-
+			result.Network = same[i].Network
 			response.Contracts = append(response.Contracts, ContractWithStats{
-				Contract:  itemContract,
-				SameCount: same.Count,
+				Contract:  result,
+				SameCount: response.Count,
 			})
 		}
 
@@ -131,14 +123,6 @@ func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Co
 	res.FromModel(contract)
 	res.Network = ctx.Network.String()
 
-	if contractMetadata, err := ctx.Cache.ContractMetadata(contract.Account.Address); err == nil && contractMetadata != nil {
-		res.Slug = contractMetadata.Slug
-		if res.Alias == "" && contractMetadata.Name != consts.Unknown {
-			res.Alias = contractMetadata.Name
-		}
-	} else if !ctx.Storage.IsRecordNotFound(err) {
-		return res, err
-	}
 	return res, nil
 }
 
@@ -149,7 +133,7 @@ func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, 
 	}
 	res := ContractWithStats{c, -1}
 
-	stats, err := ctx.Contracts.SameCount(contractModel)
+	stats, err := ctx.Domains.SameCount(contractModel)
 	if err != nil {
 		return res, err
 	}
@@ -190,7 +174,7 @@ func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, 
 			}
 			buf.JakartaID = script.ID
 		}
-		stats, err := cur.Contracts.SameCount(buf)
+		stats, err := cur.Domains.SameCount(buf)
 		if err != nil {
 			return res, err
 		}

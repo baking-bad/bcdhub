@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -211,78 +210,6 @@ func (storage *Storage) GetContract24HoursVolume(address string, entrypoints []s
 	return volume, err
 }
 
-type tokenStats struct {
-	DestinationID int64
-	Entrypoint    string
-	Gas           int64
-	Count         int64
-}
-
-type acc struct {
-	ID      int64
-	Address string
-}
-
-// GetTokensStats -
-func (storage *Storage) GetTokensStats(addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
-	if len(addresses) == 0 {
-		return map[string]operation.TokenUsageStats{}, nil
-	}
-
-	var accs []acc
-	if err := storage.DB.Model((*account.Account)(nil)).
-		ColumnExpr("id, address").
-		WhereIn("address IN (?)", addresses).
-		Select(&accs); err != nil {
-		return nil, err
-	}
-
-	accMap := make(map[int64]string)
-	for i := range accs {
-		accMap[accs[i].ID] = accs[i].Address
-	}
-
-	var stats []tokenStats
-	query := storage.DB.Model((*operation.Operation)(nil)).
-		ColumnExpr("destination_id, entrypoint, COUNT(*) as count, SUM(consumed_gas) AS gas")
-
-	if len(accs) > 0 {
-		ids := make([]int64, len(accs))
-		for i := range accs {
-			ids[i] = accs[i].ID
-		}
-		query.WhereIn("destination_id IN (?)", ids)
-	}
-
-	if len(entrypoints) > 0 {
-		query.WhereIn("entrypoint IN (?)", entrypoints)
-	}
-
-	query.GroupExpr("destination_id, entrypoint")
-
-	if err := query.Select(&stats); err != nil {
-		return nil, err
-	}
-
-	usageStats := make(map[string]operation.TokenUsageStats)
-	for i := range stats {
-		usage := operation.TokenMethodUsageStats{
-			Count:       stats[i].Count,
-			ConsumedGas: stats[i].Gas,
-		}
-		address, ok := accMap[stats[i].DestinationID]
-		if !ok {
-			continue
-		}
-		if _, ok := usageStats[address]; !ok {
-			usageStats[address] = make(operation.TokenUsageStats)
-		}
-		usageStats[address][stats[i].Entrypoint] = usage
-	}
-
-	return usageStats, nil
-}
-
 // GetByIDs -
 func (storage *Storage) GetByIDs(ids ...int64) (result []operation.Operation, err error) {
 	err = storage.DB.Model((*operation.Operation)(nil)).Where("id IN (?)", pg.In(ids)).Order("id asc").Select(&result)
@@ -292,40 +219,6 @@ func (storage *Storage) GetByIDs(ids ...int64) (result []operation.Operation, er
 // GetByID -
 func (storage *Storage) GetByID(id int64) (result operation.Operation, err error) {
 	err = storage.DB.Model(&result).Relation("Destination").Where("operation.id = ?", id).First()
-	return
-}
-
-// GetDAppStats -
-func (storage *Storage) GetDAppStats(addresses []string, period string) (stats operation.DAppStats, err error) {
-	var ids []int64
-	if len(addresses) > 0 {
-		if err = storage.DB.Model((*account.Account)(nil)).
-			Column("id").
-			WhereIn("address IN (?)", addresses).
-			Select(&ids); err != nil {
-			return
-		}
-	}
-
-	query, err := getDAppQuery(storage.DB, ids, period)
-	if err != nil {
-		return
-	}
-
-	if err = query.ColumnExpr("COUNT(*) as calls, SUM(amount) as volume").Select(&stats); err != nil {
-		return
-	}
-
-	queryCount, err := getDAppQuery(storage.DB, ids, period)
-	if err != nil {
-		return
-	}
-
-	count, err := queryCount.Column("source_id").Group("source_id").Count()
-	if err != nil {
-		return
-	}
-	stats.Users = int64(count)
 	return
 }
 
@@ -406,36 +299,37 @@ func (storage *Storage) GetImplicitOperation(counter int64) (operation.Operation
 	return op, err
 }
 
-func getDAppQuery(db pg.DBI, ids []int64, period string) (*orm.Query, error) {
-	query := db.Model((*operation.Operation)(nil)).
-		Where("status = ?", types.OperationStatusApplied)
-
-	if len(ids) > 0 {
-		query.WhereIn("destination_id IN (?)", ids)
+// ContractStats -
+func (storage *Storage) ContractStats(address string) (stats operation.ContractStats, err error) {
+	var accountID int64
+	if err = storage.DB.Model((*account.Account)(nil)).
+		Column("id").
+		Where("address = ?", address).
+		Select(&accountID); err != nil {
+		return
 	}
 
-	err := periodToRange(query, period)
-	return query, err
-}
-
-func periodToRange(query *orm.Query, period string) error {
-	now := time.Now().UTC()
-	switch period {
-	case "year":
-		now = now.AddDate(-1, 0, 0)
-	case "month":
-		now = now.AddDate(0, -1, 0)
-	case "week":
-		now = now.AddDate(0, 0, -7)
-	case "day":
-		now = now.AddDate(0, 0, -1)
-	case "all":
-		now = consts.BeginningOfTime
-	default:
-		return errors.Errorf("Unknown period value: %s", period)
+	if err = storage.DB.Model((*operation.Operation)(nil)).ColumnExpr("max(timestamp)").
+		WhereGroup(
+			func(q *orm.Query) (*orm.Query, error) {
+				return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
+			},
+		).Select(&stats.LastAction); err != nil {
+		return
 	}
-	query.Where("timestamp > ?", now)
-	return nil
+
+	count, err := storage.DB.Model((*operation.Operation)(nil)).WhereGroup(
+		func(q *orm.Query) (*orm.Query, error) {
+			return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
+		},
+	).CountEstimate(100000)
+	if err != nil {
+		return
+	}
+
+	stats.Count = int64(count)
+
+	return
 }
 
 func addOperationSorting(query *orm.Query) {

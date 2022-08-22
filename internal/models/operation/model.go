@@ -10,10 +10,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
-	"github.com/shopspring/decimal"
 )
 
 // Operation -
@@ -61,7 +59,6 @@ type Operation struct {
 
 	AST *ast.Script `pg:"-"`
 
-	Transfers     []*transfer.Transfer         `pg:"rel:has-many"`
 	BigMapDiffs   []*bigmapdiff.BigMapDiff     `pg:"rel:has-many"`
 	BigMapActions []*bigmapaction.BigMapAction `pg:"rel:has-many"`
 
@@ -145,20 +142,6 @@ func (o *Operation) IsApplied() bool {
 // IsCall -
 func (o *Operation) IsCall() bool {
 	return bcd.IsContract(o.Destination.Address) && len(o.Parameters) > 0
-}
-
-// EmptyTransfer -
-func (o Operation) EmptyTransfer() *transfer.Transfer {
-	return &transfer.Transfer{
-		Contract:    o.Destination.Address,
-		Status:      o.Status,
-		Timestamp:   o.Timestamp,
-		Level:       o.Level,
-		Initiator:   o.Source,
-		Entrypoint:  o.Entrypoint.String(),
-		Amount:      decimal.Zero,
-		OperationID: o.ID,
-	}
 }
 
 // Result -

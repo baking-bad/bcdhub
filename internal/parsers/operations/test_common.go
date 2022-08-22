@@ -17,7 +17,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -139,9 +138,6 @@ func compareParserResponse(t *testing.T, got, want *parsers.TestStore) bool {
 	if !assert.Len(t, got.Operations, len(want.Operations)) {
 		return false
 	}
-	if !assert.Len(t, got.TokenBalances, len(want.TokenBalances)) {
-		return false
-	}
 	if !assert.Len(t, got.GlobalConstants, len(want.GlobalConstants)) {
 		return false
 	}
@@ -161,11 +157,6 @@ func compareParserResponse(t *testing.T, got, want *parsers.TestStore) bool {
 			return false
 		}
 	}
-	for i := range got.TokenBalances {
-		if !assert.Equal(t, want.TokenBalances[i], got.TokenBalances[i]) {
-			return false
-		}
-	}
 	for i := range got.BigMapState {
 		if !assert.Equal(t, want.BigMapState[i], got.BigMapState[i]) {
 			return false
@@ -177,47 +168,6 @@ func compareParserResponse(t *testing.T, got, want *parsers.TestStore) bool {
 		}
 	}
 
-	return true
-}
-
-func compareTransfers(t *testing.T, one, two *transfer.Transfer) bool {
-	if one.Contract != two.Contract {
-		logger.Info().Msgf("Contract: %s != %s", one.Contract, two.Contract)
-		return false
-	}
-	if !assert.Equal(t, one.Initiator, two.Initiator) {
-		return false
-	}
-	if one.Status != two.Status {
-		logger.Info().Msgf("Status: %s != %s", one.Status, two.Status)
-		return false
-	}
-	if one.Timestamp != two.Timestamp {
-		logger.Info().Msgf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
-		return false
-	}
-	if one.Level != two.Level {
-		logger.Info().Msgf("Level: %d != %d", one.Level, two.Level)
-		return false
-	}
-	if !assert.Equal(t, one.From, two.From) {
-		return false
-	}
-	if !assert.Equal(t, one.To, two.To) {
-		return false
-	}
-	if one.TokenID != two.TokenID {
-		logger.Info().Msgf("TokenID: %d != %d", one.TokenID, two.TokenID)
-		return false
-	}
-	if one.Amount.Cmp(two.Amount) != 0 {
-		logger.Info().Msgf("Amount: %s != %s", one.Amount.String(), two.Amount.String())
-		return false
-	}
-	if one.OperationID != two.OperationID {
-		logger.Info().Msgf("OperationID: %d != %d", one.OperationID, two.OperationID)
-		return false
-	}
 	return true
 }
 
@@ -317,19 +267,6 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 	if one.Tags != two.Tags {
 		logger.Info().Msgf("Tags: %d != %d", one.Tags, two.Tags)
 		return false
-	}
-
-	if len(one.Transfers) != len(two.Transfers) {
-		logger.Info().Msgf("Transfers length: %d != %d", len(one.Transfers), len(two.Transfers))
-		return false
-	}
-
-	if one.Transfers != nil && two.Transfers != nil {
-		for i := range one.Transfers {
-			if !compareTransfers(t, one.Transfers[i], two.Transfers[i]) {
-				return false
-			}
-		}
 	}
 
 	if len(one.BigMapDiffs) != len(two.BigMapDiffs) {

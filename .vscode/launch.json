@@ -46,20 +46,6 @@
                 "config.dev.yml"
             ],
             "envFile": "${workspaceFolder}/.env"
-        },
-        {
-            "name": "Launch Metrics",
-            "type": "go",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}/cmd/metrics",
-            "args": [
-                "-f",
-                "config.yml",
-                "-f",
-                "config.dev.yml"
-            ],
-            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
