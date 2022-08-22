@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -359,38 +358,6 @@ func (storage *Storage) ContractStats(address string) (stats operation.ContractS
 	stats.Count = int64(count)
 
 	return
-}
-
-func getDAppQuery(db pg.DBI, ids []int64, period string) (*orm.Query, error) {
-	query := db.Model((*operation.Operation)(nil)).
-		Where("status = ?", types.OperationStatusApplied)
-
-	if len(ids) > 0 {
-		query.WhereIn("destination_id IN (?)", ids)
-	}
-
-	err := periodToRange(query, period)
-	return query, err
-}
-
-func periodToRange(query *orm.Query, period string) error {
-	now := time.Now().UTC()
-	switch period {
-	case "year":
-		now = now.AddDate(-1, 0, 0)
-	case "month":
-		now = now.AddDate(0, -1, 0)
-	case "week":
-		now = now.AddDate(0, 0, -7)
-	case "day":
-		now = now.AddDate(0, 0, -1)
-	case "all":
-		now = consts.BeginningOfTime
-	default:
-		return errors.Errorf("Unknown period value: %s", period)
-	}
-	query.Where("timestamp > ?", now)
-	return nil
 }
 
 func addOperationSorting(query *orm.Query) {
