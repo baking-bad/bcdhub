@@ -9,6 +9,7 @@ type Repository interface {
 	GetRandom() (Contract, error)
 	GetTokens(tokenInterface string, offset, size int64) ([]Contract, int64, error)
 	RecentlyCalled(offset, size int64) ([]Contract, error)
+	Count() (int, error)
 
 	Script(address string, symLink string) (Script, error)
 

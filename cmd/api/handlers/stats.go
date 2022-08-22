@@ -101,3 +101,26 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 		c.SecureJSON(http.StatusOK, response)
 	}
 }
+
+// ContractsCount godoc
+// @Summary Get contracts count
+// @Description Get contracts count
+// @Tags contract
+// @ID get-contracts-count
+// @Param network path string true "Network"
+// @Accept  json
+// @Produce  json
+// @Success 200 {integer} integer
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/stats/{network}/contracts_count [get]
+func ContractsCount() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+		count, err := ctx.Contracts.Count()
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, count)
+	}
+}

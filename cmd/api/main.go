@@ -115,6 +115,7 @@ func (api *app) makeRouter() {
 			networkStats.Use(handlers.NetworkMiddleware(api.Contexts))
 			{
 				networkStats.GET("recently_called_contracts", cache.CachePage(store, time.Second*10, handlers.RecentlyCalledContracts()))
+				networkStats.GET("contracts_count", cache.CachePage(store, time.Second*10, handlers.ContractsCount()))
 			}
 		}
 

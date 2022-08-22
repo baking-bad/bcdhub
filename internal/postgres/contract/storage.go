@@ -235,3 +235,8 @@ func (storage *Storage) RecentlyCalled(offset, size int64) (contracts []contract
 		Select(&contracts)
 	return
 }
+
+// Count -
+func (storage *Storage) Count() (int, error) {
+	return storage.DB.Model((*contract.Contract)(nil)).CountEstimate(1000000)
+}
