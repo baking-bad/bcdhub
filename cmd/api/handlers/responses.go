@@ -530,14 +530,28 @@ type ForkResponse struct {
 	Storage stdJSON.RawMessage `json:"storage"`
 }
 
-// HeadResponse -
-type HeadResponse struct {
+// Head -
+type Head struct {
 	Network   string    `json:"network"`
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"time"`
 	Protocol  string    `json:"protocol"`
 	Synced    bool      `json:"synced"`
+
+	network types.Network `json:"-"`
 }
+
+// Heads -
+type HeadsByNetwork []Head
+
+// Len -
+func (a HeadsByNetwork) Len() int { return len(a) }
+
+// Swap -
+func (a HeadsByNetwork) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+
+// Less -
+func (a HeadsByNetwork) Less(i, j int) bool { return a[i].network < a[j].network }
 
 // GlobalConstant -
 type GlobalConstant struct {

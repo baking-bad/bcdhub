@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -26,7 +27,7 @@ func GetHead() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
 
-		body := make([]HeadResponse, 0)
+		body := make([]Head, 0)
 		for network, ctx := range ctxs {
 			block, err := ctx.Blocks.Last()
 			if err != nil {
@@ -45,6 +46,8 @@ func GetHead() gin.HandlerFunc {
 
 			body = append(body, head)
 		}
+
+		sort.Sort(HeadsByNetwork(body))
 
 		c.SecureJSON(http.StatusOK, body)
 	}
@@ -79,7 +82,7 @@ func GetHeadByNetwork() gin.HandlerFunc {
 	}
 }
 
-func getHead(ctx *config.Context, network types.Network, block block.Block) (HeadResponse, error) {
+func getHead(ctx *config.Context, network types.Network, block block.Block) (Head, error) {
 	var found bool
 	for j := range ctx.Config.API.Networks {
 		if network.String() == ctx.Config.API.Networks[j] {
@@ -89,10 +92,11 @@ func getHead(ctx *config.Context, network types.Network, block block.Block) (Hea
 	}
 
 	if !found {
-		return HeadResponse{}, errors.New("unknown network")
+		return Head{}, errors.New("unknown network")
 	}
 
-	return HeadResponse{
+	return Head{
+		network:   network,
 		Network:   network.String(),
 		Level:     block.Level,
 		Timestamp: block.Timestamp.UTC(),
