@@ -328,6 +328,8 @@ definitions:
           type: string
         type: array
         x-nullable: true
+      events_count:
+        type: integer
       fail_strings:
         items:
           type: string
@@ -399,6 +401,24 @@ definitions:
         example: text
         type: string
     type: object
+  handlers.Event:
+    properties:
+      hash:
+        type: string
+      level:
+        type: integer
+      payload:
+        items:
+          $ref: '#/definitions/ast.MiguelNode'
+        type: array
+        x-nullable: true
+      status:
+        type: string
+      tag:
+        type: string
+      timestamp:
+        type: string
+    type: object
   handlers.GetBigMapResponse:
     properties:
       active_keys:
@@ -448,7 +468,7 @@ definitions:
           type: integer
         type: array
     type: object
-  handlers.HeadResponse:
+  handlers.Head:
     properties:
       level:
         type: integer
@@ -548,6 +568,11 @@ definitions:
           $ref: '#/definitions/tezerrors.Error'
         type: array
         x-nullable: true
+      event:
+        items:
+          $ref: '#/definitions/ast.MiguelNode'
+        type: array
+        x-nullable: true
       fee:
         type: integer
         x-nullable: true
@@ -604,6 +629,9 @@ definitions:
       storage_size:
         example: 200
         type: integer
+        x-nullable: true
+      tag:
+        type: string
         x-nullable: true
       timestamp:
         type: string
@@ -1335,6 +1363,58 @@ paths:
       summary: Execute entrypoint with passed arguments
       tags:
       - contract
+  /v1/contract/{network}/{address}/events:
+    get:
+      consumes:
+      - application/json
+      description: List contract events
+      operationId: list-events
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: string
+      - description: Expected events count
+        in: query
+        maximum: 10
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.Event'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: List contract events
+      tags:
+      - operations
   /v1/contract/{network}/{address}/global_constants:
     get:
       consumes:
@@ -2103,7 +2183,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.HeadResponse'
+              $ref: '#/definitions/handlers.Head'
             type: array
         "500":
           description: Internal Server Error
@@ -2130,7 +2210,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.HeadResponse'
+            $ref: '#/definitions/handlers.Head'
         "500":
           description: Internal Server Error
           schema:
@@ -2397,6 +2477,36 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Show indexer stats
+      tags:
+      - statistics
+  /v1/stats/{network}/contracts_count:
+    get:
+      consumes:
+      - application/json
+      description: Get contracts count
+      operationId: get-contracts-count
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get contracts count
       tags:
       - statistics
   /v1/stats/{network}/recently_called_contracts:

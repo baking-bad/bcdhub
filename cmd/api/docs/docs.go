@@ -889,6 +889,82 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/contract/{network}/{address}/events": {
+            "get": {
+                "description": "List contract events",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "operations"
+                ],
+                "summary": "List contract events",
+                "operationId": "list-events",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Expected events count",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.Event"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/contract/{network}/{address}/global_constants": {
             "get": {
                 "description": "Get global constants used by contract",
@@ -2015,7 +2091,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.HeadResponse"
+                                "$ref": "#/definitions/handlers.Head"
                             }
                         }
                     },
@@ -2055,7 +2131,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.HeadResponse"
+                            "$ref": "#/definitions/handlers.Head"
                         }
                     },
                     "500": {
@@ -2445,6 +2521,51 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/handlers.Block"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/stats/{network}/contracts_count": {
+            "get": {
+                "description": "Get contracts count",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "statistics"
+                ],
+                "summary": "Get contracts count",
+                "operationId": "get-contracts-count",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
                         }
                     },
                     "500": {
@@ -2999,6 +3120,9 @@ const docTemplate = `{
                     },
                     "x-nullable": true
                 },
+                "events_count": {
+                    "type": "integer"
+                },
                 "fail_strings": {
                     "type": "array",
                     "items": {
@@ -3102,6 +3226,33 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.Event": {
+            "type": "object",
+            "properties": {
+                "hash": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "payload": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ast.MiguelNode"
+                    },
+                    "x-nullable": true
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.GetBigMapResponse": {
             "type": "object",
             "properties": {
@@ -3176,7 +3327,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.HeadResponse": {
+        "handlers.Head": {
             "type": "object",
             "properties": {
                 "level": {
@@ -3320,6 +3471,13 @@ const docTemplate = `{
                     },
                     "x-nullable": true
                 },
+                "event": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ast.MiguelNode"
+                    },
+                    "x-nullable": true
+                },
                 "fee": {
                     "type": "integer",
                     "x-nullable": true
@@ -3397,6 +3555,10 @@ const docTemplate = `{
                     "type": "integer",
                     "x-nullable": true,
                     "example": 200
+                },
+                "tag": {
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "timestamp": {
                     "type": "string"

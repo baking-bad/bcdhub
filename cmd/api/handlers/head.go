@@ -20,7 +20,7 @@ import (
 // @ID get-indexer-head
 // @Accept json
 // @Produce json
-// @Success 200 {array} HeadResponse
+// @Success 200 {array} Head
 // @Failure 500 {object} Error
 // @Router /v1/head [get]
 func GetHead() gin.HandlerFunc {
@@ -61,7 +61,7 @@ func GetHead() gin.HandlerFunc {
 // @Param network path string true "Network"
 // @Accept json
 // @Produce json
-// @Success 200 {object} HeadResponse
+// @Success 200 {object} Head
 // @Failure 500 {object} Error
 // @Router /v1/head/{network} [get]
 func GetHeadByNetwork() gin.HandlerFunc {

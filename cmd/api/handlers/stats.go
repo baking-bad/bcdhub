@@ -105,7 +105,7 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 // ContractsCount godoc
 // @Summary Get contracts count
 // @Description Get contracts count
-// @Tags contract
+// @Tags statistics
 // @ID get-contracts-count
 // @Param network path string true "Network"
 // @Accept  json
