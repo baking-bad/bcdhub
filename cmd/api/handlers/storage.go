@@ -305,11 +305,6 @@ func getInitialOperation(c *gin.Context, ctx *config.Context, address string) (o
 		return operation.Operation{}, err
 	}
 
-	filters := map[string]interface{}{
-		"destination_id": destination.ID,
-		"status":         types.OperationStatusApplied,
-		"kind":           types.OperationKindOrigination,
-	}
-	return ctx.Operations.Last(filters, 0)
+	return ctx.Operations.Origination(destination.ID)
 
 }

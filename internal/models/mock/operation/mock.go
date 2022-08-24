@@ -124,6 +124,21 @@ func (mr *MockRepositoryMockRecorder) OPG(address, size, lastID interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OPG", reflect.TypeOf((*MockRepository)(nil).OPG), address, size, lastID)
 }
 
+// Origination mocks base method
+func (m *MockRepository) Origination(accountID int64) (model.Operation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Origination", accountID)
+	ret0, _ := ret[0].(model.Operation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Origination indicates an expected call of Origination
+func (mr *MockRepositoryMockRecorder) Origination(accountID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Origination", reflect.TypeOf((*MockRepository)(nil).Origination), accountID)
+}
+
 // Get mocks base method
 func (m *MockRepository) Get(filter map[string]interface{}, size int64, sort bool) ([]model.Operation, error) {
 	m.ctrl.T.Helper()
@@ -137,21 +152,6 @@ func (m *MockRepository) Get(filter map[string]interface{}, size int64, sort boo
 func (mr *MockRepositoryMockRecorder) Get(filter, size, sort interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), filter, size, sort)
-}
-
-// GetDAppStats mocks base method
-func (m *MockRepository) GetDAppStats(addresses []string, period string) (model.DAppStats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDAppStats", addresses, period)
-	ret0, _ := ret[0].(model.DAppStats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetDAppStats indicates an expected call of GetDAppStats
-func (mr *MockRepositoryMockRecorder) GetDAppStats(addresses, period interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDAppStats", reflect.TypeOf((*MockRepository)(nil).GetDAppStats), addresses, period)
 }
 
 // GetByIDs mocks base method

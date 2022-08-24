@@ -13,6 +13,7 @@ type Repository interface {
 	GetByHashAndCounter(hash string, counter int64) ([]Operation, error)
 	GetImplicitOperation(counter int64) (Operation, error)
 	OPG(address string, size, lastID int64) ([]OPG, error)
+	Origination(accountID int64) (Operation, error)
 
 	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
 	// `Sort` - sort by time and content index by desc
