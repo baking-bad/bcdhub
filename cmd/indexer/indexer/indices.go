@@ -53,6 +53,15 @@ func createStartIndices(db pg.DBI) error {
 			return err
 		}
 
+		// Operations
+		if _, err := db.Model((*operation.Operation)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_destination_idx ON ?TableName (destination_id)`); err != nil {
+			return err
+		}
+
+		if _, err := db.Model((*operation.Operation)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_status_idx ON ?TableName (status)`); err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -157,12 +166,6 @@ func (bi *BlockchainIndexer) createIndices() {
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_destination_idx ON ?TableName (destination_id)
-	`); err != nil {
-		logger.Error().Err(err).Msg("can't create index")
-	}
-
-	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_opg_idx ON ?TableName (hash, counter, content_index)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
@@ -188,12 +191,6 @@ func (bi *BlockchainIndexer) createIndices() {
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_sort_idx ON ?TableName (level, counter, id)
-	`); err != nil {
-		logger.Error().Err(err).Msg("can't create index")
-	}
-
-	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_status_idx ON ?TableName (status)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
