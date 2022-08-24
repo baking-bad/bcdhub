@@ -360,6 +360,17 @@ func (storage *Storage) ContractStats(address string) (stats operation.ContractS
 	return
 }
 
+// Origination -
+func (storage *Storage) Origination(accountID int64) (operation.Operation, error) {
+	var result operation.Operation
+	err := storage.DB.Model((*operation.Operation)(nil)).
+		Where("destination_id = ?", accountID).
+		Where("kind = ?", types.OperationKindOrigination).
+		Limit(1).
+		Select(&result)
+	return result, err
+}
+
 func addOperationSorting(query *orm.Query) {
 	query.OrderExpr("operation.level desc, operation.counter desc, operation.id asc")
 }
