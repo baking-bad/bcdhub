@@ -25,11 +25,11 @@ services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
   ghostnet:
-    mempool: https://mempool.dipdup.net/v1/graphql
+    mempool: https://mempool.test.dipdup.net/v1/graphql
   jakartanet:
-    mempool: https://mempool.dipdup.net/v1/graphql
+    mempool: https://mempool.test.dipdup.net/v1/graphql
   kathmandunet:
-    mempool: https://mempool.dipdup.net/v1/graphql
+    mempool: https://mempool.test.dipdup.net/v1/graphql
 
 storage:
   pg: 
