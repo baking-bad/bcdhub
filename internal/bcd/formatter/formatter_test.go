@@ -2,7 +2,7 @@ package formatter
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -102,9 +102,9 @@ func TestMichelineToMichelson(t *testing.T) {
 		t.Run(tt, func(t *testing.T) {
 			jsonFile := fmt.Sprintf("./formatter_tests/%v/code_%v.json", tt, tt[:6])
 
-			data, err := ioutil.ReadFile(jsonFile)
+			data, err := os.ReadFile(jsonFile)
 			if err != nil {
-				t.Error("ioutil.ReadFile code.json error:", err)
+				t.Error("os.ReadFile code.json error:", err)
 			}
 
 			if !gjson.Valid(string(data)) {
@@ -118,9 +118,9 @@ func TestMichelineToMichelson(t *testing.T) {
 			}
 
 			tzFile := fmt.Sprintf("./formatter_tests/%v/code_%v.tz", tt, tt[:6])
-			expected, err := ioutil.ReadFile(tzFile)
+			expected, err := os.ReadFile(tzFile)
 			if err != nil {
-				t.Error("ioutil.ReadFile code.tz error:", err)
+				t.Error("os.ReadFile code.tz error:", err)
 			}
 
 			re := regexp.MustCompile(`\n\s*`)

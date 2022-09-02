@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
 
@@ -216,7 +215,7 @@ func LoadConfig(filename string) (Config, error) {
 		return config, fmt.Errorf("you have to provide configuration filename")
 	}
 
-	src, err := ioutil.ReadFile(filename)
+	src, err := os.ReadFile(filename)
 	if err != nil {
 		return config, fmt.Errorf("reading file %s error: %w", filename, err)
 	}

@@ -3,7 +3,7 @@ package formattererror
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/tidwall/gjson"
@@ -29,18 +29,18 @@ func TestLocateContractError(t *testing.T) {
 		t.Run(c, func(t *testing.T) {
 			dirpath := fmt.Sprintf("formatter_error_tests/%v/", c)
 
-			data, err := ioutil.ReadFile(dirpath + "code.json")
+			data, err := os.ReadFile(dirpath + "code.json")
 			if err != nil {
-				t.Errorf("error in ioutil.ReadFile(%v%v): %v", dirpath, "code.json", err)
+				t.Errorf("error in os.ReadFile(%v%v): %v", dirpath, "code.json", err)
 			}
 
 			if !gjson.Valid(string(data)) {
 				t.Error("invalid json")
 			}
 
-			results, err := ioutil.ReadFile(dirpath + "results.json")
+			results, err := os.ReadFile(dirpath + "results.json")
 			if err != nil {
-				t.Errorf("error in ioutil.ReadFile(%v%v): %v", dirpath, "results.json", err)
+				t.Errorf("error in os.ReadFile(%v%v): %v", dirpath, "results.json", err)
 			}
 
 			var res Results

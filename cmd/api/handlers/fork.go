@@ -3,7 +3,6 @@ package handlers
 import (
 	stdJSON "encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -85,7 +84,7 @@ func CodeFromMichelson() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("contexts").(config.Contexts)
 
-		body, err := ioutil.ReadAll(io.LimitReader(c.Request.Body, 1024*1024))
+		body, err := io.ReadAll(io.LimitReader(c.Request.Body, 1024*1024))
 		if handleError(c, ctx.Any().Storage, err, http.StatusBadRequest) {
 			return
 		}

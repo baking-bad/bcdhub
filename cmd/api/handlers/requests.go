@@ -138,16 +138,6 @@ func (req getByNetwork) NetworkID() types.Network {
 	return types.NewNetwork(req.Network)
 }
 
-type getTokensByVersion struct {
-	Network string `uri:"network" binding:"required,network" example:"mainnet"`
-	Version string `uri:"faversion" binding:"required,faversion" example:"fa2"`
-}
-
-// NetworkID -
-func (req getTokensByVersion) NetworkID() types.Network {
-	return types.NewNetwork(req.Network)
-}
-
 type bigMapSearchRequest struct {
 	pageableRequest
 	MaxLevel *int64 `form:"max_level,omitempty" binding:"omitempty,gt_int64_ptr=MinLevel"`

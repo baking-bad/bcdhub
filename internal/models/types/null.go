@@ -4,17 +4,7 @@ import "database/sql/driver"
 
 // NullString represents a string that may be null.
 // NullString implements the Scanner interface so
-// it can be used as a scan destination:
-//
-//  var s NullString
-//  err := db.QueryRow("SELECT name FROM foo WHERE id=?", id).Scan(&s)
-//  ...
-//  if s.Valid {
-//     // use s.Str
-//  } else {
-//     // NULL value
-//  }
-//
+// it can be used as a scan destination
 type NullString struct {
 	Str   string
 	Valid bool // Valid is true if Str is not NULL
