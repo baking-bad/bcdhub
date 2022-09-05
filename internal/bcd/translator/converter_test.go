@@ -2,16 +2,16 @@ package translator
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestConverter_FromFile(t *testing.T) {
-	files, err := ioutil.ReadDir("./tests/")
+	files, err := os.ReadDir("./tests/")
 	if err != nil {
-		t.Errorf("ioutil.ReadDir(./tests/) error = %v", err)
+		t.Errorf("os.ReadDir(./tests/) error = %v", err)
 		return
 	}
 
@@ -28,9 +28,9 @@ func TestConverter_FromFile(t *testing.T) {
 
 		t.Run(file.Name(), func(t *testing.T) {
 			resultFilename := fmt.Sprintf("tests/%s/code.json", file.Name())
-			resultBytes, err := ioutil.ReadFile(resultFilename)
+			resultBytes, err := os.ReadFile(resultFilename)
 			if err != nil {
-				t.Errorf("ioutil.ReadFile() error = %v", err)
+				t.Errorf("os.ReadFile() error = %v", err)
 				return
 			}
 

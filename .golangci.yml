@@ -6,8 +6,7 @@ linters:
     - govet
     - prealloc
     - unconvert
-    - deadcode
-    - varcheck
+    - unused
     - errcheck
     - ineffassign
     - containedctx

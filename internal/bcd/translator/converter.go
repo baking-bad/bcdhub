@@ -1,7 +1,7 @@
 package translator
 
 import (
-	"io/ioutil"
+	"os"
 	"regexp"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -82,7 +82,7 @@ func (c Converter) trace() {
 }
 
 func readFileToString(filename string) (string, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return "", err
 	}

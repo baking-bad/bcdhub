@@ -5,7 +5,7 @@ import (
 	"context"
 	stdJSON "encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -38,7 +38,6 @@ type NodeRPC struct {
 	client  *http.Client
 
 	timeout    time.Duration
-	cacheDir   string
 	userAgent  string
 	retryCount int
 	rateLimit  *rate.Limiter
@@ -97,7 +96,7 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 		return NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
 	case checkStatusCode:
 		invalidResponseErr := newInvalidNodeResponse()
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -188,10 +187,10 @@ func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
 	if err := rpc.checkStatusCode(resp, true); err != nil {
 		return nil, errors.Wrapf(err, "%s (%s)", ErrNodeRPCError, uri)
 	}
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }
 
-//nolint
+// nolint
 func (rpc *NodeRPC) post(ctx context.Context, uri string, data interface{}, checkStatusCode bool, response interface{}) error {
 	resp, err := rpc.makePostRequest(ctx, uri, data)
 	if err != nil {

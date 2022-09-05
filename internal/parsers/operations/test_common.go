@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -40,7 +39,7 @@ func readJSONFile(name string, response interface{}) error {
 
 func readTestScript(address, symLink string) ([]byte, error) {
 	path := filepath.Join("./test/contracts", fmt.Sprintf("%s_%s.json", address, symLink))
-	return ioutil.ReadFile(path)
+	return os.ReadFile(path)
 }
 
 func readRPCScript(_ context.Context, address string, _ int64) (noderpc.Script, error) {
@@ -91,7 +90,7 @@ func readTestScriptModel(address, symLink string) (contract.Script, error) {
 	}, nil
 }
 
-//nolint
+// nolint
 func readTestScriptPart(address, symLink, part string) ([]byte, error) {
 	data, err := readTestScript(address, bcd.SymLinkBabylon)
 	if err != nil {

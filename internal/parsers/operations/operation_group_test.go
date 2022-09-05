@@ -3,7 +3,7 @@ package operations
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -2176,7 +2176,7 @@ func TestGroup_Parse(t *testing.T) {
 					DoAndReturn(
 						func(_ context.Context, address string, level int64) ([]byte, error) {
 							storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", address, level)
-							return ioutil.ReadFile(storageFile)
+							return os.ReadFile(storageFile)
 						},
 					).
 					AnyTimes()

@@ -189,7 +189,6 @@ func GetBigMapKeys() gin.HandlerFunc {
 			return
 		}
 
-		var states []bigmapdiff.BigMapState
 		keys, err := ctx.BigMapDiffs.Keys(bigmapdiff.GetContext{
 			Ptr:      &req.Ptr,
 			Size:     pageReq.Size,
@@ -201,14 +200,13 @@ func GetBigMapKeys() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		states = keys
 
 		symLink, err := getCurrentSymLink(ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		response, err := prepareBigMapKeys(ctx, states, symLink)
+		response, err := prepareBigMapKeys(ctx, keys, symLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -511,11 +509,10 @@ func prepareKey(itemKey types.Bytes, bigMapType *ast.BigMap) (key *ast.MiguelNod
 		case int64:
 			keyString = fmt.Sprintf("%d", t)
 		default:
-			keyString = fmt.Sprintf("%v", t)
+			keyString, err = formatter.MichelineToMichelsonInline(string(itemKey))
 		}
 	}
 
-	keyString, err = formatter.MichelineToMichelsonInline(string(itemKey))
 	return
 }
 
