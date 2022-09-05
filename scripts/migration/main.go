@@ -18,6 +18,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.DefaultEntrypoint{},
 	&migrations.FindLostContracts{},
 	&migrations.BigMapStateCount{},
+	&migrations.GlobalConstantsRelations{},
 }
 
 func main() {
