@@ -65,7 +65,7 @@ func ContractValidator(value string) error {
 		if len(value) < 38 {
 			return errors.Wrap(ErrValidation, "invalid contract address length")
 		}
-		if value[37] != '%' {
+		if value[36] != '%' {
 			return errors.Wrap(ErrValidation, "invalid contract address format address%%entrypoint")
 		}
 		address := value[:36]

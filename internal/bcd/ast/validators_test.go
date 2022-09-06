@@ -210,7 +210,7 @@ func TestContractValidator(t *testing.T) {
 	}{
 		{
 			name:    "test 1",
-			value:   "KT1Nh9wK8W3j3CXeTVm5DTTaiU5RE8CxLWZ4%%726563656976655f62756e6e795f62616c616e6365",
+			value:   `KT1Nh9wK8W3j3CXeTVm5DTTaiU5RE8CxLWZ4%726563656976655f62756e6e795f62616c616e6365`,
 			wantErr: false,
 		},
 	}
