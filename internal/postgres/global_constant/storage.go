@@ -1,6 +1,7 @@
 package global_constant
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -47,17 +48,18 @@ func (storage *Storage) List(size, offset int64, orderBy, sort string) ([]contra
 		size = consts.DefaultSize
 	}
 
-	switch orderBy {
-	case "level", "timestamp", "address":
-	case "links_count":
-		orderBy = "links_count, timestamp"
-	default:
-		orderBy = "links_count, timestamp"
-	}
-
 	lowerSort := strings.ToLower(sort)
 	if lowerSort != "asc" && lowerSort != "desc" {
 		lowerSort = "desc"
+	}
+
+	switch orderBy {
+	case "level", "timestamp", "address":
+		orderBy = fmt.Sprintf("%s %s", orderBy, lowerSort)
+	case "links_count":
+		orderBy = fmt.Sprintf("links_count %s, timestamp %s", lowerSort, lowerSort)
+	default:
+		orderBy = fmt.Sprintf("links_count %s, timestamp %s", lowerSort, lowerSort)
 	}
 
 	var constants []contract.ListGlobalConstantItem
@@ -66,9 +68,9 @@ func (storage *Storage) List(size, offset int64, orderBy, sort string) ([]contra
 		left join script_constants as t on  global_constants.id = t.global_constant_id
 		left join contracts on t.script_id = contracts.babylon_id or t.script_id = contracts.jakarta_id 
 		group by global_constants.id
-		order by ? ?
+		order by ?
 		limit ?
-		offset ?`, pg.Safe(orderBy), pg.Safe(lowerSort), size, offset)
+		offset ?`, pg.Safe(orderBy), size, offset)
 	if err != nil {
 		return nil, err
 	}
