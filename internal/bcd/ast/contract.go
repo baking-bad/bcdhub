@@ -153,3 +153,13 @@ func (c *Contract) FindByName(name string, isEntrypoint bool) Node {
 	}
 	return nil
 }
+
+// FromJSONSchema -
+func (c *Contract) FromJSONSchema(data map[string]interface{}) error {
+	return setOptimizedJSONSchema(&c.Default, data, forge.UnforgeContract, ContractValidator)
+}
+
+// ToParameters -
+func (c *Contract) ToParameters() ([]byte, error) {
+	return c.Default.ToParameters()
+}
