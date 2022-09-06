@@ -51,12 +51,16 @@ var sameTemplate = template.Must(
 					join mainnet.accounts on c1.account_id = accounts.id
 					where (c1.alpha_id = {{.AlphaID}} or c1.babylon_id = {{.BabylonID}} or c1.jakarta_id = {{.JakartaID}})
 				union all
-				select 'ghostnet' as network, c2.*, accounts.address as account__address from jakartanet.contracts as c2
-					join jakartanet.accounts on c2.account_id = accounts.id
+				select 'ghostnet' as network, c2.*, accounts.address as account__address from ghostnet.contracts as c2
+					join ghostnet.accounts on c2.account_id = accounts.id
 					where (c2.alpha_id = {{.AlphaID}} or c2.babylon_id = {{.BabylonID}} or c2.jakarta_id = {{.JakartaID}})
 				union all
-				select  'jakartanet' as network, c3.*, accounts.address as account__address from ghostnet.contracts as c3
-					join ghostnet.accounts on c3.account_id = accounts.id
+				select  'jakartanet' as network, c3.*, accounts.address as account__address from jakartanet.contracts as c3
+					join jakartanet.accounts on c3.account_id = accounts.id
+					where (c3.alpha_id = {{.AlphaID}} or c3.babylon_id = {{.BabylonID}} or c3.jakarta_id = {{.JakartaID}})
+				union all
+				select  'kathmandunet' as network, c3.*, accounts.address as account__address from kathmandunet.contracts as c3
+					join kathmandunet.accounts on c3.account_id = accounts.id
 					where (c3.alpha_id = {{.AlphaID}} or c3.babylon_id = {{.BabylonID}} or c3.jakarta_id = {{.JakartaID}})
 			) as q
 			where NOT (network = '{{.network}}' and id = {{.ID}})
