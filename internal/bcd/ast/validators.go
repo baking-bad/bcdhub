@@ -41,7 +41,40 @@ func AddressValidator(value string) error {
 			return errors.Wrapf(ErrValidation, "invalid address '%s'", value)
 		}
 	default:
-		return errors.Wrap(ErrValidation, "invalid address length")
+		return errors.Wrapf(ErrValidation, "invalid address '%s'", value)
+	}
+
+	return nil
+}
+
+// ContractValidator -
+func ContractValidator(value string) error {
+	switch len(value) {
+	case 44, 42:
+		if !hexRegex.MatchString(value) {
+			return errors.Wrapf(ErrValidation, "contract '%s' should be hexademical without prefixes", value)
+		}
+	case 36:
+		if !bcd.IsContractLazy(value) {
+			return errors.Wrapf(ErrValidation, "invalid contract address '%s'", value)
+		}
+		if !bcd.IsContract(value) {
+			return errors.Wrapf(ErrValidation, "invalid contract address '%s'", value)
+		}
+	default:
+		if len(value) < 38 {
+			return errors.Wrap(ErrValidation, "invalid contract address length")
+		}
+		if value[37] != '%' {
+			return errors.Wrap(ErrValidation, "invalid contract address format address%%entrypoint")
+		}
+		address := value[:36]
+		if !bcd.IsContractLazy(address) {
+			return errors.Wrapf(ErrValidation, "invalid contract address '%s'", address)
+		}
+		if !bcd.IsContract(address) {
+			return errors.Wrapf(ErrValidation, "invalid contract address '%s'", address)
+		}
 	}
 
 	return nil

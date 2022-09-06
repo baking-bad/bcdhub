@@ -201,3 +201,24 @@ func TestSignatureValidator(t *testing.T) {
 		})
 	}
 }
+
+func TestContractValidator(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   string
+		wantErr bool
+	}{
+		{
+			name:    "test 1",
+			value:   "KT1Nh9wK8W3j3CXeTVm5DTTaiU5RE8CxLWZ4%%726563656976655f62756e6e795f62616c616e6365",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ContractValidator(tt.value); (err != nil) != tt.wantErr {
+				t.Errorf("ContractValidator() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

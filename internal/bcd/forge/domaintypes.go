@@ -73,11 +73,7 @@ func Contract(val string) (string, error) {
 		return "", err
 	}
 	if parts[1] != consts.DefaultEntrypoint {
-		decoded, err := hex.DecodeString(parts[1])
-		if err != nil {
-			return "", err
-		}
-		res = append(res, decoded...)
+		res = append(res, []byte(parts[1])...)
 	}
 	return hex.EncodeToString(res), nil
 }
@@ -92,7 +88,11 @@ func UnforgeContract(str string) (string, error) {
 		return "", err
 	}
 	if len(str) > 44 {
-		return fmt.Sprintf("%s%%%s", res, str[44:]), nil
+		decoded, err := hex.DecodeString(str[44:])
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%s%%%s", res, string(decoded)), nil
 	}
 	return res, nil
 }

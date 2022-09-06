@@ -89,6 +89,10 @@ func Test_Contract(t *testing.T) {
 			name: "KT address",
 			val:  "KT1XHAmdRKugP1Q38CxDmpcRSxq143KpEiYx",
 			want: "01f8f6c6a0af7c20251bc7df108f2a6e2879a06c9a00",
+		}, {
+			name: "KT address with entrypoint",
+			val:  `KT1Nh9wK8W3j3CXeTVm5DTTaiU5RE8CxLWZ4%receive_bunny_balance`,
+			want: "019ac6ee79c4e87a21d094bb8bf00f37fe51717e8700726563656976655f62756e6e795f62616c616e6365",
 		},
 	}
 	for _, tt := range tests {
@@ -189,6 +193,33 @@ func TestUnforgePublicKey(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UnforgePublicKey() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUnforgeContract(t *testing.T) {
+	tests := []struct {
+		name    string
+		str     string
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "test 1",
+			str:  "019ac6ee79c4e87a21d094bb8bf00f37fe51717e8700726563656976655f62756e6e795f62616c616e6365",
+			want: "KT1Nh9wK8W3j3CXeTVm5DTTaiU5RE8CxLWZ4%receive_bunny_balance",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := UnforgeContract(tt.str)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnforgeContract() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UnforgeContract() = %v, want %v", got, tt.want)
 			}
 		})
 	}
