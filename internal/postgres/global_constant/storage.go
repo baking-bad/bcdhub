@@ -46,8 +46,13 @@ func (storage *Storage) List(size, offset int64, orderBy, sort string) ([]contra
 	if size < 1 || size > consts.MaxSize {
 		size = consts.DefaultSize
 	}
-	if orderBy != "timestamp" && orderBy != "level" && orderBy != "address" && orderBy != "links_count" {
-		orderBy = "links_count"
+
+	switch orderBy {
+	case "level", "timestamp", "address":
+	case "links_count":
+		orderBy = "links_count, timestamp"
+	default:
+		orderBy = "links_count, timestamp"
 	}
 
 	lowerSort := strings.ToLower(sort)
@@ -58,14 +63,12 @@ func (storage *Storage) List(size, offset int64, orderBy, sort string) ([]contra
 	var constants []contract.ListGlobalConstantItem
 	_, err := storage.DB.Query(&constants,
 		`select global_constants.timestamp, global_constants.level, global_constants.address, count(contracts.babylon_id) as links_count from global_constants 
-		left join (
-			select distinct global_constant_id, script_id from script_constants
-		) as t on  global_constants.id = t.global_constant_id
+		left join script_constants as t on  global_constants.id = t.global_constant_id
 		left join contracts on t.script_id = contracts.babylon_id or t.script_id = contracts.jakarta_id 
 		group by global_constants.id
 		order by ? ?
 		limit ?
-		offset ?`, pg.Ident(orderBy), pg.Safe(lowerSort), size, offset)
+		offset ?`, pg.Safe(orderBy), pg.Safe(lowerSort), size, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +89,7 @@ func (storage *Storage) ForContract(address string, size, offset int64) (respons
 	err = storage.DB.Model((*contract.Contract)(nil)).
 		ColumnExpr("global_constants.*").
 		Join("LEFT JOIN accounts on account_id = accounts.id").
-		Join("LEFT JOIN (select distinct global_constant_id, script_id from script_constants) as t on t.script_id = jakarta_id or t.script_id = babylon_id").
+		Join("LEFT JOIN script_constants as t on t.script_id = jakarta_id or t.script_id = babylon_id").
 		Join("LEFT JOIN global_constants on t.global_constant_id = global_constants.id").
 		Where("accounts.address = ?", address).
 		Where("global_constant_id is not null").
