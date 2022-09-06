@@ -119,7 +119,7 @@ func (storage *Storage) Script(address string, symLink string) (contract.Script,
 // GetScripts -
 func (storage *Storage) GetScripts(limit, offset int) (scripts []contract.Script, err error) {
 	err = storage.DB.Model(&scripts).
-		ColumnExpr("tags, hash, project_id, fail_strings, annotations, entrypoints").
+		ColumnExpr("id, tags, hash, fail_strings, annotations, entrypoints").
 		Limit(limit).Offset(offset).Order("id asc").Select()
 	return
 }

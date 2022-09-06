@@ -307,10 +307,18 @@ func FindConstants(tree ast.UntypedAST) (types.Set, error) {
 
 	constants := make(types.Set)
 	for i := range tree {
-		if constant := parseConstants(tree[i]); constant != "" {
-			constants.Add(constant)
-		}
+		findConstants(tree[i], constants)
 	}
 
 	return constants, nil
+}
+
+func findConstants(node *base.Node, constants types.Set) {
+	if constant := parseConstants(node); constant != "" {
+		constants.Add(constant)
+	}
+
+	for i := range node.Args {
+		findConstants(node.Args[i], constants)
+	}
 }
