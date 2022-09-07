@@ -87,7 +87,7 @@ func GetSameContracts() gin.HandlerFunc {
 			return
 		}
 
-		count, err := ctx.Domains.SameCount(contract)
+		count, err := ctx.Domains.SameCount(contract, ctx.Config.API.Networks...)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -97,7 +97,7 @@ func GetSameContracts() gin.HandlerFunc {
 			Contracts: make([]ContractWithStats, 0),
 		}
 
-		same, err := ctx.Domains.Same(req.Network, contract, int(page.Size), int(page.Offset))
+		same, err := ctx.Domains.Same(req.Network, contract, int(page.Size), int(page.Offset), ctx.Config.API.Networks...)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -131,7 +131,7 @@ func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, 
 	if err != nil {
 		return ContractWithStats{}, err
 	}
-	res := ContractWithStats{c, -1, 0}
+	res := ContractWithStats{c, 0, 0}
 
 	eventsCount, err := ctx.Operations.EventsCount(contractModel.AccountID)
 	if err != nil {
@@ -139,52 +139,10 @@ func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, 
 	}
 	res.EventsCount = eventsCount
 
-	stats, err := ctx.Domains.SameCount(contractModel)
+	stats, err := ctx.Domains.SameCount(contractModel, ctx.Config.API.Networks...)
 	if err != nil {
 		return res, err
 	}
 	res.SameCount += int64(stats)
-
-	for _, cur := range ctxs {
-		if cur.Network == ctx.Network {
-			continue
-		}
-
-		var buf contract.Contract
-		switch {
-		case contractModel.AlphaID > 0:
-			script, err := cur.Scripts.ByHash(contractModel.Alpha.Hash)
-			if err != nil {
-				if cur.Storage.IsRecordNotFound(err) {
-					continue
-				}
-				return res, err
-			}
-			buf.AlphaID = script.ID
-		case contractModel.BabylonID > 0:
-			script, err := cur.Scripts.ByHash(contractModel.Babylon.Hash)
-			if err != nil {
-				if cur.Storage.IsRecordNotFound(err) {
-					continue
-				}
-				return res, err
-			}
-			buf.BabylonID = script.ID
-		case contractModel.JakartaID > 0:
-			script, err := cur.Scripts.ByHash(contractModel.Jakarta.Hash)
-			if err != nil {
-				if cur.Storage.IsRecordNotFound(err) {
-					continue
-				}
-				return res, err
-			}
-			buf.JakartaID = script.ID
-		}
-		stats, err := cur.Domains.SameCount(buf)
-		if err != nil {
-			return res, err
-		}
-		res.SameCount += int64(stats)
-	}
 	return res, nil
 }

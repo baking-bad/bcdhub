@@ -6,7 +6,7 @@ package domains
 
 import (
 	contract "github.com/baking-bad/bcdhub/internal/models/contract"
-	model "github.com/baking-bad/bcdhub/internal/models/domains"
+	models "github.com/baking-bad/bcdhub/internal/models/domains"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,10 +35,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // BigMapDiffs mocks base method
-func (m *MockRepository) BigMapDiffs(lastID, size int64) ([]model.BigMapDiff, error) {
+func (m *MockRepository) BigMapDiffs(lastID, size int64) ([]models.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BigMapDiffs", lastID, size)
-	ret0, _ := ret[0].([]model.BigMapDiff)
+	ret0, _ := ret[0].([]models.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -50,31 +50,41 @@ func (mr *MockRepositoryMockRecorder) BigMapDiffs(lastID, size interface{}) *gom
 }
 
 // Same mocks base method
-func (m *MockRepository) Same(network string, c contract.Contract, limit, offset int) ([]model.Same, error) {
+func (m *MockRepository) Same(network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]models.Same, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Same", network, c, limit, offset)
-	ret0, _ := ret[0].([]model.Same)
+	varargs := []interface{}{network, c, limit, offset}
+	for _, a := range availiableNetworks {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Same", varargs...)
+	ret0, _ := ret[0].([]models.Same)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Same indicates an expected call of Same
-func (mr *MockRepositoryMockRecorder) Same(network, c, limit, offset interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Same(network, c, limit, offset interface{}, availiableNetworks ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Same", reflect.TypeOf((*MockRepository)(nil).Same), network, c, limit, offset)
+	varargs := append([]interface{}{network, c, limit, offset}, availiableNetworks...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Same", reflect.TypeOf((*MockRepository)(nil).Same), varargs...)
 }
 
 // SameCount mocks base method
-func (m *MockRepository) SameCount(c contract.Contract) (int, error) {
+func (m *MockRepository) SameCount(c contract.Contract, availiableNetworks ...string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SameCount", c)
+	varargs := []interface{}{c}
+	for _, a := range availiableNetworks {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SameCount", varargs...)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SameCount indicates an expected call of SameCount
-func (mr *MockRepositoryMockRecorder) SameCount(c interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) SameCount(c interface{}, availiableNetworks ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SameCount", reflect.TypeOf((*MockRepository)(nil).SameCount), c)
+	varargs := append([]interface{}{c}, availiableNetworks...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SameCount", reflect.TypeOf((*MockRepository)(nil).SameCount), varargs...)
 }
