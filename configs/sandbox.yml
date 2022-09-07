@@ -31,7 +31,7 @@ api:
     mempool_enabled: false
     sandbox_mode: true
     rpc:
-      sandboxnet: "localhost:20000"
+      sandboxnet: "http://127.0.0.1:20000"
   networks:
     - sandboxnet
 

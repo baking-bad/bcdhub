@@ -67,8 +67,8 @@ test-api:
 	newman run ./scripts/newman/tests.json -e ./scripts/newman/env.json
 
 docs:
-	# wget https://github.com/swaggo/swag/releases/download/v1.7.0/swag_1.7.0_Linux_x86_64.tar.gz
-	# tar -zxvf swag_1.7.0_Linux_x86_64.tar.gz
+	# wget https://github.com/swaggo/swag/releases/download/v1.8.4/swag_1.8.4_Linux_x86_64.tar.gz
+	# tar -zxvf swag_1.8.4_Linux_x86_64.tar.gz
 	# sudo cp swag /usr/bin/swag
 	cd cmd/api && swag init --parseDependency --parseInternal --parseDepth 2
 
@@ -95,12 +95,3 @@ sandbox-down:
 
 sandbox-clear:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.flextesa.yml down -v
-
-gateway:
-	COMPOSE_PROJECT_NAME=bcdhub TAG=4.1.0 docker-compose -f docker-compose.gateway.yml up -d
-
-gateway-down:
-	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml down
-
-gateway-clear:
-	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml down -v
