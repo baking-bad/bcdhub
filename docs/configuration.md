@@ -12,6 +12,7 @@ rpc:
     mainnet:
         uri: https://mainnet-tezos.giganode.io
         timeout: 20
+        requests_per_second: 10
 ```
 
 #### `tzkt`
@@ -20,43 +21,32 @@ TzKT API endpoints (optional) and connection timeouts
 tzkt:
     mainnet:
         uri: https://api.tzkt.io/v1/
-        services_uri: https://services.tzkt.io/v1/
-        base_uri: https://tzkt.io/
+        base_uri: https://api.tzkt.io
         timeout: 20
 ```
 
 #### `db`
 PostgreSQL connection string
 ```yml
-db:
-    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=bcd password=${POSTGRES_PASSWORD} sslmode=disable"
-```
-
-#### `oauth`
-OAuth providers settings
-```yml
-oauth:
-    state: ${OAUTH_STATE_STRING}
-    jwt:
-        secret: ${JWT_SECRET_KEY}
-        redirect_url: https://better-call.dev/welcome
-    github:
-        client_id: ${GITHUB_CLIENT_ID}
-        secret: ${GITHUB_CLIENT_SECRET}
-        callback_url: https://api.better-call.dev/v1/oauth/github/callback
-    gitlab:
-        client_id: ${GITLAB_CLIENT_ID}
-        secret: ${GITLAB_CLIENT_SECRET}
-        callback_url: https://api.better-call.dev/v1/oauth/gitlab/callback
+storage:
+  pg: 
+    host: ${DB_HOSTNAME:-db}
+    port: 5432
+    user: ${POSTGRES_USER}
+    dbname: ${POSTGRES_DB:-bcd}
+    password: ${POSTGRES_PASSWORD}
+    sslmode: disable
+  timeout: 10
 ```
 
 #### `sentry`
 [Sentry](https://sentry.io/) configuration
 ```yml
 sentry:
-    environment: production
-    uri: ${SENTRY_DSN}
-    debug: false
+  environment: production
+  uri: ${SENTRY_DSN}
+  front_uri: ${SENTRY_DSN_FRONT}
+  debug: false
 ```
 
 #### `share_path`
@@ -65,54 +55,69 @@ Folder to store cached contract sources
 share_path: /etc/bcd
 ```
 
-#### `ipfs`
-IPFS settings (list of http gateways)
+#### `services`
+Some third-party services
 ```yml
-ipfs:
-    - https://ipfs.io
-    - https://dweb.link
+  services:
+    mainnet:
+        mempool: https://mempool.dipdup.net/v1/graphql
 ```
 
 #### `api`
 API service settings
 ```yml
+
 api:
-    project_name: api
-    bind: ":14000"
-    swagger_host: "api.better-call.dev"
-    cors_enabled: false
-    sentry_enabled: true
-    seed_enabled: false
-    networks:
-        - mainnet
+  project_name: api
+  bind: ":14000"
+  swagger_host: "api.better-call.dev"
+  cors_enabled: false
+  sentry_enabled: true
+  seed_enabled: false
+  page_size: ${PAGE_SIZE:-10}
+  frontend:
+    ga_enabled: true
+    mempool_enabled: true
+    sandbox_mode: false
+    rpc:
+      mainnet: https://rpc.tzkt.io/mainnet
+  networks:
+    - mainnet
+  connections:
+    max: 50
+    idle: 10
 ```
 
 #### `indexer`
-Indexer service settings. Note the optional _boost_ setting which tells indexer to use third-party service in order to speed up the process.
+Indexer service settings.
 ```yml
 indexer:
-    project_name: indexer
-    sentry_enabled: true
-    skip_delegator_blocks: false
-    networks:
-        mainnet:
-          boost: tzkt
+  project_name: indexer
+  sentry_enabled: true
+  skip_delegator_blocks: false
+  networks:
+    mainnet:
+      receiver_threads: ${MAINNET_THREADS:-1}
+  connections:
+    max: 5
+    idle: 5
 ```
 
 #### `scripts`
 Scripts settings for data migrations and [AWS S3](https://aws.amazon.com/s3/) snapshot registry
 ```yml
 scripts:
-    aws:
-        bucket_name: bcd-elastic-snapshots
-        region: eu-central-1
-        access_key_id: ${AWS_ACCESS_KEY_ID}
-        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-    networks:
-      - mainnet
-      - carthagenet
-      - edo2net
-      - florencenet
+  aws:
+    bucket_name: bcd-elastic-snapshots
+    region: eu-central-1
+    access_key_id: ${AWS_ACCESS_KEY_ID}
+    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+  networks:
+    - mainnet
+  connections:
+    max: 5
+    idle: 5
+
 ```
 
 ### Docker settings `docker-compose.yml`
@@ -148,29 +153,16 @@ About env files: https://docs.docker.com/compose/env-file/
 * `BCD_ENV` e.g. _production_ or _sandbox_
 * `COMPOSE_PROJECT_NAME` e.g. _bcd-prod_ or _bcd-box_
 * `GIN_MODE` _release_ for production, _debug_ otherwise
-* `ES_JAVA_OPTS` _"-Xms1g -Xmx1g"_ max RAM allocation for Elastic Search (_g_ for GB, _m_ for MB)
 
 #### Credentials _required_
 * `POSTGRES_USER` e.g. _root_
 * `POSTGRES_PASSWORD` e.g. _root_
 * `POSTGRES_DB` e.g. _bcd_
-* `RABBITMQ_DEFAULT_USER` e.g. _guest_
-* `RABBITMQ_DEFAULT_PASS` e.g. _guest_
 
 #### Services ports _required_
 * `BCD_API_PORT` e.g. _14000_
-* `ES_REQUESTS_PORT` e.g. _9200_
-* `RABBITMQ_PORT` e.g. _5672_
 * `POSTGRES_PORT` e.g. _5432_
 * `BCD_GUI_PORT` e.g. _8000_
-
-#### OAuth creds _required if `oauth_enabled: true`_
-* `GITHUB_CLIENT_ID`
-* `GITHUB_CLIENT_SECRET`
-* `GITLAB_CLIENT_ID`
-* `GITLAB_CLIENT_SECRET`
-* `JWT_SECRET_KEY`
-* `OAUTH_STATE_STRING`
 
 #### Sentry creds _required if `sentry_enabled: true`_
 * `SENTRY_DSN`

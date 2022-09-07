@@ -8,7 +8,6 @@ Exposes RESTful JSON API for accessing indexed data (with on-the-fly decoding). 
 
 Those microservices are sharing access to databases and communicating via database:
 
-* `ElasticSearch` cluster (single node) for storing all indexed data including blocks, protocols, contracts, operations, big_map diffs, and others.
 * `PostgreSQL` database for storing compilations and user data.
 
 ### Third-party services
@@ -67,7 +66,6 @@ Make sure you have installed:
 
 You will also need several ports to be not busy:
 * `14000` API service
-* `9200` Elastic
 * `5432` PostgreSQL
 * `8000` Frontend GUI
 
@@ -92,17 +90,12 @@ There are several predefined configurations serving different purposes.
 * Requires `STABLE_TAG` environment set
 * Deployed via `make stable`
 
-#### Staging `you.better-call.dev`
-* Latest docker images `latest`
-* `/configs/you.yml` file is used internally
-* Deployed via `make latest`
-
 #### Development `localhost`
 * `/configs/development.yml` file is used
 * You can spawn local instances of databases or _ssh_ to staging host with port forwarding
 * Run services `make {service}` (where service is one of `api` `indexer`)
 
-#### Sandbox `bbbox`
+#### Sandbox `bcdbox`
 * `/configs/sandbox.yml` file is used
 * Start via `COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml up -d --build`
 * Stop via `COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml down`
@@ -115,16 +108,13 @@ It takes around 20-30 seconds to initialize all services, API endpoints might re
 **NOTE** that if you specified local RPC node that's not running, BCDHub will wait for it indefinitely.
 
 ## Snapshots
-Full indexing process requires about 2 hours, however there are cases when you cannot afford that.  
-Elastic Search has a built-in incremental snapshotting mechanism which we use together with the AWS S3 plugin.
+Full indexing process requires about 2 hours, however there are cases when you cannot afford that
 
-**NOTE:** currently we don't provide public snapshots.  
-You can set up your own S3 repo: https://medium.com/@federicopanini/elasticsearch-backup-snapshot-and-restore-on-aws-s3-f1fc32fbca7f  
+**NOTE:** currently we don't provide public snapshots.
 Alternatively, contact us for granting access
 
 ### Get ready
 * Make sure you have snapshot settings in your `.env` file
-* Elastic service should be up and initialized
 
 ### Make snapshot
 
@@ -146,26 +136,12 @@ make s3-snapshot
 ```
 Select an existing repository to store your snapshot.
 
-#### 4. Schedule automatic snapshots
-```
-make s3-policy
-```
-Select an existing repository and configure time intervals using cron expressions: https://www.elastic.co/guide/en/elasticsearch/reference/master/trigger-schedule.html#schedule-cron
-
 ### Restore snapshot
 
-#### 1. Cleanup (optional)
-In some cases it's not possible to apply snapshot on top of existing indices. You'd need to clear the data then.  
-**WARNING:** This will delete all data from your elastic instance.
-```
-make es-reset
-```
-Wait for Elastic to be initialized.
-
-#### 2. Initialize creds and repo
+#### 1. Initialize creds and repo
 Follow steps 1 and 2 from the _make snapshot_ instruction.
 
-#### 3. Apply snapshot
+#### 2. Apply snapshot
 ```
 make s3-restore
 ```
@@ -196,7 +172,7 @@ make stable
 ```
 
 ### Data migration
-E.g. new field added to one of the elastic models. You'd need to write a migration script to update existing data.
+E.g. new field added to one of the models. You'd need to write a migration script to update existing data.
 
 #### 1. Pull migration script
 ```
@@ -220,7 +196,6 @@ Typically you'd use staging for that.
 ```
 make upgrade
 ```
-Wait for Elastic to be initialized after restart.
 
 #### 2. Restore snapshot
 ```
