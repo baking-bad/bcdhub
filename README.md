@@ -7,22 +7,6 @@ Backend for the [Better Call Dev](https://better-call.dev) contract explorer & d
 
 ## Quickstart
 
-### Run BCD
-
-Clone this repo and cd in:
-```
-make gateway-images
-make gateway
-```
-
-API gateway is now available at http://localhost:14000/v1/stats
-
-In order to stop or reset BCD:
-```
-make gateway-down
-make gateway-clear
-```
-
 ### Sandbox
 
 The simplest way is just to copy the `docker-compose.flexesa.yml` to your project.
