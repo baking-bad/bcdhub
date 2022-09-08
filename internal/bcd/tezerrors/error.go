@@ -137,6 +137,12 @@ func (e *Error) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(data, &descr); err != nil {
 			return err
 		}
+		if descr.Title == "" {
+			descr.Title = typ.ID
+		}
+		if descr.Description == "" {
+			descr.Description = typ.Kind
+		}
 	}
 	e.Title = descr.Title
 	e.Description = descr.Description
