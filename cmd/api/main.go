@@ -119,6 +119,11 @@ func (api *app) makeRouter() {
 			}
 		}
 
+		helpers := v1.Group("helpers")
+		{
+			helpers.GET("contracts/:network", handlers.NetworkMiddleware(api.Contexts), cache.CachePage(store, time.Hour, handlers.ContractsHelpers()))
+		}
+
 		bigmap := v1.Group("bigmap/:network/:ptr")
 		bigmap.Use(handlers.NetworkMiddleware(api.Contexts))
 		{

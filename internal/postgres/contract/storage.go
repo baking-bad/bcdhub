@@ -240,3 +240,14 @@ func (storage *Storage) RecentlyCalled(offset, size int64) (contracts []contract
 func (storage *Storage) Count() (int, error) {
 	return storage.DB.Model((*contract.Contract)(nil)).CountEstimate(1000000)
 }
+
+// FindOne -
+func (storage *Storage) FindOne(tags types.Tags) (result contract.Contract, err error) {
+	err = storage.DB.Model(&result).
+		Where("tags&? > 0", tags).
+		ColumnExpr("contract.id, contract.tx_count, contract.last_action, contract.account_id, contract.timestamp, contract.level").
+		ColumnExpr("account.address as account__address, account.alias as account__alias").
+		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
+		First()
+	return
+}

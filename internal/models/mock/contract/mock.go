@@ -6,6 +6,7 @@ package contract
 
 import (
 	model "github.com/baking-bad/bcdhub/internal/models/contract"
+	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -124,21 +125,6 @@ func (mr *MockRepositoryMockRecorder) Count() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockRepository)(nil).Count))
 }
 
-// SameCount mocks base method
-func (m *MockRepository) SameCount(c model.Contract) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SameCount", c)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SameCount indicates an expected call of SameCount
-func (mr *MockRepositoryMockRecorder) SameCount(c interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SameCount", reflect.TypeOf((*MockRepository)(nil).SameCount), c)
-}
-
 // Script mocks base method
 func (m *MockRepository) Script(address, symLink string) (model.Script, error) {
 	m.ctrl.T.Helper()
@@ -167,6 +153,21 @@ func (m *MockRepository) ScriptPart(address, symLink, part string) ([]byte, erro
 func (mr *MockRepositoryMockRecorder) ScriptPart(address, symLink, part interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScriptPart", reflect.TypeOf((*MockRepository)(nil).ScriptPart), address, symLink, part)
+}
+
+// FindOne mocks base method
+func (m *MockRepository) FindOne(tags types.Tags) (model.Contract, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindOne", tags)
+	ret0, _ := ret[0].(model.Contract)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOne indicates an expected call of FindOne
+func (mr *MockRepositoryMockRecorder) FindOne(tags interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOne", reflect.TypeOf((*MockRepository)(nil).FindOne), tags)
 }
 
 // MockScriptRepository is a mock of ScriptRepository interface
