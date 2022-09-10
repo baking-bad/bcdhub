@@ -1,6 +1,10 @@
 package contract
 
-import "time"
+import (
+	"time"
+
+	"github.com/baking-bad/bcdhub/internal/models/types"
+)
 
 // Repository -
 type Repository interface {
@@ -15,6 +19,7 @@ type Repository interface {
 
 	// ScriptPart - returns part of script type. Part can be `storage`, `parameter` or `code`.
 	ScriptPart(address string, symLink, part string) ([]byte, error)
+	FindOne(tags types.Tags) (Contract, error)
 }
 
 // ScriptRepository -

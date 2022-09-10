@@ -249,3 +249,7 @@ type globalConstantsContractsRequest struct {
 type getViewsArgs struct {
 	Kind ViewSchemaKind `form:"kind" binding:"omitempty,oneof=off-chain on-chain"`
 }
+
+type findContract struct {
+	Tags string `form:"tags" binding:"omitempty"`
+}
