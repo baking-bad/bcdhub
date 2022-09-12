@@ -271,6 +271,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			limit ?
 		) as ta
 		join operations on operations.id = ta.last_id
+		order by last_id desc
 	`, accountID, subQuery, limit)
 	return opg, err
 }
