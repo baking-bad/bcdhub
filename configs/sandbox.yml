@@ -41,6 +41,10 @@ indexer:
   skip_delegator_blocks: false
   networks:
     sandboxnet:
+      receiver_threads: 5
+  connections:
+    max: 5
+    idle: 5
 
 scripts:
   networks:
