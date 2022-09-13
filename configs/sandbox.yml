@@ -1,6 +1,6 @@
 rpc:
   sandboxnet:
-    uri: ${SANDBOX_NODE_URI}
+    uri: ${SANDBOX_NODE_URI:-http://127.0.0.1:20000}
     timeout: 10
     requests_per_second: 10
 
@@ -31,7 +31,7 @@ api:
     mempool_enabled: false
     sandbox_mode: true
     rpc:
-      sandboxnet: "http://127.0.0.1:20000"
+      sandboxnet: ${SANDBOX_NODE_URI:-http://127.0.0.1:20000}
   networks:
     - sandboxnet
 
