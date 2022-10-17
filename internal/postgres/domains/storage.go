@@ -54,7 +54,10 @@ var sameTemplate = template.Must(
 				{{- end}}
 				select '{{ $network }}' as network, contracts.*, accounts.address as account__address from {{ $network }}.contracts
 				join {{ $network }}.accounts on contracts.account_id = accounts.id
-				where (contracts.alpha_id = {{$.AlphaID}} or contracts.babylon_id = {{$.BabylonID}} or contracts.jakarta_id = {{$.JakartaID}})
+				left join {{$network}}.scripts as alpha on alpha.id = contracts.alpha_id
+				left join {{$network}}.scripts as babylon on babylon.id = contracts.babylon_id
+				left join {{$network}}.scripts as jakarta on jakarta.id = contracts.jakarta_id
+				where (alpha.hash = '{{$.Hash}}' or babylon.hash = '{{$.Hash}}' or jakarta.hash = '{{$.Hash}}')
 				{{end}}
 			) as q
 			where NOT (network = '{{.network}}' and id = {{.ID}})
@@ -78,15 +81,18 @@ func (storage *Storage) Same(network string, c contract.Contract, limit, offset 
 		availiableNetworks = []string{types.Mainnet.String()}
 	}
 
+	script := c.CurrentScript()
+	if script == nil {
+		return nil, errors.New("invalid contract script")
+	}
+
 	data := map[string]any{
-		"ID":        c.ID,
-		"AlphaID":   c.AlphaID,
-		"BabylonID": c.BabylonID,
-		"JakartaID": c.JakartaID,
-		"limit":     limit,
-		"offset":    offset,
-		"network":   network,
-		"Networks":  availiableNetworks,
+		"ID":       c.ID,
+		"Hash":     script.Hash,
+		"limit":    limit,
+		"offset":   offset,
+		"network":  network,
+		"Networks": availiableNetworks,
 	}
 
 	var buffer strings.Builder
@@ -107,7 +113,10 @@ var sameCountTemplate = template.Must(
 			union all
 			{{- end}}
 			select count(*) as c from {{$network}}.contracts
-				where (contracts.alpha_id = {{$.AlphaID}} or contracts.babylon_id = {{$.BabylonID}} or contracts.jakarta_id = {{$.JakartaID}})
+			left join {{$network}}.scripts as alpha on alpha.id = contracts.alpha_id
+			left join {{$network}}.scripts as babylon on babylon.id = contracts.babylon_id
+			left join {{$network}}.scripts as jakarta on jakarta.id = contracts.jakarta_id
+			where (alpha.hash = '{{$.Hash}}' or babylon.hash = '{{$.Hash}}' or jakarta.hash = '{{$.Hash}}')
 			{{end}}
 		) as same`,
 	),
@@ -115,12 +124,15 @@ var sameCountTemplate = template.Must(
 
 // SameCount -
 func (storage *Storage) SameCount(c contract.Contract, availiableNetworks ...string) (int, error) {
+	script := c.CurrentScript()
+	if script == nil {
+		return 0, errors.New("invalid contract script")
+	}
+
 	data := map[string]any{
-		"ID":        c.ID,
-		"AlphaID":   c.AlphaID,
-		"BabylonID": c.BabylonID,
-		"JakartaID": c.JakartaID,
-		"Networks":  availiableNetworks,
+		"ID":       c.ID,
+		"Hash":     script.Hash,
+		"Networks": availiableNetworks,
 	}
 
 	var buffer strings.Builder

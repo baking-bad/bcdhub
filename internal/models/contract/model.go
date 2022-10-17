@@ -63,6 +63,20 @@ func (c *Contract) LogFields() map[string]interface{} {
 	}
 }
 
+// CurrentScript -
+func (c *Contract) CurrentScript() *Script {
+	switch {
+	case c.JakartaID > 0:
+		return &c.Jakarta
+	case c.BabylonID > 0:
+		return &c.Babylon
+	case c.AlphaID > 0:
+		return &c.Alpha
+	default:
+		return nil
+	}
+}
+
 // Sections -
 type Sections struct {
 	Parameter  stdJSON.RawMessage `json:"parameter"`
