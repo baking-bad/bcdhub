@@ -92,10 +92,7 @@ func (a *Address) Compare(second Comparable) (int, error) {
 	if a.Value == secondAddress.Value {
 		return 0, nil
 	}
-	if a.ValueKind == secondAddress.ValueKind {
-		return strings.Compare(a.Value.(string), secondAddress.Value.(string)), nil
-	}
-	return compareNotOptimizedTypes(a.Default, secondAddress.Default, forge.Contract)
+	return compareAddresses(a, secondAddress)
 }
 
 // Distinguish -

@@ -690,7 +690,7 @@ func TestTypedAst_Compare(t *testing.T) {
 			typ:  `[{"prim": "pair", "args":[{"prim": "int"}, {"prim": "option", "args":[{"prim": "address"}]}]}]`,
 			a:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "Some", "args":[{"string": "tz1eLWfccL46VAUjtyz9kEKgzuKnwyZH4rTA"}]}]}`,
 			b:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "Some", "args":[{"string": "KT1BUKeJTemAaVBfRz6cqxeUBQGQqMxfG19A"}]}]}`,
-			want: 1,
+			want: -1,
 		}, {
 			name:    "pair with option uncomparable false",
 			typ:     `[{"prim": "pair", "args":[{"prim": "int"}, {"prim": "option", "args":[{"prim": "set", "args":[{"prim": "unit"}]}]}]}]`,
