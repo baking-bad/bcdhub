@@ -54,6 +54,20 @@ func TestAddress_Compare(t *testing.T) {
 			second:     "KT1DEkR3cErDAn6oH4jK8Z7n9a4oCXRZZwYa",
 			secondType: valueKindString,
 			want:       -1,
+		}, {
+			name:       "unequal",
+			first:      "tz1eLWfccL46VAUjtyz9kEKgzuKnwyZH4rTA",
+			firstType:  valueKindString,
+			second:     "KT1DEkR3cErDAn6oH4jK8Z7n9a4oCXRZZwYa",
+			secondType: valueKindString,
+			want:       -1,
+		}, {
+			name:       "unequal",
+			first:      "KT1DEkR3cErDAn6oH4jK8Z7n9a4oCXRZZwYa",
+			firstType:  valueKindString,
+			second:     "tz1eLWfccL46VAUjtyz9kEKgzuKnwyZH4rTA",
+			secondType: valueKindString,
+			want:       1,
 		},
 	}
 	for _, tt := range tests {
