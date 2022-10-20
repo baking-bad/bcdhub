@@ -74,6 +74,9 @@ func (storage *Storage) List(size, offset int64, orderBy, sort string) ([]contra
 	if err != nil {
 		return nil, err
 	}
+	if len(constants) == 0 {
+		constants = make([]contract.ListGlobalConstantItem, 0)
+	}
 
 	return constants, nil
 
