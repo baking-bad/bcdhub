@@ -64,7 +64,7 @@ func (storage *Storage) List(size, offset int64, orderBy, sort string) ([]contra
 
 	var constants []contract.ListGlobalConstantItem
 	_, err := storage.DB.Query(&constants,
-		`select global_constants.timestamp, global_constants.level, global_constants.address, count(contracts.babylon_id) as links_count from global_constants 
+		`select global_constants.timestamp, global_constants.level, global_constants.address, count(contracts.id) as links_count from global_constants 
 		left join script_constants as t on  global_constants.id = t.global_constant_id
 		left join contracts on t.script_id = contracts.babylon_id or t.script_id = contracts.jakarta_id 
 		group by global_constants.id
@@ -73,6 +73,9 @@ func (storage *Storage) List(size, offset int64, orderBy, sort string) ([]contra
 		offset ?`, pg.Safe(orderBy), size, offset)
 	if err != nil {
 		return nil, err
+	}
+	if len(constants) == 0 {
+		constants = make([]contract.ListGlobalConstantItem, 0)
 	}
 
 	return constants, nil
