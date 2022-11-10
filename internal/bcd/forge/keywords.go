@@ -137,7 +137,7 @@ var primKeywords = []string{
 	"SAPLING_EMPTY_STATE",
 	"SAPLING_VERIFY_UPDATE",
 	"ticket",
-	"TICKET",
+	"TICKET_DEPRECATED",
 	"READ_TICKET",
 	"SPLIT_TICKET",
 	"JOIN_TICKETS",
@@ -153,6 +153,9 @@ var primKeywords = []string{
 	"MIN_BLOCK_TIME",
 	"sapling_transaction",
 	"EMIT",
+	"Lambda_rec",
+	"LAMBDA_REC",
+	"TICKET",
 }
 
 // first bytes

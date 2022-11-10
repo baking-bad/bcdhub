@@ -201,6 +201,12 @@ func (rpc *NodeRPC) post(ctx context.Context, uri string, data interface{}, chec
 	return rpc.parseResponse(resp, checkStatusCode, "", response)
 }
 
+// Block - returns block
+func (rpc *NodeRPC) Block(ctx context.Context, level int64) (block Block, err error) {
+	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s", getBlockString(level)), &block)
+	return
+}
+
 // GetHead - get head
 func (rpc *NodeRPC) GetHead(ctx context.Context) (Header, error) {
 	return rpc.GetHeader(ctx, 0)
