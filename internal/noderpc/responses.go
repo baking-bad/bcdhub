@@ -183,6 +183,7 @@ type OperationResult struct {
 	LazyStorageDiff              []LazyStorageDiff  `json:"lazy_storage_diff,omitempty"`
 	OriginatedRollup             string             `json:"originated_rollup,omitempty"`
 	TicketUpdates                []TicketUpdate     `json:"ticket_updates,omitempty"`
+	TicketReceipt                []TicketUpdate     `json:"ticket_receipt,omitempty"`
 }
 
 // LazyStorageDiff -
