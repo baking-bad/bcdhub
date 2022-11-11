@@ -2,5 +2,5 @@ package ticket
 
 // Repository -
 type Repository interface {
-	Get(contract string, limit, offset int) ([]TicketUpdate, error)
+	Get(ticketer string, limit, offset int64) ([]TicketUpdate, error)
 }

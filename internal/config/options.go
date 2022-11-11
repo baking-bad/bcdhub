@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/migration"
 	"github.com/baking-bad/bcdhub/internal/postgres/operation"
 	"github.com/baking-bad/bcdhub/internal/postgres/protocol"
+	"github.com/baking-bad/bcdhub/internal/postgres/ticket"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
 
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
@@ -70,6 +71,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		ctx.Protocols = protocol.NewStorage(conn)
 		ctx.GlobalConstants = global_constant.NewStorage(conn)
 		ctx.Domains = domains.NewStorage(conn)
+		ctx.TicketUpdates = ticket.NewStorage(conn)
 		ctx.Scripts = contractStorage
 	}
 }

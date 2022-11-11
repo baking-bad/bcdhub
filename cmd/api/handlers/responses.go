@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
@@ -656,4 +657,28 @@ func NewEvent(o operation.Operation) (*Event, error) {
 	}
 	e.Payload = eventMiguel
 	return e, nil
+}
+
+// TicketUpdate -
+type TicketUpdate struct {
+	ID          int64           `json:"id"`
+	Level       int64           `json:"level"`
+	Timestamp   time.Time       `json:"timestamp"`
+	Ticketer    string          `json:"ticketer"`
+	Address     string          `json:"address"`
+	Amount      string          `json:"amount"`
+	ContentType []ast.Typedef   `json:"content_type"`
+	Content     *ast.MiguelNode `json:"content,omitempty"`
+}
+
+// NewTicketUpdateFromModel -
+func NewTicketUpdateFromModel(update ticket.TicketUpdate) TicketUpdate {
+	return TicketUpdate{
+		ID:        update.ID,
+		Timestamp: update.Timestamp.UTC(),
+		Level:     update.Level,
+		Ticketer:  update.Ticketer.Address,
+		Address:   update.Account.Address,
+		Amount:    update.Amount.String(),
+	}
 }

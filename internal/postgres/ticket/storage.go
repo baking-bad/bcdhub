@@ -16,11 +16,12 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(contract string, limit, offset int64) ([]ticket.TicketUpdate, error) {
+func (storage *Storage) Get(ticketer string, limit, offset int64) ([]ticket.TicketUpdate, error) {
 	query := storage.DB.
 		Model((*ticket.TicketUpdate)(nil)).
 		Relation("Ticketer").
-		Where("ticketer.address = ?", contract)
+		Relation("Account").
+		Where("ticketer.address = ?", ticketer)
 
 	if offset > 0 {
 		query.Offset(int(offset))
