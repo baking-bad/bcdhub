@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 )
 
 // Document names
@@ -19,12 +20,12 @@ const (
 	DocBigMapState     = "big_map_states"
 	DocBlocks          = "blocks"
 	DocContracts       = "contracts"
-	DocDApps           = "dapps"
 	DocGlobalConstants = "global_constants"
 	DocMigrations      = "migrations"
 	DocOperations      = "operations"
 	DocProtocol        = "protocols"
 	DocScripts         = "scripts"
+	DocTicketUpdates   = "ticket_updates"
 )
 
 // AllDocuments - returns all document names
@@ -41,6 +42,7 @@ func AllDocuments() []string {
 		DocOperations,
 		DocProtocol,
 		DocScripts,
+		DocTicketUpdates,
 	}
 }
 
@@ -53,6 +55,7 @@ func AllModels() []Model {
 		&bigmapaction.BigMapAction{},
 		&bigmapdiff.BigMapDiff{},
 		&bigmapdiff.BigMapState{},
+		&ticket.TicketUpdate{},
 		&operation.Operation{},
 		&contract.GlobalConstant{},
 		&contract.Script{},

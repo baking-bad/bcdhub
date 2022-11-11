@@ -158,6 +158,21 @@ func (store *Store) saveOperations(tx pg.DBI) error {
 		for j := range store.Operations[i].BigMapActions {
 			store.Operations[i].BigMapActions[j].OperationID = store.Operations[i].ID
 		}
+		for j := range store.Operations[i].TickerUpdates {
+			if !store.Operations[i].TickerUpdates[j].Account.IsEmpty() {
+				if err := store.Operations[i].TickerUpdates[j].Account.Save(tx); err != nil {
+					return err
+				}
+				store.Operations[i].TickerUpdates[j].AccountID = store.Operations[i].TickerUpdates[j].Account.ID
+			}
+			if !store.Operations[i].TickerUpdates[j].Ticketer.IsEmpty() {
+				if err := store.Operations[i].TickerUpdates[j].Ticketer.Save(tx); err != nil {
+					return err
+				}
+				store.Operations[i].TickerUpdates[j].TicketerID = store.Operations[i].TickerUpdates[j].Ticketer.ID
+			}
+			store.Operations[i].TickerUpdates[j].OperationID = store.Operations[i].ID
+		}
 
 		if len(store.Operations[i].BigMapDiffs) > 0 {
 			if _, err := tx.Model(&store.Operations[i].BigMapDiffs).Returning("id").Insert(); err != nil {
@@ -167,6 +182,12 @@ func (store *Store) saveOperations(tx pg.DBI) error {
 
 		if len(store.Operations[i].BigMapActions) > 0 {
 			if _, err := tx.Model(&store.Operations[i].BigMapActions).Returning("id").Insert(); err != nil {
+				return err
+			}
+		}
+
+		if len(store.Operations[i].TickerUpdates) > 0 {
+			if _, err := tx.Model(&store.Operations[i].TickerUpdates).Returning("id").Insert(); err != nil {
 				return err
 			}
 		}

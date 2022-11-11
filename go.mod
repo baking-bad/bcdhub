@@ -27,6 +27,7 @@ require (
 	github.com/rs/zerolog v1.28.0
 	github.com/schollz/progressbar/v3 v3.10.1
 	github.com/sergi/go-diff v1.2.0
+	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.8.0
 	github.com/swaggo/swag v1.8.4
 	github.com/tidwall/gjson v1.14.3

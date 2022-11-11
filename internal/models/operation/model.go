@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/go-pg/pg/v10"
 )
@@ -64,6 +65,7 @@ type Operation struct {
 
 	BigMapDiffs   []*bigmapdiff.BigMapDiff     `pg:"rel:has-many"`
 	BigMapActions []*bigmapaction.BigMapAction `pg:"rel:has-many"`
+	TickerUpdates []*ticket.TicketUpdate       `pg:"rel:has-many"`
 
 	AllocatedDestinationContract bool `pg:",use_zero"`
 	Internal                     bool `pg:",use_zero"`
