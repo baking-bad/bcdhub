@@ -541,6 +541,7 @@ func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHist
 		response.Items[i] = BigMapHistoryItem{
 			Action:    arr[i].Action.String(),
 			Timestamp: arr[i].Timestamp,
+			Level:     arr[i].Level,
 		}
 		if arr[i].DestinationPtr != nil && *arr[i].DestinationPtr != ptr {
 			response.Items[i].DestinationPtr = arr[i].DestinationPtr

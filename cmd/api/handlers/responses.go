@@ -452,7 +452,6 @@ type SeriesFloat [][]float64
 // BigMapHistoryResponse -
 type BigMapHistoryResponse struct {
 	Address string              `json:"address"`
-	Network string              `json:"network"`
 	Ptr     int64               `json:"ptr"`
 	Items   []BigMapHistoryItem `json:"items,omitempty" extensions:"x-nullable"`
 }
@@ -463,6 +462,7 @@ type BigMapHistoryItem struct {
 	SourcePtr      *int64    `json:"source_ptr,omitempty" extensions:"x-nullable"`
 	DestinationPtr *int64    `json:"destination_ptr,omitempty" extensions:"x-nullable"`
 	Timestamp      time.Time `json:"timestamp"`
+	Level          int64     `json:"level"`
 }
 
 // ConfigResponse -
