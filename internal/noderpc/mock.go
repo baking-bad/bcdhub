@@ -33,6 +33,21 @@ func (m *MockINode) EXPECT() *MockINodeMockRecorder {
 	return m.recorder
 }
 
+// Block mocks base method
+func (m *MockINode) Block(arg0 context.Context, arg1 int64) (Block, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Block", arg0, arg1)
+	ret0, _ := ret[0].(Block)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Block indicates an expected call of Block
+func (mr *MockINodeMockRecorder) Block(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Block", reflect.TypeOf((*MockINode)(nil).Block), arg0, arg1)
+}
+
 // GetHead mocks base method
 func (m *MockINode) GetHead(arg0 context.Context) (Header, error) {
 	m.ctrl.T.Helper()
@@ -286,18 +301,4 @@ func (m *MockINode) GetBlockMetadata(ctx context.Context, level int64) (Metadata
 func (mr *MockINodeMockRecorder) GetBlockMetadata(ctx, level interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockMetadata", reflect.TypeOf((*MockINode)(nil).GetBlockMetadata), ctx, level)
-}
-
-// RollbackCache mocks base method
-func (m *MockINode) RollbackCache(level int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RollbackCache", level)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RollbackCache indicates an expected call of RollbackCache
-func (mr *MockINodeMockRecorder) RollbackCache(level interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RollbackCache", reflect.TypeOf((*MockINode)(nil).RollbackCache), level)
 }

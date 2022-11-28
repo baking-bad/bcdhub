@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -20,10 +21,12 @@ type Model interface {
 	Save(tx pg.DBI) error
 }
 
+// Constraint -
 type Constraint interface {
 	*account.Account | *bigmapaction.BigMapAction | *bigmapdiff.BigMapDiff | *bigmapdiff.BigMapState |
 		*block.Block | *contract.Contract | *contract.Script | *contract.GlobalConstant | *contract.ScriptConstants |
-		*migration.Migration | *operation.Operation | *protocol.Protocol | domains.BigMapDiff
+		*migration.Migration | *operation.Operation | *protocol.Protocol | domains.BigMapDiff |
+		*ticket.TicketUpdate
 
 	Model
 }

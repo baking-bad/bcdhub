@@ -118,6 +118,15 @@ func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
 	}
 }
 
+// Block -
+func (p Pool) Block(ctx context.Context, level int64) (Block, error) {
+	data, err := p.call("Block", ctx, level)
+	if err != nil {
+		return Block{}, err
+	}
+	return data.Interface().(Block), nil
+}
+
 // GetHead -
 func (p Pool) GetHead(ctx context.Context) (Header, error) {
 	data, err := p.call("GetHead", ctx)

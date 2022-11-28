@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/parsers/protocols"
 )
 
 // Block -
@@ -94,30 +93,22 @@ func (r *Receiver) start(ctx context.Context) {
 
 func (r *Receiver) get(ctx context.Context, level int64) (Block, error) {
 	var block Block
-	header, err := r.rpc.GetHeader(ctx, level)
+	header, err := r.rpc.Block(ctx, level)
 	if err != nil {
 		return block, err
 	}
-	block.Header = header
+	block.Header = header.Header
+	block.Header.ChainID = header.ChainID
+	block.Header.Hash = header.Hash
+	block.Header.Protocol = header.Protocol
+
+	block.Metadata = header.Metadata
 
 	if level < 2 {
 		block.OPG = make([]noderpc.LightOperationGroup, 0)
 		return block, nil
 	}
-
-	opg, err := r.rpc.GetLightOPG(ctx, level)
-	if err != nil {
-		return block, err
-	}
-	block.OPG = opg
-
-	if protocols.NeedImplicitParsing(header.Protocol) {
-		metadata, err := r.rpc.GetBlockMetadata(ctx, level)
-		if err != nil {
-			return block, err
-		}
-		block.Metadata = &metadata
-	}
+	block.OPG = header.Operations[3]
 
 	return block, nil
 }

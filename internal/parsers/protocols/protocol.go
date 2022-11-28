@@ -75,7 +75,8 @@ func Get(ctx *config.Context, protocol string) (*Specific, error) {
 			NeedReceiveRawStorage: true,
 		}, nil
 	case "PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY",
-		"PtKathmankSpLLDALzWw7CGD2j2MtyveTwboEYokqUCP4a1LxMg":
+		"PtKathmankSpLLDALzWw7CGD2j2MtyveTwboEYokqUCP4a1LxMg",
+		"PtLimaPtLMwfNinJi9rCfDPWea8dFgTZ1MeJ9f1m2SRic6ayiwW":
 		return &Specific{
 			StorageParser:         storage.NewLazyBabylon(ctx.BigMapDiffs, ctx.Operations, ctx.Accounts),
 			ContractParser:        contract.NewJakarta(ctx),
@@ -119,7 +120,8 @@ func NeedImplicitParsing(protocol string) bool {
 		"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP",
 		"Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A",
 		"PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY",
-		"PtKathmankSpLLDALzWw7CGD2j2MtyveTwboEYokqUCP4a1LxMg":
+		"PtKathmankSpLLDALzWw7CGD2j2MtyveTwboEYokqUCP4a1LxMg",
+		"PtLimaPtLMwfNinJi9rCfDPWea8dFgTZ1MeJ9f1m2SRic6ayiwW":
 		return true
 	}
 	return false

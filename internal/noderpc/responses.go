@@ -182,6 +182,8 @@ type OperationResult struct {
 	GlobalAddress                string             `json:"global_address,omitempty"`
 	LazyStorageDiff              []LazyStorageDiff  `json:"lazy_storage_diff,omitempty"`
 	OriginatedRollup             string             `json:"originated_rollup,omitempty"`
+	TicketUpdates                []TicketUpdate     `json:"ticket_updates,omitempty"`
+	TicketReceipt                []TicketUpdate     `json:"ticket_receipt,omitempty"`
 }
 
 // LazyStorageDiff -
@@ -383,4 +385,34 @@ type LevelInfo struct {
 	Cycle              int64 `json:"cycle"`
 	CyclePosition      int64 `json:"cycle_position"`
 	ExpectedCommitment bool  `json:"expected_commitment"`
+}
+
+// Block -
+type Block struct {
+	ChainID  string `json:"chain_id"`
+	Hash     string `json:"hash"`
+	Protocol string `json:"protocol"`
+
+	Header     Header                  `json:"header"`
+	Metadata   *Metadata               `json:"metadata"`
+	Operations [][]LightOperationGroup `json:"operations"`
+}
+
+// TicketUpdate -
+type TicketUpdate struct {
+	TicketToken TicketToken        `json:"ticket_token"`
+	Updates     []TicketUpdateItem `json:"updates"`
+}
+
+// TicketToken -
+type TicketToken struct {
+	Ticketer    string             `json:"ticketer"`
+	ContentType stdJSON.RawMessage `json:"content_type"`
+	Content     stdJSON.RawMessage `json:"content"`
+}
+
+// TicketUpdateItem -
+type TicketUpdateItem struct {
+	Account string `json:"account"`
+	Amount  string `json:"amount"`
 }

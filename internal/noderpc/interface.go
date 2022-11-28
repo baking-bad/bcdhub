@@ -4,6 +4,7 @@ import "context"
 
 // INode -
 type INode interface {
+	Block(context.Context, int64) (Block, error)
 	GetHead(context.Context) (Header, error)
 	GetHeader(context.Context, int64) (Header, error)
 	GetScriptJSON(context.Context, string, int64) (Script, error)

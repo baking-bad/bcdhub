@@ -101,6 +101,8 @@ func (p Origination) appliedHandler(ctx context.Context, item noderpc.Operation,
 		return err
 	}
 
+	new(TicketUpdateParser).Parse(item.Result, origination)
+
 	return nil
 }
 

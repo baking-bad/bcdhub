@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -42,6 +43,7 @@ type Context struct {
 	Migrations      migration.Repository
 	Operations      operation.Repository
 	Protocols       protocol.Repository
+	TicketUpdates   ticket.Repository
 	Domains         domains.Repository
 	Scripts         contract.ScriptRepository
 
