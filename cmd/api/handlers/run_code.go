@@ -242,29 +242,31 @@ func parseAppliedRunCode(c *gin.Context, ctx *config.Context, response noderpc.R
 		op.Level = main.Level
 		op.Internal = true
 
-		var s *ast.Script
-		if op.Destination == main.Destination || op.Destination == consts.NullContract {
-			s = script
-		} else {
-			var err error
-			s, err = getScript(ctx.Contracts, op.Destination, proto.SymLink)
+		if bcd.IsContract(op.Destination) {
+			var s *ast.Script
+			if op.Destination == main.Destination || op.Destination == consts.NullContract {
+				s = script
+			} else {
+				var err error
+				s, err = getScript(ctx.Contracts, op.Destination, proto.SymLink)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			parameterType, err := s.ParameterType()
 			if err != nil {
 				return nil, err
 			}
-		}
-
-		parameterType, err := s.ParameterType()
-		if err != nil {
-			return nil, err
-		}
-		if err := setParameters(response.Operations[i].Parameters, parameterType, &op); err != nil {
-			return nil, err
-		}
-
-		if response.Operations[i].Result != nil {
-			op.Storage = response.Operations[i].Result.Storage
-			if err := setSimulateStorageDiff(c, ctx, response, proto, s, &op); err != nil {
+			if err := setParameters(response.Operations[i].Parameters, parameterType, &op); err != nil {
 				return nil, err
+			}
+
+			if response.Operations[i].Result != nil {
+				op.Storage = response.Operations[i].Result.Storage
+				if err := setSimulateStorageDiff(c, ctx, response, proto, s, &op); err != nil {
+					return nil, err
+				}
 			}
 		}
 
