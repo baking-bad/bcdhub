@@ -520,6 +520,86 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 					},
 				},
 			},
+		}, {
+			name: "Case 18: or in option",
+			data: `{"prim":"option","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"nat","annots":["%t0"]},{"prim":"address","annots":["%a0"]}]},{"prim":"nat","annots":["%z1"]}]}]}`,
+			want: &JSONSchema{
+				Type:  JSONSchemaTypeObject,
+				Prim:  consts.OPTION,
+				Title: "@option_1",
+				OneOf: []*JSONSchema{
+					{
+						Title: consts.None,
+						Properties: map[string]*JSONSchema{
+							"schemaKey": noneSchema,
+						},
+					},
+					{
+						Title: consts.Some,
+						Properties: map[string]*JSONSchema{
+							"@or_2": {
+								Title: "@or_2",
+								Prim:  consts.OR,
+								Type:  JSONSchemaTypeObject,
+								OneOf: []*JSONSchema{
+									{
+										Title: "t0",
+										Properties: map[string]*JSONSchema{
+											"schemaKey": {
+												Type:  JSONSchemaTypeString,
+												Const: "LL",
+											},
+											"t0": {
+												Type:    JSONSchemaTypeInt,
+												Prim:    consts.NAT,
+												Title:   "t0",
+												Default: 0,
+											},
+										},
+									}, {
+										Title: "a0",
+										Properties: map[string]*JSONSchema{
+											"schemaKey": {
+												Type:  JSONSchemaTypeString,
+												Const: "LR",
+											},
+											"a0": {
+												Type:      JSONSchemaTypeString,
+												Prim:      consts.ADDRESS,
+												Title:     "a0",
+												MinLength: 36,
+												MaxLength: 36,
+												Default:   "",
+											},
+										},
+									}, {
+										Title: "z1",
+										Properties: map[string]*JSONSchema{
+											"schemaKey": {
+												Type:  JSONSchemaTypeString,
+												Const: "R",
+											},
+											"z1": {
+												Type:    JSONSchemaTypeInt,
+												Prim:    consts.NAT,
+												Title:   "z1",
+												Default: 0,
+											},
+										},
+									},
+								},
+							},
+							"schemaKey": {
+								Type:  JSONSchemaTypeString,
+								Const: "Some",
+							},
+						},
+					},
+				},
+				Default: &JSONSchema{
+					SchemaKey: noneSchema,
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
