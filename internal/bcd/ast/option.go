@@ -146,10 +146,11 @@ func (opt *Option) ToJSONSchema() (*JSONSchema, error) {
 		return nil, err
 	}
 
-	if len(child.Properties) > 0 {
-		if opt.Type.IsPrim(consts.PAIR) {
+	if len(child.Properties) > 0 || len(child.OneOf) > 0 {
+		switch opt.Type.GetPrim() {
+		case consts.PAIR, consts.OR:
 			someSchema.Properties[opt.Type.GetName()] = child
-		} else {
+		default:
 			for key, value := range child.Properties {
 				someSchema.Properties[key] = value
 			}
