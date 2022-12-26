@@ -245,8 +245,11 @@ func (m *Map) Docs(inferredName string) ([]Typedef, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	typedef.Args = append(typedef.Args, TypedefArg{Key: keyDocs[0].Name, Value: keyVarName})
-
+	if len(keyDocs) == 0 {
+		typedef.Args = append(typedef.Args, TypedefArg{Value: keyVarName})
+	} else {
+		typedef.Args = append(typedef.Args, TypedefArg{Key: keyDocs[0].Name, Value: keyVarName})
+	}
 	valDocs, valVarName, err := m.ValueType.Docs(fmt.Sprintf("%s_value", name))
 	if err != nil {
 		return nil, "", err
