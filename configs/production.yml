@@ -7,10 +7,6 @@ rpc:
     uri: https://rpc.tzkt.io/ghostnet
     timeout: 20
     requests_per_second: 10
-  kathmandunet:
-    uri: https://rpc.tzkt.io/kathmandunet
-    timeout: 20
-    requests_per_second: 10
   limanet:
     uri: https://rpc.tzkt.io/limanet
     timeout: 20
@@ -25,8 +21,6 @@ services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
   ghostnet:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
-  kathmandunet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   limanet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
@@ -66,12 +60,10 @@ api:
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
       ghostnet: https://rpc.tzkt.io/ghostnet
-      kathmandunet: https://rpc.tzkt.io/kathmandunet
       limanet: https://rpc.tzkt.io/limanet
   networks:
     - mainnet
     - ghostnet
-    - kathmandunet
     - limanet
   connections:
     max: 50
@@ -101,7 +93,6 @@ scripts:
   networks:
     - mainnet
     - ghostnet
-    - kathmandunet
     - limanet
   connections:
     max: 5
