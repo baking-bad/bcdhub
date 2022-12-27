@@ -86,8 +86,6 @@ indexer:
       receiver_threads: ${MAINNET_THREADS:-1}
     ghostnet:
       receiver_threads: ${TESTNET_THREADS:-1}
-    kathmandunet:
-      receiver_threads: ${TESTNET_THREADS:-1}
     limanet:
       receiver_threads: ${TESTNET_THREADS:-1}
   connections:
