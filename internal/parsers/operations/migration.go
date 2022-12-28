@@ -45,6 +45,7 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation,
 		"PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA":
 		return m.fromBigMapDiffs(data, operation, store)
 	case
+		"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK",
 		"PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx",
 		"PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
 		"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP",
@@ -56,6 +57,7 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation,
 		"PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY",
 		"PtKathmankSpLLDALzWw7CGD2j2MtyveTwboEYokqUCP4a1LxMg",
 		"PtLimaPtLMwfNinJi9rCfDPWea8dFgTZ1MeJ9f1m2SRic6ayiwW":
+
 		return m.fromLazyStorageDiff(data, operation, store)
 	default:
 		return errors.Errorf("unknown protocol for migration parser: %s", protocol)
