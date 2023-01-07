@@ -37,3 +37,24 @@ type runOperationItemContent struct {
 	Amount       int64              `json:"amount,string"`
 	Parameters   stdJSON.RawMessage `json:"parameters"`
 }
+
+// RunScriptViewRequest -
+type RunScriptViewRequest struct {
+	ChainID       string             `json:"chain_id"`
+	Contract      string             `json:"contract"`
+	View          string             `json:"view"`
+	Input         stdJSON.RawMessage `json:"input"`
+	Source        string             `json:"source,omitempty"`
+	Payer         string             `json:"payer,omitempty"`
+	Gas           int64              `json:"gas,string,omitempty"`
+	UnparsingMode UnparsingMode      `json:"unparsing_mode"`
+}
+
+// UnparsingMode -
+type UnparsingMode string
+
+const (
+	UnparsingModeReadable        UnparsingMode = "Readable"
+	UnparsingModeOptimized       UnparsingMode = "Optimized"
+	UnparsingModeOptimizedLegacy UnparsingMode = "Optimized_legacy"
+)

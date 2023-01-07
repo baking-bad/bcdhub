@@ -19,6 +19,7 @@ type INode interface {
 	RunCode(context.Context, []byte, []byte, []byte, string, string, string, string, string, int64, int64) (RunCodeResponse, error)
 	RunOperation(context.Context, string, string, string, string, int64, int64, int64, int64, int64, []byte) (OperationGroup, error)
 	RunOperationLight(context.Context, string, string, string, string, int64, int64, int64, int64, int64, []byte) (LightOperationGroup, error)
+	RunScriptView(ctx context.Context, request RunScriptViewRequest) ([]byte, error)
 	GetCounter(context.Context, string) (int64, error)
 	GetBigMapType(ctx context.Context, ptr, level int64) (BigMap, error)
 	GetBlockMetadata(ctx context.Context, level int64) (metadata Metadata, err error)

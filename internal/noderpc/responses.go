@@ -416,3 +416,8 @@ type TicketUpdateItem struct {
 	Account string `json:"account"`
 	Amount  string `json:"amount"`
 }
+
+// RunScriptViewResponse -
+type RunScriptViewResponse struct {
+	Data stdJSON.RawMessage `json:"data"`
+}

@@ -45,30 +45,6 @@ func (onChain *OnChain) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (onChain *OnChain) buildCode(storageType []byte) ([]byte, error) {
-	var script bytes.Buffer
-	script.WriteString(`[{"prim":"parameter","args":[{"prim":"pair","args":[`)
-	script.Write(onChain.Parameter)
-	script.WriteString(`,{"prim":"address"}]}]},{"prim":"storage","args":[{"prim":"option","args":[`)
-	script.Write(onChain.ReturnType)
-	script.WriteString(`]}]},{"prim":"code","args":[[{"prim":"CAR"},{"prim":"UNPAIR"},{"prim":"VIEW","args":[{"string":"`)
-	script.WriteString(onChain.ViewName())
-	script.WriteString(`"},`)
-	script.Write(onChain.ReturnType)
-	script.WriteString(`]},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]`)
-	return script.Bytes(), nil
-}
-
-func (onChain *OnChain) buildParameter(address, parameter string, storageValue []byte) ([]byte, error) {
-	var script bytes.Buffer
-	script.WriteString(`{"prim":"Pair","args":[`)
-	script.WriteString(parameter)
-	script.WriteString(`,{"string":"`)
-	script.WriteString(address)
-	script.WriteString(`"}]}`)
-	return script.Bytes(), nil
-}
-
 // Return -
 func (onChain *OnChain) Return() []byte {
 	return onChain.ReturnType
@@ -76,22 +52,25 @@ func (onChain *OnChain) Return() []byte {
 
 // Execute -
 func (onChain *OnChain) Execute(ctx context.Context, rpc noderpc.INode, args Args) ([]byte, error) {
-	parameter, err := onChain.buildParameter(args.Contract, args.Parameters, nil)
+	response, err := rpc.RunScriptView(ctx, noderpc.RunScriptViewRequest{
+		ChainID:       args.ChainID,
+		Contract:      args.Contract,
+		View:          onChain.ViewName(),
+		Input:         stdJSON.RawMessage(args.Parameters),
+		Source:        args.Source,
+		Payer:         args.Initiator,
+		Gas:           args.HardGasLimitPerOperation,
+		UnparsingMode: noderpc.UnparsingModeReadable,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	code, err := onChain.buildCode(nil)
-	if err != nil {
-		return nil, err
-	}
+	var buf bytes.Buffer
+	buf.WriteString(`{"args":[`)
+	buf.Write(response)
+	buf.WriteByte(']')
+	buf.WriteByte('}')
 
-	storage := []byte(`{"prim": "None"}`)
-
-	response, err := rpc.RunCode(ctx, code, storage, parameter, args.ChainID, args.Source, args.Initiator, "", args.Protocol, args.Amount, args.HardGasLimitPerOperation)
-	if err != nil {
-		return nil, err
-	}
-
-	return response.Storage, nil
+	return buf.Bytes(), nil
 }

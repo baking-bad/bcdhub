@@ -379,6 +379,13 @@ func (rpc *NodeRPC) RunOperationLight(ctx context.Context, chainID, branch, sour
 	return
 }
 
+// RunScriptView -
+func (rpc *NodeRPC) RunScriptView(ctx context.Context, request RunScriptViewRequest) ([]byte, error) {
+	var response RunScriptViewResponse
+	err := rpc.post(ctx, "chains/main/blocks/head/helpers/scripts/run_script_view", request, true, &response)
+	return response.Data, err
+}
+
 // GetCounter -
 func (rpc *NodeRPC) GetCounter(ctx context.Context, address string) (int64, error) {
 	var counter string

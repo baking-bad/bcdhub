@@ -39,7 +39,7 @@ func NewTzKT(host string, timeout time.Duration) *TzKT {
 	}
 }
 
-//nolint
+// nolint
 func (t *TzKT) request(method, endpoint string, params map[string]string, response interface{}) error {
 	uri := helpers.URLJoin(t.Host, endpoint)
 
@@ -98,22 +98,6 @@ func (t *TzKT) GetAccounts(kind string, page, limit int64) (resp []Account, err 
 	return
 }
 
-// GetContractOperationBlocks -
-func (t *TzKT) GetContractOperationBlocks(offset, limit int64, needSmartContracts, needDelegators bool) (resp []int64, err error) {
-	params := map[string]string{}
-	if limit == 0 {
-		limit = 10000
-	}
-
-	params["limit"] = fmt.Sprintf("%d", limit)
-	params["offset.cr"] = fmt.Sprintf("%d", offset)
-	params["smartContracts"] = fmt.Sprintf("%v", needSmartContracts)
-	params["delegatorContracts"] = fmt.Sprintf("%v", needDelegators)
-
-	err = t.request("GET", "blocks/levels", params, &resp)
-	return
-}
-
 // GetAliases - returns aliases map in format map[address]alias
 func (t *TzKT) GetAliases() (map[string]string, error) {
 	params := map[string]string{}
@@ -156,27 +140,6 @@ func (t *TzKT) GetAliases() (map[string]string, error) {
 
 func sanitize(alias string) string {
 	return strings.ReplaceAll(alias, "'", "’")
-}
-
-// GetAllContractOperationBlocks -
-func (t *TzKT) GetAllContractOperationBlocks() ([]int64, error) {
-	offset := int64(0)
-	resp := make([]int64, 0)
-	end := false
-	for !end {
-		levels, err := t.GetContractOperationBlocks(offset, 0, true, true)
-		if err != nil {
-			return nil, err
-		}
-		for i := range levels {
-			resp = append(resp, levels[i])
-			if i == len(levels)-1 {
-				offset = levels[i]
-			}
-		}
-		end = len(levels) < 10000
-	}
-	return resp, nil
 }
 
 // GetProtocols -

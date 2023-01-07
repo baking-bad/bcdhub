@@ -258,6 +258,21 @@ func (mr *MockINodeMockRecorder) RunOperationLight(arg0, arg1, arg2, arg3, arg4,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunOperationLight", reflect.TypeOf((*MockINode)(nil).RunOperationLight), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
 }
 
+// RunScriptView mocks base method
+func (m *MockINode) RunScriptView(ctx context.Context, request RunScriptViewRequest) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RunScriptView", ctx, request)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RunScriptView indicates an expected call of RunScriptView
+func (mr *MockINodeMockRecorder) RunScriptView(ctx, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunScriptView", reflect.TypeOf((*MockINode)(nil).RunScriptView), ctx, request)
+}
+
 // GetCounter mocks base method
 func (m *MockINode) GetCounter(arg0 context.Context, arg1 string) (int64, error) {
 	m.ctrl.T.Helper()

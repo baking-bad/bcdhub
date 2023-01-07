@@ -288,3 +288,12 @@ func (p Pool) GetRawScript(ctx context.Context, address string, level int64) ([]
 	}
 	return data.Interface().([]byte), nil
 }
+
+// RunScriptView -
+func (p Pool) RunScriptView(ctx context.Context, request RunScriptViewRequest) ([]byte, error) {
+	data, err := p.call("RunScriptView", ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	return data.Interface().([]byte), nil
+}
