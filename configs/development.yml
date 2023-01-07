@@ -71,12 +71,11 @@ api:
 indexer:
   project_name: indexer
   sentry_enabled: false
-  skip_delegator_blocks: true
   networks:
     mainnet:
       receiver_threads: 5
     ghostnet:
-      receiver_threads: 5
+      receiver_threads: 10
     limanet:
       receiver_threads: 10
   connections:

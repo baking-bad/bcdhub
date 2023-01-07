@@ -94,7 +94,6 @@ Indexer service settings.
 indexer:
   project_name: indexer
   sentry_enabled: true
-  skip_delegator_blocks: false
   networks:
     mainnet:
       receiver_threads: ${MAINNET_THREADS:-1}

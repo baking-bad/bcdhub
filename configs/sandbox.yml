@@ -38,7 +38,6 @@ api:
 indexer:
   project_name: indexer
   sentry_enabled: false
-  skip_delegator_blocks: false
   networks:
     sandboxnet:
       receiver_threads: 5
