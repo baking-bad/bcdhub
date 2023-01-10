@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -289,14 +290,28 @@ func getDeffattedStorage(c *gin.Context, ctx *config.Context, address string, le
 		filters["level"] = level
 	}
 	operation, err := ctx.Operations.Last(filters, 0)
-	if err != nil && !ctx.Storage.IsRecordNotFound(err) {
+	switch {
+	case err != nil && !ctx.Storage.IsRecordNotFound(err):
 		return nil, err
-	}
-	if len(operation.DeffatedStorage) == 0 || ctx.Storage.IsRecordNotFound(err) {
+	case len(operation.DeffatedStorage) == 0 || ctx.Storage.IsRecordNotFound(err):
 		return ctx.RPC.GetScriptStorageRaw(c, address, level)
-	}
-	return operation.DeffatedStorage, nil
+	default:
+		protocol, err := ctx.Cache.ProtocolByID(operation.ProtocolID)
+		if err != nil {
+			return nil, err
+		}
+		currentSymLink, err := bcd.GetProtoSymLink(bcd.GetCurrentProtocol())
+		if err != nil {
+			return nil, err
+		}
 
+		// check for sym link because last operation may have storage type before migration
+		if currentSymLink == protocol.SymLink {
+			return operation.DeffatedStorage, nil
+		} else {
+			return ctx.RPC.GetScriptStorageRaw(c, address, level)
+		}
+	}
 }
 
 func getInitialOperation(c *gin.Context, ctx *config.Context, address string) (operation.Operation, error) {
