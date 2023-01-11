@@ -682,3 +682,16 @@ func NewTicketUpdateFromModel(update ticket.TicketUpdate) TicketUpdate {
 		Amount:    update.Amount.String(),
 	}
 }
+
+// ApproveResponse -
+type ApproveResponse struct {
+	Fa      uint         `json:"fa_version"`
+	Allows  []Parameters `json:"allows"`
+	Revokes []Parameters `json:"revokes"`
+}
+
+// Parameters -
+type Parameters struct {
+	Entrypoint string             `json:"entrypoint"`
+	Value      stdJSON.RawMessage `json:"value"`
+}

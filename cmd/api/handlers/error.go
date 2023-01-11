@@ -14,6 +14,12 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
+// errors
+var (
+	ErrNotFAContract = errors.New("contract is not FA1.2 or FA2")
+	ErrInvalidAuth   = errors.New("invalid authentication")
+)
+
 func handleError(c *gin.Context, repo models.GeneralRepository, err error, code int) bool {
 	if err == nil {
 		return false
@@ -21,7 +27,7 @@ func handleError(c *gin.Context, repo models.GeneralRepository, err error, code 
 
 	switch code {
 	case http.StatusUnauthorized:
-		err = errors.New("invalid authentication")
+		err = ErrInvalidAuth
 	case 0:
 		code = getErrorCode(err, repo)
 		if code == http.StatusInternalServerError {

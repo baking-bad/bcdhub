@@ -149,6 +149,8 @@ func (api *app) makeRouter() {
 			contract.GET("global_constants", handlers.GetContractGlobalConstants())
 			contract.GET("ticket_updates", handlers.GetContractTicketUpdates())
 			contract.GET("events", handlers.ListEvents())
+			contract.GET("mempool", handlers.GetMempool())
+			contract.GET("same", handlers.ContextsMiddleware(api.Contexts), handlers.GetSameContracts())
 
 			storage := contract.Group("storage")
 			{
@@ -158,8 +160,6 @@ func (api *app) makeRouter() {
 				storage.GET("schema", handlers.GetContractStorageSchema())
 			}
 
-			contract.GET("mempool", handlers.GetMempool())
-			contract.GET("same", handlers.ContextsMiddleware(api.Contexts), handlers.GetSameContracts())
 			entrypoints := contract.Group("entrypoints")
 			{
 				entrypoints.GET("", handlers.GetEntrypoints())
@@ -168,10 +168,18 @@ func (api *app) makeRouter() {
 				entrypoints.POST("trace", handlers.RunCode())
 				entrypoints.POST("run_operation", handlers.RunOperation())
 			}
+
 			views := contract.Group("views")
 			{
 				views.GET("schema", handlers.GetViewsSchema())
 				views.POST("execute", handlers.ExecuteView())
+			}
+
+			approve := contract.Group("approve")
+			{
+				approve.GET("schema/:tag", handlers.ApproveSchema())
+				approve.GET("data/1", handlers.ApproveDataFa1())
+				approve.GET("data/2", handlers.ApproveDataFa2())
 			}
 		}
 
