@@ -1,0 +1,78 @@
+rpc:
+  dailynet:
+    uri: ${DAILYNET_RPC}
+    timeout: 20
+    requests_per_second: 15
+  mondaynet:
+    uri: ${MONDAYNET_RPC}
+    timeout: 20
+    requests_per_second: 10
+
+storage:
+  pg: 
+    host: ${DB_HOSTNAME:-127.0.0.1}
+    port: 5432
+    user: ${POSTGRES_USER}
+    dbname: ${POSTGRES_DB:-bcd}
+    password: ${POSTGRES_PASSWORD}
+    sslmode: disable
+  timeout: 10
+
+sentry:
+  environment: development
+  uri: ${SENTRY_DSN}
+  front_uri: ${SENTRY_DSN_FRONT}
+  debug: true
+
+share_path: /etc/bcd
+
+base_url: http://localhost:8080
+
+api:
+  project_name: api
+  bind: "127.0.0.1:14000"
+  swagger_host: "localhost:14000"
+  cors_enabled: true
+  sentry_enabled: false
+  seed_enabled: false
+  page_size: ${PAGE_SIZE:-10}
+  frontend:
+    ga_enabled: false
+    mempool_enabled: true
+    sandbox_mode: false
+    rpc:
+      dailynet: ${DAILYNET_RPC}
+      mondaynet: ${MONDAYNET_RPC}
+  networks:
+    - dailynet
+    - mondaynet
+  connections:
+    max: 50
+    idle: 50
+
+indexer:
+  project_name: indexer
+  sentry_enabled: false
+  networks:
+    dailynet:
+      receiver_threads: 5
+      is_periodic_testnet: true
+    mondaynet:
+      receiver_threads: 10
+      is_periodic_testnet: true
+  connections:
+    max: 5
+    idle: 5
+
+scripts:
+  aws:
+    bucket_name: bcd-elastic-snapshots
+    region: eu-central-1
+    access_key_id: ${AWS_ACCESS_KEY_ID}
+    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+  networks:
+    - dailynet
+    - mondaynet
+  connections:
+    max: 5
+    idle: 5

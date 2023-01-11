@@ -48,20 +48,6 @@ func (mr *MockGeneralRepositoryMockRecorder) CreateTables() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTables", reflect.TypeOf((*MockGeneralRepository)(nil).CreateTables))
 }
 
-// DeleteTables mocks base method
-func (m *MockGeneralRepository) DeleteTables(indices []string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteTables", indices)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteTables indicates an expected call of DeleteTables
-func (mr *MockGeneralRepositoryMockRecorder) DeleteTables(indices interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTables", reflect.TypeOf((*MockGeneralRepository)(nil).DeleteTables), indices)
-}
-
 // DeleteByContract mocks base method
 func (m *MockGeneralRepository) DeleteByContract(indices []string, address string) error {
 	m.ctrl.T.Helper()
@@ -159,4 +145,18 @@ func (m *MockGeneralRepository) BulkDelete(arg0 context.Context, arg1 []models.M
 func (mr *MockGeneralRepositoryMockRecorder) BulkDelete(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockGeneralRepository)(nil).BulkDelete), arg0, arg1)
+}
+
+// Drop mocks base method
+func (m *MockGeneralRepository) Drop(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Drop", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Drop indicates an expected call of Drop
+func (mr *MockGeneralRepositoryMockRecorder) Drop(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Drop", reflect.TypeOf((*MockGeneralRepository)(nil).Drop), ctx)
 }

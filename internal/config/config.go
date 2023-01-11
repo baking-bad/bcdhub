@@ -44,7 +44,8 @@ type Config struct {
 
 // IndexerConfig -
 type IndexerConfig struct {
-	ReceiverThreads int64 `yaml:"receiver_threads"`
+	ReceiverThreads   int64 `yaml:"receiver_threads"`
+	IsPeriodicTestnet bool  `yaml:"is_periodic_testnet"`
 }
 
 // RPCConfig -

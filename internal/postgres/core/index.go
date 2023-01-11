@@ -1,6 +1,8 @@
 package core
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/go-pg/pg/v10/orm"
 )
@@ -17,11 +19,21 @@ func (p *Postgres) CreateTables() error {
 	return nil
 }
 
-// DeleteTables -
-func (p *Postgres) DeleteTables(indices []string) error {
-	for _, index := range indices {
-		if err := p.DB.Model().Table(index).DropTable(&orm.DropTableOptions{
+// Drop - drops full database
+func (p *Postgres) Drop(ctx context.Context) error {
+	for _, table := range models.ManyToMany() {
+		if err := p.DB.Model(table).DropTable(&orm.DropTableOptions{
 			IfExists: true,
+			Cascade:  true,
+		}); err != nil {
+			return err
+		}
+	}
+
+	for _, table := range models.AllModels() {
+		if err := p.DB.Model(table).DropTable(&orm.DropTableOptions{
+			IfExists: true,
+			Cascade:  true,
 		}); err != nil {
 			return err
 		}

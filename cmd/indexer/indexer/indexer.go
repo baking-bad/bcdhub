@@ -74,13 +74,7 @@ func (bi *BlockchainIndexer) Close() error {
 }
 
 func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error {
-	var tzktURI string
-	if bi.Network == types.Mainnet {
-		if tzktConfig, ok := bi.Config.TzKT[bi.Network.String()]; ok {
-			tzktURI = tzktConfig.URI
-		}
-	}
-	if err := NewInitializer(bi.Network, bi.Storage, db.DB, tzktURI).Init(ctx); err != nil {
+	if err := NewInitializer(bi.Network, bi.Storage, db.DB).Init(ctx); err != nil {
 		return err
 	}
 

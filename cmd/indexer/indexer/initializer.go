@@ -12,13 +12,12 @@ import (
 type Initializer struct {
 	repo    models.GeneralRepository
 	db      pg.DBI
-	tzktURI string
 	network types.Network
 }
 
 // NewInitializer -
-func NewInitializer(network types.Network, repo models.GeneralRepository, db pg.DBI, tzktURI string) Initializer {
-	return Initializer{repo, db, tzktURI, network}
+func NewInitializer(network types.Network, repo models.GeneralRepository, db pg.DBI) Initializer {
+	return Initializer{repo, db, network}
 }
 
 // Init -
