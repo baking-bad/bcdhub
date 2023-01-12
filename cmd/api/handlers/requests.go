@@ -254,27 +254,18 @@ type findContract struct {
 	Tags string `form:"tags" binding:"omitempty"`
 }
 
-type approveDataFa1Request struct {
-	Allowances []allowanceFa1 `json:"allowances" binding:"required"`
+type approveDataRequest struct {
+	Allowances []tokenType `json:"allowances" binding:"required"`
 }
 
-type allowanceFa1 struct {
-	TokenContract string `json:"token_contract" binding:"required,address"`
-	Allowance     string `json:"allowance" binding:"required,numeric"`
+type tokenType struct {
+	Type allowance `json:"token_type"`
 }
 
-type approveDataFa2Request struct {
-	Allowances []allowanceFa2 `json:"allowances" binding:"required"`
-}
-
-type allowanceFa2 struct {
-	TokenContract string `json:"token_contract" binding:"required,address"`
-	Owner         string `json:"owner" binding:"required,address"`
-	TokenID       string `json:"token_id" binding:"required,numeric"`
-}
-
-type getApproveSchemaRequest struct {
-	getContractRequest
-
-	Tag uint64 `form:"tag" binding:"required,max=2,min=1"`
+type allowance struct {
+	TokenContract string  `json:"token_contract" binding:"required,address"`
+	TokenType     uint64  `json:"schema_key" binding:"required,max=2,min=1"`
+	Allowance     *uint64 `json:"allowance" binding:"omitempty,numeric"`
+	Owner         *string `json:"owner" binding:"omitempty,address"`
+	TokenID       *uint64 `json:"token_id" binding:"omitempty,numeric"`
 }

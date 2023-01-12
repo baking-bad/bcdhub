@@ -685,13 +685,19 @@ func NewTicketUpdateFromModel(update ticket.TicketUpdate) TicketUpdate {
 
 // ApproveResponse -
 type ApproveResponse struct {
-	Fa      uint         `json:"fa_version"`
+	Fa12 []Approves `json:"fa1_2"`
+	Fa2  []Approves `json:"fa2"`
+}
+
+// Approves -
+type Approves struct {
 	Allows  []Parameters `json:"allows"`
 	Revokes []Parameters `json:"revokes"`
 }
 
 // Parameters -
 type Parameters struct {
-	Entrypoint string             `json:"entrypoint"`
-	Value      stdJSON.RawMessage `json:"value"`
+	Entrypoint  string             `json:"entrypoint"`
+	Value       stdJSON.RawMessage `json:"value"`
+	Destination string             `json:"destination"`
 }

@@ -122,6 +122,13 @@ func (api *app) makeRouter() {
 		helpers := v1.Group("helpers")
 		{
 			helpers.GET("contracts/:network", handlers.NetworkMiddleware(api.Contexts), cache.CachePage(store, time.Hour, handlers.ContractsHelpers()))
+
+			approve := helpers.Group("approve")
+			approve.Use(handlers.ContextsMiddleware(api.Contexts))
+			{
+				approve.GET("schema", handlers.ApproveSchema())
+				approve.POST("data", handlers.ApproveData())
+			}
 		}
 
 		bigmap := v1.Group("bigmap/:network/:ptr")
@@ -173,13 +180,6 @@ func (api *app) makeRouter() {
 			{
 				views.GET("schema", handlers.GetViewsSchema())
 				views.POST("execute", handlers.ExecuteView())
-			}
-
-			approve := contract.Group("approve")
-			{
-				approve.GET("schema/:tag", handlers.ApproveSchema())
-				approve.GET("data/1", handlers.ApproveDataFa1())
-				approve.GET("data/2", handlers.ApproveDataFa2())
 			}
 		}
 
