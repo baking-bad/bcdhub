@@ -332,10 +332,10 @@ const cteContractStatsTemplate = `with last_operations as (
 	SELECT timestamp
 	FROM mainnet.operations AS "operation" 
 	WHERE ((destination_id = ?) OR (source_id = ?))
-	order by id desc
-    FETCH NEXT 1 ROWS ONLY
+	order by timestamp desc
+    FETCH NEXT 20 ROWS ONLY
 )
-select timestamp from last_operations`
+select max(timestamp) from last_operations`
 
 type lastTimestampResult struct {
 	Timestamp time.Time `pg:"timestamp"`
