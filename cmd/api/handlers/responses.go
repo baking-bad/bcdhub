@@ -486,7 +486,6 @@ type Screenshot struct {
 // AccountInfo -
 type AccountInfo struct {
 	Address    string    `json:"address"`
-	Network    string    `json:"network"`
 	Alias      string    `json:"alias,omitempty" extensions:"x-nullable"`
 	Balance    int64     `json:"balance"`
 	TxCount    int64     `json:"tx_count"`
