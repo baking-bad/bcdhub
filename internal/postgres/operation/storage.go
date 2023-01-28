@@ -328,6 +328,19 @@ func (storage *Storage) EventsCount(accountID int64) (int, error) {
 		Where("kind = 7").Count()
 }
 
+const cteContractStatsTemplate = `with last_operations as (
+	SELECT timestamp
+	FROM mainnet.operations AS "operation" 
+	WHERE ((destination_id = ?) OR (source_id = ?))
+	order by timestamp desc
+    FETCH NEXT 20 ROWS ONLY
+)
+select max(timestamp) as timestamp from last_operations`
+
+type lastTimestampResult struct {
+	Timestamp time.Time `pg:"timestamp"`
+}
+
 // ContractStats -
 func (storage *Storage) ContractStats(address string) (stats operation.ContractStats, err error) {
 	var accountID int64
@@ -338,14 +351,11 @@ func (storage *Storage) ContractStats(address string) (stats operation.ContractS
 		return
 	}
 
-	if err = storage.DB.Model((*operation.Operation)(nil)).ColumnExpr("max(timestamp)").
-		WhereGroup(
-			func(q *orm.Query) (*orm.Query, error) {
-				return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
-			},
-		).Select(&stats.LastAction); err != nil {
-		return
+	var result lastTimestampResult
+	if _, err := storage.DB.QueryOne(&result, cteContractStatsTemplate, accountID, accountID); err != nil {
+		return stats, err
 	}
+	stats.LastAction = result.Timestamp
 
 	count, err := storage.DB.Model((*operation.Operation)(nil)).WhereGroup(
 		func(q *orm.Query) (*orm.Query, error) {
