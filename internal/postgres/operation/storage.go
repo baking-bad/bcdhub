@@ -335,7 +335,7 @@ const cteContractStatsTemplate = `with last_operations as (
 	order by timestamp desc
     FETCH NEXT 20 ROWS ONLY
 )
-select max(timestamp) from last_operations`
+select max(timestamp) as timestamp from last_operations`
 
 type lastTimestampResult struct {
 	Timestamp time.Time `pg:"timestamp"`
