@@ -53,7 +53,6 @@ func GetInfo() gin.HandlerFunc {
 			TxCount:    stats.Count,
 			Balance:    balance,
 			LastAction: stats.LastAction.UTC(),
-			Network:    req.Network,
 		})
 	}
 
