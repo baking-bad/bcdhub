@@ -122,7 +122,7 @@ func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters m
 
 // Last - get last operation by `filters` with not empty deffated_storage
 func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (operation.Operation, error) {
-	query := storage.DB.Model((*operation.Operation)(nil)).Where("deffated_storage is not null")
+	query := storage.DB.Model((*operation.Operation)(nil)).Where("deffated_storage is not null").OrderExpr("operation.id desc")
 
 	for key, value := range filters {
 		query.Where("? = ?", pg.Ident(key), value)
@@ -132,19 +132,22 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 		query.Where("operation.id < ?", lastID)
 	}
 
-	var ops operation.Operation
-	if err := storage.DB.Model().With("operation", query).Table("operation").
+	query.Limit(2) // It's a hack to avoid postgres "optimization". Limit = 1 is extremely slow.
+
+	var ops []operation.Operation
+	if err := storage.DB.Model().TableExpr("(?) as operation", query).
 		ColumnExpr("operation.*").
 		ColumnExpr("source.address as source__address").
 		ColumnExpr("destination.address as destination__address").
 		Join("LEFT JOIN accounts as source ON source.id = operation.source_id").
 		Join("LEFT JOIN accounts as destination ON destination.id = operation.destination_id").
-		OrderExpr("operation.id desc").
-		Limit(1).
 		Select(&ops); err != nil {
 		return operation.Operation{}, err
 	}
-	return ops, nil
+	if len(ops) == 0 {
+		return operation.Operation{}, pg.ErrNoRows
+	}
+	return ops[0], nil
 }
 
 // Get -
