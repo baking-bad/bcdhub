@@ -40,3 +40,27 @@ func (p *Postgres) Drop(ctx context.Context) error {
 	}
 	return nil
 }
+
+const tableExistsQuery = `SELECT EXISTS(
+    SELECT * 
+    FROM information_schema.tables 
+    WHERE 
+      table_schema = ? AND 
+      table_name = ?
+) as flag;`
+
+type existsResponse struct {
+	Flag bool `pg:"flag,use_zero"`
+}
+
+// TablesExist - returns true if all tables exist otherwise false
+func (p *Postgres) TablesExist() bool {
+	for _, table := range models.AllDocuments() {
+		var exists existsResponse
+		_, err := p.DB.QueryOne(&exists, tableExistsQuery, p.schema, table)
+		if !exists.Flag || err != nil {
+			return false
+		}
+	}
+	return true
+}

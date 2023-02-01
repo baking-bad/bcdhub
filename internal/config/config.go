@@ -10,10 +10,11 @@ import (
 
 // Environments
 const (
-	EnvironmentVar  = "BCD_ENV"
-	EnvironmentDev  = "development"
-	EnvironmentProd = "production"
-	EnvironmentBox  = "sandbox"
+	EnvironmentVar      = "BCD_ENV"
+	EnvironmentDev      = "development"
+	EnvironmentProd     = "production"
+	EnvironmentBox      = "sandbox"
+	EnvironmentTestnets = "testnets"
 )
 
 // Config -
@@ -193,9 +194,10 @@ type Connections struct {
 // LoadDefaultConfig -
 func LoadDefaultConfig() (Config, error) {
 	configurations := map[string]string{
-		EnvironmentProd: "production.yml",
-		EnvironmentBox:  "sandbox.yml",
-		EnvironmentDev:  "../../configs/development.yml",
+		EnvironmentProd:     "production.yml",
+		EnvironmentBox:      "sandbox.yml",
+		EnvironmentDev:      "../../configs/development.yml",
+		EnvironmentTestnets: "testnets.yml",
 	}
 
 	env := os.Getenv(EnvironmentVar)

@@ -147,6 +147,20 @@ func (mr *MockGeneralRepositoryMockRecorder) BulkDelete(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockGeneralRepository)(nil).BulkDelete), arg0, arg1)
 }
 
+// TablesExist mocks base method
+func (m *MockGeneralRepository) TablesExist() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TablesExist")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// TablesExist indicates an expected call of TablesExist
+func (mr *MockGeneralRepositoryMockRecorder) TablesExist() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TablesExist", reflect.TypeOf((*MockGeneralRepository)(nil).TablesExist))
+}
+
 // Drop mocks base method
 func (m *MockGeneralRepository) Drop(ctx context.Context) error {
 	m.ctrl.T.Helper()

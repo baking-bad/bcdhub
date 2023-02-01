@@ -37,7 +37,7 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 				noderpc.WithRateLimit(rpcProvider.RequestsPerSecond),
 			}
 
-			ctx.RPC = noderpc.NewPool([]string{rpcProvider.URI}, opts...)
+			ctx.RPC = noderpc.NewNodeRPC(rpcProvider.URI, opts...)
 		}
 	}
 }

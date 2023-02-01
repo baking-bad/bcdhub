@@ -18,6 +18,8 @@ type Postgres struct {
 	DB *pg.DB
 
 	PageSize int64
+
+	schema string
 }
 
 func parseConnectionString(connection, schemaName string) (*pg.Options, error) {
@@ -70,7 +72,9 @@ func parseConnectionString(connection, schemaName string) (*pg.Options, error) {
 
 // New -
 func New(connection, schemaName, appName string, opts ...PostgresOption) (*Postgres, error) {
-	postgres := Postgres{}
+	postgres := Postgres{
+		schema: schemaName,
+	}
 	if appName != "" {
 		connection = fmt.Sprintf("%s application_name=%s", connection, appName)
 	}

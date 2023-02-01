@@ -41,6 +41,7 @@ type BlockchainIndexer struct {
 	updateTicker *time.Ticker
 	Network      types.Network
 
+	isPeriodic  bool
 	indicesInit sync.Once
 }
 
@@ -55,10 +56,11 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network types.
 	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 
 	bi := &BlockchainIndexer{
-		Context:  internalCtx,
-		receiver: NewReceiver(internalCtx.RPC, 20, indexerConfig.ReceiverThreads),
-		blocks:   make(map[int64]*Block),
-		Network:  network,
+		Context:    internalCtx,
+		receiver:   NewReceiver(internalCtx.RPC, 20, indexerConfig.ReceiverThreads),
+		blocks:     make(map[int64]*Block),
+		Network:    network,
+		isPeriodic: indexerConfig.IsPeriodicTestnet,
 	}
 
 	if err := bi.init(ctx, bi.Context.StorageDB); err != nil {
@@ -74,7 +76,7 @@ func (bi *BlockchainIndexer) Close() error {
 }
 
 func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error {
-	if err := NewInitializer(bi.Network, bi.Storage, db.DB).Init(ctx); err != nil {
+	if err := NewInitializer(bi.Network, bi.Storage, bi.Blocks, db.DB, bi.RPC, bi.isPeriodic).Init(ctx); err != nil {
 		return err
 	}
 

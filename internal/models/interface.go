@@ -17,6 +17,7 @@ type GeneralRepository interface {
 	Save(ctx context.Context, items []Model) error
 	BulkDelete(context.Context, []Model) error
 
+	TablesExist() bool
 	// Drop - drops full database
 	Drop(ctx context.Context) error
 }
