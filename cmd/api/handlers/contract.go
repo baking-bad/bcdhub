@@ -32,6 +32,11 @@ func GetContract() gin.HandlerFunc {
 			return
 		}
 
+		var args withStatsRequest
+		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+			return
+		}
+
 		contract, err := ctx.Contracts.Get(req.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
@@ -44,11 +49,19 @@ func GetContract() gin.HandlerFunc {
 
 		ctxs := c.MustGet("contexts").(config.Contexts)
 
-		res, err := contractWithStatsPostprocessing(ctxs, ctx, contract)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
+		if args.Stats == nil || *args.Stats {
+			res, err := contractWithStatsPostprocessing(ctxs, ctx, contract)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			c.SecureJSON(http.StatusOK, res)
+		} else {
+			res, err := contractPostprocessing(ctx, contract)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			c.SecureJSON(http.StatusOK, res)
 		}
-		c.SecureJSON(http.StatusOK, res)
 	}
 }
 

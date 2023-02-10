@@ -33,6 +33,10 @@ type getContractCodeRequest struct {
 	Level    int64  `form:"level,omitempty"`
 }
 
+type withStatsRequest struct {
+	Stats *bool `form:"stats,omitempty" binding:"omitempty"`
+}
+
 type networkQueryRequest struct {
 	Network string `form:"network,omitempty" binding:"omitempty,network"`
 }
