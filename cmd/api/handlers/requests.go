@@ -37,6 +37,11 @@ type withStatsRequest struct {
 	Stats *bool `form:"stats,omitempty" binding:"omitempty"`
 }
 
+// HasStats -
+func (req withStatsRequest) HasStats() bool {
+	return req.Stats == nil || *req.Stats
+}
+
 type networkQueryRequest struct {
 	Network string `form:"network,omitempty" binding:"omitempty,network"`
 }

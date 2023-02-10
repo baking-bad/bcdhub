@@ -49,7 +49,7 @@ func GetContract() gin.HandlerFunc {
 
 		ctxs := c.MustGet("contexts").(config.Contexts)
 
-		if args.Stats == nil || *args.Stats {
+		if args.HasStats() {
 			res, err := contractWithStatsPostprocessing(ctxs, ctx, contract)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
