@@ -33,7 +33,8 @@ RUN cd nginx && go build -a -installsuffix cgo -o /go/bin/seo .
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
-FROM scratch
+FROM alpine:3.16
+RUN apk add curl jq
 
 ENV PATH="/go/bin/:$PATH"
 
@@ -46,5 +47,8 @@ COPY configs/*.yml /app/api/
 COPY --from=builder /go/bin/bcdctl /go/bin/bcdctl
 COPY --from=builder /go/bin/migration /go/bin/migration
 COPY --from=builder /go/bin/seo /go/bin/seo
+
+COPY build/indexer/entrypoint.sh build/indexer/healthcheck.sh /
+RUN chmod +x /entrypoint.sh /healthcheck.sh
 
 ENTRYPOINT ["/go/bin/api"]
