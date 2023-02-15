@@ -7,8 +7,8 @@ rpc:
     uri: ${MONDAYNET_RPC}
     timeout: 20
     requests_per_second: 10
-  taconet:
-    uri: ${TACONET_RPC}
+  rollupnet:
+    uri: ${ROLLUPNET_RPC}
     timeout: 20
     requests_per_second: 10
 
@@ -47,11 +47,11 @@ api:
     rpc:
       dailynet: ${DAILYNET_RPC}
       mondaynet: ${MONDAYNET_RPC}
-      taconet: ${TACONET_RPC}
+      rollupnet: ${ROLLUPNET_RPC}
   networks:
     - dailynet
     - mondaynet
-    - taconet
+    - rollupnet
   connections:
     max: 50
     idle: 50
@@ -66,7 +66,7 @@ indexer:
     mondaynet:
       receiver_threads: 10
       is_periodic_testnet: true
-    taconet:
+    rollupnet:
       receiver_threads: 2
       is_periodic_testnet: true
   connections:
@@ -82,7 +82,7 @@ scripts:
   networks:
     - dailynet
     - mondaynet
-    - taconet
+    - rollupnet
   connections:
     max: 5
     idle: 5
