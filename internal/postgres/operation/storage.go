@@ -242,7 +242,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			},
 		).
 		Order("id desc").
-		Limit(1000)
+		Limit(325)
 
 	if lastID > 0 {
 		subQuery.Where("id < ?", lastID)
