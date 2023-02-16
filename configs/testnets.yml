@@ -42,7 +42,7 @@ api:
   page_size: ${PAGE_SIZE:-10}
   frontend:
     ga_enabled: false
-    mempool_enabled: true
+    mempool_enabled: false
     sandbox_mode: false
     rpc:
       dailynet: ${DAILYNET_RPC}
