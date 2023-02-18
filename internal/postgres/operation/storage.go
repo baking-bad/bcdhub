@@ -330,7 +330,7 @@ func (storage *Storage) EventsCount(accountID int64) (int, error) {
 
 const cteContractStatsTemplate = `with last_operations as (
 	SELECT timestamp
-	FROM mainnet.operations AS "operation" 
+	FROM operations AS "operation" 
 	WHERE ((destination_id = ?) OR (source_id = ?))
 	order by timestamp desc
     FETCH NEXT 20 ROWS ONLY
