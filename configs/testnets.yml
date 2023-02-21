@@ -40,6 +40,9 @@ api:
   sentry_enabled: false
   seed_enabled: false
   page_size: ${PAGE_SIZE:-10}
+  periodic:
+    info_base_url: https://teztnets.xyz
+    schedule: "0 5 0 * * *" # at 00:05:00 every day
   frontend:
     ga_enabled: false
     mempool_enabled: false
@@ -62,13 +65,16 @@ indexer:
   networks:
     dailynet:
       receiver_threads: 5
-      is_periodic_testnet: true
+      periodic:
+        info_base_url: https://teztnets.xyz
+        schedule: "0 5 0 * * *" # at 00:05:00 every day
     mondaynet:
       receiver_threads: 10
-      is_periodic_testnet: true
+      periodic:
+        info_base_url: https://teztnets.xyz
+        schedule: "0 5 0 * * MON" # at 00:05:00 every monday
     rollupnet:
       receiver_threads: 2
-      is_periodic_testnet: true
   connections:
     max: 5
     idle: 5

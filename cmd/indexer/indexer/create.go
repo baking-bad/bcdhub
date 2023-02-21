@@ -5,8 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/pkg/errors"
 )
 
 // CreateIndexers -
@@ -17,16 +15,19 @@ func CreateIndexers(ctx context.Context, cfg config.Config) ([]Indexer, error) {
 
 	indexers := make([]Indexer, 0)
 	for network, indexerCfg := range cfg.Indexer.Networks {
-		networkType := types.NewNetwork(network)
-		if networkType == types.Empty {
-			return nil, errors.Errorf("unknown network %s", network)
+		if indexerCfg.Periodic != nil {
+			periodicIndexer, err := NewPeriodicIndexer(ctx, network, cfg, indexerCfg)
+			if err != nil {
+				return nil, err
+			}
+			indexers = append(indexers, periodicIndexer)
+		} else {
+			bi, err := NewBlockchainIndexer(ctx, cfg, network, indexerCfg)
+			if err != nil {
+				return nil, err
+			}
+			indexers = append(indexers, bi)
 		}
-
-		bi, err := NewBlockchainIndexer(ctx, cfg, networkType, indexerCfg)
-		if err != nil {
-			return nil, err
-		}
-		indexers = append(indexers, bi)
 	}
 	return indexers, nil
 }

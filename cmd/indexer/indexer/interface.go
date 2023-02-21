@@ -9,7 +9,7 @@ import (
 
 // Indexer -
 type Indexer interface {
-	Sync(ctx context.Context, wg *sync.WaitGroup)
+	Start(ctx context.Context, wg *sync.WaitGroup)
 	Index(ctx context.Context, head noderpc.Header) error
 	Rollback(ctx context.Context) error
 	Close() error

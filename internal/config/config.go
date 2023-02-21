@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/baking-bad/bcdhub/internal/periodic"
 	"gopkg.in/yaml.v3"
 )
 
@@ -45,8 +46,8 @@ type Config struct {
 
 // IndexerConfig -
 type IndexerConfig struct {
-	ReceiverThreads   int64 `yaml:"receiver_threads"`
-	IsPeriodicTestnet bool  `yaml:"is_periodic_testnet"`
+	ReceiverThreads int64            `yaml:"receiver_threads"`
+	Periodic        *periodic.Config `yaml:"periodic"`
 }
 
 // RPCConfig -
@@ -161,17 +162,19 @@ type SeedConfig struct {
 	} `yaml:"accounts"`
 }
 
+// APIConfig -
 type APIConfig struct {
-	ProjectName   string         `yaml:"project_name"`
-	Bind          string         `yaml:"bind"`
-	CorsEnabled   bool           `yaml:"cors_enabled"`
-	SentryEnabled bool           `yaml:"sentry_enabled"`
-	SeedEnabled   bool           `yaml:"seed_enabled"`
-	Frontend      FrontendConfig `yaml:"frontend"`
-	Seed          SeedConfig     `yaml:"seed"`
-	Networks      []string       `yaml:"networks"`
-	PageSize      uint64         `yaml:"page_size"`
-	Connections   Connections    `yaml:"connections"`
+	ProjectName   string           `yaml:"project_name"`
+	Bind          string           `yaml:"bind"`
+	CorsEnabled   bool             `yaml:"cors_enabled"`
+	SentryEnabled bool             `yaml:"sentry_enabled"`
+	SeedEnabled   bool             `yaml:"seed_enabled"`
+	Frontend      FrontendConfig   `yaml:"frontend"`
+	Seed          SeedConfig       `yaml:"seed"`
+	Networks      []string         `yaml:"networks"`
+	PageSize      uint64           `yaml:"page_size"`
+	Connections   Connections      `yaml:"connections"`
+	Periodic      *periodic.Config `yaml:"periodic"`
 }
 
 // SentryConfig -

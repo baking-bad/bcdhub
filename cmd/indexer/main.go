@@ -42,7 +42,7 @@ func main() {
 	var wg sync.WaitGroup
 	for i := range indexers {
 		wg.Add(1)
-		go indexers[i].Sync(ctx, &wg)
+		go indexers[i].Start(ctx, &wg)
 	}
 
 	<-sigChan
