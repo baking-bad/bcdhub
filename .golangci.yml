@@ -11,3 +11,7 @@ linters:
     - ineffassign
     - containedctx
     - tenv
+
+run:
+  go: '1.19'
+  timeout: 2m
