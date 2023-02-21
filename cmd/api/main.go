@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/baking-bad/bcdhub/cmd/api/docs"
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/cmd/api/validations"
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -30,8 +29,6 @@ func newApp() *app {
 	if err != nil {
 		panic(err)
 	}
-
-	docs.SwaggerInfo.Host = cfg.API.SwaggerHost
 
 	if cfg.API.SentryEnabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
@@ -85,7 +82,6 @@ func (api *app) makeRouter() {
 
 	v1 := r.Group("v1")
 	{
-		v1.GET("swagger.json", handlers.MainnetMiddleware(api.Contexts), handlers.GetSwaggerDoc())
 		v1.GET("config", handlers.ContextsMiddleware(api.Contexts), handlers.GetConfig())
 
 		v1.GET("head", handlers.ContextsMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHead()))

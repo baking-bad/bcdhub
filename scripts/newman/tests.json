@@ -6,55 +6,6 @@
 	},
 	"item": [
 		{
-			"name": "swagger",
-			"item": [
-				{
-					"name": "swagger.json",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const responseJson = pm.response.json();",
-									"",
-									"    pm.expect(responseJson.info.description).to.eql(\"This is API description for Better Call Dev service.\");",
-									"    pm.expect(responseJson.info.title).to.eql(\"Better Call Dev API\");",
-									"    pm.expect(responseJson.info.contact).to.eql({",
-									"        \"name\": \"Baking Bad Team\",",
-									"        \"url\": \"https://baking-bad.org/docs\",",
-									"        \"email\": \"hello@baking-bad.org\"",
-									"    })",
-									"    pm.expect(responseJson.info[\"x-logo\"]).to.eql({",
-									"        \"altText\": \"Better Call Dev logo\",",
-									"        \"href\": \"https://better-call.dev\",",
-									"        \"url\": \"https://better-call.dev/img/logo_og.png\"",
-									"    })",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/swagger.json",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"swagger.json"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
 			"name": "opg/:hash",
 			"item": [
 				{
