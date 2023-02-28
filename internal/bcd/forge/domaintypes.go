@@ -24,11 +24,16 @@ func Address(val string, tzOnly bool) ([]byte, error) {
 		address = append([]byte{0, 1}, address...)
 	case encoding.PrefixPublicKeyTZ3:
 		address = append([]byte{0, 2}, address...)
+	case encoding.PrefixPublicKeyTZ4:
+		address = append([]byte{0, 3}, address...)
 	case encoding.PrefixPublicKeyKT1:
 		address = append([]byte{1}, address...)
 		address = append(address, byte(0))
 	case encoding.PrefixPublicKeyTxr1:
 		address = append([]byte{2}, address...)
+		address = append(address, byte(0))
+	case encoding.PrefixOriginatedSmartRollup:
+		address = append([]byte{3}, address...)
 		address = append(address, byte(0))
 	default:
 		return nil, errors.Errorf("Invalid address prefix: %s", prefix)
@@ -53,10 +58,14 @@ func UnforgeAddress(str string) (string, error) {
 		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ2))
 	case strings.HasPrefix(str, "0002"):
 		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ3))
+	case strings.HasPrefix(str, "0003"):
+		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ3))
 	case strings.HasPrefix(str, "01") && strings.HasSuffix(str, "00"):
 		return encoding.EncodeBase58String(str[2:len(str)-2], []byte(encoding.PrefixPublicKeyKT1))
 	case strings.HasPrefix(str, "02") && strings.HasSuffix(str, "00"):
 		return encoding.EncodeBase58String(str[2:len(str)-2], []byte(encoding.PrefixPublicKeyTxr1))
+	case strings.HasPrefix(str, "03") && strings.HasSuffix(str, "00"):
+		return encoding.EncodeBase58String(str[2:len(str)-2], []byte(encoding.PrefixOriginatedSmartRollup))
 	default:
 		return str, errors.Wrapf(consts.ErrInvalidAddress, "UnforgeAddress: %s", str)
 	}
