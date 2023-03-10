@@ -38,6 +38,7 @@ var symLinks = map[string]string{
 	"PtKathmankSpLLDALzWw7CGD2j2MtyveTwboEYokqUCP4a1LxMg": SymLinkJakarta, // Kathmandu
 	"PtLimaPtLMwfNinJi9rCfDPWea8dFgTZ1MeJ9f1m2SRic6ayiwW": SymLinkJakarta, // Lima
 	"PtMumbaiiFFEGbew1rRjzSPyzRbA51Tm3RVZL5suHPxSZYDhCEc": SymLinkJakarta, // Mumbai
+	"PtMumbai2TmsJHNGRkD8v8YDbtao7BLUC3wjASn1inAKLFCjaH1": SymLinkJakarta, // Mumbai 2
 }
 
 // GetProtoSymLink -
