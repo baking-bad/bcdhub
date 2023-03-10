@@ -26,6 +26,7 @@ func main() {
 		defer helpers.CatchPanicSentry()
 	}
 
+	var wg sync.WaitGroup
 	ctx, cancel := context.WithCancel(context.Background())
 
 	indexers, err := indexer.CreateIndexers(ctx, cfg)
@@ -39,7 +40,6 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	var wg sync.WaitGroup
 	for i := range indexers {
 		wg.Add(1)
 		go indexers[i].Start(ctx, &wg)
