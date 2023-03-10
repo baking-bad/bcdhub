@@ -31,6 +31,7 @@ const (
 	PrefixPublicKeyTZ4                = "tz4"
 	PrefixPublicKeyKT1                = "KT1"
 	PrefixPublicKeyTxr1               = "txr1"
+	PrefixOriginatedSmartRollup       = "sr1"
 	PrefixRollupInboxHash             = "txi"
 	PrefixRollupMessageHash           = "txm"
 	PrefixRollupCommitmentHash        = "txc"
@@ -70,10 +71,11 @@ var base58Encodings = []base58Encoding{
 	{[]byte(PrefixPublicKeyTZ1), 36, []byte{6, 161, 159}, 20, "ed25519 public key hash"},
 	{[]byte(PrefixPublicKeyTZ2), 36, []byte{6, 161, 161}, 20, "secp256k1 public key hash"},
 	{[]byte(PrefixPublicKeyTZ3), 36, []byte{6, 161, 164}, 20, "p256 public key hash"},
+	{[]byte(PrefixPublicKeyTZ4), 36, []byte{6, 161, 166}, 20, "BLS-MinPk"},
 	{[]byte(PrefixPublicKeyKT1), 36, []byte{2, 90, 121}, 20, "Originated address"},
 
 	{[]byte(PrefixPublicKeyTxr1), 37, []byte{1, 128, 120, 31}, 20, "Rollup address"},
-	{[]byte(PrefixPublicKeyTZ4), 36, []byte{6, 161, 166}, 20, "L2 rollup address"},
+	{[]byte(PrefixOriginatedSmartRollup), 37, []byte{6, 124, 117}, 20, "Smart rollup"},
 	{[]byte(PrefixRollupInboxHash), 53, []byte{79, 148, 196}, 32, "Inbox hash"},
 	{[]byte(PrefixRollupMessageHash), 53, []byte{79, 149, 030}, 32, "Message hash"},
 	{[]byte(PrefixRollupCommitmentHash), 53, []byte{79, 148, 017}, 32, "Commitment hash"},
