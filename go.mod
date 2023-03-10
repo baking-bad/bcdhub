@@ -29,7 +29,7 @@ require (
 	github.com/schollz/progressbar/v3 v3.10.1
 	github.com/sergi/go-diff v1.2.0
 	github.com/shopspring/decimal v1.3.1
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	github.com/tidwall/gjson v1.14.3
 	github.com/yhirose/go-peg v0.0.0-20210804202551-de25d6753cf1
 	golang.org/x/crypto v0.5.0
