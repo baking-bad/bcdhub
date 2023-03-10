@@ -53,7 +53,6 @@ base_url: http://localhost:8080
 api:
   project_name: api
   bind: "127.0.0.1:14000"
-  swagger_host: "localhost:14000"
   cors_enabled: true
   sentry_enabled: false
   seed_enabled: false

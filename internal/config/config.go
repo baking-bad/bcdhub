@@ -162,7 +162,6 @@ type SeedConfig struct {
 type APIConfig struct {
 	ProjectName   string         `yaml:"project_name"`
 	Bind          string         `yaml:"bind"`
-	SwaggerHost   string         `yaml:"swagger_host"`
 	CorsEnabled   bool           `yaml:"cors_enabled"`
 	SentryEnabled bool           `yaml:"sentry_enabled"`
 	SeedEnabled   bool           `yaml:"seed_enabled"`

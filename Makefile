@@ -66,12 +66,6 @@ test-api:
 	# npm install -g newman
 	newman run ./scripts/newman/tests.json -e ./scripts/newman/env.json
 
-docs:
-	# wget https://github.com/swaggo/swag/releases/download/v1.8.4/swag_1.8.4_Linux_x86_64.tar.gz
-	# tar -zxvf swag_1.8.4_Linux_x86_64.tar.gz
-	# sudo cp swag /usr/bin/swag
-	cd cmd/api && swag init --parseDependency --parseInternal --parseDepth 2
-
 stable:
 	TAG=master docker-compose up -d api indexer
 

@@ -70,7 +70,6 @@ API service settings
 api:
   project_name: api
   bind: ":14000"
-  swagger_host: "api.better-call.dev"
   cors_enabled: false
   sentry_enabled: true
   seed_enabled: false
