@@ -11,23 +11,12 @@ import (
 )
 
 var ctxs config.Contexts
-var creds awsData
-
-type awsData struct {
-	BucketName string
-	Region     string
-}
 
 func main() {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		logger.Err(err)
 		return
-	}
-
-	creds = awsData{
-		BucketName: cfg.Scripts.AWS.BucketName,
-		Region:     cfg.Scripts.AWS.Region,
 	}
 
 	ctxs = config.NewContexts(cfg, cfg.Scripts.Networks,
