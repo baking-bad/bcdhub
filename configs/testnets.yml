@@ -75,6 +75,9 @@ indexer:
         schedule: "0 5 0 * * MON" # at 00:05:00 every monday
     rollupnet:
       receiver_threads: 2
+      periodic:
+        info_base_url: ${ROLLUPNET_RPC}
+        schedule: "0 5 0 * * *" # at 00:05:00 every day
   connections:
     max: 5
     idle: 5
