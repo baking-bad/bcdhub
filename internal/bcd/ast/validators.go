@@ -124,7 +124,7 @@ func BytesValidator(value string) error {
 	if len(value)%2 > 0 {
 		return errors.Wrapf(ErrValidation, "invalid bytes in hex length '%s'", value)
 	}
-	if !hexRegex.MatchString(value) {
+	if value != "" && !hexRegex.MatchString(value) {
 		return errors.Wrapf(ErrValidation, "bytes '%s' should be hexademical without prefixes", value)
 	}
 	return nil
