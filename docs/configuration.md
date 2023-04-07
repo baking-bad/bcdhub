@@ -128,7 +128,7 @@ Connects all the services together. The compose file is pretty straightforward a
 If you are altering these settings make sure you are in sync with your `.yml` configuration file.
 
 #### Local RPC node
-A typical problem is to access service running on the host machine from inside a docker container. Currently there's no unversal (cross-platform) way to do it (should be fixed in docker 20). A suggested way is the following:
+A typical problem is to access service running on the host machine from inside a docker container. Currently there's no universal (cross-platform) way to do it (should be fixed in docker 20). A suggested way is the following:
 
 1. Expose your node at `172.17.0.1:8732` (docker gateway)
 2. For each docker service that needs to access RPC add to compose file:
