@@ -2,7 +2,7 @@
 BCDHub is a set of microservices written in Golang:
 
 * `indexer`  
-Loads and decodes operations related to smart contracts and also keeps track of the block chain and handles protocol updates.
+Loads and decodes operations related to smart contracts and also keeps track of the blockchain and handles protocol updates.
 * `API`  
 Exposes RESTful JSON API for accessing indexed data (with on-the-fly decoding). Also provides a set of methods for authentication and managing user profiles.
 
@@ -17,12 +17,12 @@ BCDHub also depends on several API endpoints exposed by [TzKT](https://github.co
 * Mempool operations
 * Contract aliases and other metadata
 
-Those services are obviously make sense for public networks only and not used for sandbox or other private environments.
+Those services obviously make sense for public networks only and not used for sandbox or other private environments.
 
 ## Versioning
 BCD uses `X.Y.Z` version format where:
 * `X` changes every 3-5 months along with a big release with a significant addition of functionality  
-* `Y` increasing signals about a possibly non-compatible update that requires reindexing (or restoring from snaphot) or syncing with frontend
+* `Y` increasing signals about a possibly non-compatible update that requires reindexing (or restoring from snapshot) or syncing with frontend
 * `Z` bumped for every stable release candidate or hotfix
 
 ### Syncing with frontend
