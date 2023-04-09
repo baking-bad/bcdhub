@@ -7,7 +7,6 @@ import (
 // GeneralRepository -
 type GeneralRepository interface {
 	CreateTables() error
-	DeleteTables(indices []string) error
 	DeleteByContract(indices []string, address string) error
 	GetByID(output Model) error
 	GetAll(index string) ([]Model, error)
@@ -17,4 +16,8 @@ type GeneralRepository interface {
 	// Save - performs insert or update items.
 	Save(ctx context.Context, items []Model) error
 	BulkDelete(context.Context, []Model) error
+
+	TablesExist() bool
+	// Drop - drops full database
+	Drop(ctx context.Context) error
 }

@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -10,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/periodic"
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-contrib/cors"
@@ -22,6 +26,9 @@ type app struct {
 	Router   *gin.Engine
 	Contexts config.Contexts
 	Config   config.Config
+
+	cancel context.CancelFunc
+	worker *periodic.GeneralWorker
 }
 
 func newApp() *app {
@@ -36,19 +43,35 @@ func newApp() *app {
 		defer helpers.CatchPanicSentry()
 	}
 
-	api := &app{
-		Contexts: config.NewContexts(cfg, cfg.API.Networks,
-			config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize), cfg.API.Connections.Open, cfg.API.Connections.Idle, false),
-			config.WithRPC(cfg.RPC),
-			config.WithMempool(cfg.Services),
-			config.WithLoadErrorDescriptions(),
-			config.WithConfigCopy(cfg)),
-		Config: cfg,
+	app := new(app)
+	app.Config = cfg
+
+	if cfg.API.Periodic != nil {
+		worker, err := periodic.NewGeneralWorker(*cfg.API.Periodic, app.handleUrlChanged)
+		if err != nil {
+			panic(err)
+		}
+		app.worker = worker
+
+		ctx, cancel := context.WithCancel(context.Background())
+		app.cancel = cancel
+		app.worker.Start(ctx)
+
+		for len(app.worker.URLs()) == 0 {
+			time.Sleep(time.Second)
+		}
 	}
 
-	api.makeRouter()
+	app.Contexts = config.NewContexts(cfg, cfg.API.Networks,
+		config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize), cfg.API.Connections.Open, cfg.API.Connections.Idle, false),
+		config.WithRPC(cfg.RPC),
+		config.WithMempool(cfg.Services),
+		config.WithLoadErrorDescriptions(),
+		config.WithConfigCopy(cfg))
 
-	return api
+	app.makeRouter()
+
+	return app
 }
 
 func (api *app) makeRouter() {
@@ -194,15 +217,24 @@ func (api *app) makeRouter() {
 	api.Router = r
 }
 
-func (api *app) Close() {
-	api.Contexts.Close()
+// Close -
+func (api *app) Close() error {
+	api.cancel()
+
+	if err := api.Contexts.Close(); err != nil {
+		return err
+	}
+	return api.worker.Close()
 }
 
+// Run -
 func (api *app) Run() {
 	if err := api.Router.Run(api.Config.API.Bind); err != nil {
+		if errors.Is(err, http.ErrServerClosed) {
+			return
+		}
 		logger.Err(err)
 		helpers.CatchErrorSentry(err)
-		return
 	}
 }
 
@@ -245,4 +277,17 @@ func loggerFormat() gin.HandlerFunc {
 			param.ErrorMessage,
 		)
 	})
+}
+
+func (api *app) handleUrlChanged(ctx context.Context, network, url string) error {
+	if value, ok := api.Config.RPC[network]; ok {
+		value.URI = url
+		api.Config.RPC[network] = value
+	}
+
+	if _, ok := api.Config.API.Frontend.RPC[network]; ok {
+		api.Config.API.Frontend.RPC[network] = url
+	}
+
+	return nil
 }

@@ -41,13 +41,19 @@ type BlockchainIndexer struct {
 	updateTicker *time.Ticker
 	Network      types.Network
 
+	isPeriodic  bool
 	indicesInit sync.Once
 }
 
 // NewBlockchainIndexer -
-func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network types.Network, indexerConfig config.IndexerConfig) (*BlockchainIndexer, error) {
+func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string, indexerConfig config.IndexerConfig) (*BlockchainIndexer, error) {
+	networkType := types.NewNetwork(network)
+	if networkType == types.Empty {
+		return nil, errors.Errorf("unknown network %s", network)
+	}
+
 	internalCtx := config.NewContext(
-		network,
+		networkType,
 		config.WithConfigCopy(cfg),
 		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle, true),
 		config.WithRPC(cfg.RPC),
@@ -55,10 +61,11 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network types.
 	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 
 	bi := &BlockchainIndexer{
-		Context:  internalCtx,
-		receiver: NewReceiver(internalCtx.RPC, 20, indexerConfig.ReceiverThreads),
-		blocks:   make(map[int64]*Block),
-		Network:  network,
+		Context:    internalCtx,
+		receiver:   NewReceiver(internalCtx.RPC, 20, indexerConfig.ReceiverThreads),
+		blocks:     make(map[int64]*Block),
+		Network:    networkType,
+		isPeriodic: indexerConfig.Periodic != nil,
 	}
 
 	if err := bi.init(ctx, bi.Context.StorageDB); err != nil {
@@ -74,13 +81,7 @@ func (bi *BlockchainIndexer) Close() error {
 }
 
 func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error {
-	var tzktURI string
-	if bi.Network == types.Mainnet {
-		if tzktConfig, ok := bi.Config.TzKT[bi.Network.String()]; ok {
-			tzktURI = tzktConfig.URI
-		}
-	}
-	if err := NewInitializer(bi.Network, bi.Storage, db.DB, tzktURI).Init(ctx); err != nil {
+	if err := NewInitializer(bi.Network, bi.Storage, bi.Blocks, db.DB, bi.RPC, bi.isPeriodic).Init(ctx); err != nil {
 		return err
 	}
 
@@ -118,8 +119,8 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 	return nil
 }
 
-// Sync -
-func (bi *BlockchainIndexer) Sync(ctx context.Context, wg *sync.WaitGroup) {
+// Start -
+func (bi *BlockchainIndexer) Start(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	localSentry := helpers.GetLocalSentry()
@@ -557,4 +558,17 @@ func (bi *BlockchainIndexer) vestingMigration(ctx context.Context, head noderpc.
 	}
 
 	return store.Save()
+}
+
+func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, indexerConfig config.IndexerConfig) error {
+	bi.Context = config.NewContext(
+		bi.Network,
+		config.WithConfigCopy(cfg),
+		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle, true),
+		config.WithRPC(cfg.RPC),
+	)
+	logger.Info().Str("network", bi.Context.Network.String()).Msg("Creating indexer object...")
+	bi.receiver = NewReceiver(bi.Context.RPC, 20, indexerConfig.ReceiverThreads)
+
+	return bi.init(ctx, bi.Context.StorageDB)
 }

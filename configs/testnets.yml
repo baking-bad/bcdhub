@@ -1,0 +1,97 @@
+rpc:
+  dailynet:
+    uri: ${DAILYNET_RPC}
+    timeout: 20
+    requests_per_second: 15
+  mondaynet:
+    uri: ${MONDAYNET_RPC}
+    timeout: 20
+    requests_per_second: 10
+  rollupnet:
+    uri: ${ROLLUPNET_RPC}
+    timeout: 20
+    requests_per_second: 10
+
+storage:
+  pg: 
+    host: ${DB_HOSTNAME:-127.0.0.1}
+    port: 5432
+    user: ${POSTGRES_USER}
+    dbname: ${POSTGRES_DB:-bcd}
+    password: ${POSTGRES_PASSWORD}
+    sslmode: disable
+  timeout: 10
+
+sentry:
+  environment: development
+  uri: ${SENTRY_DSN}
+  front_uri: ${SENTRY_DSN_FRONT}
+  debug: true
+
+share_path: /etc/bcd
+
+base_url: https://teztnets.better-call.dev
+
+api:
+  project_name: api
+  bind: ":14000"
+  swagger_host: "api.teztnets.better-call.dev"
+  cors_enabled: true
+  sentry_enabled: false
+  seed_enabled: false
+  page_size: ${PAGE_SIZE:-10}
+  periodic:
+    info_base_url: https://teztnets.xyz
+    schedule: "0 5 0 * * *" # at 00:05:00 every day
+  frontend:
+    ga_enabled: false
+    mempool_enabled: false
+    sandbox_mode: false
+    rpc:
+      dailynet: ${DAILYNET_RPC}
+      mondaynet: ${MONDAYNET_RPC}
+      rollupnet: ${ROLLUPNET_RPC}
+  networks:
+    - dailynet
+    - mondaynet
+    - rollupnet
+  connections:
+    max: 50
+    idle: 50
+
+indexer:
+  project_name: indexer
+  sentry_enabled: false
+  networks:
+    dailynet:
+      receiver_threads: 5
+      periodic:
+        info_base_url: https://teztnets.xyz
+        schedule: "0 5 0 * * *" # at 00:05:00 every day
+    mondaynet:
+      receiver_threads: 10
+      periodic:
+        info_base_url: https://teztnets.xyz
+        schedule: "0 5 0 * * MON" # at 00:05:00 every monday
+    rollupnet:
+      receiver_threads: 2
+      periodic:
+        info_base_url: ${ROLLUPNET_RPC}
+        schedule: "0 5 0 * * *" # at 00:05:00 every day
+  connections:
+    max: 5
+    idle: 5
+
+scripts:
+  aws:
+    bucket_name: bcd-elastic-snapshots
+    region: eu-central-1
+    access_key_id: ${AWS_ACCESS_KEY_ID}
+    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+  networks:
+    - dailynet
+    - mondaynet
+    - rollupnet
+  connections:
+    max: 5
+    idle: 5

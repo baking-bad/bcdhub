@@ -59,7 +59,7 @@ test:
 	go test ./...
 
 lint:
-	golangci-lint run --go=1.18
+	golangci-lint run
 
 test-api:
 	# to install newman:

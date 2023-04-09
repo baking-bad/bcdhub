@@ -5,15 +5,17 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/baking-bad/bcdhub/internal/periodic"
 	"gopkg.in/yaml.v3"
 )
 
 // Environments
 const (
-	EnvironmentVar  = "BCD_ENV"
-	EnvironmentDev  = "development"
-	EnvironmentProd = "production"
-	EnvironmentBox  = "sandbox"
+	EnvironmentVar      = "BCD_ENV"
+	EnvironmentDev      = "development"
+	EnvironmentProd     = "production"
+	EnvironmentBox      = "sandbox"
+	EnvironmentTestnets = "testnets"
 )
 
 // Config -
@@ -44,7 +46,8 @@ type Config struct {
 
 // IndexerConfig -
 type IndexerConfig struct {
-	ReceiverThreads int64 `yaml:"receiver_threads"`
+	ReceiverThreads int64            `yaml:"receiver_threads"`
+	Periodic        *periodic.Config `yaml:"periodic"`
 }
 
 // RPCConfig -
@@ -159,17 +162,19 @@ type SeedConfig struct {
 	} `yaml:"accounts"`
 }
 
+// APIConfig -
 type APIConfig struct {
-	ProjectName   string         `yaml:"project_name"`
-	Bind          string         `yaml:"bind"`
-	CorsEnabled   bool           `yaml:"cors_enabled"`
-	SentryEnabled bool           `yaml:"sentry_enabled"`
-	SeedEnabled   bool           `yaml:"seed_enabled"`
-	Frontend      FrontendConfig `yaml:"frontend"`
-	Seed          SeedConfig     `yaml:"seed"`
-	Networks      []string       `yaml:"networks"`
-	PageSize      uint64         `yaml:"page_size"`
-	Connections   Connections    `yaml:"connections"`
+	ProjectName   string           `yaml:"project_name"`
+	Bind          string           `yaml:"bind"`
+	CorsEnabled   bool             `yaml:"cors_enabled"`
+	SentryEnabled bool             `yaml:"sentry_enabled"`
+	SeedEnabled   bool             `yaml:"seed_enabled"`
+	Frontend      FrontendConfig   `yaml:"frontend"`
+	Seed          SeedConfig       `yaml:"seed"`
+	Networks      []string         `yaml:"networks"`
+	PageSize      uint64           `yaml:"page_size"`
+	Connections   Connections      `yaml:"connections"`
+	Periodic      *periodic.Config `yaml:"periodic"`
 }
 
 // SentryConfig -
@@ -192,9 +197,10 @@ type Connections struct {
 // LoadDefaultConfig -
 func LoadDefaultConfig() (Config, error) {
 	configurations := map[string]string{
-		EnvironmentProd: "production.yml",
-		EnvironmentBox:  "sandbox.yml",
-		EnvironmentDev:  "../../configs/development.yml",
+		EnvironmentProd:     "production.yml",
+		EnvironmentBox:      "sandbox.yml",
+		EnvironmentDev:      "../../configs/development.yml",
+		EnvironmentTestnets: "testnets.yml",
 	}
 
 	env := os.Getenv(EnvironmentVar)
