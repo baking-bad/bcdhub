@@ -195,8 +195,9 @@ func (c *Contract) FromModel(contract contract.Contract) {
 type ContractWithStats struct {
 	Contract
 
-	SameCount   int64 `json:"same_count"`
-	EventsCount int   `json:"events_count"`
+	SameCount        int64 `json:"same_count"`
+	EventsCount      int   `json:"events_count"`
+	HasTicketUpdates bool  `json:"has_ticket_updates"`
 }
 
 // RecentlyCalledContract -
@@ -660,14 +661,15 @@ func NewEvent(o operation.Operation) (*Event, error) {
 
 // TicketUpdate -
 type TicketUpdate struct {
-	ID          int64           `json:"id"`
-	Level       int64           `json:"level"`
-	Timestamp   time.Time       `json:"timestamp"`
-	Ticketer    string          `json:"ticketer"`
-	Address     string          `json:"address"`
-	Amount      string          `json:"amount"`
-	ContentType []ast.Typedef   `json:"content_type"`
-	Content     *ast.MiguelNode `json:"content,omitempty"`
+	ID            int64           `json:"id"`
+	Level         int64           `json:"level"`
+	Timestamp     time.Time       `json:"timestamp"`
+	Ticketer      string          `json:"ticketer"`
+	Address       string          `json:"address"`
+	Amount        string          `json:"amount"`
+	OperationHash string          `json:"operation_hash"`
+	ContentType   []ast.Typedef   `json:"content_type"`
+	Content       *ast.MiguelNode `json:"content,omitempty"`
 }
 
 // NewTicketUpdateFromModel -
