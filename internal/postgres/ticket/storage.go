@@ -34,3 +34,23 @@ func (storage *Storage) Get(ticketer string, limit, offset int64) ([]ticket.Tick
 	err := query.Order("id desc").Select(&response)
 	return response, err
 }
+
+// Has -
+func (storage *Storage) Has(contractID int64) (bool, error) {
+	var id int64
+	err := storage.DB.
+		Model((*ticket.TicketUpdate)(nil)).
+		Column("id").
+		Where("ticketer_id = ?", contractID).
+		OrderExpr("id ASC").
+		Limit(1).
+		Select(&id)
+
+	if err != nil {
+		if storage.IsRecordNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}

@@ -68,6 +68,12 @@ func GetContractTicketUpdates() gin.HandlerFunc {
 				update.Content = contentMiguel[0]
 			}
 
+			operation, err := ctx.Operations.GetByID(updates[i].OperationID)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			update.OperationHash = operation.Hash
+
 			response = append(response, update)
 		}
 
