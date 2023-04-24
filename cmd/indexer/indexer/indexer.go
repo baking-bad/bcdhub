@@ -240,7 +240,7 @@ func (bi *BlockchainIndexer) Index(ctx context.Context, head noderpc.Header) err
 func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) error {
 	return bi.StorageDB.DB.RunInTransaction(ctx,
 		func(tx *pg.Tx) error {
-			logger.Info().Str("network", bi.Network.String()).Msgf("indexing %7d block", block.Header.Level)
+			logger.Info().Str("network", bi.Network.String()).Int64("block", block.Header.Level).Msg("indexing")
 
 			if block.Header.Protocol != bi.currentProtocol.Hash || (bi.Network == types.Mainnet && block.Header.Level == 1) {
 				logger.Info().Str("network", bi.Network.String()).Msgf("New protocol detected: %s -> %s", bi.currentProtocol.Hash, block.Header.Protocol)
@@ -329,8 +329,7 @@ func (bi *BlockchainIndexer) process(ctx context.Context) error {
 		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.Protocol.ChainID, head.ChainID)
 	}
 
-	logger.Info().Str("network", bi.Network.String()).Msgf("Current node state: %7d", head.Level)
-	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %7d", bi.state.Level)
+	logger.Info().Str("network", bi.Network.String()).Int64("node", head.Level).Int64("indexer", bi.state.Level).Msg("current state")
 
 	switch {
 	case head.Level > bi.state.Level:

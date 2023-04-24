@@ -39,6 +39,7 @@ var symLinks = map[string]string{
 	"PtLimaPtLMwfNinJi9rCfDPWea8dFgTZ1MeJ9f1m2SRic6ayiwW": SymLinkJakarta, // Lima
 	"PtMumbaiiFFEGbew1rRjzSPyzRbA51Tm3RVZL5suHPxSZYDhCEc": SymLinkJakarta, // Mumbai
 	"PtMumbai2TmsJHNGRkD8v8YDbtao7BLUC3wjASn1inAKLFCjaH1": SymLinkJakarta, // Mumbai 2
+	"PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf": SymLinkJakarta, // Nairobinet
 }
 
 // GetProtoSymLink -
@@ -69,4 +70,5 @@ var ChainID = map[string]string{
 	"NetXi2ZagzEsXbZ": "kathmandunet",
 	"NetXizpkH94bocH": "limanet",
 	"NetXQw6nWSnrJ5t": "mumbainet",
+	"NetXyuzvDo2Ugzb": "nairobinet",
 }

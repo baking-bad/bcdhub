@@ -11,6 +11,10 @@ rpc:
     uri: https://rpc.tzkt.io/mumbainet
     timeout: 20
     requests_per_second: 20
+  nairobinet:
+    uri: https://rpc.tzkt.io/nairobinet
+    timeout: 20
+    requests_per_second: 20
 
 tzkt:
   mainnet:
@@ -23,6 +27,8 @@ services:
   ghostnet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   mumbainet:
+    mempool: https://mempool.test.dipdup.net/v1/graphql
+  nairobinet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
 
 storage:
@@ -60,10 +66,12 @@ api:
       mainnet: https://rpc.tzkt.io/mainnet
       ghostnet: https://rpc.tzkt.io/ghostnet
       mumbainet: https://rpc.tzkt.io/mumbainet
+      nairobinet: https://rpc.tzkt.io/nairobinet
   networks:
     - mainnet
     - ghostnet
     - mumbainet
+    - nairobinet
   connections:
     max: 50
     idle: 10
@@ -77,6 +85,8 @@ indexer:
     ghostnet:
       receiver_threads: ${TESTNET_THREADS:-1}
     mumbainet:
+      receiver_threads: ${TESTNET_THREADS:-1}
+    nairobinet:
       receiver_threads: ${TESTNET_THREADS:-1}
   connections:
     max: 5
@@ -92,6 +102,7 @@ scripts:
     - mainnet
     - ghostnet
     - mumbainet
+    - nairobinet
   connections:
     max: 5
     idle: 5
