@@ -34,7 +34,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/indexer /go/bin/indexer
 COPY configs/*.yml /app/indexer/
 
-COPY build/indexer/entrypoint.sh build/indexer/healthcheck.sh /
-RUN chmod +x /entrypoint.sh /healthcheck.sh
+COPY build/indexer/entrypoint.sh /
+RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/go/bin/indexer"]
