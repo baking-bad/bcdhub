@@ -48,7 +48,7 @@ COPY --from=builder /go/bin/bcdctl /go/bin/bcdctl
 COPY --from=builder /go/bin/migration /go/bin/migration
 COPY --from=builder /go/bin/seo /go/bin/seo
 
-COPY build/api/entrypoint.sh build/api/healthcheck.sh /
-RUN chmod +x /entrypoint.sh /healthcheck.sh
+COPY build/api/entrypoint.sh /
+RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/go/bin/api"]
