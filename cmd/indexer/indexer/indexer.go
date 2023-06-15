@@ -41,6 +41,8 @@ type BlockchainIndexer struct {
 	updateTicker *time.Ticker
 	Network      types.Network
 
+	refreshTimer chan struct{}
+
 	isPeriodic  bool
 	indicesInit sync.Once
 }
@@ -61,11 +63,12 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 
 	bi := &BlockchainIndexer{
-		Context:    internalCtx,
-		receiver:   NewReceiver(internalCtx.RPC, 20, indexerConfig.ReceiverThreads),
-		blocks:     make(map[int64]*Block),
-		Network:    networkType,
-		isPeriodic: indexerConfig.Periodic != nil,
+		Context:      internalCtx,
+		receiver:     NewReceiver(internalCtx.RPC, 20, indexerConfig.ReceiverThreads),
+		blocks:       make(map[int64]*Block),
+		Network:      networkType,
+		isPeriodic:   indexerConfig.Periodic != nil,
+		refreshTimer: make(chan struct{}, 10),
 	}
 
 	if err := bi.init(ctx, bi.Context.StorageDB); err != nil {
@@ -77,6 +80,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 
 // Close -
 func (bi *BlockchainIndexer) Close() error {
+	close(bi.refreshTimer)
 	return bi.Context.Close()
 }
 
@@ -140,10 +144,6 @@ func (bi *BlockchainIndexer) Start(ctx context.Context, wg *sync.WaitGroup) {
 	}
 
 	everySecond := false
-	duration := time.Duration(bi.currentProtocol.Constants.TimeBetweenBlocks) * time.Second
-	if duration.Microseconds() <= 0 {
-		duration = 10 * time.Second
-	}
 	bi.setUpdateTicker(0)
 	for {
 		select {
@@ -166,14 +166,14 @@ func (bi *BlockchainIndexer) Start(ctx context.Context, wg *sync.WaitGroup) {
 				everySecond = false
 				bi.setUpdateTicker(0)
 			}
+		case <-bi.refreshTimer:
+			// do nothing. refreshTimer event is for update select statement after Ticker update
+			// https://go.dev/ref/spec#Select_statements
 		}
 	}
 }
 
 func (bi *BlockchainIndexer) setUpdateTicker(seconds int) {
-	if bi.updateTicker != nil {
-		bi.updateTicker.Stop()
-	}
 	var duration time.Duration
 	if seconds == 0 {
 		duration = time.Duration(bi.currentProtocol.Constants.TimeBetweenBlocks) * time.Second
@@ -183,8 +183,12 @@ func (bi *BlockchainIndexer) setUpdateTicker(seconds int) {
 	} else {
 		duration = time.Duration(seconds) * time.Second
 	}
+	if bi.updateTicker != nil {
+		bi.updateTicker.Stop()
+	}
 	logger.Info().Str("network", bi.Network.String()).Msgf("Data will be updated every %.0f seconds", duration.Seconds())
 	bi.updateTicker = time.NewTicker(duration)
+	bi.refreshTimer <- struct{}{}
 }
 
 func (bi *BlockchainIndexer) indexBlock(ctx context.Context, wg *sync.WaitGroup) {
