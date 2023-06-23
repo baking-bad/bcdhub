@@ -254,7 +254,11 @@ func (m *Map) Docs(inferredName string) ([]Typedef, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	typedef.Args = append(typedef.Args, TypedefArg{Key: valDocs[0].Name, Value: valVarName})
+	if len(valDocs) > 0 {
+		typedef.Args = append(typedef.Args, TypedefArg{Key: valDocs[0].Name, Value: valVarName})
+	} else {
+		typedef.Args = append(typedef.Args, TypedefArg{Value: valVarName})
+	}
 
 	typedef.Type = fmt.Sprintf("map(%s, %s)", keyVarName, valVarName)
 	result := []Typedef{typedef}
