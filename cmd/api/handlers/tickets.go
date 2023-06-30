@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
 )
@@ -72,7 +73,9 @@ func GetContractTicketUpdates() gin.HandlerFunc {
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
-			update.OperationHash = operation.Hash
+			if len(operation.Hash) > 0 {
+				update.OperationHash = encoding.MustEncodeOperationHash(operation.Hash)
+			}
 
 			response = append(response, update)
 		}

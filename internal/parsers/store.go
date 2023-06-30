@@ -1,6 +1,8 @@
 package parsers
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
@@ -16,7 +18,7 @@ type Store interface {
 	AddGlobalConstants(constants ...*contract.GlobalConstant)
 	ListContracts() []*contract.Contract
 	ListOperations() []*operation.Operation
-	Save() error
+	Save(ctx context.Context) error
 }
 
 // TestStore -
@@ -75,6 +77,6 @@ func (store *TestStore) ListOperations() []*operation.Operation {
 }
 
 // Save -
-func (store *TestStore) Save() error {
+func (store *TestStore) Save(ctx context.Context) error {
 	return nil
 }

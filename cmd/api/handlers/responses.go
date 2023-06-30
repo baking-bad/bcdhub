@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -67,7 +68,9 @@ type Operation struct {
 // FromModel -
 func (o *Operation) FromModel(operation operation.Operation) {
 	o.ID = operation.ID
-	o.Hash = operation.Hash
+	if len(operation.Hash) > 0 {
+		o.Hash = encoding.MustEncodeOperationHash(operation.Hash)
+	}
 	o.Internal = operation.Internal
 	o.Timestamp = operation.Timestamp.UTC()
 
@@ -97,9 +100,13 @@ func (o *Operation) FromModel(operation operation.Operation) {
 
 // ToModel -
 func (o *Operation) ToModel() operation.Operation {
+	var hash []byte
+	if o.Hash != "" {
+		hash = encoding.MustDecodeBase58(o.Hash)
+	}
 	return operation.Operation{
 		ID:        o.ID,
-		Hash:      o.Hash,
+		Hash:      hash,
 		Internal:  o.Internal,
 		Timestamp: o.Timestamp,
 		Level:     o.Level,
@@ -636,8 +643,13 @@ func NewEvent(o operation.Operation) (*Event, error) {
 		return nil, nil
 	}
 
+	var hash string
+	if len(o.Hash) > 0 {
+		hash = encoding.MustEncodeOperationHash(o.Hash)
+	}
+
 	e := &Event{
-		Hash:      o.Hash,
+		Hash:      hash,
 		Status:    o.Status.String(),
 		Timestamp: o.Timestamp,
 		Level:     o.Level,
