@@ -301,8 +301,9 @@ type RunCodeResponse struct {
 
 // RunCodeError -
 type RunCodeError struct {
-	ID   string `json:"id"`
-	Kind string `json:"kind,omitempty"`
+	ID   string             `json:"id"`
+	Kind string             `json:"kind,omitempty"`
+	With stdJSON.RawMessage `json:"with,omitempty"`
 }
 
 // OperationError -

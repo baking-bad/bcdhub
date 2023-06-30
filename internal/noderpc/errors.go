@@ -74,6 +74,10 @@ func (e InvalidNodeResponse) Error() string {
 				s.WriteByte('\n')
 			}
 			s.WriteString(e.Errors[i].ID)
+			if len(e.Errors[i].With) > 0 {
+				s.WriteString(" with ")
+				_, _ = s.Write(e.Errors[i].With)
+			}
 		}
 	} else {
 		_, _ = s.Write(e.Raw)
