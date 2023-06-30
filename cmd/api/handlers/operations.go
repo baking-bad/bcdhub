@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	formattererror "github.com/baking-bad/bcdhub/internal/bcd/formatter/error"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
@@ -113,9 +114,14 @@ func GetOperation() gin.HandlerFunc {
 		operations := make([]operation.Operation, 0)
 		var foundContext *config.Context
 
+		hash, err := encoding.DecodeBase58(req.Hash)
+		if handleError(c, any.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
 		network := modelTypes.NewNetwork(queryReq.Network)
 		if ctx, ok := ctxs[network]; ok {
-			op, err := ctx.Operations.GetByHash(req.Hash)
+			op, err := ctx.Operations.GetByHash(hash)
 			if err != nil {
 				if !ctx.Storage.IsRecordNotFound(err) {
 					handleError(c, ctx.Storage, err, 0)
@@ -127,7 +133,7 @@ func GetOperation() gin.HandlerFunc {
 			}
 		} else {
 			for _, ctx := range ctxs {
-				op, err := ctx.Operations.GetByHash(req.Hash)
+				op, err := ctx.Operations.GetByHash(hash)
 				if err != nil {
 					if !ctx.Storage.IsRecordNotFound(err) {
 						handleError(c, ctx.Storage, err, 0)
@@ -383,19 +389,24 @@ func GetByHashAndCounter() gin.HandlerFunc {
 			return
 		}
 
+		hash, err := encoding.DecodeBase58(req.Hash)
+		if handleError(c, ctxs.Any().Storage, err, http.StatusBadRequest) {
+			return
+		}
+
 		var opg []operation.Operation
 		var foundContext *config.Context
 
 		ctx, err := ctxs.Get(modelTypes.NewNetwork(args.Network))
 		if err == nil {
-			opg, err = ctx.Operations.GetByHashAndCounter(req.Hash, req.Counter)
+			opg, err = ctx.Operations.GetByHashAndCounter(hash, req.Counter)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 			foundContext = ctx
 		} else {
 			for _, ctx := range ctxs {
-				opg, err = ctx.Operations.GetByHashAndCounter(req.Hash, req.Counter)
+				opg, err = ctx.Operations.GetByHashAndCounter(hash, req.Counter)
 				if handleError(c, ctx.Storage, err, 0) {
 					return
 				}

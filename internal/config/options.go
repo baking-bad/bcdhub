@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
+	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/account"
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/postgres/contract"
@@ -73,6 +74,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		ctx.Domains = domains.NewStorage(conn)
 		ctx.TicketUpdates = ticket.NewStorage(conn)
 		ctx.Scripts = contractStorage
+		ctx.Partitions = postgres.NewPartitionManager(conn)
 	}
 }
 

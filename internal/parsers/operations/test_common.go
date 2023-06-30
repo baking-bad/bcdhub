@@ -223,7 +223,7 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info().Msgf("Protocol: %d != %d", one.ProtocolID, two.ProtocolID)
 		return false
 	}
-	if one.Hash != two.Hash {
+	if !bytes.Equal(one.Hash, two.Hash) {
 		logger.Info().Msgf("Hash: %s != %s", one.Hash, two.Hash)
 		return false
 	}

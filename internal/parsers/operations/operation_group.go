@@ -3,6 +3,7 @@ package operations
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -20,8 +21,14 @@ func NewGroup(params *ParseParams) Group {
 
 // Parse -
 func (opg Group) Parse(data noderpc.LightOperationGroup, store parsers.Store) error {
-	opg.hash = data.Hash
-	helpers.SetTagSentry("hash", opg.hash)
+	helpers.SetTagSentry("hash", data.Hash)
+	if data.Hash != "" {
+		hash, err := encoding.DecodeBase58(data.Hash)
+		if err != nil {
+			return err
+		}
+		opg.hash = hash
+	}
 
 	for idx, item := range data.Contents {
 		opg.contentIdx = int64(idx)

@@ -16,6 +16,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
 	"github.com/microcosm-cc/bluemonday"
@@ -46,6 +47,7 @@ type Context struct {
 	TicketUpdates   ticket.Repository
 	Domains         domains.Repository
 	Scripts         contract.ScriptRepository
+	Partitions      postgres.PartitionManager
 
 	Cache     *cache.Cache
 	Sanitizer *bluemonday.Policy

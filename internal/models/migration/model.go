@@ -16,7 +16,7 @@ type Migration struct {
 	ID             int64
 	ProtocolID     int64 `pg:",type:SMALLINT"`
 	PrevProtocolID int64
-	Hash           string
+	Hash           []byte
 	Timestamp      time.Time
 	Level          int64
 	Kind           types.MigrationKind `pg:",type:SMALLINT"`

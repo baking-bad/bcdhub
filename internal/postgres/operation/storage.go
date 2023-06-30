@@ -171,7 +171,7 @@ func (storage *Storage) Get(filters map[string]interface{}, size int64, sort boo
 }
 
 // GetByHash -
-func (storage *Storage) GetByHash(hash string) (operations []operation.Operation, err error) {
+func (storage *Storage) GetByHash(hash []byte) (operations []operation.Operation, err error) {
 	query := storage.DB.Model((*operation.Operation)(nil)).Where("hash = ?", hash)
 	addOperationSorting(query)
 	err = storage.DB.Model().TableExpr("(?) as operation", query).
@@ -277,7 +277,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 }
 
 // GetByHashAndCounter -
-func (storage *Storage) GetByHashAndCounter(hash string, counter int64) ([]operation.Operation, error) {
+func (storage *Storage) GetByHashAndCounter(hash []byte, counter int64) ([]operation.Operation, error) {
 	var operations []operation.Operation
 	err := storage.DB.Model((*operation.Operation)(nil)).
 		Where("hash = ?", hash).

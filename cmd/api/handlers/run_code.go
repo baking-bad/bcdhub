@@ -94,7 +94,7 @@ func RunOperation() gin.HandlerFunc {
 		}
 		parser := operations.NewGroup(parserParams)
 
-		store := postgres.NewStore(ctx.StorageDB.DB)
+		store := postgres.NewStore(ctx.StorageDB.DB, ctx.Partitions)
 		if err := parser.Parse(response, store); handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -304,7 +304,7 @@ func parseBigMapDiffs(c *gin.Context, ctx *config.Context, response noderpc.RunC
 		},
 	}
 
-	store := postgres.NewStore(ctx.StorageDB.DB)
+	store := postgres.NewStore(ctx.StorageDB.DB, ctx.Partitions)
 	switch operation.Kind {
 	case types.OperationKindTransaction.String():
 		err = specific.StorageParser.ParseTransaction(nodeOperation, &model, store)

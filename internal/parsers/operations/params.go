@@ -19,7 +19,7 @@ type ParseParams struct {
 
 	stackTrace *stacktrace.StackTrace
 
-	hash       string
+	hash       []byte
 	head       noderpc.Header
 	contentIdx int64
 	main       *operation.Operation
@@ -39,7 +39,7 @@ func WithProtocol(protocol *protocol.Protocol) ParseParamsOption {
 }
 
 // WithHash -
-func WithHash(hash string) ParseParamsOption {
+func WithHash(hash []byte) ParseParamsOption {
 	return func(dp *ParseParams) {
 		dp.hash = hash
 	}
