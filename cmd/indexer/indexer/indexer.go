@@ -254,7 +254,7 @@ func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) erro
 				}
 			}
 
-			store := postgres.NewStore(tx)
+			store := postgres.NewStore(tx, bi.Partitions)
 			if err := bi.implicitMigration(ctx, block, bi.currentProtocol, store); err != nil {
 				return err
 			}
@@ -263,7 +263,7 @@ func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) erro
 				return err
 			}
 
-			if err := store.Save(); err != nil {
+			if err := store.Save(ctx); err != nil {
 				return err
 			}
 
@@ -543,7 +543,7 @@ func (bi *BlockchainIndexer) vestingMigration(ctx context.Context, head noderpc.
 		return err
 	}
 
-	store := postgres.NewStore(tx)
+	store := postgres.NewStore(tx, bi.Partitions)
 
 	for _, address := range addresses {
 		if !bcd.IsContract(address) {
@@ -560,7 +560,7 @@ func (bi *BlockchainIndexer) vestingMigration(ctx context.Context, head noderpc.
 		}
 	}
 
-	return store.Save()
+	return store.Save(ctx)
 }
 
 func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, indexerConfig config.IndexerConfig) error {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/cache"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -469,7 +470,7 @@ func TestGroup_Parse(t *testing.T) {
 						Delegate: account.Account{},
 						Status:   types.OperationStatusApplied,
 						Level:    1068669,
-						Hash:     "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
+						Hash:     encoding.MustDecodeBase58("opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9"),
 						Entrypoint: types.NullString{
 							Str:   "transfer",
 							Valid: true,
@@ -519,7 +520,7 @@ func TestGroup_Parse(t *testing.T) {
 						Status:   types.OperationStatusApplied,
 						Level:    1068669,
 						Counter:  5791164,
-						Hash:     "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
+						Hash:     encoding.MustDecodeBase58("opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9"),
 						Nonce:    getInt64Pointer(0),
 						Entrypoint: types.NullString{
 							Str:   "validateAccounts",
@@ -548,7 +549,7 @@ func TestGroup_Parse(t *testing.T) {
 						Status:   types.OperationStatusApplied,
 						Level:    1068669,
 						Counter:  5791164,
-						Hash:     "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
+						Hash:     encoding.MustDecodeBase58("opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9"),
 						Nonce:    getInt64Pointer(1),
 						Entrypoint: types.NullString{
 							Str:   "validateRules",
@@ -630,7 +631,7 @@ func TestGroup_Parse(t *testing.T) {
 					{
 						ContentIndex: 0,
 						ProtocolID:   1,
-						Hash:         "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
+						Hash:         encoding.MustDecodeBase58("opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt"),
 						Internal:     false,
 						Nonce:        nil,
 						Status:       types.OperationStatusApplied,
@@ -674,7 +675,7 @@ func TestGroup_Parse(t *testing.T) {
 					}, {
 						ContentIndex: 0,
 						ProtocolID:   1,
-						Hash:         "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
+						Hash:         encoding.MustDecodeBase58("opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt"),
 						Internal:     true,
 						Nonce:        getInt64Pointer(0),
 						Status:       types.OperationStatusApplied,
@@ -814,7 +815,7 @@ func TestGroup_Parse(t *testing.T) {
 					{
 						ContentIndex: 0,
 						ProtocolID:   0,
-						Hash:         "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
+						Hash:         encoding.MustDecodeBase58("onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt"),
 						Internal:     false,
 						Status:       types.OperationStatusApplied,
 						Timestamp:    timestamp,
@@ -928,7 +929,7 @@ func TestGroup_Parse(t *testing.T) {
 						Status:   types.OperationStatusApplied,
 						Level:    301436,
 
-						Hash:      "onv6Q1dNejAGEJeQzwRannWsDSGw85FuFdhLnBrY18TBcC9p8kC",
+						Hash:      encoding.MustDecodeBase58("onv6Q1dNejAGEJeQzwRannWsDSGw85FuFdhLnBrY18TBcC9p8kC"),
 						Timestamp: timestamp,
 						Burned:    331000,
 						Initiator: account.Account{
@@ -1027,7 +1028,7 @@ func TestGroup_Parse(t *testing.T) {
 						},
 						Status:    types.OperationStatusApplied,
 						Level:     72207,
-						Hash:      "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
+						Hash:      encoding.MustDecodeBase58("op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg"),
 						Timestamp: timestamp,
 						Entrypoint: types.NullString{
 							Str:   "@entrypoint_1",
@@ -1081,7 +1082,7 @@ func TestGroup_Parse(t *testing.T) {
 						},
 						Status:    types.OperationStatusApplied,
 						Level:     72207,
-						Hash:      "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
+						Hash:      encoding.MustDecodeBase58("op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg"),
 						Timestamp: timestamp,
 						Burned:    5245000,
 						Counter:   155670,
@@ -1212,7 +1213,7 @@ func TestGroup_Parse(t *testing.T) {
 						Status: types.OperationStatusApplied,
 						Level:  1516349,
 
-						Hash:      "ooz1bkCQeYsZYP7vb4Dx7pYPRpWN11Z3G3yP1v4HAfdNXuHRv9c",
+						Hash:      encoding.MustDecodeBase58("ooz1bkCQeYsZYP7vb4Dx7pYPRpWN11Z3G3yP1v4HAfdNXuHRv9c"),
 						Timestamp: timestamp,
 						Entrypoint: types.NullString{
 							Str:   "transfer",
@@ -1309,7 +1310,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations: []*operation.Operation{
 					{
 						Kind: types.OperationKindTransaction,
-						Hash: "oocFt4vkkgQGfoRH54328cJUbDdWvj3x6KEs5Arm4XhqwwJmnJ8",
+						Hash: encoding.MustDecodeBase58("oocFt4vkkgQGfoRH54328cJUbDdWvj3x6KEs5Arm4XhqwwJmnJ8"),
 						Source: account.Account{
 
 							Address: "tz1WKygtstVY96oyc6Rmk945dMf33LeihgWT",
@@ -1345,7 +1346,7 @@ func TestGroup_Parse(t *testing.T) {
 					},
 					{
 						Kind:       types.OperationKindTransaction,
-						Hash:       "oocFt4vkkgQGfoRH54328cJUbDdWvj3x6KEs5Arm4XhqwwJmnJ8",
+						Hash:       encoding.MustDecodeBase58("oocFt4vkkgQGfoRH54328cJUbDdWvj3x6KEs5Arm4XhqwwJmnJ8"),
 						Internal:   true,
 						Timestamp:  timestamp,
 						Status:     types.OperationStatusApplied,
@@ -1427,7 +1428,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations: []*operation.Operation{
 					{
 						Kind: types.OperationKindRegisterGlobalConstant,
-						Hash: "ooffKPL6WmMgqzLGtRtLp2HdEbVL3K2fVzKQLyxsBFMC84wpjRt",
+						Hash: encoding.MustDecodeBase58("ooffKPL6WmMgqzLGtRtLp2HdEbVL3K2fVzKQLyxsBFMC84wpjRt"),
 						Source: account.Account{
 							Address: "tz1SMARcpWCydHsGgz4MRoK9NkbpBmmUAfNe",
 							Type:    types.AccountTypeTz,
@@ -1499,7 +1500,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations: []*operation.Operation{
 					{
 						Kind: types.OperationKindTransaction,
-						Hash: "oozvzXiZmVW9QtYjKmDuYqoHNCEvt32FwM2cUgQee2S1SGWgumA",
+						Hash: encoding.MustDecodeBase58("oozvzXiZmVW9QtYjKmDuYqoHNCEvt32FwM2cUgQee2S1SGWgumA"),
 						Source: account.Account{
 							Address: "tz1RiUE3Ao53juAz4uDYx1J3tHJMye6jPfhp",
 							Type:    types.AccountTypeTz,
@@ -1541,7 +1542,7 @@ func TestGroup_Parse(t *testing.T) {
 						},
 					}, {
 						Kind: types.OperationKindTransaction,
-						Hash: "oozvzXiZmVW9QtYjKmDuYqoHNCEvt32FwM2cUgQee2S1SGWgumA",
+						Hash: encoding.MustDecodeBase58("oozvzXiZmVW9QtYjKmDuYqoHNCEvt32FwM2cUgQee2S1SGWgumA"),
 						Source: account.Account{
 							Address: "KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6",
 							Type:    types.AccountTypeContract,
@@ -1587,7 +1588,7 @@ func TestGroup_Parse(t *testing.T) {
 						},
 					}, {
 						Kind: types.OperationKindTransaction,
-						Hash: "oozvzXiZmVW9QtYjKmDuYqoHNCEvt32FwM2cUgQee2S1SGWgumA",
+						Hash: encoding.MustDecodeBase58("oozvzXiZmVW9QtYjKmDuYqoHNCEvt32FwM2cUgQee2S1SGWgumA"),
 						Source: account.Account{
 							Address: "KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6",
 							Type:    types.AccountTypeContract,
@@ -1637,7 +1638,7 @@ func TestGroup_Parse(t *testing.T) {
 						},
 					}, {
 						Kind: types.OperationKindOrigination,
-						Hash: "oozvzXiZmVW9QtYjKmDuYqoHNCEvt32FwM2cUgQee2S1SGWgumA",
+						Hash: encoding.MustDecodeBase58("oozvzXiZmVW9QtYjKmDuYqoHNCEvt32FwM2cUgQee2S1SGWgumA"),
 						Source: account.Account{
 							Address: "KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6",
 							Type:    types.AccountTypeContract,
@@ -2119,7 +2120,7 @@ func TestGroup_Parse(t *testing.T) {
 						},
 						Status:    types.OperationStatusApplied,
 						Level:     707452,
-						Hash:      "opPDkVe1nU5xqLyoWYQ2r6H7PaJM5S4Pe4WtTmEE7UMQAwfnuiJ",
+						Hash:      encoding.MustDecodeBase58("opPDkVe1nU5xqLyoWYQ2r6H7PaJM5S4Pe4WtTmEE7UMQAwfnuiJ"),
 						Timestamp: timestamp,
 						Initiator: account.Account{
 							Address: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",

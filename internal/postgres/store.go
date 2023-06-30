@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -20,11 +21,12 @@ type Store struct {
 	Operations      []*operation.Operation
 	GlobalConstants []*contract.GlobalConstant
 
-	tx pg.DBI
+	partitions PartitionManager
+	tx         pg.DBI
 }
 
 // NewStore -
-func NewStore(tx pg.DBI) *Store {
+func NewStore(tx pg.DBI, pm PartitionManager) *Store {
 	return &Store{
 		BigMapState:     make([]*bigmapdiff.BigMapState, 0),
 		Contracts:       make([]*contract.Contract, 0),
@@ -32,7 +34,8 @@ func NewStore(tx pg.DBI) *Store {
 		Operations:      make([]*operation.Operation, 0),
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
 
-		tx: tx,
+		partitions: pm,
+		tx:         tx,
 	}
 }
 
@@ -72,8 +75,8 @@ func (store *Store) ListOperations() []*operation.Operation {
 }
 
 // Save -
-func (store *Store) Save() error {
-	if err := store.saveOperations(store.tx); err != nil {
+func (store *Store) Save(ctx context.Context) error {
+	if err := store.saveOperations(ctx, store.tx); err != nil {
 		return err
 	}
 
@@ -115,7 +118,7 @@ func (store *Store) saveMigrations(tx pg.DBI) error {
 	return err
 }
 
-func (store *Store) saveOperations(tx pg.DBI) error {
+func (store *Store) saveOperations(ctx context.Context, tx pg.DBI) error {
 	if len(store.Operations) == 0 {
 		return nil
 	}
@@ -145,6 +148,10 @@ func (store *Store) saveOperations(tx pg.DBI) error {
 			}
 			store.Operations[i].DelegateID = store.Operations[i].Delegate.ID
 		}
+	}
+
+	if err := store.partitions.CreatePartitions(ctx, store.Operations[0].Timestamp); err != nil {
+		return err
 	}
 
 	if _, err := tx.Model(&store.Operations).Returning("id").Insert(); err != nil {

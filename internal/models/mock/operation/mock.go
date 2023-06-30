@@ -65,7 +65,7 @@ func (mr *MockRepositoryMockRecorder) Last(filter, lastID interface{}) *gomock.C
 }
 
 // GetByHash mocks base method
-func (m *MockRepository) GetByHash(hash string) ([]model.Operation, error) {
+func (m *MockRepository) GetByHash(hash []byte) ([]model.Operation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByHash", hash)
 	ret0, _ := ret[0].([]model.Operation)
@@ -80,7 +80,7 @@ func (mr *MockRepositoryMockRecorder) GetByHash(hash interface{}) *gomock.Call {
 }
 
 // GetByHashAndCounter mocks base method
-func (m *MockRepository) GetByHashAndCounter(hash string, counter int64) ([]model.Operation, error) {
+func (m *MockRepository) GetByHashAndCounter(hash []byte, counter int64) ([]model.Operation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByHashAndCounter", hash, counter)
 	ret0, _ := ret[0].([]model.Operation)

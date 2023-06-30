@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 #  The first stage container, for building the application
 # ---------------------------------------------------------------------
-FROM golang:1.19-alpine as builder
+FROM golang:1.20-alpine as builder
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on

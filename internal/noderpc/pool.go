@@ -58,7 +58,6 @@ func NewWaitPool(urls []string, opts ...NodeOption) Pool {
 }
 
 func (p Pool) getNode() (*poolItem, error) {
-	rand.Seed(time.Now().UnixNano())
 	nodes := make([]*poolItem, 0)
 	for i := range p {
 		// if p[i].isBlocked() {
