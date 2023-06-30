@@ -1,12 +1,12 @@
+name: Test
 on:
   push:
     branches-ignore:
       - master
 
-name: Pull Request Tests
 jobs:
   golangci:
-    name: lint
+    name: Run linter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-go@v3
@@ -19,7 +19,7 @@ jobs:
           version: v1.51.2
           args: --timeout=3m
   test:
-    name: Tests
+    name: Run tests
     runs-on: ubuntu-latest
     steps:
       - name: install Go
@@ -41,7 +41,7 @@ jobs:
           go mod download
           go test ./...
   security:
-    name: Security Analyze
+    name: CodeQL security analyzer
     runs-on: ubuntu-latest
     permissions:
       actions: read

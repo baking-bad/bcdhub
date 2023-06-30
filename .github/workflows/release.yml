@@ -1,4 +1,4 @@
-name: Build release
+name: Release
 on:
   push:
     tags:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Publish Github release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
