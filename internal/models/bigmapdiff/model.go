@@ -37,7 +37,7 @@ func (b *BigMapDiff) GetIndex() string {
 // Save -
 func (b *BigMapDiff) Save(tx pg.DBI) error {
 	_, err := tx.Model(b).
-		OnConflict("(id) DO UPDATE").
+		OnConflict("(id, timestamp) DO UPDATE").
 		Set(`
 			ptr = excluded.ptr, 
 			key = excluded.key, 
