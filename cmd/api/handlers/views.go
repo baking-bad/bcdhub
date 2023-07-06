@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"io"
 	"net/http"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/views"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 var (
