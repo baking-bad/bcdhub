@@ -73,8 +73,8 @@ indexer:
   networks:
     mainnet:
       receiver_threads: 5
-    # ghostnet:
-    #   receiver_threads: 10
+    ghostnet:
+      receiver_threads: 10
     nairobinet:
       receiver_threads: 10
   connections:

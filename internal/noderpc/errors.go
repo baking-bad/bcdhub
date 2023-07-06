@@ -94,5 +94,5 @@ func (e InvalidNodeResponse) Is(target error) bool {
 // Errors
 var (
 	ErrInvalidStatusCode = errors.New("invalid status code")
-	ErrNodeRPCError      = "Node RPC error"
+	ErrNodeRPCError      = errors.New("Node RPC error")
 )
