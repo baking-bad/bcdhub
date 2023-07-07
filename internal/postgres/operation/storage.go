@@ -126,7 +126,7 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 		current = time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC)
 	)
 
-	for current.Year() < 2018 {
+	for current.Year() >= 2018 {
 		query := storage.DB.Model((*operation.Operation)(nil)).
 			Where("deffated_storage is not null").
 			Where("timestamp >= ?", current).
