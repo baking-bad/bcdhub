@@ -1,4 +1,4 @@
-FROM node:14 AS build
+FROM node:16 AS build
 
 ARG TAG
 RUN git clone --depth=1 --branch ${TAG} https://github.com/baking-bad/bcd.git /bcd
