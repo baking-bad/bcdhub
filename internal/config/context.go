@@ -47,7 +47,7 @@ type Context struct {
 	TicketUpdates   ticket.Repository
 	Domains         domains.Repository
 	Scripts         contract.ScriptRepository
-	Partitions      postgres.PartitionManager
+	Partitions      *postgres.PartitionManager
 
 	Cache     *cache.Cache
 	Sanitizer *bluemonday.Policy

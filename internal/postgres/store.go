@@ -21,12 +21,12 @@ type Store struct {
 	Operations      []*operation.Operation
 	GlobalConstants []*contract.GlobalConstant
 
-	partitions PartitionManager
+	partitions *PartitionManager
 	tx         pg.DBI
 }
 
 // NewStore -
-func NewStore(tx pg.DBI, pm PartitionManager) *Store {
+func NewStore(tx pg.DBI, pm *PartitionManager) *Store {
 	return &Store{
 		BigMapState:     make([]*bigmapdiff.BigMapState, 0),
 		Contracts:       make([]*contract.Contract, 0),

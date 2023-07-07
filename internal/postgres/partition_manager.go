@@ -21,8 +21,8 @@ type PartitionManager struct {
 }
 
 // NewPartitionManager -
-func NewPartitionManager(conn *core.Postgres) PartitionManager {
-	return PartitionManager{
+func NewPartitionManager(conn *core.Postgres) *PartitionManager {
+	return &PartitionManager{
 		conn: conn,
 	}
 }
