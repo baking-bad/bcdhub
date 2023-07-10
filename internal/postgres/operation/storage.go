@@ -350,7 +350,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			opg = opg[:count]
 		}
 
-		result = append(result, opg[:count]...)
+		result = append(result, opg...)
 
 		if len(result) < limit {
 			lastAction = lastAction.AddDate(0, -3, 0)
