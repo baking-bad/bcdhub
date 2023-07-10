@@ -1,6 +1,7 @@
 package operation
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -245,47 +246,89 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 		return nil, err
 	}
 
-	limit := storage.GetPageSize(size)
+	var (
+		end        bool
+		result     = make([]operation.OPG, 0)
+		currentOpg operation.OPG
+		isAdded    bool
+	)
+	for !end {
+		subQuery := storage.DB.Model((*operation.Operation)(nil)).
+			WhereGroup(
+				func(q *orm.Query) (*orm.Query, error) {
+					return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
+				},
+			).
+			Limit(1000).
+			Order("id desc")
 
-	subQuery := storage.DB.Model(new(operation.Operation)).
-		Column("id", "hash", "counter", "status", "kind").
-		WhereGroup(
-			func(q *orm.Query) (*orm.Query, error) {
-				return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
-			},
-		)
+		if lastID > 0 {
+			subQuery.Where("id < ?", lastID)
+		}
 
-	if lastID > 0 {
-		subQuery.Where("id < ?", lastID)
+		var ops []operation.Operation
+		if err := subQuery.Select(&ops); err != nil {
+			return nil, err
+		}
+
+		if len(ops) == 0 {
+			break
+		}
+
+		for i := range ops {
+			if !bytes.Equal(currentOpg.Hash, ops[i].Hash) && currentOpg.Counter != ops[i].Counter {
+				if len(currentOpg.Hash) > 0 && currentOpg.Counter > 0 {
+					result = append(result, currentOpg)
+					currentOpg = operation.OPG{}
+					isAdded = true
+				}
+
+				if len(result) == int(size) {
+					end = true
+					break
+				}
+			}
+
+			currentOpg.Hash = ops[i].Hash
+			currentOpg.Counter = ops[i].Counter
+			currentOpg.LastID = ops[i].ID
+			currentOpg.Level = ops[i].Level
+			currentOpg.ContentIndex = ops[i].ContentIndex
+			currentOpg.Timestamp = ops[i].Timestamp
+
+			if currentOpg.Entrypoint == "" && ops[i].DestinationID == accountID {
+				currentOpg.Entrypoint = ops[i].Entrypoint.String()
+			}
+
+			if currentOpg.Status < ops[i].Status {
+				currentOpg.Status = ops[i].Status
+			}
+			if currentOpg.Kind > ops[i].Kind || currentOpg.Kind == 0 {
+				currentOpg.Kind = ops[i].Kind
+			}
+
+			if ops[i].SourceID == accountID {
+				currentOpg.Flow -= ops[i].Amount
+			} else {
+				currentOpg.Flow += ops[i].Amount
+			}
+
+			if ops[i].Internal {
+				currentOpg.Internals += 1
+			}
+
+			currentOpg.TotalCost += (ops[i].Burned + ops[i].Fee)
+			isAdded = false
+		}
+
+		lastID = currentOpg.LastID
 	}
 
-	var opg []operation.OPG
-	_, err := storage.DB.Query(&opg, `
-		with opg as (?)
-		select 
-			ta.last_id, 
-			ta.status,
-			ta.counter,
-			ta.kind,
-			(select sum(case when source_id = ? then -"amount" else "amount" end) as "flow"
-			from operations
-			where hash = ta.hash and counter = ta.counter) as "flow",
-			(select sum(internal::integer) as internals
-			from operations
-			where hash = ta.hash and counter = ta.counter),
-			(select sum("burned") + sum("fee") as total_cost
-			from operations
-			where hash = ta.hash and counter = ta.counter),
-			ta.hash, operations.level, operations.timestamp, operations.entrypoint, operations.content_index from (
-			select min(id) as last_id, hash, counter, max(status) as status, min(kind) as kind from (select * from opg) as t
-			group by hash, counter
-			order by last_id desc
-			limit ?
-		) as ta
-		join operations on operations.id = ta.last_id
-		order by last_id desc
-	`, subQuery, accountID, limit)
-	return opg, err
+	if len(currentOpg.Hash) > 0 && currentOpg.Counter > 0 && !isAdded {
+		result = append(result, currentOpg)
+	}
+
+	return result, nil
 }
 
 // GetByHashAndCounter -
