@@ -259,7 +259,19 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 		limit      = 1000
 	)
 
-	if bcd.IsContractLazy(address) {
+	lastActionSet := false
+	if lastID > 0 {
+		op, err := storage.GetByID(lastID)
+		if err != nil {
+			if !storage.IsRecordNotFound(err) {
+				return nil, err
+			}
+		} else {
+			lastAction = op.Timestamp
+			lastActionSet = true
+		}
+	}
+	if !lastActionSet && bcd.IsContractLazy(address) {
 		if err := storage.DB.Model((*contract.Contract)(nil)).
 			Column("last_action").
 			Where("account_id = ?", accountID).
