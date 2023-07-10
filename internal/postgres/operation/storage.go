@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -345,13 +344,15 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			return nil, err
 		}
 
-		result = append(result, opg...)
+		count := int(size) - len(result)
+		if count < len(opg) {
+			opg = opg[:count]
+		}
+
+		result = append(result, opg[:count]...)
 
 		if len(result) < limit {
 			lastAction = lastAction.AddDate(0, -3, 0)
-			if lastAction.Before(consts.BeginningOfTime) {
-				break
-			}
 		}
 
 		end = len(result) == limit
