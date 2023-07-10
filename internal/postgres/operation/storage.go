@@ -253,9 +253,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			func(q *orm.Query) (*orm.Query, error) {
 				return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
 			},
-		).
-		Order("id desc").
-		Limit(325)
+		)
 
 	if lastID > 0 {
 		subQuery.Where("id < ?", lastID)
@@ -263,6 +261,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 
 	var opg []operation.OPG
 	_, err := storage.DB.Query(&opg, `
+		with opg as (?)
 		select 
 			ta.last_id, 
 			ta.status,
@@ -278,14 +277,14 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			from operations
 			where hash = ta.hash and counter = ta.counter),
 			ta.hash, operations.level, operations.timestamp, operations.entrypoint, operations.content_index from (
-			select min(id) as last_id, hash, counter, max(status) as status, min(kind) as kind from (?) as t
+			select min(id) as last_id, hash, counter, max(status) as status, min(kind) as kind from (select * from opg) as t
 			group by hash, counter
 			order by last_id desc
 			limit ?
 		) as ta
 		join operations on operations.id = ta.last_id
 		order by last_id desc
-	`, accountID, subQuery, limit)
+	`, subQuery, accountID, limit)
 	return opg, err
 }
 
