@@ -284,7 +284,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 		}
 
 		subQuery := storage.DB.Model(new(operation.Operation)).
-			Column("id", "hash", "counter", "status", "kind").
+			Column("id", "hash", "counter", "status", "kind", "level", "timestamp", "content_index", "entrypoint").
 			WhereGroup(
 				func(q *orm.Query) (*orm.Query, error) {
 					return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
@@ -301,35 +301,47 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 
 		var opg []operation.OPG
 		if _, err := storage.DB.Query(&opg, `
-		with opg as (?)
+		with opg as (?0)
 		select 
 			ta.last_id, 
 			ta.status,
 			ta.counter,
 			ta.kind,
-			(select sum(case when source_id = ? then -"amount" else "amount" end) as "flow"
+			(select sum(case when source_id = ?1 then -"amount" else "amount" end) as "flow"
 				from operations
-				where hash = ta.hash and counter = ta.counter) as "flow",
+				where hash = ta.hash and counter = ta.counter and (timestamp < ?4) and (timestamp >= ?3)
+			) as "flow",
 			(select sum(internal::integer) as internals
 				from operations
-				where hash = ta.hash and counter = ta.counter),
+				where hash = ta.hash and counter = ta.counter and (timestamp < ?4) and (timestamp >= ?3)
+			),
 			(select sum("burned") + sum("fee") as total_cost
 				from operations
-				where hash = ta.hash and counter = ta.counter),
+				where hash = ta.hash and counter = ta.counter and (timestamp < ?4) and (timestamp >= ?3)
+			),
 			ta.hash, 
-			operations.level, 
-			operations.timestamp, 
-			operations.entrypoint, 
-			operations.content_index 
+			ta.level, 
+			ta.timestamp, 
+			ta.entrypoint, 
+			ta.content_index 
 		from (
-			select min(id) as last_id, hash, counter, max(status) as status, min(kind) as kind from opg
+			select 
+				min(id) as last_id, 
+				hash, 
+				counter, 
+				max(status) as status, 
+				min(kind) as kind, 
+				min(level) as level, 
+				min(timestamp) as timestamp, 
+				min(content_index) as content_index,
+				string_agg(entrypoint, ',') as entrypoint
+			from opg
 			group by hash, counter
 			order by last_id desc
-			limit ?
+			limit ?2
 		) as ta
-		join operations on operations.id = ta.last_id
 		order by last_id desc
-	`, subQuery, accountID, limit); err != nil {
+	`, subQuery, accountID, limit, startTime, endTime); err != nil {
 			return nil, err
 		}
 
