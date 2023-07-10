@@ -611,6 +611,10 @@ type OPGResponse struct {
 
 // NewOPGResponse -
 func NewOPGResponse(opg operation.OPG) OPGResponse {
+	var hash string
+	if len(opg.Hash) > 0 {
+		hash = encoding.MustEncodeOperationHash(opg.Hash)
+	}
 	return OPGResponse{
 		LastID:       opg.LastID,
 		ContentIndex: opg.ContentIndex,
@@ -619,7 +623,7 @@ func NewOPGResponse(opg operation.OPG) OPGResponse {
 		TotalCost:    opg.TotalCost,
 		Flow:         opg.Flow,
 		Internals:    opg.Internals,
-		Hash:         opg.Hash,
+		Hash:         hash,
 		Entrypoint:   opg.Entrypoint,
 		Timestamp:    opg.Timestamp,
 		Status:       opg.Status.String(),
