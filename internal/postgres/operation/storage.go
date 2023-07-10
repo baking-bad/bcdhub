@@ -1,7 +1,6 @@
 package operation
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
@@ -253,10 +252,8 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 	var (
 		end        bool
 		result     = make([]operation.OPG, 0)
-		currentOpg operation.OPG
-		isAdded    bool
 		lastAction = time.Now().UTC()
-		limit      = 1000
+		limit      = storage.GetPageSize(size)
 	)
 
 	lastActionSet := false
@@ -286,8 +283,8 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			return nil, err
 		}
 
-		subQuery := storage.DB.Model((*operation.Operation)(nil)).
-			Column("id", "hash", "counter", "entrypoint", "amount", "fee", "burned", "level", "content_index", "timestamp", "kind", "status", "internal", "destination_id", "source_id").
+		subQuery := storage.DB.Model(new(operation.Operation)).
+			Column("id", "hash", "counter", "status", "kind").
 			WhereGroup(
 				func(q *orm.Query) (*orm.Query, error) {
 					return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
@@ -295,76 +292,55 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			).
 			Where("timestamp < ?", endTime).
 			Where("timestamp >= ?", startTime).
-			Limit(limit).
-			Order("id desc")
+			Order("id desc").
+			Limit(1000)
 
 		if lastID > 0 {
 			subQuery.Where("id < ?", lastID)
 		}
 
-		var ops []operation.Operation
-		if err := subQuery.Select(&ops); err != nil {
+		var opg []operation.OPG
+		if _, err := storage.DB.Query(&opg, `
+		with opg as (?)
+		select 
+			ta.last_id, 
+			ta.status,
+			ta.counter,
+			ta.kind,
+			(select sum(case when source_id = ? then -"amount" else "amount" end) as "flow"
+				from operations
+				where hash = ta.hash and counter = ta.counter) as "flow",
+			(select sum(internal::integer) as internals
+				from operations
+				where hash = ta.hash and counter = ta.counter),
+			(select sum("burned") + sum("fee") as total_cost
+				from operations
+				where hash = ta.hash and counter = ta.counter),
+			ta.hash, 
+			operations.level, 
+			operations.timestamp, 
+			operations.entrypoint, 
+			operations.content_index 
+		from (
+			select min(id) as last_id, hash, counter, max(status) as status, min(kind) as kind from opg
+			group by hash, counter
+			order by last_id desc
+			limit ?
+		) as ta
+		join operations on operations.id = ta.last_id
+		order by last_id desc
+	`, subQuery, accountID, limit); err != nil {
 			return nil, err
 		}
 
-		for i := range ops {
-			if !bytes.Equal(currentOpg.Hash, ops[i].Hash) && currentOpg.Counter != ops[i].Counter {
-				if len(currentOpg.Hash) > 0 && currentOpg.Counter > 0 {
-					result = append(result, currentOpg)
-					currentOpg = operation.OPG{}
-					isAdded = true
-				}
+		result = append(result, opg...)
 
-				if len(result) == int(size) {
-					end = true
-					break
-				}
-			}
-
-			currentOpg.Hash = ops[i].Hash
-			currentOpg.Counter = ops[i].Counter
-			currentOpg.LastID = ops[i].ID
-			currentOpg.Level = ops[i].Level
-			currentOpg.ContentIndex = ops[i].ContentIndex
-			currentOpg.Timestamp = ops[i].Timestamp
-
-			if currentOpg.Entrypoint == "" && ops[i].DestinationID == accountID {
-				currentOpg.Entrypoint = ops[i].Entrypoint.String()
-			}
-
-			if currentOpg.Status < ops[i].Status {
-				currentOpg.Status = ops[i].Status
-			}
-			if currentOpg.Kind > ops[i].Kind || currentOpg.Kind == 0 {
-				currentOpg.Kind = ops[i].Kind
-			}
-
-			if ops[i].SourceID == accountID {
-				currentOpg.Flow -= ops[i].Amount
-			} else {
-				currentOpg.Flow += ops[i].Amount
-			}
-
-			if ops[i].Internal {
-				currentOpg.Internals += 1
-			}
-
-			currentOpg.TotalCost += (ops[i].Burned + ops[i].Fee)
-			isAdded = false
-		}
-
-		lastID = currentOpg.LastID
-
-		if len(ops) < limit {
+		if len(result) < limit {
 			lastAction = lastAction.AddDate(0, -3, 0)
 			if lastAction.Before(consts.BeginningOfTime) {
 				break
 			}
 		}
-	}
-
-	if len(currentOpg.Hash) > 0 && currentOpg.Counter > 0 && !isAdded {
-		result = append(result, currentOpg)
 	}
 
 	return result, nil
