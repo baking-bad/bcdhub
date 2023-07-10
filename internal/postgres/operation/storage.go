@@ -307,6 +307,11 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			ta.status,
 			ta.counter,
 			ta.kind,
+			ta.hash, 
+			ta.level, 
+			ta.timestamp, 
+			ta.entrypoint, 
+			ta.content_index,
 			(select sum(case when source_id = ?1 then -"amount" else "amount" end) as "flow"
 				from operations
 				where hash = ta.hash and counter = ta.counter and (timestamp < ?4) and (timestamp >= ?3)
@@ -318,12 +323,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			(select sum("burned") + sum("fee") as total_cost
 				from operations
 				where hash = ta.hash and counter = ta.counter and (timestamp < ?4) and (timestamp >= ?3)
-			),
-			ta.hash, 
-			ta.level, 
-			ta.timestamp, 
-			ta.entrypoint, 
-			ta.content_index 
+			)
 		from (
 			select 
 				min(id) as last_id, 
@@ -353,6 +353,8 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 				break
 			}
 		}
+
+		end = len(result) == limit
 	}
 
 	return result, nil
