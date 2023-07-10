@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -251,15 +255,35 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 		result     = make([]operation.OPG, 0)
 		currentOpg operation.OPG
 		isAdded    bool
+		lastAction = time.Now().UTC()
+		limit      = 1000
 	)
+
+	if bcd.IsContractLazy(address) {
+		if err := storage.DB.Model((*contract.Contract)(nil)).
+			Column("last_action").
+			Where("account_id = ?", accountID).
+			Select(&lastAction); err != nil {
+			return nil, err
+		}
+	}
+
 	for !end {
+		startTime, endTime, err := helpers.QuarterBoundaries(lastAction)
+		if err != nil {
+			return nil, err
+		}
+
 		subQuery := storage.DB.Model((*operation.Operation)(nil)).
+			Column("id", "hash", "counter", "entrypoint", "amount", "fee", "burned", "level", "content_index", "timestamp", "kind", "status", "internal", "destination_id", "source_id").
 			WhereGroup(
 				func(q *orm.Query) (*orm.Query, error) {
 					return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
 				},
 			).
-			Limit(1000).
+			Where("timestamp < ?", endTime).
+			Where("timestamp >= ?", startTime).
+			Limit(limit).
 			Order("id desc")
 
 		if lastID > 0 {
@@ -269,10 +293,6 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 		var ops []operation.Operation
 		if err := subQuery.Select(&ops); err != nil {
 			return nil, err
-		}
-
-		if len(ops) == 0 {
-			break
 		}
 
 		for i := range ops {
@@ -322,6 +342,13 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 		}
 
 		lastID = currentOpg.LastID
+
+		if len(ops) < limit {
+			lastAction = lastAction.AddDate(0, -3, 0)
+			if lastAction.Before(consts.BeginningOfTime) {
+				break
+			}
+		}
 	}
 
 	if len(currentOpg.Hash) > 0 && currentOpg.Counter > 0 && !isAdded {
