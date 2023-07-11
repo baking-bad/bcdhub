@@ -440,11 +440,20 @@ func (storage *Storage) ContractStats(address string) (stats operation.ContractS
 		return
 	}
 
-	var result lastTimestampResult
-	if _, err := storage.DB.QueryOne(&result, cteContractStatsTemplate, accountID, accountID); err != nil {
-		return stats, err
+	if bcd.IsContractLazy(address) {
+		if err := storage.DB.Model((*contract.Contract)(nil)).
+			Column("last_action").
+			Where("account_id = ?", accountID).
+			Select(&stats.LastAction); err != nil {
+			return stats, err
+		}
+	} else {
+		var result lastTimestampResult
+		if _, err := storage.DB.QueryOne(&result, cteContractStatsTemplate, accountID, accountID); err != nil {
+			return stats, err
+		}
+		stats.LastAction = result.Timestamp
 	}
-	stats.LastAction = result.Timestamp
 
 	count, err := storage.DB.Model((*operation.Operation)(nil)).WhereGroup(
 		func(q *orm.Query) (*orm.Query, error) {
