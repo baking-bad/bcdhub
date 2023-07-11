@@ -1,6 +1,8 @@
 package core
 
 import (
+	"time"
+
 	"github.com/go-pg/pg/v10/orm"
 )
 
@@ -39,4 +41,34 @@ func Token(contract string, tokenID uint64) func(db *orm.Query) *orm.Query {
 // EmptyRelation -
 var EmptyRelation = func(q *orm.Query) (*orm.Query, error) {
 	return q, nil
+}
+
+// TimestampFilter -
+type TimestampFilter struct {
+	Gt  time.Time
+	Gte time.Time
+	Lt  time.Time
+	Lte time.Time
+}
+
+// Apply -
+func (tf TimestampFilter) Apply(q *orm.Query) *orm.Query {
+	if q == nil {
+		return q
+	}
+
+	if !tf.Gt.IsZero() {
+		q = q.Where("timestamp > ?", tf.Gt)
+	}
+	if !tf.Gte.IsZero() {
+		q = q.Where("timestamp >- ?", tf.Gte)
+	}
+	if !tf.Lt.IsZero() {
+		q = q.Where("timestamp < ?", tf.Lt)
+	}
+	if !tf.Lte.IsZero() {
+		q = q.Where("timestamp <= ?", tf.Lte)
+	}
+
+	return q
 }

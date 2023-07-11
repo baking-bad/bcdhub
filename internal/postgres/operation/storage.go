@@ -128,18 +128,45 @@ func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters m
 func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (operation.Operation, error) {
 	var (
 		current = time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC)
+		endTime = consts.BeginningOfTime
 	)
 
-	for current.Year() >= 2018 {
+	if val, ok := filters["timestamp"]; ok {
+		if tf, ok := val.(core.TimestampFilter); ok {
+			switch {
+			case !tf.Lt.IsZero():
+				current = tf.Lt
+			case !tf.Lte.IsZero():
+				current = tf.Lte
+			}
+
+			switch {
+			case !tf.Gt.IsZero():
+				endTime = tf.Gt
+			case !tf.Gte.IsZero():
+				endTime = tf.Gte
+			}
+		}
+	}
+
+	for current.Before(endTime) {
 		query := storage.DB.Model((*operation.Operation)(nil)).
 			Where("deffated_storage is not null").
-			Where("timestamp >= ?", current).
-			Where("timestamp < ?", current.AddDate(1, 0, 0)).
 			OrderExpr("operation.id desc")
 
 		for key, value := range filters {
-			query.Where("? = ?", pg.Ident(key), value)
+			switch val := value.(type) {
+			case core.TimestampFilter:
+				query = val.Apply(query)
+			default:
+				query.Where("? = ?", pg.Ident(key), value)
+			}
 		}
+
+		lowCurrent := current.AddDate(0, -3, 0)
+		query.
+			Where("timestamp >= ?", lowCurrent).
+			Where("timestamp < ?", current)
 
 		if lastID > 0 {
 			query.Where("operation.id < ?", lastID)
@@ -161,7 +188,7 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 			return ops[0], nil
 		}
 
-		current = current.AddDate(-1, 0, 0)
+		current = lowCurrent
 	}
 
 	return operation.Operation{}, pg.ErrNoRows

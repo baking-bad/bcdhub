@@ -18,6 +18,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
+	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -619,6 +620,9 @@ func getStorageDiff(ctx *config.Context, destinationID int64, bmd []bigmapdiff.B
 		map[string]interface{}{
 			"destination_id": destinationID,
 			"status":         modelTypes.OperationStatusApplied,
+			"timestamp": core.TimestampFilter{
+				Lt: op.Timestamp,
+			},
 		}, op.ID)
 	if err == nil {
 		prevStorage = &ast.TypedAst{
