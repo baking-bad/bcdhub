@@ -149,7 +149,7 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 		}
 	}
 
-	for current.Before(endTime) {
+	for current.After(endTime) {
 		query := storage.DB.Model((*operation.Operation)(nil)).
 			Where("deffated_storage is not null").
 			OrderExpr("operation.id desc")
@@ -172,7 +172,7 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 			query.Where("operation.id < ?", lastID)
 		}
 
-		query.Limit(2) // It's a hack to avoid postgres "optimization". Limit = 1 is extremely slow.
+		query.Limit(1)
 
 		var ops []operation.Operation
 		if err := storage.DB.Model().TableExpr("(?) as operation", query).
