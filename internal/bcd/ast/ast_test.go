@@ -1504,6 +1504,11 @@ func TestTypedAst_FromJSONSchema(t *testing.T) {
 			tree: `{"prim":"list","args":[{"prim":"list","args":[{"prim":"nat"}]}],"annots":["%update_cycles"]}`,
 			data: `{"update_cycles":[{"@list_2":[{"@nat_3":"12"}]}]}`,
 			want: `[[{"int":"12"}]]`,
+		}, {
+			name: "nil map",
+			tree: `{"prim":"map","args":[{"prim":"string"},{"prim":"string"}]}`,
+			data: `{"@map_1": null}`,
+			want: `[]`,
 		},
 	}
 	for _, tt := range tests {

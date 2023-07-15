@@ -164,6 +164,9 @@ func (m *Map) FromJSONSchema(data map[string]interface{}) error {
 	for key := range data {
 		if key == m.GetName() {
 			val := data[key]
+			if val == nil {
+				return nil
+			}
 			arrVal, ok := val.([]interface{})
 			if !ok {
 				return errors.Wrapf(consts.ErrInvalidType, "Map.FromJSONSchema %T", val)
