@@ -468,7 +468,9 @@ func (storage *Storage) ContractStats(address string) (stats operation.ContractS
 			Order("timestamp desc").
 			Limit(1).
 			Select(&stats.LastAction); err != nil {
-			return stats, err
+			if !storage.IsRecordNotFound(err) {
+				return stats, err
+			}
 		}
 
 		var sourceLastAction time.Time
@@ -478,7 +480,9 @@ func (storage *Storage) ContractStats(address string) (stats operation.ContractS
 			Order("timestamp desc").
 			Limit(1).
 			Select(&sourceLastAction); err != nil {
-			return stats, err
+			if !storage.IsRecordNotFound(err) {
+				return stats, err
+			}
 		}
 
 		if sourceLastAction.After(stats.LastAction) {
