@@ -173,13 +173,13 @@ func (storage *Storage) GetStats(ptr int64) (stats bigmapdiff.Stats, err error) 
 		return stats, err
 	}
 
-	if err = storage.DB.Model((*bigmapdiff.BigMapState)(nil)).
+	if err := storage.DB.Model((*bigmapdiff.BigMapState)(nil)).
 		Column("contract").
 		Where("ptr = ?", ptr).
 		Limit(1).
 		Select(&stats.Contract); err != nil {
 		if !storage.IsRecordNotFound(err) {
-			return
+			return stats, err
 		}
 	}
 
