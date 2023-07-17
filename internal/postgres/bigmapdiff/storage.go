@@ -178,7 +178,9 @@ func (storage *Storage) GetStats(ptr int64) (stats bigmapdiff.Stats, err error) 
 		Where("ptr = ?", ptr).
 		Limit(1).
 		Select(&stats.Contract); err != nil {
-		return
+		if !storage.IsRecordNotFound(err) {
+			return
+		}
 	}
 
 	stats.Active = int64(active)
