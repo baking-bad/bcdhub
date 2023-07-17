@@ -127,7 +127,7 @@ func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters m
 // Last - get last operation by `filters` with not empty deffated_storage
 func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (operation.Operation, error) {
 	var (
-		current = time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC)
+		current = time.Now()
 		endTime = consts.BeginningOfTime
 	)
 
