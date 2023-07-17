@@ -72,8 +72,9 @@ type ServiceConfig struct {
 
 // StorageConfig -
 type StorageConfig struct {
-	Postgres PostgresConfig `yaml:"pg"`
-	Timeout  int            `yaml:"timeout"`
+	Postgres   PostgresConfig `yaml:"pg"`
+	Timeout    int            `yaml:"timeout"`
+	LogQueries bool           `yaml:"log_queries,omitempty"`
 }
 
 // PostgresConfig -

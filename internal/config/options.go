@@ -50,13 +50,19 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 			panic("Please set connection strings to storage in config")
 		}
 
-		conn := pgCore.WaitNew(
-			cfg.Postgres.ConnectionString(), ctx.Network.String(),
-			appName, cfg.Timeout,
+		opts := []pgCore.PostgresOption{
 			pgCore.WithPageSize(maxPageSize),
 			pgCore.WithIdleConnections(idleConnCount),
 			pgCore.WithMaxConnections(maxConnCount),
-			pgCore.WithQueryLogging(),
+		}
+
+		if cfg.LogQueries {
+			opts = append(opts, pgCore.WithQueryLogging())
+		}
+
+		conn := pgCore.WaitNew(
+			cfg.Postgres.ConnectionString(), ctx.Network.String(),
+			appName, cfg.Timeout, opts...,
 		)
 
 		contractStorage := contract.NewStorage(conn)

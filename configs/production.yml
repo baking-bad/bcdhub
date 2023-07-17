@@ -34,6 +34,7 @@ storage:
     password: ${POSTGRES_PASSWORD}
     sslmode: disable
   timeout: 10
+  log_queries: ${POSTGRES_LOG_QUERIES:-false}
 
 sentry:
   environment: production
