@@ -461,8 +461,8 @@ func (m *Map) Range(handler func(node Node) error) error {
 	return m.ValueType.Range(handler)
 }
 
-// GetDefaultJSONModel -
-func (m *Map) GetDefaultJSONModel(model JSONModel) {
+// GetJSONModel -
+func (m *Map) GetJSONModel(model JSONModel) {
 	if model == nil {
 		return
 	}
