@@ -56,7 +56,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 			pgCore.WithPageSize(maxPageSize),
 			pgCore.WithIdleConnections(idleConnCount),
 			pgCore.WithMaxConnections(maxConnCount),
-			// pgCore.WithQueryLogging(),
+			pgCore.WithQueryLogging(),
 		)
 
 		contractStorage := contract.NewStorage(conn)
