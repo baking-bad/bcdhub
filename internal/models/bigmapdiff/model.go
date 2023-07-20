@@ -10,17 +10,17 @@ import (
 // BigMapDiff -
 type BigMapDiff struct {
 	// nolint
-	tableName struct{} `pg:"big_map_diffs"`
+	tableName struct{} `pg:"big_map_diffs,partition_by:RANGE(timestamp)"`
 
-	ID          int64
+	ID          int64       `pg:",pk"`
 	Ptr         int64       `pg:",use_zero"`
 	Key         types.Bytes `pg:",notnull,type:bytea"`
 	KeyHash     string
 	Value       types.Bytes `pg:",type:bytea"`
 	Level       int64
 	Contract    string
-	Timestamp   time.Time
-	ProtocolID  int64 `pg:",type:SMALLINT"`
+	Timestamp   time.Time `pg:",pk"`
+	ProtocolID  int64     `pg:",type:SMALLINT"`
 	OperationID int64
 }
 
@@ -37,7 +37,7 @@ func (b *BigMapDiff) GetIndex() string {
 // Save -
 func (b *BigMapDiff) Save(tx pg.DBI) error {
 	_, err := tx.Model(b).
-		OnConflict("(id) DO UPDATE").
+		OnConflict("(id, timestamp) DO UPDATE").
 		Set(`
 			ptr = excluded.ptr, 
 			key = excluded.key, 

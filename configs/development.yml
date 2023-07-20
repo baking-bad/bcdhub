@@ -33,6 +33,7 @@ storage:
     password: ${POSTGRES_PASSWORD}
     sslmode: disable
   timeout: 10
+  log_queries: ${POSTGRES_LOG_QUERIES:-false}
 
 sentry:
   environment: development
@@ -71,10 +72,10 @@ indexer:
   project_name: indexer
   sentry_enabled: false
   networks:
-    # mainnet:
-    #   receiver_threads: 5
-    # ghostnet:
-    #   receiver_threads: 10
+    mainnet:
+      receiver_threads: 5
+    ghostnet:
+      receiver_threads: 10
     nairobinet:
       receiver_threads: 10
   connections:

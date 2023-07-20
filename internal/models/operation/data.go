@@ -22,7 +22,7 @@ type OPG struct {
 	TotalCost    int64
 	Flow         int64
 	Internals    int
-	Hash         string
+	Hash         []byte
 	Entrypoint   string
 	Timestamp    time.Time
 	Status       types.OperationStatus

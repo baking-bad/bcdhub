@@ -27,11 +27,11 @@ func createStartIndices(db pg.DBI) error {
 		}
 
 		// Big map diff
-		if _, err := db.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_idx ON ?TableName (contract, ptr)`); err != nil {
+		if _, err := db.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`CREATE INDEX IF NOT EXISTS big_map_diff_idx ON ?TableName (contract, ptr)`); err != nil {
 			return err
 		}
 
-		if _, err := db.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_key_hash_idx ON ?TableName (key_hash, ptr)`); err != nil {
+		if _, err := db.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`CREATE INDEX IF NOT EXISTS big_map_diff_key_hash_idx ON ?TableName (key_hash, ptr)`); err != nil {
 			return err
 		}
 
@@ -54,11 +54,11 @@ func createStartIndices(db pg.DBI) error {
 		}
 
 		// Operations
-		if _, err := db.Model((*operation.Operation)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_destination_idx ON ?TableName (destination_id)`); err != nil {
+		if _, err := db.Model((*operation.Operation)(nil)).Exec(`CREATE INDEX IF NOT EXISTS operations_destination_idx ON ?TableName (destination_id)`); err != nil {
 			return err
 		}
 
-		if _, err := db.Model((*operation.Operation)(nil)).Exec(`CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_status_idx ON ?TableName (status)`); err != nil {
+		if _, err := db.Model((*operation.Operation)(nil)).Exec(`CREATE INDEX IF NOT EXISTS operations_status_idx ON ?TableName (status)`); err != nil {
 			return err
 		}
 
@@ -90,19 +90,19 @@ func (bi *BlockchainIndexer) createIndices() {
 
 	// Big map diff
 	if _, err := bi.Context.StorageDB.DB.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_operation_id_idx ON ?TableName (operation_id)
+		CREATE INDEX IF NOT EXISTS big_map_diff_operation_id_idx ON ?TableName (operation_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_level_idx ON ?TableName (level)
+		CREATE INDEX IF NOT EXISTS big_map_diff_level_idx ON ?TableName (level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*bigmapdiff.BigMapDiff)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS big_map_diff_protocol_idx ON ?TableName (protocol_id)
+		CREATE INDEX IF NOT EXISTS big_map_diff_protocol_idx ON ?TableName (protocol_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
@@ -154,55 +154,67 @@ func (bi *BlockchainIndexer) createIndices() {
 
 	// Operations
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_level_idx ON ?TableName (level)
+		CREATE INDEX IF NOT EXISTS operations_level_idx ON ?TableName (level)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_source_idx ON ?TableName (source_id)
+		CREATE INDEX IF NOT EXISTS operations_source_idx ON ?TableName (source_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_opg_idx ON ?TableName (hash, counter, content_index)
+		CREATE INDEX IF NOT EXISTS operations_opg_idx ON ?TableName (hash, counter, content_index)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_entrypoint_idx ON ?TableName (entrypoint)
+		CREATE INDEX IF NOT EXISTS operations_entrypoint_idx ON ?TableName (entrypoint)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_hash_idx ON ?TableName (hash)
+		CREATE INDEX IF NOT EXISTS operations_hash_idx ON ?TableName (hash)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_opg_with_nonce_idx ON ?TableName (hash, counter, nonce)
+		CREATE INDEX IF NOT EXISTS operations_opg_with_nonce_idx ON ?TableName (hash, counter, nonce)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_sort_idx ON ?TableName (level, counter, id)
+		CREATE INDEX IF NOT EXISTS operations_sort_idx ON ?TableName (level, counter, id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_timestamp_idx ON ?TableName (timestamp)
+		CREATE INDEX IF NOT EXISTS operations_timestamp_idx ON ?TableName (timestamp)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}
 
 	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS operations_kind_idx ON ?TableName (kind)
+		CREATE INDEX IF NOT EXISTS operations_kind_idx ON ?TableName (kind)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
+		CREATE INDEX IF NOT EXISTS operations_destination_timestamp_idx ON ?TableName (destination_id, timestamp)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	if _, err := bi.Context.StorageDB.DB.Model((*operation.Operation)(nil)).Exec(`
+		CREATE INDEX IF NOT EXISTS operations_source_timestamp_idx ON ?TableName (source_id, timestamp)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}

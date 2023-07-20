@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
+	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/account"
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/postgres/contract"
@@ -49,13 +50,19 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 			panic("Please set connection strings to storage in config")
 		}
 
-		conn := pgCore.WaitNew(
-			cfg.Postgres.ConnectionString(), ctx.Network.String(),
-			appName, cfg.Timeout,
+		opts := []pgCore.PostgresOption{
 			pgCore.WithPageSize(maxPageSize),
 			pgCore.WithIdleConnections(idleConnCount),
 			pgCore.WithMaxConnections(maxConnCount),
-			// pgCore.WithQueryLogging(),
+		}
+
+		if cfg.LogQueries {
+			opts = append(opts, pgCore.WithQueryLogging())
+		}
+
+		conn := pgCore.WaitNew(
+			cfg.Postgres.ConnectionString(), ctx.Network.String(),
+			appName, cfg.Timeout, opts...,
 		)
 
 		contractStorage := contract.NewStorage(conn)
@@ -73,6 +80,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		ctx.Domains = domains.NewStorage(conn)
 		ctx.TicketUpdates = ticket.NewStorage(conn)
 		ctx.Scripts = contractStorage
+		ctx.Partitions = postgres.NewPartitionManager(conn)
 	}
 }
 

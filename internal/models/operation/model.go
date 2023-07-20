@@ -1,6 +1,7 @@
 package operation
 
 import (
+	"encoding/hex"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -18,9 +19,9 @@ import (
 // Operation -
 type Operation struct {
 	// nolint
-	tableName struct{} `pg:"operations"`
+	tableName struct{} `pg:"operations,partition_by:RANGE(timestamp)"`
 
-	ID                                 int64
+	ID                                 int64      `pg:",pk"`
 	ContentIndex                       int64      `pg:",use_zero"`
 	Level                              int64      `pg:",use_zero"`
 	Counter                            int64      `pg:",use_zero"`
@@ -46,13 +47,13 @@ type Operation struct {
 	DelegateID    int64
 	Delegate      account.Account `pg:",rel:has-one"`
 
-	Timestamp time.Time
+	Timestamp time.Time             `pg:",pk,notnull"`
 	Status    types.OperationStatus `pg:",type:SMALLINT"`
 	Kind      types.OperationKind   `pg:",type:SMALLINT"`
 
 	Entrypoint      types.NullString `pg:",type:text"`
 	Tag             types.NullString `pg:",type:text"`
-	Hash            string
+	Hash            []byte
 	Parameters      []byte
 	DeffatedStorage []byte
 	EventPayload    []byte
@@ -90,7 +91,7 @@ func (o *Operation) Save(tx pg.DBI) error {
 // LogFields -
 func (o *Operation) LogFields() map[string]interface{} {
 	return map[string]interface{}{
-		"hash":  o.Hash,
+		"hash":  hex.EncodeToString(o.Hash),
 		"block": o.Level,
 	}
 }
@@ -136,7 +137,7 @@ func (o *Operation) IsTransaction() bool {
 
 // IsImplicit  -
 func (o *Operation) IsImplicit() bool {
-	return o.Hash == ""
+	return len(o.Hash) == 0
 }
 
 // IsApplied -

@@ -177,6 +177,20 @@ func DecodeBase58ToString(data string) (string, error) {
 	return hex.EncodeToString(decoded[len(enc.DecodedPrefix):]), nil
 }
 
+// MustDecodeBase58 -
+func MustDecodeBase58(data string) []byte {
+	decoded, err := base58Enc.CheckDecode(data)
+	if err != nil {
+		panic(err)
+	}
+	enc, err := getBase58EncodingForDecode(decoded)
+	if err != nil {
+		panic(err)
+	}
+
+	return decoded[len(enc.DecodedPrefix):]
+}
+
 // DecodeBase58String -
 func DecodeBase58String(data string) (string, error) {
 	b, err := DecodeBase58(data)
@@ -202,4 +216,18 @@ func EncodeBase58String(data string, prefix []byte) (string, error) {
 		return "", err
 	}
 	return EncodeBase58(b, prefix)
+}
+
+// MustEncodeBase58 -
+func MustEncodeBase58(data, prefix []byte) string {
+	enc, err := getBase58EncodingForEncode(data, prefix)
+	if err != nil {
+		panic(err)
+	}
+	return base58Enc.CheckEncode(append(enc.DecodedPrefix, data...))
+}
+
+// MustEncodeOperationHash -
+func MustEncodeOperationHash(data []byte) string {
+	return MustEncodeBase58(data, []byte(PrefixOperationHash))
 }

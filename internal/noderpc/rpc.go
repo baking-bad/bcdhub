@@ -112,7 +112,7 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 
 func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool, uri string, response interface{}) error {
 	if err := rpc.checkStatusCode(resp, checkStatusCode); err != nil {
-		return errors.Wrapf(err, "%s (%s)", ErrNodeRPCError, uri)
+		return fmt.Errorf("%w (%s): %w", ErrNodeRPCError, uri, err)
 	}
 
 	return json.NewDecoder(resp.Body).Decode(response)
@@ -185,7 +185,7 @@ func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if err := rpc.checkStatusCode(resp, true); err != nil {
-		return nil, errors.Wrapf(err, "%s (%s)", ErrNodeRPCError, uri)
+		return nil, fmt.Errorf("%w (%s): %w", ErrNodeRPCError, uri, err)
 	}
 	return io.ReadAll(resp.Body)
 }
@@ -198,7 +198,7 @@ func (rpc *NodeRPC) post(ctx context.Context, uri string, data interface{}, chec
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp, checkStatusCode, "", response)
+	return rpc.parseResponse(resp, checkStatusCode, uri, response)
 }
 
 // Block - returns block

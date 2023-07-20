@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -151,6 +152,18 @@ func GetEntrypointSchema() gin.HandlerFunc {
 			return
 		}
 
+		var (
+			hash []byte
+			err  error
+		)
+
+		if esReq.Hash != "" {
+			hash, err = encoding.DecodeBase58(esReq.Hash)
+			if handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+				return
+			}
+		}
+
 		symLink, err := getCurrentSymLink(ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
@@ -207,7 +220,7 @@ func GetEntrypointSchema() gin.HandlerFunc {
 					return
 				}
 
-				opg, err := ctx.Operations.GetByHashAndCounter(esReq.Hash, int64(*esReq.Counter))
+				opg, err := ctx.Operations.GetByHashAndCounter(hash, int64(*esReq.Counter))
 				if handleError(c, ctx.Storage, err, 0) {
 					return
 				}

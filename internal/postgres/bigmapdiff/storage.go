@@ -158,37 +158,33 @@ func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.Bucket, err
 
 // GetStats -
 func (storage *Storage) GetStats(ptr int64) (stats bigmapdiff.Stats, err error) {
-	totalQuery := storage.DB.Model().Table(models.DocBigMapState).
-		ColumnExpr("count(contract) as count, contract, 'total' as name").
+	total, err := storage.DB.Model((*bigmapdiff.BigMapState)(nil)).
 		Where("ptr = ?", ptr).
-		Group("contract")
+		Count()
+	if err != nil {
+		return stats, err
+	}
 
-	activeQuery := storage.DB.Model().Table(models.DocBigMapState).
-		ColumnExpr("count(contract) as count, contract, 'active' as name").
+	active, err := storage.DB.Model((*bigmapdiff.BigMapState)(nil)).
 		Where("ptr = ?", ptr).
 		Where("removed = false").
-		Group("contract")
-
-	type row struct {
-		Count    int64
-		Contract string
-		Name     string
-	}
-	var rows []row
-
-	if _, err = storage.DB.Model().Query(&rows, "(?) union all (?)", totalQuery, activeQuery); err != nil {
-		return
+		Count()
+	if err != nil {
+		return stats, err
 	}
 
-	for i := range rows {
-		switch rows[i].Name {
-		case "active":
-			stats.Active = rows[i].Count
-		case "total":
-			stats.Total = rows[i].Count
+	if err := storage.DB.Model((*bigmapdiff.BigMapState)(nil)).
+		Column("contract").
+		Where("ptr = ?", ptr).
+		Limit(1).
+		Select(&stats.Contract); err != nil {
+		if !storage.IsRecordNotFound(err) {
+			return stats, err
 		}
-		stats.Contract = rows[i].Contract
 	}
+
+	stats.Active = int64(active)
+	stats.Total = int64(total)
 
 	return
 }

@@ -9,8 +9,8 @@ type Repository interface {
 	GetByAccount(acc account.Account, size uint64, filters map[string]interface{}) (Pageable, error)
 	// Last -  get last operation by `filters` with not empty deffated_storage.
 	Last(filter map[string]interface{}, lastID int64) (Operation, error)
-	GetByHash(hash string) ([]Operation, error)
-	GetByHashAndCounter(hash string, counter int64) ([]Operation, error)
+	GetByHash(hash []byte) ([]Operation, error)
+	GetByHashAndCounter(hash []byte, counter int64) ([]Operation, error)
 	GetImplicitOperation(counter int64) (Operation, error)
 	OPG(address string, size, lastID int64) ([]OPG, error)
 	Origination(accountID int64) (Operation, error)

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/gin-gonic/gin"
@@ -61,10 +62,14 @@ func prepareMigrations(ctx *config.Context, data []migration.Migration) ([]Migra
 		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}
+		var hash string
+		if len(data[i].Hash) > 0 {
+			hash = encoding.MustEncodeOperationHash(data[i].Hash)
+		}
 		result[i] = Migration{
 			Level:        data[i].Level,
 			Timestamp:    data[i].Timestamp,
-			Hash:         data[i].Hash,
+			Hash:         hash,
 			Protocol:     proto.Hash,
 			PrevProtocol: prevProto.Hash,
 			Kind:         data[i].Kind.String(),
