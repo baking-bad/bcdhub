@@ -51,4 +51,8 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 	if errs, err := tezerrors.ParseArray(result.Errors); err == nil {
 		tx.Errors = errs
 	}
+
+	if tx.Status == types.OperationStatusApplied {
+		new(TicketUpdateParser).Parse(result, tx)
+	}
 }

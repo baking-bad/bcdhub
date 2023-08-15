@@ -496,19 +496,19 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 	}
 	op.Protocol = proto.Hash
 
-	if operation.IsEvent() {
-		eventType, err := ast.NewTypedAstFromBytes(operation.EventType)
+	if operation.HasPayload() {
+		payloadType, err := ast.NewTypedAstFromBytes(operation.PayloadType)
 		if err != nil {
 			return op, err
 		}
-		if err := eventType.SettleFromBytes(operation.EventPayload); err != nil {
+		if err := payloadType.SettleFromBytes(operation.Payload); err != nil {
 			return op, err
 		}
-		eventMiguel, err := eventType.ToMiguel()
+		payloadMiguel, err := payloadType.ToMiguel()
 		if err != nil {
 			return op, err
 		}
-		op.Event = eventMiguel
+		op.Event = payloadMiguel
 		return op, err
 	}
 

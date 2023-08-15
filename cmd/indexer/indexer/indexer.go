@@ -81,6 +81,9 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 // Close -
 func (bi *BlockchainIndexer) Close() error {
 	close(bi.refreshTimer)
+	if err := bi.receiver.Close(); err != nil {
+		return nil
+	}
 	return bi.Context.Close()
 }
 

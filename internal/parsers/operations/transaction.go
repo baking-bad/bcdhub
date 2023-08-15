@@ -160,8 +160,6 @@ func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operat
 		return err
 	}
 
-	new(TicketUpdateParser).Parse(item.Result, tx)
-
 	return NewMigration(p.ctx.Contracts).Parse(item, tx, p.protocol.Hash, store)
 }
 

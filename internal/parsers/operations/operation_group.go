@@ -62,7 +62,9 @@ func (Group) needParse(item noderpc.LightOperation) bool {
 	originationCondition := (item.Kind == consts.Origination || item.Kind == consts.OriginationNew || item.Kind == consts.TxRollupOrigination)
 	registerGlobalConstantCondition := item.Kind == consts.RegisterGlobalConstant
 	eventCondition := item.Kind == consts.Event
-	return originationCondition || transactionCondition || registerGlobalConstantCondition || eventCondition
+	transferTicketCondition := item.Kind == consts.TransferTicket
+	return originationCondition || transactionCondition ||
+		registerGlobalConstantCondition || eventCondition || transferTicketCondition
 }
 
 // Content -
@@ -96,6 +98,10 @@ func (content Content) Parse(data noderpc.Operation, store parsers.Store) error 
 		}
 	case consts.Event:
 		if err := NewEvent(content.ParseParams).Parse(data, store); err != nil {
+			return err
+		}
+	case consts.TransferTicket:
+		if err := NewTransferTicket(content.ParseParams).Parse(data, store); err != nil {
 			return err
 		}
 	default:

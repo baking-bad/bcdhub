@@ -10,6 +10,7 @@ const (
 	RegisterGlobalConstant = "register_global_constant"
 	TxRollupOrigination    = "tx_rollup_origination"
 	Event                  = "event"
+	TransferTicket         = "transfer_ticket"
 )
 
 // Error IDs

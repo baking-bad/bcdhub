@@ -56,8 +56,8 @@ type Operation struct {
 	Hash            []byte
 	Parameters      []byte
 	DeffatedStorage []byte
-	EventPayload    []byte
-	EventType       []byte
+	Payload         []byte
+	PayloadType     []byte
 	Script          []byte `pg:"-"`
 
 	Errors tezerrors.Errors `pg:",type:bytea"`
@@ -150,9 +150,9 @@ func (o *Operation) IsCall() bool {
 	return bcd.IsContract(o.Destination.Address) && len(o.Parameters) > 0
 }
 
-// IsEvent -
-func (o *Operation) IsEvent() bool {
-	return o.Kind == types.OperationKindEvent
+// HasPayload -
+func (o *Operation) HasPayload() bool {
+	return o.Kind == types.OperationKindEvent || o.Kind == types.OperationKindTransferTicket
 }
 
 // Result -

@@ -82,25 +82,30 @@ type OperationGroup struct {
 
 // Operation -
 type Operation struct {
-	Kind         string             `json:"kind"`
-	Source       string             `json:"source"`
-	Destination  *string            `json:"destination,omitempty"`
-	Delegate     string             `json:"delegate,omitempty"`
-	Fee          int64              `json:"fee,string"`
-	Counter      int64              `json:"counter,string"`
-	Balance      *int64             `json:"balance,omitempty,string"`
-	GasLimit     int64              `json:"gas_limit,string"`
-	StorageLimit int64              `json:"storage_limit,string"`
-	Amount       *int64             `json:"amount,omitempty,string"`
-	Nonce        *int64             `json:"nonce,omitempty"`
-	Tag          *string            `json:"tag,omitempty"`
-	Parameters   stdJSON.RawMessage `json:"parameters,omitempty"`
-	Metadata     *OperationMetadata `json:"metadata,omitempty"`
-	Result       *OperationResult   `json:"result,omitempty"`
-	Script       stdJSON.RawMessage `json:"script,omitempty"`
-	Value        stdJSON.RawMessage `json:"value,omitempty"`
-	Payload      stdJSON.RawMessage `json:"payload,omitempty"`
-	Type         stdJSON.RawMessage `json:"type,omitempty"`
+	Kind           string             `json:"kind"`
+	Source         string             `json:"source"`
+	Destination    *string            `json:"destination,omitempty"`
+	Delegate       string             `json:"delegate,omitempty"`
+	Fee            int64              `json:"fee,string"`
+	Counter        int64              `json:"counter,string"`
+	Balance        *int64             `json:"balance,omitempty,string"`
+	GasLimit       int64              `json:"gas_limit,string"`
+	StorageLimit   int64              `json:"storage_limit,string"`
+	Amount         *int64             `json:"amount,omitempty,string"`
+	Nonce          *int64             `json:"nonce,omitempty"`
+	Tag            *string            `json:"tag,omitempty"`
+	Entrypoint     *string            `json:"entrypoint,omitempty"`
+	TicketTicketer string             `json:"ticket_ticketer,omitempty"`
+	TicketAmount   string             `json:"ticket_amount,omitempty"`
+	Parameters     stdJSON.RawMessage `json:"parameters,omitempty"`
+	Metadata       *OperationMetadata `json:"metadata,omitempty"`
+	Result         *OperationResult   `json:"result,omitempty"`
+	Script         stdJSON.RawMessage `json:"script,omitempty"`
+	Value          stdJSON.RawMessage `json:"value,omitempty"`
+	Payload        stdJSON.RawMessage `json:"payload,omitempty"`
+	Type           stdJSON.RawMessage `json:"type,omitempty"`
+	TicketContent  stdJSON.RawMessage `json:"ticket_contents,omitempty"`
+	TicketType     stdJSON.RawMessage `json:"ticket_ty,omitempty"`
 }
 
 // GetResult -

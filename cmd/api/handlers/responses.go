@@ -643,7 +643,7 @@ type Event struct {
 
 // NewEvent -
 func NewEvent(o operation.Operation) (*Event, error) {
-	if !o.IsEvent() {
+	if o.Kind != types.OperationKindEvent {
 		return nil, nil
 	}
 
@@ -660,11 +660,11 @@ func NewEvent(o operation.Operation) (*Event, error) {
 		Tag:       o.Tag.String(),
 	}
 
-	eventType, err := ast.NewTypedAstFromBytes(o.EventType)
+	eventType, err := ast.NewTypedAstFromBytes(o.PayloadType)
 	if err != nil {
 		return nil, err
 	}
-	if err := eventType.SettleFromBytes(o.EventPayload); err != nil {
+	if err := eventType.SettleFromBytes(o.Payload); err != nil {
 		return nil, err
 	}
 	eventMiguel, err := eventType.ToMiguel()
