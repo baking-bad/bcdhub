@@ -82,30 +82,36 @@ type OperationGroup struct {
 
 // Operation -
 type Operation struct {
-	Kind           string             `json:"kind"`
-	Source         string             `json:"source"`
-	Destination    *string            `json:"destination,omitempty"`
-	Delegate       string             `json:"delegate,omitempty"`
-	Fee            int64              `json:"fee,string"`
-	Counter        int64              `json:"counter,string"`
-	Balance        *int64             `json:"balance,omitempty,string"`
-	GasLimit       int64              `json:"gas_limit,string"`
-	StorageLimit   int64              `json:"storage_limit,string"`
-	Amount         *int64             `json:"amount,omitempty,string"`
-	Nonce          *int64             `json:"nonce,omitempty"`
-	Tag            *string            `json:"tag,omitempty"`
-	Entrypoint     *string            `json:"entrypoint,omitempty"`
-	TicketTicketer string             `json:"ticket_ticketer,omitempty"`
-	TicketAmount   string             `json:"ticket_amount,omitempty"`
-	Parameters     stdJSON.RawMessage `json:"parameters,omitempty"`
-	Metadata       *OperationMetadata `json:"metadata,omitempty"`
-	Result         *OperationResult   `json:"result,omitempty"`
-	Script         stdJSON.RawMessage `json:"script,omitempty"`
-	Value          stdJSON.RawMessage `json:"value,omitempty"`
-	Payload        stdJSON.RawMessage `json:"payload,omitempty"`
-	Type           stdJSON.RawMessage `json:"type,omitempty"`
-	TicketContent  stdJSON.RawMessage `json:"ticket_contents,omitempty"`
-	TicketType     stdJSON.RawMessage `json:"ticket_ty,omitempty"`
+	Kind               string             `json:"kind"`
+	Source             string             `json:"source"`
+	Destination        *string            `json:"destination,omitempty"`
+	Rollup             *string            `json:"rollup,omitempty"`
+	Delegate           string             `json:"delegate,omitempty"`
+	Fee                int64              `json:"fee,string"`
+	Counter            int64              `json:"counter,string"`
+	Balance            *int64             `json:"balance,omitempty,string"`
+	GasLimit           int64              `json:"gas_limit,string"`
+	StorageLimit       int64              `json:"storage_limit,string"`
+	Amount             *int64             `json:"amount,omitempty,string"`
+	Nonce              *int64             `json:"nonce,omitempty"`
+	Tag                *string            `json:"tag,omitempty"`
+	Entrypoint         *string            `json:"entrypoint,omitempty"`
+	TicketTicketer     string             `json:"ticket_ticketer,omitempty"`
+	TicketAmount       string             `json:"ticket_amount,omitempty"`
+	PvmKind            string             `json:"pvm_kind,omitempty"`
+	Kernel             string             `json:"kernel,omitempty"`
+	CementedCommitment string             `json:"cemented_commitment,omitempty"`
+	OutputProof        string             `json:"output_proof,omitempty"`
+	Parameters         stdJSON.RawMessage `json:"parameters,omitempty"`
+	Metadata           *OperationMetadata `json:"metadata,omitempty"`
+	Result             *OperationResult   `json:"result,omitempty"`
+	Script             stdJSON.RawMessage `json:"script,omitempty"`
+	Value              stdJSON.RawMessage `json:"value,omitempty"`
+	Payload            stdJSON.RawMessage `json:"payload,omitempty"`
+	Type               stdJSON.RawMessage `json:"type,omitempty"`
+	TicketContent      stdJSON.RawMessage `json:"ticket_contents,omitempty"`
+	TicketType         stdJSON.RawMessage `json:"ticket_ty,omitempty"`
+	ParameterType      stdJSON.RawMessage `json:"parameters_ty,omitempty"`
 }
 
 // GetResult -
@@ -189,6 +195,9 @@ type OperationResult struct {
 	OriginatedRollup             string             `json:"originated_rollup,omitempty"`
 	TicketUpdates                []TicketUpdate     `json:"ticket_updates,omitempty"`
 	TicketReceipt                []TicketUpdate     `json:"ticket_receipt,omitempty"`
+	Address                      string             `json:"address,omitempty"`
+	GenesisCommitmentHash        string             `json:"genesis_commitment_hash,omitempty"`
+	Size                         string             `json:"size,omitempty"`
 }
 
 // LazyStorageDiff -

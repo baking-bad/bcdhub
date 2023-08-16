@@ -8,59 +8,58 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers"
 )
 
-// TransferTicket -
-type TransferTicket struct {
+// SrOriginate -
+type SrOriginate struct {
 	*ParseParams
 }
 
-// NewTransferTicket -
-func NewTransferTicket(params *ParseParams) TransferTicket {
-	return TransferTicket{params}
+// NewSrOriginate -
+func NewSrOriginate(params *ParseParams) SrOriginate {
+	return SrOriginate{params}
 }
 
 // Parse -
-func (p TransferTicket) Parse(data noderpc.Operation, store parsers.Store) error {
+func (p SrOriginate) Parse(data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
 	}
 
-	transferTicket := operation.Operation{
+	operation := operation.Operation{
 		Source:       source,
 		Initiator:    source,
-		StorageLimit: data.StorageLimit,
 		Fee:          data.Fee,
 		Counter:      data.Counter,
+		StorageLimit: data.StorageLimit,
 		GasLimit:     data.GasLimit,
 		Hash:         p.hash,
 		ProtocolID:   p.protocol.ID,
 		Level:        p.head.Level,
 		Timestamp:    p.head.Timestamp,
 		Kind:         types.NewOperationKind(data.Kind),
-		Entrypoint:   types.NewNullString(data.Entrypoint),
 		ContentIndex: p.contentIdx,
-		Payload:      data.TicketContent,
-		PayloadType:  data.TicketType,
 	}
 
-	if data.Destination != nil {
-		transferTicket.Destination = account.Account{
-			Address: *data.Destination,
-			Type:    types.NewAccountType(*data.Destination),
+	p.fillInternal(&operation)
+	operation.SetBurned(*p.protocol.Constants)
+	parseOperationResult(data, &operation)
+	p.stackTrace.Add(operation)
+
+	store.AddOperations(&operation)
+
+	if operation.IsApplied() {
+		smartRollup, err := NewSmartRolupParser().Parse(data, operation)
+		if err != nil {
+			return err
 		}
+		store.AddSmartRollups(&smartRollup)
+		operation.Destination = smartRollup.Address
 	}
-
-	p.fillInternal(&transferTicket)
-	transferTicket.SetBurned(*p.protocol.Constants)
-	parseOperationResult(data, &transferTicket)
-	p.stackTrace.Add(transferTicket)
-
-	store.AddOperations(&transferTicket)
 
 	return nil
 }
 
-func (p TransferTicket) fillInternal(tx *operation.Operation) {
+func (p SrOriginate) fillInternal(tx *operation.Operation) {
 	if p.main == nil {
 		p.main = tx
 		return

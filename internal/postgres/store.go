@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 
 	"github.com/go-pg/pg/v10"
@@ -20,6 +21,7 @@ type Store struct {
 	Migrations      []*migration.Migration
 	Operations      []*operation.Operation
 	GlobalConstants []*contract.GlobalConstant
+	SmartRollups    []*smartrollup.SmartRollup
 
 	partitions *PartitionManager
 	tx         pg.DBI
@@ -33,6 +35,7 @@ func NewStore(tx pg.DBI, pm *PartitionManager) *Store {
 		Migrations:      make([]*migration.Migration, 0),
 		Operations:      make([]*operation.Operation, 0),
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
+		SmartRollups:    make([]*smartrollup.SmartRollup, 0),
 
 		partitions: pm,
 		tx:         tx,
@@ -62,6 +65,11 @@ func (store *Store) AddOperations(operations ...*operation.Operation) {
 // AddGlobalConstants -
 func (store *Store) AddGlobalConstants(constants ...*contract.GlobalConstant) {
 	store.GlobalConstants = append(store.GlobalConstants, constants...)
+}
+
+// AddSmartRollups -
+func (store *Store) AddSmartRollups(rollups ...*smartrollup.SmartRollup) {
+	store.SmartRollups = append(store.SmartRollups, rollups...)
 }
 
 // ListContracts -
@@ -100,6 +108,10 @@ func (store *Store) Save(ctx context.Context) error {
 		}
 	}
 
+	if err := store.saveSmartRollups(store.tx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -115,6 +127,24 @@ func (store *Store) saveMigrations(tx pg.DBI) error {
 	}
 
 	_, err := tx.Model(&store.Migrations).Returning("id").Insert()
+	return err
+}
+
+func (store *Store) saveSmartRollups(tx pg.DBI) error {
+	if len(store.SmartRollups) == 0 {
+		return nil
+	}
+
+	for i := range store.SmartRollups {
+		if !store.SmartRollups[i].Address.IsEmpty() {
+			if err := store.SmartRollups[i].Address.Save(tx); err != nil {
+				return err
+			}
+			store.SmartRollups[i].AddressId = store.SmartRollups[i].Address.ID
+		}
+	}
+
+	_, err := tx.Model(&store.SmartRollups).Returning("id").Insert()
 	return err
 }
 

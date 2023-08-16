@@ -165,6 +165,7 @@ func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address stri
 		}
 	}
 
+	op.BigMapDiffsCount = len(op.BigMapDiffs)
 	return nil
 }
 

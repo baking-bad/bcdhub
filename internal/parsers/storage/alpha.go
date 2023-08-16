@@ -112,6 +112,7 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 		return err
 	}
 	operation.DeffatedStorage = b
+	operation.BigMapDiffsCount = len(operation.BigMapDiffs)
 	return nil
 }
 
@@ -130,6 +131,7 @@ func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operat
 		}
 
 		operation.BigMapDiffs = append(operation.BigMapDiffs, b)
+		operation.BigMapDiffsCount = len(operation.BigMapDiffs)
 		state := b.ToState()
 		state.Ptr = -1
 		store.AddBigMapStates(state)

@@ -37,19 +37,18 @@ type NodeRPC struct {
 	baseURL string
 	client  *http.Client
 
-	timeout    time.Duration
-	userAgent  string
-	retryCount int
-	rateLimit  *rate.Limiter
+	timeout   time.Duration
+	userAgent string
+	rateLimit *rate.Limiter
+	needLog   bool
 }
 
 // NewNodeRPC -
 func NewNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	node := &NodeRPC{
-		baseURL:    baseURL,
-		timeout:    time.Second * 10,
-		retryCount: 3,
-		userAgent:  userAgent,
+		baseURL:   baseURL,
+		timeout:   time.Second * 10,
+		userAgent: userAgent,
 	}
 
 	if bcdUserAgent := os.Getenv("BCD_USER_AGENT"); bcdUserAgent != "" {
@@ -120,21 +119,7 @@ func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool, uri
 
 func (rpc *NodeRPC) makeRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
 	req.Header.Set("User-Agent", rpc.userAgent)
-
-	for count := 0; count < rpc.retryCount; count++ {
-		if ctx.Err() != nil {
-			return nil, ctx.Err()
-		}
-
-		resp, err := rpc.client.Do(req)
-		if err != nil {
-			logger.Warning().Msgf("Attempt #%d: %s", count+1, err.Error())
-			continue
-		}
-		return resp, err
-	}
-
-	return nil, NewMaxRetryExceededError(rpc.baseURL)
+	return rpc.client.Do(req)
 }
 
 func (rpc *NodeRPC) makeGetRequest(ctx context.Context, uri string) (*http.Response, error) {
@@ -168,6 +153,13 @@ func (rpc *NodeRPC) get(ctx context.Context, uri string, response interface{}) e
 		}
 	}
 
+	start := time.Now()
+	defer func() {
+		if rpc.needLog {
+			logger.Info().Str("method", "get").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
+		}
+	}()
+
 	resp, err := rpc.makeGetRequest(ctx, uri)
 	if err != nil {
 		return err
@@ -178,6 +170,19 @@ func (rpc *NodeRPC) get(ctx context.Context, uri string, response interface{}) e
 }
 
 func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
+	if rpc.rateLimit != nil {
+		if err := rpc.rateLimit.Wait(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	start := time.Now()
+	defer func() {
+		if rpc.needLog {
+			logger.Info().Str("method", "get").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
+		}
+	}()
+
 	resp, err := rpc.makeGetRequest(ctx, uri)
 	if err != nil {
 		return nil, err
@@ -190,11 +195,23 @@ func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-// nolint
 func (rpc *NodeRPC) post(ctx context.Context, uri string, data interface{}, checkStatusCode bool, response interface{}) error {
+	if rpc.rateLimit != nil {
+		if err := rpc.rateLimit.Wait(ctx); err != nil {
+			return err
+		}
+	}
+
+	start := time.Now()
+	defer func() {
+		if rpc.needLog {
+			logger.Info().Str("method", "post").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
+		}
+	}()
+
 	resp, err := rpc.makePostRequest(ctx, uri, data)
 	if err != nil {
-		return NewMaxRetryExceededError(rpc.baseURL)
+		return err
 	}
 	defer resp.Body.Close()
 

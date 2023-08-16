@@ -46,6 +46,11 @@ func TestDecodeBase58String(t *testing.T) {
 			data: "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UAi",
 			want: "76a57f87ee7624b92ab1453c75ba5d29ed8fe0bf",
 		},
+		{
+			name: "smart rollup commitment hash",
+			data: "src13MtM1eBzxCH1FBhLAkAiWGW6JbjvycLeH6vuz5k9GSiTYTCTja",
+			want: "751b92ce705ebc551917bb488310498e969d7a1261fda86b509e7da2c780ec8d",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -170,6 +175,12 @@ func TestEncodeBase58String(t *testing.T) {
 			data:   "76a57f87ee7624b92ab1453c75ba5d29ed8fe0bf",
 			prefix: "txr1",
 			want:   "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UAi",
+		},
+		{
+			name:   "smart rollup commitment hash",
+			prefix: "src1",
+			data:   "751b92ce705ebc551917bb488310498e969d7a1261fda86b509e7da2c780ec8d",
+			want:   "src13MtM1eBzxCH1FBhLAkAiWGW6JbjvycLeH6vuz5k9GSiTYTCTja",
 		},
 	}
 	for _, tt := range tests {

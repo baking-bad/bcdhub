@@ -26,6 +26,8 @@ func (p *TicketUpdateParser) Parse(data *noderpc.OperationResult, operation *ope
 		tckt := p.toModel(data.TicketReceipt[i], operation)
 		operation.TickerUpdates = append(operation.TickerUpdates, tckt...)
 	}
+
+	operation.TicketUpdatesCount = len(operation.TickerUpdates)
 }
 
 func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *operation.Operation) []*ticket.TicketUpdate {

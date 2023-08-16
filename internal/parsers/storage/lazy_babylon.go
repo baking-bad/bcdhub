@@ -172,6 +172,8 @@ func (b *LazyBabylon) handleBigMapDiff(result *noderpc.OperationResult, address 
 		}
 	}
 
+	op.BigMapDiffsCount = len(op.BigMapDiffs)
+
 	return nil
 }
 

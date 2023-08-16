@@ -54,3 +54,14 @@ func (storage *Storage) Has(contractID int64) (bool, error) {
 	}
 	return true, nil
 }
+
+// ForOperation -
+func (storage *Storage) ForOperation(operationId int64) (response []ticket.TicketUpdate, err error) {
+	err = storage.DB.
+		Model(&response).
+		Relation("Ticketer").
+		Relation("Account").
+		Where("operation_id = ?", operationId).
+		Select()
+	return
+}

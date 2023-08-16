@@ -262,3 +262,13 @@ type getViewsArgs struct {
 type findContract struct {
 	Tags string `form:"tags" binding:"omitempty"`
 }
+
+type smartRollupListRequest struct {
+	pageableRequest
+
+	Sort string `form:"sort" binding:"omitempty,oneof=asc desc"`
+}
+
+type getSmartRollupRequest struct {
+	Address string `uri:"address" binding:"required,smart_rollup"`
+}

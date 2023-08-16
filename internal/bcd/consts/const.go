@@ -11,6 +11,9 @@ const (
 	TxRollupOrigination    = "tx_rollup_origination"
 	Event                  = "event"
 	TransferTicket         = "transfer_ticket"
+	SrOriginate            = "smart_rollup_originate"
+	SrExecuteOutboxMessage = "smart_rollup_execute_outbox_message"
+	Delegation             = "delegation"
 )
 
 // Error IDs

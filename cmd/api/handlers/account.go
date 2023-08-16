@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
 )
@@ -39,20 +40,24 @@ func GetInfo() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		block, err := ctx.Blocks.Last()
-		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
-		balance, err := ctx.Cache.TezosBalance(c, acc.Address, block.Level)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
+		var balance int64
+		if !(bcd.IsRollupAddressLazy(acc.Address) || bcd.IsSmartRollupAddressLazy(acc.Address)) {
+			block, err := ctx.Blocks.Last()
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+			balance, err = ctx.Cache.TezosBalance(c, acc.Address, block.Level)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
 		}
 		c.SecureJSON(http.StatusOK, AccountInfo{
-			Address:    acc.Address,
-			Alias:      acc.Alias,
-			TxCount:    stats.Count,
-			Balance:    balance,
-			LastAction: stats.LastAction.UTC(),
+			Address:     acc.Address,
+			Alias:       acc.Alias,
+			TxCount:     stats.Count,
+			Balance:     balance,
+			LastAction:  stats.LastAction.UTC(),
+			AccountType: acc.Type.String(),
 		})
 	}
 

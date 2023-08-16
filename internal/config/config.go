@@ -56,6 +56,7 @@ type RPCConfig struct {
 	Timeout           int    `yaml:"timeout"`
 	Cache             string `yaml:"cache"`
 	RequestsPerSecond int    `yaml:"requests_per_second"`
+	Log               bool   `yaml:"log"`
 }
 
 // TzKTConfig -

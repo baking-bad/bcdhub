@@ -23,7 +23,8 @@ type ValidatorConstraint interface {
 type Validator[T ValidatorConstraint] func(T) error
 
 var (
-	hexRegex = regexp.MustCompile("^[0-9a-fA-F]+$")
+	hexRegex           = regexp.MustCompile("^[0-9a-fA-F]+$")
+	hexWithPrefixRegex = regexp.MustCompile("^(0x)?[0-9a-fA-F]+$")
 )
 
 // AddressValidator -
@@ -124,7 +125,7 @@ func BytesValidator(value string) error {
 	if len(value)%2 > 0 {
 		return errors.Wrapf(ErrValidation, "invalid bytes in hex length '%s'", value)
 	}
-	if value != "" && !hexRegex.MatchString(value) {
+	if value != "" && !hexWithPrefixRegex.MatchString(value) {
 		return errors.Wrapf(ErrValidation, "bytes '%s' should be hexademical without prefixes", value)
 	}
 	return nil

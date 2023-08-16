@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -47,6 +48,7 @@ type Context struct {
 	TicketUpdates   ticket.Repository
 	Domains         domains.Repository
 	Scripts         contract.ScriptRepository
+	SmartRollups    smartrollup.Repository
 	Partitions      *postgres.PartitionManager
 
 	Cache     *cache.Cache

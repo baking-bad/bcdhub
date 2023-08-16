@@ -68,10 +68,29 @@ func (p Transaction) Parse(data noderpc.Operation, store parsers.Store) error {
 
 	store.AddOperations(&tx)
 
-	if tx.Destination.Type != modelsTypes.AccountTypeContract {
+	switch tx.Destination.Type {
+	case modelsTypes.AccountTypeContract:
+		return p.parseContractParams(data, store, &tx)
+	case modelsTypes.AccountTypeSmartRollup:
+		return p.parseSmartRollupParams(data, &tx)
+	default:
 		return nil
 	}
+}
 
+func (p Transaction) parseSmartRollupParams(data noderpc.Operation, tx *operation.Operation) error {
+	if len(tx.Parameters) == 0 {
+		return tx.Entrypoint.Set(consts.DefaultEntrypoint)
+	}
+
+	params := types.NewParameters(tx.Parameters)
+	if err := tx.Entrypoint.Set(params.Entrypoint); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p Transaction) parseContractParams(data noderpc.Operation, store parsers.Store, tx *operation.Operation) error {
 	for i := range tx.Errors {
 		if tx.Errors[i].Is("contract.non_existing_contract") {
 			return nil
@@ -123,21 +142,20 @@ func (p Transaction) Parse(data noderpc.Operation, store parsers.Store) error {
 		return err
 	}
 
-	if err := setTags(p.ctx, nil, &tx); err != nil {
+	if err := setTags(p.ctx, nil, tx); err != nil {
 		return err
 	}
 
-	if err := p.getEntrypoint(&tx); err != nil {
+	if err := p.getEntrypoint(tx); err != nil {
 		return err
 	}
-	p.stackTrace.Add(tx)
+	p.stackTrace.Add(*tx)
 
 	if tx.IsApplied() {
-		if err := p.appliedHandler(data, &tx, store); err != nil {
+		if err := p.appliedHandler(data, tx, store); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 

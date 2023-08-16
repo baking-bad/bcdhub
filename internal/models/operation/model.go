@@ -35,6 +35,8 @@ type Operation struct {
 	Burned                             int64      `pg:",use_zero"`
 	AllocatedDestinationContractBurned int64      `pg:",use_zero"`
 	ProtocolID                         int64      `pg:",type:SMALLINT"`
+	TicketUpdatesCount                 int        `pg:",use_zero"`
+	BigMapDiffsCount                   int        `pg:",use_zero"`
 	Tags                               types.Tags `pg:",use_zero"`
 	Nonce                              *int64
 
@@ -147,12 +149,7 @@ func (o *Operation) IsApplied() bool {
 
 // IsCall -
 func (o *Operation) IsCall() bool {
-	return bcd.IsContract(o.Destination.Address) && len(o.Parameters) > 0
-}
-
-// HasPayload -
-func (o *Operation) HasPayload() bool {
-	return o.Kind == types.OperationKindEvent || o.Kind == types.OperationKindTransferTicket
+	return (bcd.IsContract(o.Destination.Address) || bcd.IsSmartRollupHash(o.Destination.Address)) && len(o.Parameters) > 0
 }
 
 // Result -

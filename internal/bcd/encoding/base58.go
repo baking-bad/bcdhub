@@ -58,6 +58,10 @@ const (
 	PrefixSecp256k1EncryptedSecretKey = "spesk"
 	PrefixP256EncryptedSecretKey      = "p2esk"
 	PrefixBakerHash                   = "SG1"
+	PrefixSmartRollupCommitment       = "src1"
+	PrefixSmartRollupState            = "srs1"
+	PrefixSmartRollupInbox            = "srib1"
+	PrefixSmartRollupMerkelizedTree   = "srib2"
 )
 
 var base58Encodings = []base58Encoding{
@@ -109,6 +113,10 @@ var base58Encodings = []base58Encoding{
 	{[]byte(PrefixP256EncryptedSecretKey), 88, []byte{9, 48, 57, 115, 171}, 56, "p256_encrypted_secret_key"},
 
 	{[]byte(PrefixBakerHash), 36, []byte{3, 56, 226}, 20, "baker hash"},
+	{[]byte(PrefixSmartRollupCommitment), 54, []byte{17, 165, 134, 138}, 32, "smart rollup commitment hash"},
+	{[]byte(PrefixSmartRollupState), 54, []byte{17, 165, 235, 240}, 32, "smart rollup state hash"},
+	{[]byte(PrefixSmartRollupInbox), 55, []byte{3, 255, 138, 145, 110}, 32, "smart rollup inbox hash"},
+	{[]byte(PrefixSmartRollupMerkelizedTree), 55, []byte{3, 255, 138, 145, 140}, 32, "smart rollup merkelized tree hash"},
 }
 
 func getBase58EncodingForDecode(data []byte) (base58Encoding, error) {

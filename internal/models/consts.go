@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 )
 
@@ -26,6 +27,7 @@ const (
 	DocProtocol        = "protocols"
 	DocScripts         = "scripts"
 	DocTicketUpdates   = "ticket_updates"
+	DocSmartRollups    = "smart_rollups"
 )
 
 // AllDocuments - returns all document names
@@ -43,6 +45,7 @@ func AllDocuments() []string {
 		DocProtocol,
 		DocScripts,
 		DocTicketUpdates,
+		DocSmartRollups,
 	}
 }
 
@@ -62,6 +65,7 @@ func AllModels() []Model {
 		&contract.ScriptConstants{},
 		&contract.Contract{},
 		&migration.Migration{},
+		&smartrollup.SmartRollup{},
 	}
 }
 

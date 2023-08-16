@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,43 +44,79 @@ func GetContractTicketUpdates() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-
-		response := make([]TicketUpdate, 0, len(updates))
-		for i := range updates {
-			update := NewTicketUpdateFromModel(updates[i])
-
-			content, err := ast.NewTypedAstFromBytes(updates[i].ContentType)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-			docs, err := content.Docs("")
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-			update.ContentType = docs
-
-			if err := content.SettleFromBytes(updates[i].Content); handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-			contentMiguel, err := content.ToMiguel()
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-			if len(contentMiguel) > 0 {
-				update.Content = contentMiguel[0]
-			}
-
-			operation, err := ctx.Operations.GetByID(updates[i].OperationID)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-			if len(operation.Hash) > 0 {
-				update.OperationHash = encoding.MustEncodeOperationHash(operation.Hash)
-			}
-
-			response = append(response, update)
+		response, err := prepareTicketUpdates(ctx, updates, nil)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
 		}
-
 		c.SecureJSON(http.StatusOK, response)
 	}
+}
+
+// GetTicketUpdatesForOperation -
+// @Router /v1/operation/{network}/{id}/ticket_updates [get]
+func GetTicketUpdatesForOperation() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getOperationByIDRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+		operation, err := ctx.Operations.GetByID(req.ID)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		updates, err := ctx.TicketUpdates.ForOperation(req.ID)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		response, err := prepareTicketUpdates(ctx, updates, operation.Hash)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, response)
+	}
+}
+
+func prepareTicketUpdates(ctx *config.Context, updates []ticket.TicketUpdate, hash []byte) ([]TicketUpdate, error) {
+	response := make([]TicketUpdate, 0, len(updates))
+	for i := range updates {
+		update := NewTicketUpdateFromModel(updates[i])
+
+		content, err := ast.NewTypedAstFromBytes(updates[i].ContentType)
+		if err != nil {
+			return nil, err
+		}
+		docs, err := content.Docs("")
+		if err != nil {
+			return nil, err
+		}
+		update.ContentType = docs
+
+		if err := content.SettleFromBytes(updates[i].Content); err != nil {
+			return nil, err
+		}
+		contentMiguel, err := content.ToMiguel()
+		if err != nil {
+			return nil, err
+		}
+		if len(contentMiguel) > 0 {
+			update.Content = contentMiguel[0]
+		}
+
+		if len(hash) == 0 {
+			operation, err := ctx.Operations.GetByID(updates[i].OperationID)
+			if err != nil {
+				return nil, err
+			}
+			hash = operation.Hash
+		}
+		if len(hash) > 0 {
+			update.OperationHash = encoding.MustEncodeOperationHash(hash)
+		}
+
+		response = append(response, update)
+	}
+
+	return response, nil
 }

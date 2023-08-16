@@ -1,13 +1,14 @@
 package operations
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_parseOperationResult(t *testing.T) {
@@ -20,15 +21,17 @@ func Test_parseOperationResult(t *testing.T) {
 			name:     "test 1",
 			fileName: "./data/result/test1.json",
 			want: operation.Operation{
-				Status:      types.OperationStatusApplied,
-				ConsumedGas: 1020700,
+				Status:        types.OperationStatusApplied,
+				ConsumedGas:   1020700,
+				TickerUpdates: make([]*ticket.TicketUpdate, 0),
 			},
 		}, {
 			name:     "test 2",
 			fileName: "./data/result/test2.json",
 			want: operation.Operation{
-				Status:      types.OperationStatusApplied,
-				ConsumedGas: 1020700,
+				Status:        types.OperationStatusApplied,
+				ConsumedGas:   1020700,
+				TickerUpdates: make([]*ticket.TicketUpdate, 0),
 			},
 		}, {
 			name:     "test 3",
@@ -42,6 +45,7 @@ func Test_parseOperationResult(t *testing.T) {
 					Address: "KT1FVhijNC7ZBL5EjcetiKddDQ2n98t8w4jo",
 					Type:    types.AccountTypeContract,
 				},
+				TickerUpdates: make([]*ticket.TicketUpdate, 0),
 			},
 		},
 	}
@@ -55,9 +59,7 @@ func Test_parseOperationResult(t *testing.T) {
 
 			var res operation.Operation
 			parseOperationResult(op, &res)
-			if !reflect.DeepEqual(res, tt.want) {
-				t.Errorf("Result.Parse() = %v, want %v", res, tt.want)
-			}
+			require.Equal(t, tt.want, res)
 		})
 	}
 }

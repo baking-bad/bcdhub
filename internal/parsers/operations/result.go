@@ -52,7 +52,7 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 		tx.Errors = errs
 	}
 
-	if tx.Status == types.OperationStatusApplied {
+	if tx.IsApplied() {
 		new(TicketUpdateParser).Parse(result, tx)
 	}
 }

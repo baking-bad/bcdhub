@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -228,6 +229,19 @@ func (bi *BlockchainIndexer) createIndices() {
 
 	if _, err := bi.Context.StorageDB.DB.Model(new(contract.ScriptConstants)).Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS global_constant_id_idx ON ?TableName (global_constant_id)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	// Ticket updates
+	if _, err := bi.Context.StorageDB.DB.Model(new(ticket.TicketUpdate)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS ticket_updates_operation_id_idx ON ?TableName (operation_id)
+	`); err != nil {
+		logger.Error().Err(err).Msg("can't create index")
+	}
+
+	if _, err := bi.Context.StorageDB.DB.Model(new(ticket.TicketUpdate)).Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS ticket_updates_ticketer_id_idx ON ?TableName (ticketer_id)
 	`); err != nil {
 		logger.Error().Err(err).Msg("can't create index")
 	}

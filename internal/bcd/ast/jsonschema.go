@@ -3,6 +3,7 @@ package ast
 import (
 	"encoding/hex"
 	"math/big"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
@@ -94,7 +95,7 @@ func setBytesJSONSchema(d *Default, data map[string]interface{}) error {
 			if err := BytesValidator(str); err != nil {
 				return err
 			}
-			if _, err := hex.DecodeString(str); err != nil {
+			if _, err := hex.DecodeString(strings.TrimPrefix(str, "0x")); err != nil {
 				return errors.Errorf("bytes decoding error: %s=%v", key, value)
 			}
 

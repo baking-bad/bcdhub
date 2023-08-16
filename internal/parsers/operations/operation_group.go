@@ -9,6 +9,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers"
 )
 
+// OperationParser -
+type OperationParser interface {
+	Parse(data noderpc.Operation, store parsers.Store) error
+}
+
 // Group -
 type Group struct {
 	*ParseParams
@@ -63,7 +68,8 @@ func (Group) needParse(item noderpc.LightOperation) bool {
 	registerGlobalConstantCondition := item.Kind == consts.RegisterGlobalConstant
 	eventCondition := item.Kind == consts.Event
 	transferTicketCondition := item.Kind == consts.TransferTicket
-	return originationCondition || transactionCondition ||
+	srOriginateCondition := item.Kind == consts.SrOriginate
+	return originationCondition || transactionCondition || srOriginateCondition ||
 		registerGlobalConstantCondition || eventCondition || transferTicketCondition
 }
 
@@ -79,33 +85,29 @@ func NewContent(params *ParseParams) Content {
 
 // Parse -
 func (content Content) Parse(data noderpc.Operation, store parsers.Store) error {
+	var operationParser OperationParser
 	switch data.Kind {
 	case consts.Origination, consts.OriginationNew:
-		if err := NewOrigination(content.ParseParams).Parse(data, store); err != nil {
-			return err
-		}
+		operationParser = NewOrigination(content.ParseParams)
 	case consts.Transaction:
-		if err := NewTransaction(content.ParseParams).Parse(data, store); err != nil {
-			return err
-		}
+		operationParser = NewTransaction(content.ParseParams)
 	case consts.RegisterGlobalConstant:
-		if err := NewRegisterGlobalConstant(content.ParseParams).Parse(data, store); err != nil {
-			return err
-		}
+		operationParser = NewRegisterGlobalConstant(content.ParseParams)
 	case consts.TxRollupOrigination:
-		if err := NewTxRollupOrigination(content.ParseParams).Parse(data, store); err != nil {
-			return err
-		}
+		operationParser = NewTxRollupOrigination(content.ParseParams)
 	case consts.Event:
-		if err := NewEvent(content.ParseParams).Parse(data, store); err != nil {
-			return err
-		}
+		operationParser = NewEvent(content.ParseParams)
 	case consts.TransferTicket:
-		if err := NewTransferTicket(content.ParseParams).Parse(data, store); err != nil {
-			return err
-		}
+		operationParser = NewTransferTicket(content.ParseParams)
+	case consts.SrOriginate:
+		operationParser = NewSrOriginate(content.ParseParams)
+	case consts.SrExecuteOutboxMessage:
+		operationParser = NewSrExecuteOutboxMessage(content.ParseParams)
 	default:
 		return nil
+	}
+	if err := operationParser.Parse(data, store); err != nil {
+		return err
 	}
 
 	if err := content.parseInternal(data, store); err != nil {

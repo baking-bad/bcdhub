@@ -39,3 +39,7 @@ func ContractsHelpers() gin.HandlerFunc {
 		c.SecureJSON(http.StatusOK, response)
 	}
 }
+
+func getStringPointer(s string) *string {
+	return &s
+}
