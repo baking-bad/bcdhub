@@ -3,7 +3,6 @@ package noderpc
 import (
 	"bytes"
 	"context"
-	stdJSON "encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -60,10 +59,9 @@ func NewNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	}
 
 	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.MaxIdleConns = 100
-	t.MaxConnsPerHost = 100
-	t.MaxIdleConnsPerHost = 100
-
+	t.MaxIdleConns = 20
+	t.MaxConnsPerHost = 20
+	t.MaxIdleConnsPerHost = 20
 	node.client = &http.Client{
 		Timeout:   node.timeout,
 		Transport: t,
@@ -87,15 +85,15 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	return node
 }
 
-func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) error {
+func (rpc *NodeRPC) checkStatusCode(r io.Reader, statusCode int, checkStatusCode bool) error {
 	switch {
-	case resp.StatusCode == http.StatusOK:
+	case statusCode == http.StatusOK:
 		return nil
-	case resp.StatusCode > http.StatusInternalServerError:
-		return NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
+	case statusCode > http.StatusInternalServerError:
+		return NewNodeUnavailiableError(rpc.baseURL, statusCode)
 	case checkStatusCode:
 		invalidResponseErr := newInvalidNodeResponse()
-		data, err := io.ReadAll(resp.Body)
+		data, err := io.ReadAll(r)
 		if err != nil {
 			return err
 		}
@@ -109,12 +107,12 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 	}
 }
 
-func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool, uri string, response interface{}) error {
-	if err := rpc.checkStatusCode(resp, checkStatusCode); err != nil {
+func (rpc *NodeRPC) parseResponse(r io.Reader, statusCode int, checkStatusCode bool, uri string, response interface{}) error {
+	if err := rpc.checkStatusCode(r, statusCode, checkStatusCode); err != nil {
 		return fmt.Errorf("%w (%s): %w", ErrNodeRPCError, uri, err)
 	}
 
-	return json.NewDecoder(resp.Body).Decode(response)
+	return json.NewDecoder(r).Decode(response)
 }
 
 func (rpc *NodeRPC) makeRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
@@ -166,7 +164,12 @@ func (rpc *NodeRPC) get(ctx context.Context, uri string, response interface{}) e
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp, true, uri, response)
+	buffer := new(bytes.Buffer)
+	if _, err = io.Copy(buffer, resp.Body); err != nil {
+		return err
+	}
+
+	return rpc.parseResponse(buffer, resp.StatusCode, true, uri, response)
 }
 
 func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
@@ -189,7 +192,7 @@ func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := rpc.checkStatusCode(resp, true); err != nil {
+	if err := rpc.checkStatusCode(resp.Body, resp.StatusCode, true); err != nil {
 		return nil, fmt.Errorf("%w (%s): %w", ErrNodeRPCError, uri, err)
 	}
 	return io.ReadAll(resp.Body)
@@ -215,7 +218,12 @@ func (rpc *NodeRPC) post(ctx context.Context, uri string, data interface{}, chec
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp, checkStatusCode, uri, response)
+	buffer := new(bytes.Buffer)
+	if _, err = io.Copy(buffer, resp.Body); err != nil {
+		return err
+	}
+
+	return rpc.parseResponse(buffer, resp.StatusCode, checkStatusCode, uri, response)
 }
 
 // Block - returns block
@@ -259,11 +267,7 @@ func (rpc *NodeRPC) GetRawScript(ctx context.Context, address string, level int6
 
 // GetScriptStorageRaw -
 func (rpc *NodeRPC) GetScriptStorageRaw(ctx context.Context, address string, level int64) ([]byte, error) {
-	var response struct {
-		Storage stdJSON.RawMessage `json:"storage"`
-	}
-	err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), &response)
-	return response.Storage, err
+	return rpc.getRaw(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/storage", getBlockString(level), address))
 }
 
 // GetContractBalance -

@@ -70,7 +70,7 @@ func IsOperationHash(str string) bool {
 	return operationRegex.MatchString(str)
 }
 
-// IsOperationHash -
+// IsSmartRollupHash -
 func IsSmartRollupHash(str string) bool {
 	return smartRollupRegex.MatchString(str)
 }

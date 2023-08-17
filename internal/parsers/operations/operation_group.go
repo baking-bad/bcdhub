@@ -68,8 +68,8 @@ func (Group) needParse(item noderpc.LightOperation) bool {
 	registerGlobalConstantCondition := item.Kind == consts.RegisterGlobalConstant
 	eventCondition := item.Kind == consts.Event
 	transferTicketCondition := item.Kind == consts.TransferTicket
-	srOriginateCondition := item.Kind == consts.SrOriginate
-	return originationCondition || transactionCondition || srOriginateCondition ||
+	srCondition := item.Kind == consts.SrOriginate || item.Kind == consts.SrExecuteOutboxMessage
+	return originationCondition || transactionCondition || srCondition ||
 		registerGlobalConstantCondition || eventCondition || transferTicketCondition
 }
 

@@ -60,13 +60,13 @@ func (p SrExecuteOutboxMessage) Parse(data noderpc.Operation, store parsers.Stor
 		if err != nil {
 			return errors.Wrap(err, "cemented commitment decoding")
 		}
-		data.Payload = append(data.Payload, commitment...)
+		operation.Payload = append(operation.Payload, commitment...)
 
 		proof, err := hex.DecodeString(data.OutputProof)
 		if err != nil {
 			return errors.Wrap(err, "outbox proof decoding")
 		}
-		data.Payload = append(data.Payload, proof...)
+		operation.Payload = append(operation.Payload, proof...)
 	}
 
 	store.AddOperations(&operation)

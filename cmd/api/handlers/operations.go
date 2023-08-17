@@ -526,15 +526,21 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 			}
 			op.Payload = []*ast.MiguelNode{
 				{
-					Prim:  "string",
-					Type:  "string",
-					Name:  getStringPointer("cemented_commitment"),
-					Value: commitment,
-				}, {
-					Prim:  "bytes",
-					Type:  "bytes",
-					Name:  getStringPointer("output_proof"),
-					Value: hex.EncodeToString(operation.Payload[32:]),
+					Prim: "pair",
+					Type: "namedtuple",
+					Children: []*ast.MiguelNode{
+						{
+							Prim:  "string",
+							Type:  "string",
+							Name:  getStringPointer("cemented_commitment"),
+							Value: commitment,
+						}, {
+							Prim:  "bytes",
+							Type:  "bytes",
+							Name:  getStringPointer("output_proof"),
+							Value: hex.EncodeToString(operation.Payload[32:]),
+						},
+					},
 				},
 			}
 		}
