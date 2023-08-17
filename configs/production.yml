@@ -2,15 +2,15 @@ rpc:
   mainnet:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
-    requests_per_second: 15
+    requests_per_second: 10
   ghostnet:
     uri: https://rpc.tzkt.io/ghostnet
     timeout: 20
-    requests_per_second: 15
+    requests_per_second: 10
   nairobinet:
     uri: https://rpc.tzkt.io/nairobinet
     timeout: 20
-    requests_per_second: 15
+    requests_per_second: 10
 
 tzkt:
   mainnet:
