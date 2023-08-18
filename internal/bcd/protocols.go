@@ -40,6 +40,7 @@ var symLinks = map[string]string{
 	"PtMumbaiiFFEGbew1rRjzSPyzRbA51Tm3RVZL5suHPxSZYDhCEc": SymLinkJakarta, // Mumbai
 	"PtMumbai2TmsJHNGRkD8v8YDbtao7BLUC3wjASn1inAKLFCjaH1": SymLinkJakarta, // Mumbai 2
 	"PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf": SymLinkJakarta, // Nairobinet
+	"ProxfordSW2S7fvchT1Zgj2avb5UES194neRyYVXoaDGvF9egt8": SymLinkJakarta, // Oxford
 }
 
 // GetProtoSymLink -
@@ -52,7 +53,7 @@ func GetProtoSymLink(protocol string) (string, error) {
 
 // GetCurrentProtocol - returns last supported protocol
 func GetCurrentProtocol() string {
-	return "PtLimaPtLMwfNinJi9rCfDPWea8dFgTZ1MeJ9f1m2SRic6ayiwW"
+	return "PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf"
 }
 
 // Symbolic links
@@ -71,4 +72,5 @@ var ChainID = map[string]string{
 	"NetXizpkH94bocH": "limanet",
 	"NetXQw6nWSnrJ5t": "mumbainet",
 	"NetXyuzvDo2Ugzb": "nairobinet",
+	"NetXH6zDyMzRsUy": "oxfordnet",
 }
