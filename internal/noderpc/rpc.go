@@ -3,6 +3,7 @@ package noderpc
 import (
 	"bytes"
 	"context"
+	stdJSON "encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -267,7 +268,11 @@ func (rpc *NodeRPC) GetRawScript(ctx context.Context, address string, level int6
 
 // GetScriptStorageRaw -
 func (rpc *NodeRPC) GetScriptStorageRaw(ctx context.Context, address string, level int64) ([]byte, error) {
-	return rpc.getRaw(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/storage", getBlockString(level), address))
+	var response struct {
+		Storage stdJSON.RawMessage `json:"storage"`
+	}
+	err := rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), &response)
+	return response.Storage, err
 }
 
 // GetContractBalance -
