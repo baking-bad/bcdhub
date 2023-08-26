@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/hex"
 	stdJSON "encoding/json"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
@@ -39,10 +41,12 @@ type Operation struct {
 	ConsumedGas                        int64              `json:"consumed_gas,omitempty" extensions:"x-nullable" example:"100"`
 	StorageSize                        int64              `json:"storage_size,omitempty" extensions:"x-nullable" example:"200"`
 	PaidStorageSizeDiff                int64              `json:"paid_storage_size_diff,omitempty" extensions:"x-nullable" example:"300"`
+	TicketUpdatesCount                 int                `json:"ticket_updates_count"`
+	BigMapDiffsCount                   int                `json:"big_map_diffs_count"`
 	Errors                             []*tezerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
 	Parameters                         interface{}        `json:"parameters,omitempty" extensions:"x-nullable"`
 	StorageDiff                        *ast.MiguelNode    `json:"storage_diff,omitempty" extensions:"x-nullable"`
-	Event                              []*ast.MiguelNode  `json:"event,omitempty" extensions:"x-nullable"`
+	Payload                            []*ast.MiguelNode  `json:"payload,omitempty" extensions:"x-nullable"`
 	RawMempool                         interface{}        `json:"rawMempool,omitempty" extensions:"x-nullable"`
 	Timestamp                          time.Time          `json:"timestamp"`
 	Protocol                           string             `json:"protocol"`
@@ -96,6 +100,8 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.StorageSize = operation.StorageSize
 	o.PaidStorageSizeDiff = operation.PaidStorageSizeDiff
 	o.AllocatedDestinationContract = operation.AllocatedDestinationContract
+	o.TicketUpdatesCount = operation.TicketUpdatesCount
+	o.BigMapDiffsCount = operation.BigMapDiffsCount
 }
 
 // ToModel -
@@ -493,11 +499,12 @@ type Screenshot struct {
 
 // AccountInfo -
 type AccountInfo struct {
-	Address    string    `json:"address"`
-	Alias      string    `json:"alias,omitempty" extensions:"x-nullable"`
-	Balance    int64     `json:"balance"`
-	TxCount    int64     `json:"tx_count"`
-	LastAction time.Time `json:"last_action"`
+	Address     string    `json:"address"`
+	Alias       string    `json:"alias,omitempty" extensions:"x-nullable"`
+	Balance     int64     `json:"balance"`
+	TxCount     int64     `json:"tx_count"`
+	LastAction  time.Time `json:"last_action"`
+	AccountType string    `json:"account_type"`
 }
 
 // CountResponse -
@@ -643,7 +650,7 @@ type Event struct {
 
 // NewEvent -
 func NewEvent(o operation.Operation) (*Event, error) {
-	if !o.IsEvent() {
+	if o.Kind != types.OperationKindEvent {
 		return nil, nil
 	}
 
@@ -660,11 +667,11 @@ func NewEvent(o operation.Operation) (*Event, error) {
 		Tag:       o.Tag.String(),
 	}
 
-	eventType, err := ast.NewTypedAstFromBytes(o.EventType)
+	eventType, err := ast.NewTypedAstFromBytes(o.PayloadType)
 	if err != nil {
 		return nil, err
 	}
-	if err := eventType.SettleFromBytes(o.EventPayload); err != nil {
+	if err := eventType.SettleFromBytes(o.Payload); err != nil {
 		return nil, err
 	}
 	eventMiguel, err := eventType.ToMiguel()
@@ -697,5 +704,33 @@ func NewTicketUpdateFromModel(update ticket.TicketUpdate) TicketUpdate {
 		Ticketer:  update.Ticketer.Address,
 		Address:   update.Account.Address,
 		Amount:    update.Amount.String(),
+	}
+}
+
+// SmartRollup -
+type SmartRollup struct {
+	ID                    int64         `json:"id"`
+	Level                 int64         `json:"level"`
+	Timestamp             time.Time     `json:"timestamp"`
+	Size                  uint64        `json:"size"`
+	Address               string        `json:"address"`
+	GenesisCommitmentHash string        `json:"genesis_commitment_hash"`
+	PvmKind               string        `json:"pvm_kind"`
+	Kernel                string        `json:"kernel"`
+	Type                  []ast.Typedef `json:"type"`
+}
+
+// NewSmartRollup -
+func NewSmartRollup(rollup smartrollup.SmartRollup) SmartRollup {
+	kernel := hex.EncodeToString(rollup.Kernel)
+	return SmartRollup{
+		ID:                    rollup.ID,
+		Level:                 rollup.Level,
+		Timestamp:             rollup.Timestamp,
+		Size:                  rollup.Size,
+		Address:               rollup.Address.Address,
+		GenesisCommitmentHash: rollup.GenesisCommitmentHash,
+		PvmKind:               rollup.PvmKind,
+		Kernel:                kernel,
 	}
 }

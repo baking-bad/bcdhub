@@ -2,7 +2,7 @@ rpc:
   mainnet:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
-    requests_per_second: 15
+    requests_per_second: 10
   ghostnet:
     uri: https://rpc.tzkt.io/ghostnet
     timeout: 20
@@ -10,7 +10,7 @@ rpc:
   nairobinet:
     uri: https://rpc.tzkt.io/nairobinet
     timeout: 20
-    requests_per_second: 20
+    requests_per_second: 10
 
 tzkt:
   mainnet:
@@ -74,11 +74,11 @@ indexer:
   sentry_enabled: true
   networks:
     mainnet:
-      receiver_threads: ${MAINNET_THREADS:-1}
+      receiver_threads: ${MAINNET_THREADS:-10}
     ghostnet:
-      receiver_threads: ${TESTNET_THREADS:-1}
+      receiver_threads: ${TESTNET_THREADS:-10}
     nairobinet:
-      receiver_threads: ${TESTNET_THREADS:-1}
+      receiver_threads: ${TESTNET_THREADS:-10}
   connections:
     max: 5
     idle: 5

@@ -2,10 +2,11 @@ package indexer
 
 import (
 	"context"
-	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/dipdup-io/workerpool"
+	"github.com/pkg/errors"
 )
 
 // Block -
@@ -17,15 +18,10 @@ type Block struct {
 
 // Receiver -
 type Receiver struct {
-	rpc    noderpc.INode
-	queue  chan int64
-	failed chan int64
-	blocks chan *Block
-
-	threads chan struct{}
-	present map[int64]struct{}
-	mx      sync.RWMutex
-	wg      sync.WaitGroup
+	rpc       noderpc.INode
+	blocks    chan *Block
+	pool      *workerpool.Pool[int64]
+	inProcess Map[int64, struct{}]
 }
 
 // NewReceiver -
@@ -36,59 +32,42 @@ func NewReceiver(rpc noderpc.INode, queueSize, threadsCount int64) *Receiver {
 	if threadsCount == 0 {
 		threadsCount = 2
 	}
-	return &Receiver{
-		rpc:     rpc,
-		queue:   make(chan int64, queueSize),
-		failed:  make(chan int64, queueSize),
-		blocks:  make(chan *Block, queueSize),
-		threads: make(chan struct{}, threadsCount),
-		present: make(map[int64]struct{}),
+	receiver := &Receiver{
+		rpc:       rpc,
+		blocks:    make(chan *Block, queueSize),
+		inProcess: NewMap[int64, struct{}](),
 	}
+	receiver.pool = workerpool.NewPool(receiver.job, int(threadsCount))
+	return receiver
 }
 
 // AddTask -
 func (r *Receiver) AddTask(level int64) {
-	r.mx.RLock()
-	if _, ok := r.present[level]; ok {
-		r.mx.RUnlock()
+	if exists := r.inProcess.Exists(level); exists {
 		return
 	}
-	r.mx.RUnlock()
-
-	r.mx.Lock()
-	{
-		r.present[level] = struct{}{}
-	}
-	r.mx.Unlock()
-	r.queue <- level
+	r.inProcess.Set(level, struct{}{})
+	r.pool.AddTask(level)
 }
 
 // Start -
 func (r *Receiver) Start(ctx context.Context) {
-	go r.start(ctx)
+	r.pool.Start(ctx)
+}
+
+// Close -
+func (r *Receiver) Close() error {
+	if err := r.pool.Close(); err != nil {
+		return err
+	}
+
+	close(r.blocks)
+	return nil
 }
 
 // Blocks -
 func (r *Receiver) Blocks() <-chan *Block {
 	return r.blocks
-}
-
-func (r *Receiver) start(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			r.wg.Wait()
-			close(r.threads)
-			close(r.blocks)
-			close(r.failed)
-			close(r.queue)
-			return
-		case level := <-r.failed:
-			r.job(ctx, level)
-		case level := <-r.queue:
-			r.job(ctx, level)
-		}
-	}
 }
 
 func (r *Receiver) get(ctx context.Context, level int64) (Block, error) {
@@ -114,28 +93,14 @@ func (r *Receiver) get(ctx context.Context, level int64) (Block, error) {
 }
 
 func (r *Receiver) job(ctx context.Context, level int64) {
-	r.threads <- struct{}{}
-	r.wg.Add(1)
-	go func() {
-		defer func() {
-			<-r.threads
-			r.wg.Done()
-		}()
-
-		block, err := r.get(ctx, level)
-		if err != nil {
-			if ctx.Err() == nil {
-				logger.Error().Int64("block", level).Err(err).Msg("Receiver.get")
-				r.failed <- level
-			}
-			return
+	block, err := r.get(ctx, level)
+	if err != nil {
+		if !errors.Is(err, context.Canceled) {
+			logger.Error().Int64("block", level).Err(err).Msg("Receiver.get")
+			r.pool.AddTask(level)
 		}
-		r.blocks <- &block
-
-		r.mx.Lock()
-		{
-			delete(r.present, level)
-		}
-		r.mx.Unlock()
-	}()
+		return
+	}
+	r.blocks <- &block
+	r.inProcess.Delete(level)
 }

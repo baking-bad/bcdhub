@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/migration"
 	"github.com/baking-bad/bcdhub/internal/postgres/operation"
 	"github.com/baking-bad/bcdhub/internal/postgres/protocol"
+	smartrollup "github.com/baking-bad/bcdhub/internal/postgres/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/postgres/ticket"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
 
@@ -36,6 +37,9 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 			opts := []noderpc.NodeOption{
 				noderpc.WithTimeout(time.Second * time.Duration(rpcProvider.Timeout)),
 				noderpc.WithRateLimit(rpcProvider.RequestsPerSecond),
+			}
+			if rpcProvider.Log {
+				opts = append(opts, noderpc.WithLog())
 			}
 
 			ctx.RPC = noderpc.NewNodeRPC(rpcProvider.URI, opts...)
@@ -80,6 +84,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		ctx.Domains = domains.NewStorage(conn)
 		ctx.TicketUpdates = ticket.NewStorage(conn)
 		ctx.Scripts = contractStorage
+		ctx.SmartRollups = smartrollup.NewStorage(conn)
 		ctx.Partitions = postgres.NewPartitionManager(conn)
 	}
 }

@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/aws/aws-sdk-go v1.44.92
 	github.com/btcsuite/btcutil v1.0.2
+	github.com/dipdup-io/workerpool v0.0.3
 	github.com/ebellocchia/go-base58 v0.1.0
 	github.com/fatih/color v1.13.0
 	github.com/getsentry/sentry-go v0.13.0

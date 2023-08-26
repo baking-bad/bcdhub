@@ -81,6 +81,9 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 // Close -
 func (bi *BlockchainIndexer) Close() error {
 	close(bi.refreshTimer)
+	if err := bi.receiver.Close(); err != nil {
+		return nil
+	}
 	return bi.Context.Close()
 }
 
@@ -242,9 +245,9 @@ func (bi *BlockchainIndexer) Index(ctx context.Context, head noderpc.Header) err
 }
 
 func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) error {
+	start := time.Now()
 	return bi.StorageDB.DB.RunInTransaction(ctx,
 		func(tx *pg.Tx) error {
-			logger.Info().Str("network", bi.Network.String()).Int64("block", block.Header.Level).Msg("indexing")
 
 			if block.Header.Protocol != bi.currentProtocol.Hash || (bi.Network == types.Mainnet && block.Header.Level == 1) {
 				logger.Info().Str("network", bi.Network.String()).Msgf("New protocol detected: %s -> %s", bi.currentProtocol.Hash, block.Header.Protocol)
@@ -270,6 +273,8 @@ func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) erro
 			if err := bi.createBlock(block.Header, tx); err != nil {
 				return err
 			}
+
+			logger.Info().Str("network", bi.Network.String()).Int64("processing_time_ms", time.Since(start).Milliseconds()).Int64("block", block.Header.Level).Msg("indexed")
 			return nil
 		},
 	)

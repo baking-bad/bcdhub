@@ -1,25 +1,33 @@
 package types
 
+import "github.com/baking-bad/bcdhub/internal/bcd/consts"
+
 // OperationKind -
 type OperationKind int
 
 // NewOperationKind -
 func NewOperationKind(value string) OperationKind {
 	switch value {
-	case "transaction":
+	case consts.Transaction:
 		return OperationKindTransaction
-	case "origination":
+	case consts.Origination:
 		return OperationKindOrigination
-	case "origination_new":
+	case consts.OriginationNew:
 		return OperationKindOriginationNew
-	case "delegation":
+	case consts.Delegation:
 		return OperationKindDelegation
-	case "register_global_constant":
+	case consts.RegisterGlobalConstant:
 		return OperationKindRegisterGlobalConstant
-	case "tx_rollup_origination":
+	case consts.TxRollupOrigination:
 		return OperationKindTxRollupOrigination
-	case "event":
+	case consts.Event:
 		return OperationKindEvent
+	case consts.TransferTicket:
+		return OperationKindTransferTicket
+	case consts.SrOriginate:
+		return OperationKindSrOrigination
+	case consts.SrExecuteOutboxMessage:
+		return OperationKindSrExecuteOutboxMessage
 	default:
 		return 0
 	}
@@ -29,19 +37,25 @@ func NewOperationKind(value string) OperationKind {
 func (kind OperationKind) String() string {
 	switch kind {
 	case OperationKindTransaction:
-		return "transaction"
+		return consts.Transaction
 	case OperationKindOrigination:
-		return "origination"
+		return consts.Origination
 	case OperationKindOriginationNew:
-		return "origination_new"
+		return consts.OriginationNew
 	case OperationKindDelegation:
-		return "delegation"
+		return consts.Delegation
 	case OperationKindRegisterGlobalConstant:
-		return "register_global_constant"
+		return consts.RegisterGlobalConstant
 	case OperationKindTxRollupOrigination:
-		return "tx_rollup_origination"
+		return consts.TxRollupOrigination
 	case OperationKindEvent:
-		return "event"
+		return consts.Event
+	case OperationKindTransferTicket:
+		return consts.TransferTicket
+	case OperationKindSrOrigination:
+		return consts.SrOriginate
+	case OperationKindSrExecuteOutboxMessage:
+		return consts.SrExecuteOutboxMessage
 	default:
 		return ""
 	}
@@ -55,4 +69,7 @@ const (
 	OperationKindRegisterGlobalConstant
 	OperationKindTxRollupOrigination
 	OperationKindEvent
+	OperationKindTransferTicket
+	OperationKindSrOrigination
+	OperationKindSrExecuteOutboxMessage
 )

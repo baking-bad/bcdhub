@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/go-pg/pg/v10"
 )
@@ -26,7 +27,7 @@ type Constraint interface {
 	*account.Account | *bigmapaction.BigMapAction | *bigmapdiff.BigMapDiff | *bigmapdiff.BigMapState |
 		*block.Block | *contract.Contract | *contract.Script | *contract.GlobalConstant | *contract.ScriptConstants |
 		*migration.Migration | *operation.Operation | *protocol.Protocol | domains.BigMapDiff |
-		*ticket.TicketUpdate
+		*ticket.TicketUpdate | *smartrollup.SmartRollup
 
 	Model
 }

@@ -40,8 +40,8 @@ func (p Event) Parse(data noderpc.Operation, store parsers.Store) error {
 		Nonce:        data.Nonce,
 		ContentIndex: p.contentIdx,
 		Tag:          types.NewNullString(data.Tag),
-		EventPayload: data.Payload,
-		EventType:    data.Type,
+		Payload:      data.Payload,
+		PayloadType:  data.Type,
 		Internal:     true,
 	}
 

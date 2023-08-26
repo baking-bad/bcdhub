@@ -124,6 +124,7 @@ func (api *app) makeRouter() {
 		{
 			operation.GET("error_location", handlers.GetOperationErrorLocation())
 			operation.GET("diff", handlers.GetOperationDiff())
+			operation.GET("ticket_updates", handlers.GetTicketUpdatesForOperation())
 		}
 
 		stats := v1.Group("stats")
@@ -212,6 +213,13 @@ func (api *app) makeRouter() {
 				globalConstant.GET("", handlers.GetGlobalConstant())
 				globalConstant.GET("contracts", handlers.GetGlobalConstantContracts())
 			}
+		}
+
+		smartRollups := v1.Group("smart_rollups/:network")
+		smartRollups.Use(handlers.NetworkMiddleware(api.Contexts))
+		{
+			smartRollups.GET("", handlers.ListSmartRollups())
+			smartRollups.GET(":address", handlers.GetSmartRollup())
 		}
 	}
 	api.Router = r

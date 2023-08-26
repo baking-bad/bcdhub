@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/hex"
 	"net/http"
 	"strings"
 
@@ -305,11 +306,13 @@ func GetOperationDiff() gin.HandlerFunc {
 				return
 			}
 
-			bmd, err := ctx.BigMapDiffs.GetForOperation(operation.ID)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
+			var bmd []bigmapdiff.BigMapDiff
+			if operation.BigMapDiffsCount > 0 {
+				bmd, err = ctx.BigMapDiffs.GetForOperation(operation.ID)
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
 			}
-
 			if err := setStorageDiff(ctx, operation.DestinationID, operation.DeffatedStorage, &result, bmd, storageType); handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -496,27 +499,55 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 	}
 	op.Protocol = proto.Hash
 
-	if operation.IsEvent() {
-		eventType, err := ast.NewTypedAstFromBytes(operation.EventType)
-		if err != nil {
-			return op, err
-		}
-		if err := eventType.SettleFromBytes(operation.EventPayload); err != nil {
-			return op, err
-		}
-		eventMiguel, err := eventType.ToMiguel()
-		if err != nil {
-			return op, err
-		}
-		op.Event = eventMiguel
+	if err := formatErrors(operation.Errors, &op); err != nil {
 		return op, err
 	}
 
-	if bcd.IsContract(op.Destination) {
-		if err := formatErrors(operation.Errors, &op); err != nil {
+	switch operation.Kind {
+	case modelTypes.OperationKindEvent, modelTypes.OperationKindTransferTicket:
+		payloadType, err := ast.NewTypedAstFromBytes(operation.PayloadType)
+		if err != nil {
 			return op, err
 		}
+		if err := payloadType.SettleFromBytes(operation.Payload); err != nil {
+			return op, err
+		}
+		payloadMiguel, err := payloadType.ToMiguel()
+		if err != nil {
+			return op, err
+		}
+		op.Payload = payloadMiguel
+		return op, err
+	case modelTypes.OperationKindSrExecuteOutboxMessage:
+		if len(operation.Payload) >= 32 {
+			commitment, err := encoding.EncodeBase58(operation.Payload[:32], []byte(encoding.PrefixSmartRollupCommitment))
+			if err != nil {
+				return op, err
+			}
+			op.Payload = []*ast.MiguelNode{
+				{
+					Prim: "pair",
+					Type: "namedtuple",
+					Children: []*ast.MiguelNode{
+						{
+							Prim:  "string",
+							Type:  "string",
+							Name:  getStringPointer("cemented_commitment"),
+							Value: commitment,
+						}, {
+							Prim:  "bytes",
+							Type:  "bytes",
+							Name:  getStringPointer("output_proof"),
+							Value: hex.EncodeToString(operation.Payload[32:]),
+						},
+					},
+				},
+			}
+		}
 
+	}
+
+	if bcd.IsContract(op.Destination) {
 		if withStorageDiff {
 			storageType, err := getStorageType(ctx.Contracts, op.Destination, proto.SymLink)
 			if err != nil {
@@ -544,6 +575,20 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 		}
 	}
 
+	if bcd.IsSmartRollupHash(op.Destination) && operation.IsTransaction() && operation.IsCall() && !tezerrors.HasParametersError(op.Errors) {
+		rollup, err := ctx.SmartRollups.Get(op.Destination)
+		if err != nil {
+			return op, err
+		}
+		tree, err := ast.NewTypedAstFromBytes(rollup.Type)
+		if err != nil {
+			return op, err
+		}
+		if err := setParameters(operation.Parameters, tree, &op); err != nil {
+			return op, err
+		}
+	}
+
 	return op, nil
 }
 
@@ -554,7 +599,7 @@ func PrepareOperations(ctx *config.Context, ops []operation.Operation, withStora
 		var diffs []bigmapdiff.BigMapDiff
 		var err error
 
-		if withStorageDiff {
+		if withStorageDiff && ops[i].BigMapDiffsCount > 0 {
 			diffs, err = ctx.BigMapDiffs.GetForOperation(ops[i].ID)
 			if err != nil {
 				return nil, err

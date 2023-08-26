@@ -16,18 +16,18 @@ func WithTimeout(timeout time.Duration) NodeOption {
 	}
 }
 
-// WithRetryCount -
-func WithRetryCount(retryCount int) NodeOption {
-	return func(node *NodeRPC) {
-		node.retryCount = retryCount
-	}
-}
-
 // WithRateLimit -
 func WithRateLimit(requestPerSecond int) NodeOption {
 	return func(node *NodeRPC) {
 		if requestPerSecond > 0 {
 			node.rateLimit = rate.NewLimiter(rate.Every(time.Second/time.Duration(requestPerSecond)), requestPerSecond)
 		}
+	}
+}
+
+// WithLog -
+func WithLog() NodeOption {
+	return func(node *NodeRPC) {
+		node.needLog = true
 	}
 }

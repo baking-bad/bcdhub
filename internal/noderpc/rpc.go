@@ -37,19 +37,18 @@ type NodeRPC struct {
 	baseURL string
 	client  *http.Client
 
-	timeout    time.Duration
-	userAgent  string
-	retryCount int
-	rateLimit  *rate.Limiter
+	timeout   time.Duration
+	userAgent string
+	rateLimit *rate.Limiter
+	needLog   bool
 }
 
 // NewNodeRPC -
 func NewNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	node := &NodeRPC{
-		baseURL:    baseURL,
-		timeout:    time.Second * 10,
-		retryCount: 3,
-		userAgent:  userAgent,
+		baseURL:   baseURL,
+		timeout:   time.Second * 10,
+		userAgent: userAgent,
 	}
 
 	if bcdUserAgent := os.Getenv("BCD_USER_AGENT"); bcdUserAgent != "" {
@@ -61,10 +60,9 @@ func NewNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	}
 
 	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.MaxIdleConns = 100
-	t.MaxConnsPerHost = 100
-	t.MaxIdleConnsPerHost = 100
-
+	t.MaxIdleConns = 20
+	t.MaxConnsPerHost = 20
+	t.MaxIdleConnsPerHost = 20
 	node.client = &http.Client{
 		Timeout:   node.timeout,
 		Transport: t,
@@ -88,15 +86,15 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	return node
 }
 
-func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) error {
+func (rpc *NodeRPC) checkStatusCode(r io.Reader, statusCode int, checkStatusCode bool) error {
 	switch {
-	case resp.StatusCode == http.StatusOK:
+	case statusCode == http.StatusOK:
 		return nil
-	case resp.StatusCode > http.StatusInternalServerError:
-		return NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
+	case statusCode > http.StatusInternalServerError:
+		return NewNodeUnavailiableError(rpc.baseURL, statusCode)
 	case checkStatusCode:
 		invalidResponseErr := newInvalidNodeResponse()
-		data, err := io.ReadAll(resp.Body)
+		data, err := io.ReadAll(r)
 		if err != nil {
 			return err
 		}
@@ -110,31 +108,17 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 	}
 }
 
-func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool, uri string, response interface{}) error {
-	if err := rpc.checkStatusCode(resp, checkStatusCode); err != nil {
+func (rpc *NodeRPC) parseResponse(r io.Reader, statusCode int, checkStatusCode bool, uri string, response interface{}) error {
+	if err := rpc.checkStatusCode(r, statusCode, checkStatusCode); err != nil {
 		return fmt.Errorf("%w (%s): %w", ErrNodeRPCError, uri, err)
 	}
 
-	return json.NewDecoder(resp.Body).Decode(response)
+	return json.NewDecoder(r).Decode(response)
 }
 
 func (rpc *NodeRPC) makeRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
 	req.Header.Set("User-Agent", rpc.userAgent)
-
-	for count := 0; count < rpc.retryCount; count++ {
-		if ctx.Err() != nil {
-			return nil, ctx.Err()
-		}
-
-		resp, err := rpc.client.Do(req)
-		if err != nil {
-			logger.Warning().Msgf("Attempt #%d: %s", count+1, err.Error())
-			continue
-		}
-		return resp, err
-	}
-
-	return nil, NewMaxRetryExceededError(rpc.baseURL)
+	return rpc.client.Do(req)
 }
 
 func (rpc *NodeRPC) makeGetRequest(ctx context.Context, uri string) (*http.Response, error) {
@@ -168,37 +152,79 @@ func (rpc *NodeRPC) get(ctx context.Context, uri string, response interface{}) e
 		}
 	}
 
+	start := time.Now()
+	defer func() {
+		if rpc.needLog {
+			logger.Info().Str("method", "get").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
+		}
+	}()
+
 	resp, err := rpc.makeGetRequest(ctx, uri)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp, true, uri, response)
+	buffer := new(bytes.Buffer)
+	if _, err = io.Copy(buffer, resp.Body); err != nil {
+		return err
+	}
+
+	return rpc.parseResponse(buffer, resp.StatusCode, true, uri, response)
 }
 
 func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
+	if rpc.rateLimit != nil {
+		if err := rpc.rateLimit.Wait(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	start := time.Now()
+	defer func() {
+		if rpc.needLog {
+			logger.Info().Str("method", "get").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
+		}
+	}()
+
 	resp, err := rpc.makeGetRequest(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	if err := rpc.checkStatusCode(resp, true); err != nil {
+	if err := rpc.checkStatusCode(resp.Body, resp.StatusCode, true); err != nil {
 		return nil, fmt.Errorf("%w (%s): %w", ErrNodeRPCError, uri, err)
 	}
 	return io.ReadAll(resp.Body)
 }
 
-// nolint
 func (rpc *NodeRPC) post(ctx context.Context, uri string, data interface{}, checkStatusCode bool, response interface{}) error {
+	if rpc.rateLimit != nil {
+		if err := rpc.rateLimit.Wait(ctx); err != nil {
+			return err
+		}
+	}
+
+	start := time.Now()
+	defer func() {
+		if rpc.needLog {
+			logger.Info().Str("method", "post").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
+		}
+	}()
+
 	resp, err := rpc.makePostRequest(ctx, uri, data)
 	if err != nil {
-		return NewMaxRetryExceededError(rpc.baseURL)
+		return err
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp, checkStatusCode, uri, response)
+	buffer := new(bytes.Buffer)
+	if _, err = io.Copy(buffer, resp.Body); err != nil {
+		return err
+	}
+
+	return rpc.parseResponse(buffer, resp.StatusCode, checkStatusCode, uri, response)
 }
 
 // Block - returns block

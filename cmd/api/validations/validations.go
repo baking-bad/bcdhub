@@ -62,12 +62,22 @@ func Register(v *validator.Validate, cfg config.APIConfig) error {
 		return err
 	}
 
+	if err := v.RegisterValidation("smart_rollup", smartRollupValidator()); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func addressValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		return bcd.IsAddress(fl.Field().String())
+	}
+}
+
+func smartRollupValidator() validator.Func {
+	return func(fl validator.FieldLevel) bool {
+		return bcd.IsSmartRollupHash(fl.Field().String())
 	}
 }
 

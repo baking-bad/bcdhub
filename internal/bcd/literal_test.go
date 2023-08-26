@@ -59,6 +59,10 @@ func TestIsAddress(t *testing.T) {
 			name:    "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UA",
 			address: "txr1YNMEtkj5Vkqsbdmt7xaxBTMRZjzS96UA",
 			want:    false,
+		}, {
+			name:    "sr1J1ECygUgzE7urU3Ayr5HZaty83hpjbs28",
+			address: "sr1J1ECygUgzE7urU3Ayr5HZaty83hpjbs28",
+			want:    true,
 		},
 	}
 	for _, tt := range tests {

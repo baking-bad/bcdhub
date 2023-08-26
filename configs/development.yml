@@ -6,11 +6,11 @@ rpc:
   ghostnet:
     uri: https://rpc.tzkt.io/ghostnet
     timeout: 20
-    requests_per_second: 10
+    requests_per_second: 15
   nairobinet:
     uri: https://rpc.tzkt.io/nairobinet
     timeout: 20
-    requests_per_second: 20
+    requests_per_second: 15
 
 tzkt:
   mainnet:
@@ -73,11 +73,11 @@ indexer:
   sentry_enabled: false
   networks:
     mainnet:
-      receiver_threads: 5
+      receiver_threads: 15
     ghostnet:
-      receiver_threads: 10
+      receiver_threads: 15
     nairobinet:
-      receiver_threads: 10
+      receiver_threads: 15
   connections:
     max: 5
     idle: 5

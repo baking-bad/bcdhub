@@ -35,6 +35,8 @@ type Operation struct {
 	Burned                             int64      `pg:",use_zero"`
 	AllocatedDestinationContractBurned int64      `pg:",use_zero"`
 	ProtocolID                         int64      `pg:",type:SMALLINT"`
+	TicketUpdatesCount                 int        `pg:",use_zero"`
+	BigMapDiffsCount                   int        `pg:",use_zero"`
 	Tags                               types.Tags `pg:",use_zero"`
 	Nonce                              *int64
 
@@ -56,8 +58,8 @@ type Operation struct {
 	Hash            []byte
 	Parameters      []byte
 	DeffatedStorage []byte
-	EventPayload    []byte
-	EventType       []byte
+	Payload         []byte
+	PayloadType     []byte
 	Script          []byte `pg:"-"`
 
 	Errors tezerrors.Errors `pg:",type:bytea"`
@@ -147,12 +149,7 @@ func (o *Operation) IsApplied() bool {
 
 // IsCall -
 func (o *Operation) IsCall() bool {
-	return bcd.IsContract(o.Destination.Address) && len(o.Parameters) > 0
-}
-
-// IsEvent -
-func (o *Operation) IsEvent() bool {
-	return o.Kind == types.OperationKindEvent
+	return (bcd.IsContract(o.Destination.Address) || bcd.IsSmartRollupHash(o.Destination.Address)) && len(o.Parameters) > 0
 }
 
 // Result -
