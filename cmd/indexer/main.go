@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/pyroscope-io/client/pyroscope"
 )
 
 func main() {
@@ -24,6 +25,35 @@ func main() {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
 		helpers.SetTagSentry("project", cfg.Indexer.ProjectName)
 		defer helpers.CatchPanicSentry()
+	}
+
+	var profiler *pyroscope.Profiler
+	if cfg.Profiler != nil {
+		profiler, err = pyroscope.Start(pyroscope.Config{
+			ApplicationName: "bcdhub.indexer",
+			ServerAddress:   cfg.Profiler.Server,
+			Tags: map[string]string{
+				"hostname": os.Getenv("BCDHUB_SERVICE"),
+				"project":  "bcdhub",
+				"service":  "indexer",
+			},
+
+			ProfileTypes: []pyroscope.ProfileType{
+				pyroscope.ProfileCPU,
+				pyroscope.ProfileAllocObjects,
+				pyroscope.ProfileAllocSpace,
+				pyroscope.ProfileInuseObjects,
+				pyroscope.ProfileInuseSpace,
+				pyroscope.ProfileGoroutines,
+				pyroscope.ProfileMutexCount,
+				pyroscope.ProfileMutexDuration,
+				pyroscope.ProfileBlockCount,
+				pyroscope.ProfileBlockDuration,
+			},
+		})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	var wg sync.WaitGroup
@@ -51,6 +81,12 @@ func main() {
 	wg.Wait()
 	for i := range indexers {
 		if err := indexers[i].Close(); err != nil {
+			panic(err)
+		}
+	}
+
+	if profiler != nil {
+		if err := profiler.Stop(); err != nil {
 			panic(err)
 		}
 	}

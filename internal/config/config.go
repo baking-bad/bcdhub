@@ -27,6 +27,7 @@ type Config struct {
 	Sentry    SentryConfig             `yaml:"sentry"`
 	SharePath string                   `yaml:"share_path"`
 	BaseURL   string                   `yaml:"base_url"`
+	Profiler  *Profiler                `yaml:"profiler"`
 
 	API APIConfig `yaml:"api"`
 
@@ -42,6 +43,11 @@ type Config struct {
 		Networks    []string    `yaml:"networks"`
 		Connections Connections `yaml:"connections"`
 	} `yaml:"scripts"`
+}
+
+// Profiler -
+type Profiler struct {
+	Server string `yaml:"server"`
 }
 
 // IndexerConfig -
