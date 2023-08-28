@@ -2,8 +2,6 @@ package domains
 
 import (
 	"errors"
-	"html/template"
-	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -44,29 +42,6 @@ func (storage *Storage) BigMapDiffs(lastID, size int64) (result []domains.BigMap
 	return
 }
 
-var sameTemplate = template.Must(
-	template.New("same").Parse(
-		`select * from (
-			select * from (
-				{{- range $index, $network := .Networks }}
-				{{- if (gt $index 0) }}
-				union all
-				{{- end}}
-				select '{{ $network }}' as network, contracts.*, accounts.address as account__address from {{ $network }}.contracts
-				join {{ $network }}.accounts on contracts.account_id = accounts.id
-				left join {{$network}}.scripts as alpha on alpha.id = contracts.alpha_id
-				left join {{$network}}.scripts as babylon on babylon.id = contracts.babylon_id
-				left join {{$network}}.scripts as jakarta on jakarta.id = contracts.jakarta_id
-				where (alpha.hash = '{{$.Hash}}' or babylon.hash = '{{$.Hash}}' or jakarta.hash = '{{$.Hash}}')
-				{{end}}
-			) as q
-			where NOT (network = '{{.network}}' and id = {{.ID}})
-		) as same
-		limit {{.limit}}
-		offset {{.offset}}`,
-	),
-)
-
 // Same -
 func (storage *Storage) Same(network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]domains.Same, error) {
 	if limit < 1 || limit > 10 {
@@ -86,62 +61,77 @@ func (storage *Storage) Same(network string, c contract.Contract, limit, offset 
 		return nil, errors.New("invalid contract script")
 	}
 
-	data := map[string]any{
-		"ID":       c.ID,
-		"Hash":     script.Hash,
-		"limit":    limit,
-		"offset":   offset,
-		"network":  network,
-		"Networks": availiableNetworks,
-	}
+	var union *pg.Query
+	for i, value := range availiableNetworks {
+		schema := pg.Safe(value)
 
-	var buffer strings.Builder
-	if err := sameTemplate.Execute(&buffer, data); err != nil {
-		return nil, err
+		query := storage.DB.Model().
+			TableExpr("?.contracts", schema).
+			ColumnExpr("? as network", value).
+			ColumnExpr("contracts.*").
+			ColumnExpr("accounts.address as account__address").
+			Join("LEFT JOIN ?.accounts on contracts.account_id = accounts.id", schema).
+			Join("LEFT JOIN ?.scripts as alpha on alpha.id = contracts.alpha_id", schema).
+			Join("LEFT JOIN ?.scripts as babylon on babylon.id = contracts.babylon_id", schema).
+			Join("LEFT JOIN ?.scripts as jakarta on jakarta.id = contracts.jakarta_id", schema).
+			Where("alpha.hash = ?", script.Hash).
+			WhereOr("babylon.hash = ?", script.Hash).
+			WhereOr("jakarta.hash = ?", script.Hash)
+
+		if value == network {
+			query.Where("contracts.id != ?", c.ID)
+		}
+
+		if i == 0 {
+			union = query
+		} else {
+			union = union.UnionAll(query)
+		}
 	}
 
 	var same []domains.Same
-	_, err := storage.DB.Query(&same, buffer.String())
+	err := storage.DB.Model().
+		TableExpr("(?) as same", union).
+		Limit(limit).
+		Offset(offset).
+		Select(&same)
 	return same, err
 }
 
-var sameCountTemplate = template.Must(
-	template.New("sameCount").Parse(
-		`select sum(c) from (
-			{{- range $index, $network := .Networks }}
-			{{- if (gt $index 0) }}
-			union all
-			{{- end}}
-			select count(*) as c from {{$network}}.contracts
-			left join {{$network}}.scripts as alpha on alpha.id = contracts.alpha_id
-			left join {{$network}}.scripts as babylon on babylon.id = contracts.babylon_id
-			left join {{$network}}.scripts as jakarta on jakarta.id = contracts.jakarta_id
-			where (alpha.hash = '{{$.Hash}}' or babylon.hash = '{{$.Hash}}' or jakarta.hash = '{{$.Hash}}')
-			{{end}}
-		) as same`,
-	),
-)
-
 // SameCount -
 func (storage *Storage) SameCount(c contract.Contract, availiableNetworks ...string) (int, error) {
+	if len(availiableNetworks) == 0 {
+		return 0, nil
+	}
+
 	script := c.CurrentScript()
 	if script == nil {
 		return 0, errors.New("invalid contract script")
 	}
 
-	data := map[string]any{
-		"ID":       c.ID,
-		"Hash":     script.Hash,
-		"Networks": availiableNetworks,
-	}
+	var union *pg.Query
+	for i, value := range availiableNetworks {
+		schema := pg.Safe(value)
 
-	var buffer strings.Builder
-	if err := sameCountTemplate.Execute(&buffer, data); err != nil {
-		return 0, err
+		query := storage.DB.Model().
+			TableExpr("?.contracts", schema).
+			ColumnExpr("count(*) as c").
+			Join("LEFT JOIN ?.scripts as alpha on alpha.id = contracts.alpha_id", schema).
+			Join("LEFT JOIN ?.scripts as babylon on babylon.id = contracts.babylon_id", schema).
+			Join("LEFT JOIN ?.scripts as jakarta on jakarta.id = contracts.jakarta_id", schema).
+			Where("alpha.hash = ?", script.Hash).
+			WhereOr("babylon.hash = ?", script.Hash).
+			WhereOr("jakarta.hash = ?", script.Hash)
+
+		if i == 0 {
+			union = query
+		} else {
+			union = union.UnionAll(query)
+		}
 	}
 
 	var count int
-	if _, err := storage.DB.QueryOne(pg.Scan(&count), buffer.String()); err != nil {
+	if err := storage.DB.Model().ColumnExpr("sum(c)").TableExpr("(?) as same", union).Select(&count); err != nil {
 		if errors.Is(err, pg.ErrNoRows) {
 			return 0, nil
 		}
