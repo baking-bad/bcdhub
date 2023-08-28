@@ -59,7 +59,8 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation,
 		"PtLimaPtLMwfNinJi9rCfDPWea8dFgTZ1MeJ9f1m2SRic6ayiwW",
 		"PtMumbaiiFFEGbew1rRjzSPyzRbA51Tm3RVZL5suHPxSZYDhCEc",
 		"PtMumbai2TmsJHNGRkD8v8YDbtao7BLUC3wjASn1inAKLFCjaH1",
-		"PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf":
+		"PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf",
+		"ProxfordSW2S7fvchT1Zgj2avb5UES194neRyYVXoaDGvF9egt8":
 
 		return m.fromLazyStorageDiff(data, operation, store)
 	default:
