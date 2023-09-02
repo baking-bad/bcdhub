@@ -7,10 +7,6 @@ rpc:
     uri: ${MONDAYNET_RPC}
     timeout: 20
     requests_per_second: 10
-  rollupnet:
-    uri: ${ROLLUPNET_RPC}
-    timeout: 20
-    requests_per_second: 10
 
 storage:
   pg: 
@@ -50,11 +46,9 @@ api:
     rpc:
       dailynet: ${DAILYNET_RPC}
       mondaynet: ${MONDAYNET_RPC}
-      rollupnet: ${ROLLUPNET_RPC}
   networks:
     - dailynet
     - mondaynet
-    - rollupnet
   connections:
     max: 50
     idle: 50
@@ -73,11 +67,6 @@ indexer:
       periodic:
         info_base_url: https://teztnets.xyz
         schedule: "0 5 0 * * MON" # at 00:05:00 every monday
-    rollupnet:
-      receiver_threads: 2
-      periodic:
-        info_base_url: ${ROLLUPNET_RPC}
-        schedule: "0 5 0 * * *" # at 00:05:00 every day
   connections:
     max: 5
     idle: 5
@@ -91,7 +80,6 @@ scripts:
   networks:
     - dailynet
     - mondaynet
-    - rollupnet
   connections:
     max: 5
     idle: 5
