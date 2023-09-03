@@ -20,7 +20,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
-	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 )
 
@@ -51,24 +50,21 @@ type Context struct {
 	SmartRollups    smartrollup.Repository
 	Partitions      *postgres.PartitionManager
 
-	Cache     *cache.Cache
-	Sanitizer *bluemonday.Policy
+	Cache *cache.Cache
 }
 
 // NewContext -
 func NewContext(network types.Network, opts ...ContextOption) *Context {
 	ctx := &Context{
-		Sanitizer: bluemonday.UGCPolicy(),
-		Network:   network,
+		Network: network,
 	}
-	ctx.Sanitizer.AllowAttrs("em")
 
 	for _, opt := range opts {
 		opt(ctx)
 	}
 
 	ctx.Cache = cache.NewCache(
-		ctx.RPC, ctx.Accounts, ctx.Contracts, ctx.Protocols, ctx.Sanitizer,
+		ctx.RPC, ctx.Accounts, ctx.Contracts, ctx.Protocols,
 	)
 	return ctx
 }

@@ -31,7 +31,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/go-pg/pg/v10"
 	"github.com/golang/mock/gomock"
-	"github.com/microcosm-cc/bluemonday"
 )
 
 func TestGroup_Parse(t *testing.T) {
@@ -387,7 +386,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -423,7 +422,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -599,7 +598,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -785,7 +784,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -880,7 +879,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -982,7 +981,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1168,7 +1167,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1266,7 +1265,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1401,7 +1400,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1470,7 +1469,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			storage: map[string]int64{
@@ -2073,7 +2072,7 @@ func TestGroup_Parse(t *testing.T) {
 				Scripts:         scriptRepo,
 				GlobalConstants: globalConstantRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo, bluemonday.UGCPolicy(),
+					rpc, accountsRepo, contractRepo, protoRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{

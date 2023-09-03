@@ -28,7 +28,9 @@ type Cache struct {
 }
 
 // NewCache -
-func NewCache(rpc noderpc.INode, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository, sanitizer *bluemonday.Policy) *Cache {
+func NewCache(rpc noderpc.INode, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository) *Cache {
+	sanitizer := bluemonday.UGCPolicy()
+	sanitizer.AllowAttrs("em")
 	return &Cache{
 		ccache.New(ccache.Configure().MaxSize(1000)),
 		rpc,
