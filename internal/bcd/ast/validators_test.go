@@ -124,7 +124,7 @@ func TestBytesValidator(t *testing.T) {
 		}, {
 			name:    "test 3",
 			value:   "0x030ed412d33412ab4b71df0aaba07df7ddd2a44eb55c87bf81868ba09a358bc0e0",
-			wantErr: false,
+			wantErr: true,
 		}, {
 			name:    "test 4",
 			value:   "",
