@@ -28,7 +28,7 @@ func main() {
 	}
 
 	var profiler *pyroscope.Profiler
-	if cfg.Profiler != nil || cfg.Profiler.Server == "" {
+	if cfg.Profiler != nil && cfg.Profiler.Server != "" {
 		profiler, err = pyroscope.Start(pyroscope.Config{
 			ApplicationName: "bcdhub.indexer",
 			ServerAddress:   cfg.Profiler.Server,
