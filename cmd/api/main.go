@@ -52,7 +52,7 @@ func newApp() *app {
 	runtime.SetMutexProfileFraction(5)
 	runtime.SetBlockProfileRate(5)
 
-	if cfg.Profiler != nil {
+	if cfg.Profiler != nil || cfg.Profiler.Server == "" {
 		profiler, err := pyroscope.Start(pyroscope.Config{
 			ApplicationName: "bcdhub.api",
 			ServerAddress:   cfg.Profiler.Server,
