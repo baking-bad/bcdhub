@@ -52,6 +52,9 @@ share_path: /etc/bcd
 
 base_url: https://better-call.dev
 
+profiler:
+  server: ${PROFILER_SERVER_ADDRESS:-http://127.0.0.1:4040}
+
 api:
   project_name: api
   bind: ":14000"

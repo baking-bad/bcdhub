@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
@@ -20,6 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"github.com/pyroscope-io/client/pyroscope"
 )
 
 type app struct {
@@ -27,8 +29,9 @@ type app struct {
 	Contexts config.Contexts
 	Config   config.Config
 
-	cancel context.CancelFunc
-	worker *periodic.GeneralWorker
+	cancel   context.CancelFunc
+	worker   *periodic.GeneralWorker
+	profiler *pyroscope.Profiler
 }
 
 func newApp() *app {
@@ -45,6 +48,38 @@ func newApp() *app {
 
 	app := new(app)
 	app.Config = cfg
+
+	runtime.SetMutexProfileFraction(5)
+	runtime.SetBlockProfileRate(5)
+
+	if cfg.Profiler != nil {
+		profiler, err := pyroscope.Start(pyroscope.Config{
+			ApplicationName: "bcdhub.api",
+			ServerAddress:   cfg.Profiler.Server,
+			Tags: map[string]string{
+				"hostname": os.Getenv("BCDHUB_SERVICE"),
+				"project":  "bcdhub",
+				"service":  "api",
+			},
+
+			ProfileTypes: []pyroscope.ProfileType{
+				pyroscope.ProfileCPU,
+				pyroscope.ProfileAllocObjects,
+				pyroscope.ProfileAllocSpace,
+				pyroscope.ProfileInuseObjects,
+				pyroscope.ProfileInuseSpace,
+				pyroscope.ProfileGoroutines,
+				pyroscope.ProfileMutexCount,
+				pyroscope.ProfileMutexDuration,
+				pyroscope.ProfileBlockCount,
+				pyroscope.ProfileBlockDuration,
+			},
+		})
+		if err != nil {
+			panic(err)
+		}
+		app.profiler = profiler
+	}
 
 	if cfg.API.Periodic != nil {
 		worker, err := periodic.NewGeneralWorker(*cfg.API.Periodic, app.handleUrlChanged)
@@ -228,6 +263,12 @@ func (api *app) makeRouter() {
 // Close -
 func (api *app) Close() error {
 	api.cancel()
+
+	if api.profiler != nil {
+		if err := api.profiler.Stop(); err != nil {
+			return err
+		}
+	}
 
 	if err := api.Contexts.Close(); err != nil {
 		return err
