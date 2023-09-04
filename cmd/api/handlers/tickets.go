@@ -109,7 +109,7 @@ func prepareTicketUpdates(ctx *config.Context, updates []ticket.TicketUpdate, ha
 			if err != nil {
 				return nil, err
 			}
-			hash = operation.Hash
+			update.OperationHash = encoding.MustEncodeOperationHash(operation.Hash)
 		}
 		if len(hash) > 0 {
 			update.OperationHash = encoding.MustEncodeOperationHash(hash)
