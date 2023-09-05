@@ -6,11 +6,12 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/dipdup-io/workerpool"
 	"github.com/rs/zerolog/log"
 )
 
 // CreateIndexers -
-func CreateIndexers(ctx context.Context, cfg config.Config) ([]Indexer, error) {
+func CreateIndexers(ctx context.Context, cfg config.Config, g workerpool.Group) ([]Indexer, error) {
 	if err := tezerrors.LoadErrorDescriptions(); err != nil {
 		return nil, err
 	}
@@ -27,7 +28,7 @@ func CreateIndexers(ctx context.Context, cfg config.Config) ([]Indexer, error) {
 			defer wg.Done()
 
 			if indexerCfg.Periodic != nil {
-				periodicIndexer, err := NewPeriodicIndexer(ctx, network, cfg, indexerCfg)
+				periodicIndexer, err := NewPeriodicIndexer(ctx, network, cfg, indexerCfg, g)
 				if err != nil {
 					log.Err(err).Msg("NewPeriodicIndexer")
 					return

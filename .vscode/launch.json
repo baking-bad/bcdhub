@@ -11,12 +11,6 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/api/main.go",
-            "args": [
-                "-f",
-                "config.yml",
-                "-f",
-                "config.dev.yml"
-            ],
             "envFile": "${workspaceFolder}/.env"
         },
         {
@@ -25,12 +19,6 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/indexer/main.go",
-            "args": [
-                "-f",
-                "config.yml",
-                "-f",
-                "config.dev.yml"
-            ],
             "envFile": "${workspaceFolder}/.env"
         },
         {
@@ -39,12 +27,6 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/scripts/migration/main.go",
-            "args": [
-                "-f",
-                "config.yml",
-                "-f",
-                "config.dev.yml"
-            ],
             "envFile": "${workspaceFolder}/.env"
         }
     ]

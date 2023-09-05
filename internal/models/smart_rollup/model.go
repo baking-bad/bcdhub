@@ -33,7 +33,7 @@ func (sr *SmartRollup) GetID() int64 {
 
 // GetIndex -
 func (SmartRollup) GetIndex() string {
-	return "contracts"
+	return "smart_rollup"
 }
 
 // Save -

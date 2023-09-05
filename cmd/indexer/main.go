@@ -4,13 +4,13 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	"github.com/baking-bad/bcdhub/cmd/indexer/indexer"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/dipdup-io/workerpool"
 	"github.com/pyroscope-io/client/pyroscope"
 )
 
@@ -56,10 +56,10 @@ func main() {
 		}
 	}
 
-	var wg sync.WaitGroup
+	g := workerpool.NewGroup()
 	ctx, cancel := context.WithCancel(context.Background())
 
-	indexers, err := indexer.CreateIndexers(ctx, cfg)
+	indexers, err := indexer.CreateIndexers(ctx, cfg, g)
 	if err != nil {
 		cancel()
 		logger.Err(err)
@@ -71,14 +71,13 @@ func main() {
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 	for i := range indexers {
-		wg.Add(1)
-		go indexers[i].Start(ctx, &wg)
+		g.GoCtx(ctx, indexers[i].Start)
 	}
 
 	<-sigChan
 	cancel()
 
-	wg.Wait()
+	g.Wait()
 	for i := range indexers {
 		if err := indexers[i].Close(); err != nil {
 			panic(err)

@@ -64,6 +64,8 @@ func (w *Worker) Start(ctx context.Context) {
 		logger.Error().Err(err).Str("network", w.network.String()).Msg("failed to run cron function")
 		return
 	}
+
+	logger.Info().Time("cron", w.cron.Entries()[0].Schedule.Next(time.Now())).Msg("cron")
 	w.cron.Start()
 }
 
@@ -82,6 +84,7 @@ func (w *Worker) handleScheduleEvent(ctx context.Context) func() {
 			logger.Error().Err(err).Str("network", w.network.String()).Msg("failed to receive periodic network info")
 		}
 		if changed {
+			logger.Info().Msg("rpc url changed")
 			return
 		}
 
@@ -98,6 +101,7 @@ func (w *Worker) handleScheduleEvent(ctx context.Context) func() {
 					logger.Error().Err(err).Str("network", w.network.String()).Msg("failed to receive periodic network info")
 				}
 				if changed {
+					logger.Info().Msg("rpc url changed")
 					return
 				}
 			}
@@ -122,12 +126,13 @@ func (w *Worker) checkNetwork(ctx context.Context) (bool, error) {
 		}
 
 		if w.currentUrl != data.RPCURL {
+			w.currentUrl = data.RPCURL
+
 			if w.currentUrl != "" {
-				if err := w.handler(ctx, w.network.String(), w.currentUrl); err != nil {
+				if err := w.handler(ctx, w.network.String(), data.RPCURL); err != nil {
 					logger.Error().Err(err).Str("network", w.network.String()).Msg("failed to apply new rpc url")
 				}
 			}
-			w.currentUrl = data.RPCURL
 
 			logger.Info().Str("network", parts[0]).Str("url", w.currentUrl).Msg("new url was found")
 			return true, nil
