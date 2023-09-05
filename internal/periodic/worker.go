@@ -65,7 +65,6 @@ func (w *Worker) Start(ctx context.Context) {
 		return
 	}
 
-	logger.Info().Time("cron", w.cron.Entries()[0].Schedule.Next(time.Now())).Msg("cron")
 	w.cron.Start()
 }
 
