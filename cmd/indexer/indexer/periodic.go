@@ -3,13 +3,14 @@ package indexer
 import (
 	"context"
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/periodic"
+	"github.com/dipdup-io/workerpool"
 )
 
 // PeriodicIndexer -
@@ -21,12 +22,17 @@ type PeriodicIndexer struct {
 	indexerCfg config.IndexerConfig
 
 	worker *periodic.Worker
-
-	wg *sync.WaitGroup
+	g      workerpool.Group
 }
 
 // NewPeriodicIndexer -
-func NewPeriodicIndexer(ctx context.Context, network string, cfg config.Config, indexerCfg config.IndexerConfig) (*PeriodicIndexer, error) {
+func NewPeriodicIndexer(
+	ctx context.Context,
+	network string,
+	cfg config.Config,
+	indexerCfg config.IndexerConfig,
+	g workerpool.Group,
+) (*PeriodicIndexer, error) {
 	if indexerCfg.Periodic == nil {
 		return nil, errors.New("not periodic")
 	}
@@ -34,7 +40,7 @@ func NewPeriodicIndexer(ctx context.Context, network string, cfg config.Config, 
 	p := &PeriodicIndexer{
 		cfg:        cfg,
 		indexerCfg: indexerCfg,
-		wg:         new(sync.WaitGroup),
+		g:          g,
 	}
 
 	worker, err := periodic.New(*indexerCfg.Periodic, types.NewNetwork(network), p.handleUrlChanged)
@@ -60,12 +66,10 @@ func NewPeriodicIndexer(ctx context.Context, network string, cfg config.Config, 
 }
 
 // Start -
-func (p *PeriodicIndexer) Start(ctx context.Context, wg *sync.WaitGroup) {
-
+func (p *PeriodicIndexer) Start(ctx context.Context) {
 	indexerCtx, indexerCancel := context.WithCancel(ctx)
 	p.indexerCancel = indexerCancel
-
-	p.indexer.Start(indexerCtx, p.wg)
+	p.indexer.Start(indexerCtx)
 }
 
 // Close -
@@ -87,8 +91,8 @@ func (p *PeriodicIndexer) Rollback(ctx context.Context) error {
 }
 
 func (p *PeriodicIndexer) handleUrlChanged(ctx context.Context, network, url string) error {
+	logger.Warning().Str("network", network).Str("url", url).Msg("cancelling indexer due to URL changing...")
 	p.indexerCancel()
-	p.wg.Wait()
 
 	if err := p.indexer.Close(); err != nil {
 		return err
@@ -102,7 +106,7 @@ func (p *PeriodicIndexer) handleUrlChanged(ctx context.Context, network, url str
 
 	indexerCtx, indexerCancel := context.WithCancel(ctx)
 	p.indexerCancel = indexerCancel
-	p.indexer.Start(indexerCtx, p.wg)
+	p.g.GoCtx(indexerCtx, p.indexer.Start)
 
 	return nil
 }

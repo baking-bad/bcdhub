@@ -22,6 +22,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/rollback"
+	"github.com/dipdup-io/workerpool"
 	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
 )
@@ -45,6 +46,8 @@ type BlockchainIndexer struct {
 
 	isPeriodic  bool
 	indicesInit sync.Once
+
+	g workerpool.Group
 }
 
 // NewBlockchainIndexer -
@@ -69,6 +72,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 		Network:      networkType,
 		isPeriodic:   indexerConfig.Periodic != nil,
 		refreshTimer: make(chan struct{}, 10),
+		g:            workerpool.NewGroup(),
 	}
 
 	if err := bi.init(ctx, bi.Context.StorageDB); err != nil {
@@ -80,6 +84,8 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 
 // Close -
 func (bi *BlockchainIndexer) Close() error {
+	bi.g.Wait()
+
 	close(bi.refreshTimer)
 	if err := bi.receiver.Close(); err != nil {
 		return nil
@@ -127,14 +133,11 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 }
 
 // Start -
-func (bi *BlockchainIndexer) Start(ctx context.Context, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func (bi *BlockchainIndexer) Start(ctx context.Context) {
 	localSentry := helpers.GetLocalSentry()
 	helpers.SetLocalTagSentry(localSentry, "network", bi.Network.String())
 
-	wg.Add(1)
-	go bi.indexBlock(ctx, wg)
+	bi.g.GoCtx(ctx, bi.indexBlock)
 
 	bi.receiver.Start(ctx)
 
@@ -194,9 +197,7 @@ func (bi *BlockchainIndexer) setUpdateTicker(seconds int) {
 	bi.refreshTimer <- struct{}{}
 }
 
-func (bi *BlockchainIndexer) indexBlock(ctx context.Context, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
 	ticker := time.NewTicker(time.Millisecond)
 	defer ticker.Stop()
 
@@ -578,5 +579,6 @@ func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, inde
 	logger.Info().Str("network", bi.Context.Network.String()).Msg("Creating indexer object...")
 	bi.receiver = NewReceiver(bi.Context.RPC, 20, indexerConfig.ReceiverThreads)
 
+	bi.refreshTimer = make(chan struct{}, 10)
 	return bi.init(ctx, bi.Context.StorageDB)
 }

@@ -27,7 +27,7 @@ const (
 	DocProtocol        = "protocols"
 	DocScripts         = "scripts"
 	DocTicketUpdates   = "ticket_updates"
-	DocSmartRollups    = "smart_rollups"
+	DocSmartRollups    = "smart_rollup"
 )
 
 // AllDocuments - returns all document names
