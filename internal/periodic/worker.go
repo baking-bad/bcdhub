@@ -125,13 +125,12 @@ func (w *Worker) checkNetwork(ctx context.Context) (bool, error) {
 		}
 
 		if w.currentUrl != data.RPCURL {
-			w.currentUrl = data.RPCURL
-
 			if w.currentUrl != "" {
 				if err := w.handler(ctx, w.network.String(), data.RPCURL); err != nil {
 					logger.Error().Err(err).Str("network", w.network.String()).Msg("failed to apply new rpc url")
 				}
 			}
+			w.currentUrl = data.RPCURL
 
 			logger.Info().Str("network", parts[0]).Str("url", w.currentUrl).Msg("new url was found")
 			return true, nil
