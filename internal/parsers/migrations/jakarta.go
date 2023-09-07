@@ -67,6 +67,10 @@ func NewJakarta() *Jakarta {
 			"KT1DrJV8vhkdLEj76h1H9Q4irZDqAkMPo1Qf": {},
 			"KT1D68BvUm9N1fcq6uaZnyZvmBkBvj9biyPu": {},
 			"KT1CT7S2b9hXNRxRrEcany9sak1qe4aaFAZJ": {},
+			"KT1FHqsvc7vRS3u54L66DdMX4gb6QKqxJ1JW": {},
+			"KT1QwBaLj5TRaGU3qkU4ZKKQ5mvNvyyzGBFv": {},
+			"KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5": {},
+			"KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN": {},
 		},
 	}
 }

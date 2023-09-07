@@ -250,7 +250,7 @@ func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) erro
 	return bi.StorageDB.DB.RunInTransaction(ctx,
 		func(tx *pg.Tx) error {
 
-			if block.Header.Protocol != bi.currentProtocol.Hash || (bi.Network == types.Mainnet && block.Header.Level == 1) {
+			if block.Header.Protocol != bi.currentProtocol.Hash || bi.needVestingMigration(block.Header.Level) {
 				logger.Info().Str("network", bi.Network.String()).Msgf("New protocol detected: %s -> %s", bi.currentProtocol.Hash, block.Header.Protocol)
 
 				if err := bi.migrate(ctx, block.Header, tx); err != nil {
@@ -417,7 +417,7 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header, t
 		}
 	}
 
-	if bi.Network == types.Mainnet && head.Level == 1 {
+	if bi.needVestingMigration(head.Level) {
 		if err := bi.vestingMigration(ctx, head, tx); err != nil {
 			return err
 		}
@@ -441,6 +441,13 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header, t
 	bi.setUpdateTicker(0)
 	logger.Info().Str("network", bi.Network.String()).Msgf("Migration to %s is completed", bi.currentProtocol.Alias)
 	return nil
+}
+
+func (bi *BlockchainIndexer) needVestingMigration(level int64) bool {
+	return (bi.Network == types.Mainnet ||
+		bi.Network == types.Dailynet ||
+		bi.Network == types.Mondaynet) &&
+		level == 1
 }
 
 func (bi *BlockchainIndexer) implicitMigration(ctx context.Context, block *Block, protocol protocol.Protocol, store parsers.Store) error {

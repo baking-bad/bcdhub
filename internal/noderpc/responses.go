@@ -65,9 +65,22 @@ type ContractData struct {
 	Balance   int64              `json:"balance,string"`
 	Counter   int64              `json:"counter,string"`
 	Manager   string             `json:"manager"`
-	Delegate  struct {
-		Value string `json:"value"`
-	} `json:"delegate"`
+	Delegate  Delegate           `json:"delegate"`
+}
+
+type Delegate struct {
+	Value string `json:"value"`
+}
+
+func (d *Delegate) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		d.Value = s
+		return nil
+	}
+
+	type buf Delegate
+	return json.Unmarshal(data, (*buf)(d))
 }
 
 // OperationGroup -
