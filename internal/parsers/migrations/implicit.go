@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/account"
+	contracts "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -23,11 +24,16 @@ type ImplicitParser struct {
 	rpc            noderpc.INode
 	contractParser contract.Parser
 	protocol       protocol.Protocol
+	contractsRepo  contracts.Repository
 }
 
 // NewImplicitParser -
-func NewImplicitParser(ctx *config.Context, rpc noderpc.INode, contractParser contract.Parser, protocol protocol.Protocol) (*ImplicitParser, error) {
-	return &ImplicitParser{ctx, rpc, contractParser, protocol}, nil
+func NewImplicitParser(ctx *config.Context,
+	rpc noderpc.INode,
+	contractParser contract.Parser,
+	protocol protocol.Protocol,
+	contractsRepo contracts.Repository) (*ImplicitParser, error) {
+	return &ImplicitParser{ctx, rpc, contractParser, protocol, contractsRepo}, nil
 }
 
 // Parse -
@@ -57,6 +63,9 @@ func (p *ImplicitParser) IsMigratable(address string) bool {
 }
 
 func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.ImplicitOperationsResult, head noderpc.Header, store parsers.Store) error {
+	if _, err := p.contractsRepo.Get(implicit.OriginatedContracts[0]); err == nil {
+		return nil
+	}
 	origination := operation.Operation{
 		ProtocolID: p.protocol.ID,
 		Level:      head.Level,

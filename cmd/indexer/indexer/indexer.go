@@ -460,7 +460,7 @@ func (bi *BlockchainIndexer) implicitMigration(ctx context.Context, block *Block
 		return err
 	}
 
-	implicitParser, err := migrations.NewImplicitParser(bi.Context, bi.RPC, specific.ContractParser, protocol)
+	implicitParser, err := migrations.NewImplicitParser(bi.Context, bi.RPC, specific.ContractParser, protocol, bi.Contracts)
 	if err != nil {
 		return err
 	}
