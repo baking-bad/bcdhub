@@ -39,12 +39,12 @@ func (initializer Initializer) Init(ctx context.Context) error {
 			// check first block in node and in database, compare its hash.
 			// if hash is differed new periodic chain was started.
 			logger.Info().Str("network", initializer.network.String()).Msg("checking for new periodic chain...")
-			header, err := initializer.rpc.GetHeader(ctx, 1)
+			blockHash, err := initializer.rpc.BlockHash(ctx, 1)
 			if err != nil {
 				return err
 			}
 			firstBlock, err := initializer.block.Get(1)
-			if err == nil && firstBlock.Hash != header.Hash {
+			if err == nil && firstBlock.Hash != blockHash {
 				logger.Info().Str("network", initializer.network.String()).Msg("found new periodic chain")
 				logger.Warning().Str("network", initializer.network.String()).Msg("drop database...")
 				if err := initializer.repo.Drop(ctx); err != nil {
