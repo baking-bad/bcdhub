@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func newTestBabylon(repoCtrl *gomock.Controller) (*Babylon, *mock_bmd.MockRepository) {

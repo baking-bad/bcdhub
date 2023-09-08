@@ -89,3 +89,6 @@ sandbox-down:
 
 sandbox-clear:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.flextesa.yml down -v
+
+generate:
+	go generate ./...

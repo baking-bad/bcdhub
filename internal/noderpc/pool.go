@@ -126,6 +126,15 @@ func (p Pool) Block(ctx context.Context, level int64) (Block, error) {
 	return data.Interface().(Block), nil
 }
 
+// BlockHash -
+func (p Pool) BlockHash(ctx context.Context, level int64) (string, error) {
+	data, err := p.call("BlockHash", ctx, level)
+	if err != nil {
+		return "", err
+	}
+	return data.Interface().(string), nil
+}
+
 // GetHead -
 func (p Pool) GetHead(ctx context.Context) (Header, error) {
 	data, err := p.call("GetHead", ctx)

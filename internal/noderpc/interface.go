@@ -3,8 +3,11 @@ package noderpc
 import "context"
 
 // INode -
+//
+//go:generate mockgen -source=$GOFILE -destination=mock.go -package=noderpc -typed
 type INode interface {
 	Block(context.Context, int64) (Block, error)
+	BlockHash(context.Context, int64) (string, error)
 	GetHead(context.Context) (Header, error)
 	GetHeader(context.Context, int64) (Header, error)
 	GetScriptJSON(context.Context, string, int64) (Script, error)

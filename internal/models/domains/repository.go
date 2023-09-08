@@ -4,7 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
-// Repository -
+//go:generate mockgen -source=$GOFILE -destination=../mock/domains/mock.go -package=domains -typed
 type Repository interface {
 	BigMapDiffs(lastID, size int64) ([]BigMapDiff, error)
 
