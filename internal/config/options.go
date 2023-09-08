@@ -42,7 +42,7 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 				opts = append(opts, noderpc.WithLog())
 			}
 
-			ctx.RPC = noderpc.NewNodeRPC(rpcProvider.URI, opts...)
+			ctx.RPC = noderpc.NewWaitNodeRPC(rpcProvider.URI, opts...)
 		}
 	}
 }
