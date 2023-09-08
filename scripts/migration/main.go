@@ -14,7 +14,6 @@ import (
 )
 
 var migrationsList = []migrations.Migration{
-	&migrations.GetAliases{},
 	&migrations.DefaultEntrypoint{},
 	&migrations.FindLostContracts{},
 	&migrations.BigMapStateCount{},

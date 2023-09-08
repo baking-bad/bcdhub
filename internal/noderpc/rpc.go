@@ -233,6 +233,12 @@ func (rpc *NodeRPC) Block(ctx context.Context, level int64) (block Block, err er
 	return
 }
 
+// BlockHash - returns block's hash, its unique identifier.
+func (rpc *NodeRPC) BlockHash(ctx context.Context, level int64) (hash string, err error) {
+	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/hash", getBlockString(level)), &hash)
+	return
+}
+
 // GetHead - get head
 func (rpc *NodeRPC) GetHead(ctx context.Context) (Header, error) {
 	return rpc.GetHeader(ctx, 0)
@@ -243,7 +249,7 @@ func (rpc *NodeRPC) GetLevel(ctx context.Context) (int64, error) {
 	var head struct {
 		Level int64 `json:"level"`
 	}
-	if err := rpc.get(ctx, "chains/main/blocks/head/header", &head); err != nil {
+	if err := rpc.get(ctx, "chains/main/blocks/head/helpers/current_level", &head); err != nil {
 		return 0, err
 	}
 	return head.Level, nil

@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// GeneralRepository -
+//go:generate mockgen -source=$GOFILE -destination=mock/general.go -package=mock -typed
 type GeneralRepository interface {
 	CreateTables() error
 	DeleteByContract(indices []string, address string) error

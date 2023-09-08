@@ -1,6 +1,6 @@
 package bigmapdiff
 
-// Repository -
+//go:generate mockgen -source=$GOFILE -destination=../mock/bigmapdiff/mock.go -package=bigmapdiff -typed
 type Repository interface {
 	Get(ctx GetContext) ([]Bucket, error)
 	GetByAddress(address string) ([]BigMapDiff, error)

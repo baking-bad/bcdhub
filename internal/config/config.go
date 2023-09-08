@@ -208,7 +208,7 @@ func LoadDefaultConfig() (Config, error) {
 		EnvironmentProd:     "production.yml",
 		EnvironmentBox:      "sandbox.yml",
 		EnvironmentDev:      "../../configs/development.yml",
-		EnvironmentTestnets: "testnets.yml",
+		EnvironmentTestnets: "../../configs/testnets.yml",
 	}
 
 	env := os.Getenv(EnvironmentVar)

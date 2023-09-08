@@ -6,7 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
-// Repository -
+//go:generate mockgen -source=$GOFILE -destination=../mock/contract/mock.go -package=contract -typed
 type Repository interface {
 	Get(address string) (Contract, error)
 	GetAll(filters map[string]interface{}) ([]Contract, error)
@@ -22,7 +22,7 @@ type Repository interface {
 	FindOne(tags types.Tags) (Contract, error)
 }
 
-// ScriptRepository -
+//go:generate mockgen -source=$GOFILE -destination=../mock/contract/mock.go -package=contract -typed
 type ScriptRepository interface {
 	GetScripts(limit, offset int) ([]Script, error)
 	ByHash(hash string) (Script, error)
@@ -34,7 +34,7 @@ type ScriptRepository interface {
 	Views(id int64) ([]byte, error)
 }
 
-// ConstantRepository -
+//go:generate mockgen -source=$GOFILE -destination=../mock/contract/mock.go -package=contract -typed
 type ConstantRepository interface {
 	Get(address string) (GlobalConstant, error)
 	All(addresses ...string) ([]GlobalConstant, error)

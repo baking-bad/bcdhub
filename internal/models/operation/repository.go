@@ -4,7 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/account"
 )
 
-// Repository -
+//go:generate mockgen -source=$GOFILE -destination=../mock/operation/mock.go -package=operation -typed
 type Repository interface {
 	GetByAccount(acc account.Account, size uint64, filters map[string]interface{}) (Pageable, error)
 	// Last -  get last operation by `filters` with not empty deffated_storage.

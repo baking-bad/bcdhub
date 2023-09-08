@@ -5,7 +5,7 @@ on:
       - "*.*.*"
 
 jobs:
-  build:
+  publish:
     name: Publish Github release
     runs-on: ubuntu-latest
     steps:
@@ -26,3 +26,29 @@ jobs:
     #   with:
     #     environment: production
     #     version: ${{ env.RELEASE_VERSION }}
+
+  build:
+    name: Build sandbox GUI
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_REGISTRY: ghcr.io
+      DOCKER_IMAGE_BASE: ${{ github.repository }}
+    steps:
+      - name: GUI image tags & labels
+        id: meta-gui
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_BASE }}-gui
+
+      - name: GUI image build & push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: build/sandbox/Dockerfile
+          build-args: |
+            TAG=4.6.0
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta-gui.outputs.tags }}
+          labels: ${{ steps.meta-gui.outputs.labels }}
