@@ -428,6 +428,45 @@ func (c *INodeGetHeaderCall) DoAndReturn(f func(context.Context, int64) (Header,
 	return c
 }
 
+// GetLevel mocks base method.
+func (m *MockINode) GetLevel(ctx context.Context) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLevel", ctx)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLevel indicates an expected call of GetLevel.
+func (mr *MockINodeMockRecorder) GetLevel(ctx any) *INodeGetLevelCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLevel", reflect.TypeOf((*MockINode)(nil).GetLevel), ctx)
+	return &INodeGetLevelCall{Call: call}
+}
+
+// INodeGetLevelCall wrap *gomock.Call
+type INodeGetLevelCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *INodeGetLevelCall) Return(arg0 int64, arg1 error) *INodeGetLevelCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *INodeGetLevelCall) Do(f func(context.Context) (int64, error)) *INodeGetLevelCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *INodeGetLevelCall) DoAndReturn(f func(context.Context) (int64, error)) *INodeGetLevelCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetLightOPG mocks base method.
 func (m *MockINode) GetLightOPG(ctx context.Context, block int64) ([]LightOperationGroup, error) {
 	m.ctrl.T.Helper()

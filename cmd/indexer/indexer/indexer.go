@@ -61,7 +61,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 		networkType,
 		config.WithConfigCopy(cfg),
 		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle, true),
-		config.WithWaitRPC(cfg.RPC),
+		config.WithRPC(cfg.RPC),
 	)
 	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 
@@ -129,6 +129,15 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 
 	bi.currentProtocol = currentProtocol
 	logger.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", currentProtocol.Hash)
+
+	for {
+		if _, err := bi.Context.RPC.GetLevel(ctx); err == nil {
+			break
+		}
+		logger.Warning().Str("network", bi.Network.String()).Msg("waiting node rpc...")
+		time.Sleep(time.Second * 15)
+	}
+
 	return nil
 }
 
