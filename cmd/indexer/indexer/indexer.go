@@ -61,7 +61,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 		networkType,
 		config.WithConfigCopy(cfg),
 		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle, true),
-		config.WithRPC(cfg.RPC),
+		config.WithWaitRPC(cfg.RPC),
 	)
 	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 

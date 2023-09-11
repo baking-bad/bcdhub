@@ -42,6 +42,26 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 				opts = append(opts, noderpc.WithLog())
 			}
 
+			ctx.RPC = noderpc.NewNodeRPC(rpcProvider.URI, opts...)
+		}
+	}
+}
+
+// WithWaitRPC -
+func WithWaitRPC(rpcConfig map[string]RPCConfig) ContextOption {
+	return func(ctx *Context) {
+		if rpcProvider, ok := rpcConfig[ctx.Network.String()]; ok {
+			if rpcProvider.URI == "" {
+				return
+			}
+			opts := []noderpc.NodeOption{
+				noderpc.WithTimeout(time.Second * time.Duration(rpcProvider.Timeout)),
+				noderpc.WithRateLimit(rpcProvider.RequestsPerSecond),
+			}
+			if rpcProvider.Log {
+				opts = append(opts, noderpc.WithLog())
+			}
+
 			ctx.RPC = noderpc.NewWaitNodeRPC(rpcProvider.URI, opts...)
 		}
 	}
