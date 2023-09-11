@@ -18,15 +18,11 @@ func CreateIndexers(ctx context.Context, cfg config.Config, g workerpool.Group) 
 
 	var (
 		mx       sync.Mutex
-		wg       sync.WaitGroup
 		indexers = make([]Indexer, 0)
 	)
 
 	for network, indexerCfg := range cfg.Indexer.Networks {
-		wg.Add(1)
 		go func(network string, indexerCfg config.IndexerConfig) {
-			defer wg.Done()
-
 			if indexerCfg.Periodic != nil {
 				periodicIndexer, err := NewPeriodicIndexer(ctx, network, cfg, indexerCfg, g)
 				if err != nil {
@@ -36,6 +32,8 @@ func CreateIndexers(ctx context.Context, cfg config.Config, g workerpool.Group) 
 				mx.Lock()
 				indexers = append(indexers, periodicIndexer)
 				mx.Unlock()
+
+				g.GoCtx(ctx, periodicIndexer.Start)
 			} else {
 				bi, err := NewBlockchainIndexer(ctx, cfg, network, indexerCfg)
 				if err != nil {
@@ -45,11 +43,11 @@ func CreateIndexers(ctx context.Context, cfg config.Config, g workerpool.Group) 
 				mx.Lock()
 				indexers = append(indexers, bi)
 				mx.Unlock()
+
+				g.GoCtx(ctx, bi.Start)
 			}
 		}(network, indexerCfg)
 	}
-
-	wg.Wait()
 
 	return indexers, nil
 }
