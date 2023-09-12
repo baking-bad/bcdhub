@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -47,8 +48,8 @@ func GetInfo() gin.HandlerFunc {
 				return
 			}
 			balance, err = ctx.Cache.TezosBalance(c, acc.Address, block.Level)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
+			if err != nil {
+				logger.Err(err)
 			}
 		}
 		c.SecureJSON(http.StatusOK, AccountInfo{
