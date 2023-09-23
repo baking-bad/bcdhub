@@ -16,10 +16,6 @@ rpc:
     timeout: 20
     requests_per_second: 20
 
-tzkt:
-  mainnet:
-    uri: https://api.tzkt.io/v1
-
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
@@ -93,11 +89,6 @@ indexer:
     idle: 5
 
 scripts:
-  aws:
-    bucket_name: bcd-elastic-snapshots
-    region: eu-central-1
-    access_key_id: ${AWS_ACCESS_KEY_ID}
-    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
     - ghostnet

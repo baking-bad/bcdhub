@@ -10,8 +10,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/profiler"
 	"github.com/dipdup-io/workerpool"
-	"github.com/pyroscope-io/client/pyroscope"
+	"github.com/grafana/pyroscope-go"
 )
 
 func main() {
@@ -27,30 +28,9 @@ func main() {
 		defer helpers.CatchPanicSentry()
 	}
 
-	var profiler *pyroscope.Profiler
-	if cfg.Profiler != nil && cfg.Profiler.Server != "" {
-		profiler, err = pyroscope.Start(pyroscope.Config{
-			ApplicationName: "bcdhub.indexer",
-			ServerAddress:   cfg.Profiler.Server,
-			Tags: map[string]string{
-				"hostname": os.Getenv("BCDHUB_SERVICE"),
-				"project":  "bcdhub",
-				"service":  "indexer",
-			},
-
-			ProfileTypes: []pyroscope.ProfileType{
-				pyroscope.ProfileCPU,
-				pyroscope.ProfileAllocObjects,
-				pyroscope.ProfileAllocSpace,
-				pyroscope.ProfileInuseObjects,
-				pyroscope.ProfileInuseSpace,
-				pyroscope.ProfileGoroutines,
-				pyroscope.ProfileMutexCount,
-				pyroscope.ProfileMutexDuration,
-				pyroscope.ProfileBlockCount,
-				pyroscope.ProfileBlockDuration,
-			},
-		})
+	var prof *pyroscope.Profiler
+	if cfg.Profiler != nil {
+		prof, err = profiler.New(cfg.Profiler.Server, "indexer")
 		if err != nil {
 			panic(err)
 		}
@@ -80,8 +60,8 @@ func main() {
 		}
 	}
 
-	if profiler != nil {
-		if err := profiler.Stop(); err != nil {
+	if prof != nil {
+		if err := prof.Stop(); err != nil {
 			panic(err)
 		}
 	}

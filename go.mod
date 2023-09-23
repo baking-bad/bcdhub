@@ -3,7 +3,6 @@ module github.com/baking-bad/bcdhub
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go v1.44.92
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/dipdup-io/workerpool v0.0.4
 	github.com/ebellocchia/go-base58 v0.1.0
@@ -15,6 +14,7 @@ require (
 	github.com/go-pg/pg/v10 v10.10.6
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/google/uuid v1.3.0
+	github.com/grafana/pyroscope-go v1.0.3
 	github.com/iancoleman/strcase v0.2.0
 	github.com/ipfs/go-cid v0.3.2
 	github.com/jessevdk/go-flags v1.5.0
@@ -24,7 +24,6 @@ require (
 	github.com/machinebox/graphql v0.2.2
 	github.com/microcosm-cc/bluemonday v1.0.20
 	github.com/pkg/errors v0.9.1
-	github.com/pyroscope-io/client v0.7.2
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.28.0
 	github.com/sergi/go-diff v1.2.0
@@ -53,8 +52,8 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
+	github.com/grafana/pyroscope-go/godeltaprof v0.1.4 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/karlseguin/expect v1.0.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
@@ -74,7 +73,6 @@ require (
 	github.com/onsi/gomega v1.20.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/pyroscope-io/godeltaprof v0.1.2 // indirect
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect

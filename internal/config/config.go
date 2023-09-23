@@ -21,7 +21,6 @@ const (
 // Config -
 type Config struct {
 	RPC       map[string]RPCConfig     `yaml:"rpc"`
-	TzKT      map[string]TzKTConfig    `yaml:"tzkt"`
 	Services  map[string]ServiceConfig `yaml:"services"`
 	Storage   StorageConfig            `yaml:"storage"`
 	Sentry    SentryConfig             `yaml:"sentry"`
@@ -39,7 +38,6 @@ type Config struct {
 	} `yaml:"indexer"`
 
 	Scripts struct {
-		AWS         AWSConfig   `yaml:"aws"`
 		Networks    []string    `yaml:"networks"`
 		Connections Connections `yaml:"connections"`
 	} `yaml:"scripts"`
@@ -107,14 +105,6 @@ func (p PostgresConfig) ConnectionString() string {
 type DatabaseConfig struct {
 	ConnString string `yaml:"conn_string"`
 	Timeout    int    `yaml:"timeout"`
-}
-
-// AWSConfig -
-type AWSConfig struct {
-	BucketName      string `yaml:"bucket_name"`
-	Region          string `yaml:"region"`
-	AccessKeyID     string `yaml:"access_key_id"`
-	SecretAccessKey string `yaml:"secret_access_key"`
 }
 
 // OAuthConfig -
