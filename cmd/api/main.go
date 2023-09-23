@@ -15,13 +15,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/periodic"
+	"github.com/baking-bad/bcdhub/internal/profiler"
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/pyroscope-io/client/pyroscope"
+	"github.com/grafana/pyroscope-go"
 )
 
 type app struct {
@@ -52,29 +53,8 @@ func newApp() *app {
 	runtime.SetMutexProfileFraction(5)
 	runtime.SetBlockProfileRate(5)
 
-	if cfg.Profiler != nil && cfg.Profiler.Server != "" {
-		profiler, err := pyroscope.Start(pyroscope.Config{
-			ApplicationName: "bcdhub.api",
-			ServerAddress:   cfg.Profiler.Server,
-			Tags: map[string]string{
-				"hostname": os.Getenv("BCDHUB_SERVICE"),
-				"project":  "bcdhub",
-				"service":  "api",
-			},
-
-			ProfileTypes: []pyroscope.ProfileType{
-				pyroscope.ProfileCPU,
-				pyroscope.ProfileAllocObjects,
-				pyroscope.ProfileAllocSpace,
-				pyroscope.ProfileInuseObjects,
-				pyroscope.ProfileInuseSpace,
-				pyroscope.ProfileGoroutines,
-				pyroscope.ProfileMutexCount,
-				pyroscope.ProfileMutexDuration,
-				pyroscope.ProfileBlockCount,
-				pyroscope.ProfileBlockDuration,
-			},
-		})
+	if cfg.Profiler != nil {
+		profiler, err := profiler.New(cfg.Profiler.Server, "api")
 		if err != nil {
 			panic(err)
 		}

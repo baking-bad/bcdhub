@@ -15,16 +15,6 @@ rpc:
         requests_per_second: 10
 ```
 
-#### `tzkt`
-TzKT API endpoints (optional) and connection timeouts
-```yml
-tzkt:
-    mainnet:
-        uri: https://api.tzkt.io/v1/
-        base_uri: https://api.tzkt.io
-        timeout: 20
-```
-
 #### `db`
 PostgreSQL connection string
 ```yml
@@ -37,6 +27,7 @@ storage:
     password: ${POSTGRES_PASSWORD}
     sslmode: disable
   timeout: 10
+  log_queries: ${POSTGRES_LOG_QUERIES:-false}
 ```
 
 #### `sentry`
@@ -105,11 +96,6 @@ indexer:
 Scripts settings for data migrations and [AWS S3](https://aws.amazon.com/s3/) snapshot registry
 ```yml
 scripts:
-  aws:
-    bucket_name: bcd-elastic-snapshots
-    region: eu-central-1
-    access_key_id: ${AWS_ACCESS_KEY_ID}
-    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
   connections:

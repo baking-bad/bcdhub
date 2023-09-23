@@ -15,11 +15,6 @@ rpc:
     uri: https://rpc.tzkt.io/oxfordnet
     timeout: 20
     requests_per_second: 20
-
-tzkt:
-  mainnet:
-    uri: https://api.tzkt.io/v1
-    base_uri: https://api.tzkt.io
   
 services:
   mainnet:

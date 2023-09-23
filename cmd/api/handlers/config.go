@@ -13,16 +13,9 @@ func GetConfig() gin.HandlerFunc {
 		ctxs := c.MustGet("contexts").(config.Contexts)
 		ctx := ctxs.Any()
 
-		tzktEndpoints := make(map[string]string)
-		for network, tzkt := range ctx.Config.TzKT {
-			tzktEndpoints[network] = tzkt.BaseURI
-			break
-		}
-
 		cfg := ConfigResponse{
 			Networks:       ctx.Config.API.Networks,
 			RPCEndpoints:   ctx.Config.API.Frontend.RPC,
-			TzKTEndpoints:  tzktEndpoints,
 			GaEnabled:      ctx.Config.API.Frontend.GaEnabled,
 			MempoolEnabled: ctx.Config.API.Frontend.MempoolEnabled,
 			SandboxMode:    ctx.Config.API.Frontend.SandboxMode,

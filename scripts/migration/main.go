@@ -13,12 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var migrationsList = []migrations.Migration{
-	&migrations.DefaultEntrypoint{},
-	&migrations.FindLostContracts{},
-	&migrations.BigMapStateCount{},
-	&migrations.GlobalConstantsRelations{},
-}
+var migrationsList = []migrations.Migration{}
 
 func main() {
 	migration, err := chooseMigration()

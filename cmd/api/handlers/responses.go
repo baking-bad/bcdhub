@@ -483,7 +483,6 @@ type BigMapHistoryItem struct {
 type ConfigResponse struct {
 	Networks       []string          `json:"networks"`
 	RPCEndpoints   map[string]string `json:"rpc_endpoints"`
-	TzKTEndpoints  map[string]string `json:"tzkt_endpoints"`
 	SentryDSN      string            `json:"sentry_dsn"`
 	OauthEnabled   bool              `json:"oauth_enabled"`
 	GaEnabled      bool              `json:"ga_enabled"`
