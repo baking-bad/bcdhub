@@ -3,6 +3,8 @@ package formatter
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Test_skipSpaces(t *testing.T) {
@@ -47,9 +49,8 @@ func Test_skipSpaces(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := skipSpaces(tt.args.s, tt.args.offset); got != tt.want {
-				t.Errorf("skipSpaces() = %v, want %v", got, tt.want)
-			}
+			got := skipSpaces(tt.args.s, tt.args.offset)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

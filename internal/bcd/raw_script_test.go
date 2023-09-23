@@ -3,7 +3,7 @@ package bcd
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRawScript_UnmarshalJSON(t *testing.T) {
@@ -26,20 +26,15 @@ func TestRawScript_UnmarshalJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var s RawScript
-			if err := s.UnmarshalJSON(tt.data); (err != nil) != tt.wantErr {
-				t.Errorf("RawScript.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+			err := s.UnmarshalJSON(tt.data)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
 
-			if !assert.ElementsMatch(t, tt.wantCode, s.Code) {
-				return
-			}
-			if !assert.ElementsMatch(t, tt.wantParameter, s.Parameter) {
-				return
-			}
-			if !assert.ElementsMatch(t, tt.wantStorage, s.Storage) {
-				return
-			}
+			require.ElementsMatch(t, tt.wantCode, s.Code)
+			require.ElementsMatch(t, tt.wantParameter, s.Parameter)
+			require.ElementsMatch(t, tt.wantStorage, s.Storage)
 		})
 	}
 }

@@ -2,6 +2,8 @@ package ast
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestOrderedMap_Add(t *testing.T) {
@@ -55,52 +57,29 @@ func TestOrderedMap_Add(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := NewOrderedMap()
 			for i := range tt.data {
-				if err := m.Add(tt.data[i].key, tt.data[i].value); (err != nil) != tt.wantErr {
-					t.Errorf("OrderedMap.Add() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
+				err := m.Add(tt.data[i].key, tt.data[i].value)
+				require.NoError(t, err)
 			}
 
-			if len(tt.wantKeys) != m.Len() {
-				t.Errorf("OrderedMap.Len() len(tt.wantKeys) = %d, m.Len() = %d", len(tt.wantKeys), m.Len())
-				return
-			}
+			require.Equal(t, len(tt.wantKeys), m.Len())
 
 			for i := range tt.wantKeys {
 				res, err := tt.wantKeys[i].Compare(m.keys[i])
-				if err != nil {
-					t.Errorf("Compare err = %v", err)
-					return
-				}
-				if res != 0 {
-					t.Errorf("Compare res=%d, i=%d", res, i)
-					return
-				}
+				require.NoError(t, err)
+				require.Equal(t, res, 0)
 			}
 
 			receive, ok := m.Get(tt.getKey)
-			if !ok {
-				t.Errorf("Get ok = %v", ok)
-				return
-			}
-			res, err := receive.Compare(tt.wantForGet)
-			if err != nil {
-				t.Errorf("receive.Compare err = %v", err)
-				return
-			}
-			if res != 0 {
-				t.Errorf("receive.Compare res=%d", res)
-				return
-			}
+			require.True(t, ok)
 
-			if _, ok := m.Remove(tt.remove); !ok {
-				t.Errorf("OrderedMap.Remove() ok=%v", ok)
-				return
-			}
-			if tt.lengthAfterRemove != m.Len() {
-				t.Errorf("lengthAfterRemove=%d, m.Len()=%d", tt.lengthAfterRemove, m.Len())
-				return
-			}
+			res, err := receive.Compare(tt.wantForGet)
+			require.NoError(t, err)
+			require.Equal(t, res, 0)
+
+			_, ok = m.Remove(tt.remove)
+			require.True(t, ok)
+
+			require.Equal(t, tt.lengthAfterRemove, m.Len())
 
 			_ = m.Range(func(key, value Comparable) (bool, error) {
 				return false, nil

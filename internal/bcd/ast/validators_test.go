@@ -2,6 +2,8 @@ package ast
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddressValidator(t *testing.T) {
@@ -34,9 +36,8 @@ func TestAddressValidator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := AddressValidator(tt.value); (err != nil) != tt.wantErr {
-				t.Errorf("AddressValidator() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := AddressValidator(tt.value)
+			require.Equal(t, tt.wantErr, err != nil)
 		})
 	}
 }
@@ -67,9 +68,8 @@ func TestBakerHashValidator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := BakerHashValidator(tt.value); (err != nil) != tt.wantErr {
-				t.Errorf("BakerHashValidator() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := BakerHashValidator(tt.value)
+			require.Equal(t, tt.wantErr, err != nil)
 		})
 	}
 }
@@ -100,9 +100,8 @@ func TestPublicKeyValidator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := PublicKeyValidator(tt.value); (err != nil) != tt.wantErr {
-				t.Errorf("PublicKeyValidator() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := PublicKeyValidator(tt.value)
+			require.Equal(t, tt.wantErr, err != nil)
 		})
 	}
 }
@@ -133,9 +132,8 @@ func TestBytesValidator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := BytesValidator(tt.value); (err != nil) != tt.wantErr {
-				t.Errorf("BytesValidator() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := BytesValidator(tt.value)
+			require.Equal(t, tt.wantErr, err != nil)
 		})
 	}
 }
@@ -162,9 +160,8 @@ func TestChainIDValidator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ChainIDValidator(tt.value); (err != nil) != tt.wantErr {
-				t.Errorf("ChainIDValidator() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := ChainIDValidator(tt.value)
+			require.Equal(t, tt.wantErr, err != nil)
 		})
 	}
 }
@@ -199,9 +196,8 @@ func TestSignatureValidator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := SignatureValidator(tt.value); (err != nil) != tt.wantErr {
-				t.Errorf("SignatureValidator() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := SignatureValidator(tt.value)
+			require.Equal(t, tt.wantErr, err != nil)
 		})
 	}
 }
@@ -220,9 +216,8 @@ func TestContractValidator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ContractValidator(tt.value); (err != nil) != tt.wantErr {
-				t.Errorf("ContractValidator() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := ContractValidator(tt.value)
+			require.Equal(t, tt.wantErr, err != nil)
 		})
 	}
 }

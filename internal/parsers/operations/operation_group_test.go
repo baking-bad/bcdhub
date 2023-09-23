@@ -17,6 +17,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	modelContract "github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
 	mock_accounts "github.com/baking-bad/bcdhub/internal/models/mock/account"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
@@ -29,7 +30,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/baking-bad/bcdhub/internal/testsuite"
 	"github.com/go-pg/pg/v10"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
@@ -451,6 +454,8 @@ func TestGroup_Parse(t *testing.T) {
 			},
 			filename: "./data/rpc/opg/opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9.json",
 			want: &parsers.TestStore{
+				Contracts:  []*contract.Contract{},
+				Migrations: []*migration.Migration{},
 				Operations: []*operation.Operation{
 					{
 						Kind: types.OperationKindTransaction,
@@ -460,6 +465,8 @@ func TestGroup_Parse(t *testing.T) {
 						},
 						Fee:          37300,
 						Counter:      5791164,
+						ConsumedGas:  24494800,
+						StorageSize:  6607,
 						GasLimit:     369423,
 						StorageLimit: 90,
 						Destination: account.Account{
@@ -520,14 +527,16 @@ func TestGroup_Parse(t *testing.T) {
 						Level:    1068669,
 						Counter:  5791164,
 						Hash:     encoding.MustDecodeBase58("opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9"),
-						Nonce:    getInt64Pointer(0),
+						Nonce:    testsuite.Ptr[int64](0),
 						Entrypoint: types.NullString{
 							Str:   "validateAccounts",
 							Valid: true,
 						},
-						Internal:   true,
-						Timestamp:  timestamp,
-						ProtocolID: 1,
+						Internal:    true,
+						Timestamp:   timestamp,
+						ConsumedGas: 8932200,
+						StorageSize: 5460,
+						ProtocolID:  1,
 						Initiator: account.Account{
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
@@ -549,14 +558,16 @@ func TestGroup_Parse(t *testing.T) {
 						Level:    1068669,
 						Counter:  5791164,
 						Hash:     encoding.MustDecodeBase58("opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9"),
-						Nonce:    getInt64Pointer(1),
+						Nonce:    testsuite.Ptr[int64](1),
 						Entrypoint: types.NullString{
 							Str:   "validateRules",
 							Valid: true,
 						},
-						Internal:   true,
-						Timestamp:  timestamp,
-						ProtocolID: 1,
+						Internal:    true,
+						Timestamp:   timestamp,
+						StorageSize: 1164,
+						ConsumedGas: 3505300,
+						ProtocolID:  1,
 						Initiator: account.Account{
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
@@ -649,6 +660,8 @@ func TestGroup_Parse(t *testing.T) {
 						Fee:          43074,
 						Counter:      6909186,
 						GasLimit:     427673,
+						ConsumedGas:  19228300,
+						StorageSize:  2976,
 						StorageLimit: 47,
 						Destination: account.Account{
 							Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
@@ -663,7 +676,7 @@ func TestGroup_Parse(t *testing.T) {
 						BigMapDiffs: []*bigmapdiff.BigMapDiff{
 							{
 								Ptr:        32,
-								Key:        []byte(`{"bytes": "80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
+								Key:        []byte(`{"bytes":"80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
 								KeyHash:    "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
 								Level:      1151495,
 								Contract:   "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
@@ -676,7 +689,7 @@ func TestGroup_Parse(t *testing.T) {
 						ProtocolID:   1,
 						Hash:         encoding.MustDecodeBase58("opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt"),
 						Internal:     true,
-						Nonce:        getInt64Pointer(0),
+						Nonce:        testsuite.Ptr[int64](0),
 						Status:       types.OperationStatusApplied,
 						Timestamp:    timestamp,
 						Level:        1151495,
@@ -1044,25 +1057,25 @@ func TestGroup_Parse(t *testing.T) {
 						BigMapActions: []*bigmapaction.BigMapAction{
 							{
 								Action:    types.BigMapActionRemove,
-								SourcePtr: getInt64Pointer(25167),
+								SourcePtr: testsuite.Ptr[int64](25167),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 								Timestamp: timestamp,
 							}, {
 								Action:    types.BigMapActionRemove,
-								SourcePtr: getInt64Pointer(25166),
+								SourcePtr: testsuite.Ptr[int64](25166),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 								Timestamp: timestamp,
 							}, {
 								Action:    types.BigMapActionRemove,
-								SourcePtr: getInt64Pointer(25165),
+								SourcePtr: testsuite.Ptr[int64](25165),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 								Timestamp: timestamp,
 							}, {
 								Action:    types.BigMapActionRemove,
-								SourcePtr: getInt64Pointer(25164),
+								SourcePtr: testsuite.Ptr[int64](25164),
 								Level:     72207,
 								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 								Timestamp: timestamp,
@@ -1074,7 +1087,7 @@ func TestGroup_Parse(t *testing.T) {
 							Address: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 							Type:    types.AccountTypeContract,
 						},
-						Nonce: getInt64Pointer(0),
+						Nonce: testsuite.Ptr[int64](0),
 						Destination: account.Account{
 							Address: "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 							Type:    types.AccountTypeContract,
@@ -1098,29 +1111,29 @@ func TestGroup_Parse(t *testing.T) {
 						BigMapActions: []*bigmapaction.BigMapAction{
 							{
 								Action:         types.BigMapActionCopy,
-								SourcePtr:      getInt64Pointer(25167),
-								DestinationPtr: getInt64Pointer(25171),
+								SourcePtr:      testsuite.Ptr[int64](25167),
+								DestinationPtr: testsuite.Ptr[int64](25171),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 								Timestamp:      timestamp,
 							}, {
 								Action:         types.BigMapActionCopy,
-								SourcePtr:      getInt64Pointer(25166),
-								DestinationPtr: getInt64Pointer(25170),
+								SourcePtr:      testsuite.Ptr[int64](25166),
+								DestinationPtr: testsuite.Ptr[int64](25170),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 								Timestamp:      timestamp,
 							}, {
 								Action:         types.BigMapActionCopy,
-								SourcePtr:      getInt64Pointer(25165),
-								DestinationPtr: getInt64Pointer(25169),
+								SourcePtr:      testsuite.Ptr[int64](25165),
+								DestinationPtr: testsuite.Ptr[int64](25169),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 								Timestamp:      timestamp,
 							}, {
 								Action:         types.BigMapActionCopy,
-								SourcePtr:      getInt64Pointer(25164),
-								DestinationPtr: getInt64Pointer(25168),
+								SourcePtr:      testsuite.Ptr[int64](25164),
+								DestinationPtr: testsuite.Ptr[int64](25168),
 								Level:          72207,
 								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 								Timestamp:      timestamp,
@@ -1350,7 +1363,7 @@ func TestGroup_Parse(t *testing.T) {
 						Timestamp:  timestamp,
 						Status:     types.OperationStatusApplied,
 						Level:      1520888,
-						Nonce:      newInt64Ptr(0),
+						Nonce:      testsuite.Ptr[int64](0),
 						Counter:    10671622,
 						ProtocolID: 4,
 						Burned:     27000,
@@ -1555,7 +1568,7 @@ func TestGroup_Parse(t *testing.T) {
 							Type:    types.AccountTypeTz,
 						},
 						Status:          types.OperationStatusApplied,
-						Nonce:           newInt64Ptr(2),
+						Nonce:           testsuite.Ptr[int64](2),
 						Timestamp:       timestamp,
 						Level:           381735,
 						ProtocolID:      6,
@@ -1601,7 +1614,7 @@ func TestGroup_Parse(t *testing.T) {
 							Type:    types.AccountTypeTz,
 						},
 						Status:              types.OperationStatusApplied,
-						Nonce:               newInt64Ptr(1),
+						Nonce:               testsuite.Ptr[int64](1),
 						Timestamp:           timestamp,
 						Level:               381735,
 						ConsumedGas:         5715,
@@ -1651,7 +1664,7 @@ func TestGroup_Parse(t *testing.T) {
 							Type:    types.AccountTypeTz,
 						},
 						Status:                             types.OperationStatusApplied,
-						Nonce:                              newInt64Ptr(0),
+						Nonce:                              testsuite.Ptr[int64](0),
 						Timestamp:                          timestamp,
 						Level:                              381735,
 						ConsumedGas:                        11494,
@@ -1724,81 +1737,81 @@ func TestGroup_Parse(t *testing.T) {
 							{
 								Timestamp:      timestamp,
 								Level:          381735,
-								SourcePtr:      newInt64Ptr(40067),
-								DestinationPtr: newInt64Ptr(40081),
+								SourcePtr:      testsuite.Ptr[int64](40067),
+								DestinationPtr: testsuite.Ptr[int64](40081),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40080),
+								DestinationPtr: testsuite.Ptr[int64](40080),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								SourcePtr:      newInt64Ptr(40065),
-								DestinationPtr: newInt64Ptr(40079),
+								SourcePtr:      testsuite.Ptr[int64](40065),
+								DestinationPtr: testsuite.Ptr[int64](40079),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40078),
+								DestinationPtr: testsuite.Ptr[int64](40078),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40077),
+								DestinationPtr: testsuite.Ptr[int64](40077),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40076),
+								DestinationPtr: testsuite.Ptr[int64](40076),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40075),
+								DestinationPtr: testsuite.Ptr[int64](40075),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40074),
+								DestinationPtr: testsuite.Ptr[int64](40074),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40073),
+								DestinationPtr: testsuite.Ptr[int64](40073),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40072),
+								DestinationPtr: testsuite.Ptr[int64](40072),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40071),
+								DestinationPtr: testsuite.Ptr[int64](40071),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40070),
+								DestinationPtr: testsuite.Ptr[int64](40070),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							}, {
 								Timestamp:      timestamp,
 								Level:          381735,
-								DestinationPtr: newInt64Ptr(40069),
+								DestinationPtr: testsuite.Ptr[int64](40069),
 								Action:         types.BigMapActionCopy,
 								Address:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							},
@@ -2183,24 +2196,17 @@ func TestGroup_Parse(t *testing.T) {
 			}
 
 			var op noderpc.LightOperationGroup
-			if err := readJSONFile(tt.filename, &op); err != nil {
-				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
-				return
-			}
+			err := readJSONFile(tt.filename, &op)
+			require.NoError(t, err)
 
 			parseParams, err := NewParseParams(tt.ctx, tt.paramsOpts...)
-			if err != nil {
-				t.Errorf(`NewParseParams = error %v`, err)
-				return
-			}
+			require.NoError(t, err)
 
 			store := parsers.NewTestStore()
-			if err := NewGroup(parseParams).Parse(op, store); (err != nil) != tt.wantErr {
-				t.Errorf("Group.Parse() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !compareParserResponse(t, store, tt.want) {
-				t.Errorf("Group.Parse() = %#v, want %#v", store, tt.want)
+			err = NewGroup(parseParams).Parse(op, store)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err == nil {
+				compareParserResponse(t, store, tt.want)
 			}
 		})
 	}

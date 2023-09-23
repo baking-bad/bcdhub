@@ -2,6 +2,8 @@ package forge
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Test_Contract(t *testing.T) {
@@ -98,13 +100,11 @@ func Test_Contract(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := Contract(tt.val)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Contract() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if got != tt.want {
-				t.Errorf("Contract() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -125,13 +125,11 @@ func TestUnforgeBakerHash(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := UnforgeBakerHash(tt.str)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UnforgeBakerHash() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if got != tt.want {
-				t.Errorf("UnforgeBakerHash() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -156,13 +154,11 @@ func TestUnforgeAddress(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := UnforgeAddress(tt.str)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UnforgeAddress() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if got != tt.want {
-				t.Errorf("UnforgeAddress() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -187,13 +183,11 @@ func TestUnforgePublicKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := UnforgePublicKey(tt.str)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UnforgePublicKey() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if got != tt.want {
-				t.Errorf("UnforgePublicKey() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -214,13 +208,11 @@ func TestUnforgeContract(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := UnforgeContract(tt.str)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UnforgeContract() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if got != tt.want {
-				t.Errorf("UnforgeContract() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

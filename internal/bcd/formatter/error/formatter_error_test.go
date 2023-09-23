@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
 )
 
@@ -30,44 +31,24 @@ func TestLocateContractError(t *testing.T) {
 			dirpath := fmt.Sprintf("formatter_error_tests/%v/", c)
 
 			data, err := os.ReadFile(dirpath + "code.json")
-			if err != nil {
-				t.Errorf("error in os.ReadFile(%v%v): %v", dirpath, "code.json", err)
-			}
-
-			if !gjson.Valid(string(data)) {
-				t.Error("invalid json")
-			}
+			require.NoError(t, err)
+			require.True(t, gjson.Valid(string(data)))
 
 			results, err := os.ReadFile(dirpath + "results.json")
-			if err != nil {
-				t.Errorf("error in os.ReadFile(%v%v): %v", dirpath, "results.json", err)
-			}
+			require.NoError(t, err)
 
 			var res Results
 			err = json.Unmarshal(results, &res)
-			if err != nil {
-				t.Error("cant unmarshal results.json file")
-			}
+			require.NoError(t, err)
 
 			parsedData := gjson.ParseBytes(data)
 
 			row, start, end, err := LocateContractError(parsedData, res.Location)
-			if err != nil {
-				t.Errorf("err in LocateContractError: %v", err)
-			}
+			require.NoError(t, err)
 
-			if row != res.Row {
-				t.Errorf("wrong row. got %v, expected %v", row, res.Row)
-			}
-
-			if start != res.ColStart {
-				t.Errorf("wrong start. got %v, expected %v", start, res.ColStart)
-			}
-
-			if end != res.ColEnd {
-				t.Errorf("wrong end. got %v, expected %v", end, res.ColEnd)
-			}
-
+			require.Equal(t, res.Row, row)
+			require.Equal(t, res.ColStart, start)
+			require.Equal(t, res.ColEnd, end)
 		})
 	}
 

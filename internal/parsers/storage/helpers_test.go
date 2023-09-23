@@ -1,16 +1,16 @@
 package storage
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Test_GetStrings(t *testing.T) {
 	tests := []struct {
-		name    string
-		data    []byte
-		want    []string
-		wantErr bool
+		name string
+		data []byte
+		want []string
 	}{
 		{
 			name: "test 1",
@@ -31,13 +31,8 @@ func Test_GetStrings(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := GetStrings(tt.data)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetStrings() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetStrings() = %v, want %v", got, tt.want)
-			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

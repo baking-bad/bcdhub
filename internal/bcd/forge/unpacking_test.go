@@ -2,11 +2,11 @@ package forge
 
 import (
 	"encoding/hex"
-	"reflect"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/stretchr/testify/assert"
+	"github.com/baking-bad/bcdhub/internal/testsuite"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCollectStrings(t *testing.T) {
@@ -123,16 +123,15 @@ func TestCollectStrings(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var node base.Node
-			if err := json.UnmarshalFromString(tt.tree, &node); err != nil {
-				t.Errorf("UnmarshalFromString error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &node)
+			require.NoError(t, err)
+
 			got, err := CollectStrings(&node, tt.tryUnpack)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CollectStrings() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -149,7 +148,7 @@ func TestUnpack(t *testing.T) {
 			data: "050100000035697066733a2f2f516d585a4846695a5a35566747794c634b514c4d6b5032314e733855394e47316d6f707945777348446663575835",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("ipfs://QmXZHFiZZ5VgGyLcKQLMkP21Ns8U9NG1mopyEwsHDfcWX5"),
+					StringValue: testsuite.Ptr("ipfs://QmXZHFiZZ5VgGyLcKQLMkP21Ns8U9NG1mopyEwsHDfcWX5"),
 				},
 			},
 		},
@@ -157,18 +156,14 @@ func TestUnpack(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b, err := hex.DecodeString(tt.data)
-			if err != nil {
-				t.Errorf("DecodeString error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			got, err := Unpack(b)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Unpack() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Unpack() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

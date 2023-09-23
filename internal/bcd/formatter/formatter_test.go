@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
 )
 
@@ -103,34 +104,23 @@ func TestMichelineToMichelson(t *testing.T) {
 			jsonFile := fmt.Sprintf("./formatter_tests/%v/code_%v.json", tt, tt[:6])
 
 			data, err := os.ReadFile(jsonFile)
-			if err != nil {
-				t.Error("os.ReadFile code.json error:", err)
-			}
-
-			if !gjson.Valid(string(data)) {
-				t.Error("invalid json")
-			}
+			require.NoError(t, err)
+			require.True(t, gjson.Valid(string(data)))
 
 			parsedData := gjson.ParseBytes(data)
 			result, err := MichelineToMichelson(parsedData, true, DefLineSize)
-			if err != nil {
-				t.Error("MichelineToMichelson error:", err)
-			}
+			require.NoError(t, err)
 
 			tzFile := fmt.Sprintf("./formatter_tests/%v/code_%v.tz", tt, tt[:6])
 			expected, err := os.ReadFile(tzFile)
-			if err != nil {
-				t.Error("os.ReadFile code.tz error:", err)
-			}
+			require.NoError(t, err)
 
 			re := regexp.MustCompile(`\n\s*`)
 			exp := re.ReplaceAllString(string(expected), " ")
 			exp = strings.ReplaceAll(exp, "{  }", "{}")
 			exp = strings.TrimSpace(exp)
 
-			if exp != result {
-				t.Errorf("expected != result")
-			}
+			require.Equal(t, exp, result)
 		})
 	}
 }

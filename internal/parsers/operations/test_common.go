@@ -11,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -20,12 +19,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
-
-func newInt64Ptr(val int64) *int64 {
-	return &val
-}
 
 func readJSONFile(name string, response interface{}) error {
 	f, err := os.Open(name)
@@ -90,7 +85,6 @@ func readTestScriptModel(address, symLink string) (contract.Script, error) {
 	}, nil
 }
 
-// nolint
 func readTestScriptPart(address, symLink, part string) ([]byte, error) {
 	data, err := readTestScript(address, bcd.SymLinkBabylon)
 	if err != nil {
@@ -124,294 +118,114 @@ func readTestContractModel(address string) (contract.Contract, error) {
 	return c, err
 }
 
-func compareParserResponse(t *testing.T, got, want *parsers.TestStore) bool {
-	if !assert.Len(t, got.BigMapState, len(want.BigMapState)) {
-		return false
-	}
-	if !assert.Len(t, got.Contracts, len(want.Contracts)) {
-		return false
-	}
-	if !assert.Len(t, got.Migrations, len(want.Migrations)) {
-		return false
-	}
-	if !assert.Len(t, got.Operations, len(want.Operations)) {
-		return false
-	}
-	if !assert.Len(t, got.GlobalConstants, len(want.GlobalConstants)) {
-		return false
-	}
+func compareParserResponse(t *testing.T, got, want *parsers.TestStore) {
+	require.Len(t, got.BigMapState, len(want.BigMapState))
+	require.Len(t, got.Contracts, len(want.Contracts))
+	require.Len(t, got.Migrations, len(want.Migrations))
+	require.Len(t, got.Operations, len(want.Operations))
+	require.Len(t, got.GlobalConstants, len(want.GlobalConstants))
 
 	for i := range got.Contracts {
-		if !compareContract(t, want.Contracts[i], got.Contracts[i]) {
-			return false
-		}
+		compareContract(t, want.Contracts[i], got.Contracts[i])
 	}
 	for i := range got.Migrations {
-		if !assert.Equal(t, want.Migrations[i], got.Migrations[i]) {
-			return false
-		}
+		require.Equal(t, want.Migrations[i], got.Migrations[i])
 	}
 	for i := range got.Operations {
-		if !compareOperations(t, want.Operations[i], got.Operations[i]) {
-			return false
-		}
+		compareOperations(t, want.Operations[i], got.Operations[i])
 	}
 	for i := range got.BigMapState {
-		if !assert.Equal(t, want.BigMapState[i], got.BigMapState[i]) {
-			return false
-		}
+		require.Equal(t, want.BigMapState[i], got.BigMapState[i])
 	}
 	for i := range got.GlobalConstants {
-		if !assert.Equal(t, want.GlobalConstants[i], got.GlobalConstants[i]) {
-			return false
-		}
+		require.Equal(t, want.GlobalConstants[i], got.GlobalConstants[i])
 	}
-
-	return true
 }
 
-func compareOperations(t *testing.T, one, two *operation.Operation) bool {
-	if one.Internal != two.Internal {
-		logger.Info().Msgf("Internal: %v != %v", one.Internal, two.Internal)
-		return false
-	}
-	if !compareInt64Ptr(one.Nonce, two.Nonce) {
-		logger.Info().Msgf("Operation.Nonce: %d != %d", *one.Nonce, *two.Nonce)
-		return false
-	}
-	if one.Timestamp != two.Timestamp {
-		logger.Info().Msgf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
-		return false
-	}
-	if one.Level != two.Level {
-		logger.Info().Msgf("Level: %d != %d", one.Level, two.Level)
-		return false
-	}
-	if one.ContentIndex != two.ContentIndex {
-		logger.Info().Msgf("ContentIndex: %d != %d", one.ContentIndex, two.ContentIndex)
-		return false
-	}
-	if one.Counter != two.Counter {
-		logger.Info().Msgf("Counter: %d != %d", one.Counter, two.Counter)
-		return false
-	}
-	if one.GasLimit != two.GasLimit {
-		logger.Info().Msgf("GasLimit: %d != %d", one.GasLimit, two.GasLimit)
-		return false
-	}
-	if one.StorageLimit != two.StorageLimit {
-		logger.Info().Msgf("StorageLimit: %d != %d", one.StorageLimit, two.StorageLimit)
-		return false
-	}
-	if one.Fee != two.Fee {
-		logger.Info().Msgf("Fee: %d != %d", one.Fee, two.Fee)
-		return false
-	}
-	if one.Amount != two.Amount {
-		logger.Info().Msgf("Amount: %d != %d", one.Amount, two.Amount)
-		return false
-	}
-	if one.Burned != two.Burned {
-		logger.Info().Msgf("Burned: %d != %d", one.Burned, two.Burned)
-		return false
-	}
-	if one.AllocatedDestinationContractBurned != two.AllocatedDestinationContractBurned {
-		logger.Info().Msgf("AllocatedDestinationContractBurned: %d != %d", one.AllocatedDestinationContractBurned, two.AllocatedDestinationContractBurned)
-		return false
-	}
-	if one.ProtocolID != two.ProtocolID {
-		logger.Info().Msgf("Protocol: %d != %d", one.ProtocolID, two.ProtocolID)
-		return false
-	}
-	if !bytes.Equal(one.Hash, two.Hash) {
-		logger.Info().Msgf("Hash: %s != %s", one.Hash, two.Hash)
-		return false
-	}
-	if one.Status != two.Status {
-		logger.Info().Msgf("Status: %s != %s", one.Status, two.Status)
-		return false
-	}
-	if one.Kind != two.Kind {
-		logger.Info().Msgf("Kind: %s != %s", one.Kind, two.Kind)
-		return false
-	}
-	if !assert.Equal(t, one.Initiator, two.Initiator) {
-		return false
-	}
-	if !assert.Equal(t, one.Source, two.Source) {
-		return false
-	}
-	if !assert.Equal(t, one.Destination, two.Destination) {
-		return false
-	}
-	if !assert.Equal(t, one.Delegate, two.Delegate) {
-		return false
-	}
-	if one.Entrypoint != two.Entrypoint {
-		logger.Info().Msgf("Entrypoint: %s != %s", one.Entrypoint, two.Entrypoint)
-		return false
-	}
-	if len(one.Parameters) > 0 && len(two.Parameters) > 0 {
-		if !assert.JSONEq(t, string(one.Parameters), string(two.Parameters)) {
-			logger.Info().Msgf("Parameters: %s != %s", one.Parameters, two.Parameters)
-			return false
-		}
-	}
-	if len(one.DeffatedStorage) > 0 && len(two.DeffatedStorage) > 0 {
-		if !assert.JSONEq(t, string(one.DeffatedStorage), string(two.DeffatedStorage)) {
-			logger.Info().Msgf("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
-			return false
-		}
-	}
-	if one.Tags != two.Tags {
-		logger.Info().Msgf("Tags: %d != %d", one.Tags, two.Tags)
-		return false
+func compareOperations(t *testing.T, want, got *operation.Operation) {
+	require.EqualValues(t, want.Internal, got.Internal)
+	compareInt64Ptr(t, want.Nonce, got.Nonce)
+	require.EqualValues(t, want.Timestamp, got.Timestamp)
+	require.EqualValues(t, want.Level, got.Level)
+	require.EqualValues(t, want.ContentIndex, got.ContentIndex)
+	require.EqualValues(t, want.Counter, got.Counter)
+	require.EqualValues(t, want.GasLimit, got.GasLimit)
+	require.EqualValues(t, want.StorageLimit, got.StorageLimit)
+	require.EqualValues(t, want.Fee, got.Fee)
+	require.EqualValues(t, want.Amount, got.Amount)
+	require.EqualValues(t, want.Burned, got.Burned)
+	require.EqualValues(t, want.AllocatedDestinationContractBurned, got.AllocatedDestinationContractBurned)
+	require.EqualValues(t, want.ProtocolID, got.ProtocolID)
+	require.Equal(t, want.Hash, got.Hash)
+	require.EqualValues(t, want.Status, got.Status)
+	require.EqualValues(t, want.Kind, got.Kind)
+	require.Equal(t, want.Initiator, got.Initiator)
+	require.Equal(t, want.Source, got.Source)
+	require.Equal(t, want.Destination, got.Destination)
+	require.Equal(t, want.Delegate, got.Delegate)
+	require.Equal(t, want.Entrypoint, got.Entrypoint)
+	compareBytesArray(t, want.Parameters, got.Parameters)
+	compareBytesArray(t, want.DeffatedStorage, got.DeffatedStorage)
+	require.EqualValues(t, want.Tags, got.Tags)
+	require.Len(t, got.BigMapDiffs, len(want.BigMapDiffs))
+	require.Len(t, got.BigMapActions, len(want.BigMapActions))
+
+	for i := range want.BigMapDiffs {
+		compareBigMapDiff(t, want.BigMapDiffs[i], got.BigMapDiffs[i])
 	}
 
-	if len(one.BigMapDiffs) != len(two.BigMapDiffs) {
-		logger.Info().Msgf("BigMapDiffs length: %d != %d", len(one.BigMapDiffs), len(two.BigMapDiffs))
-		return false
+	for i := range want.BigMapActions {
+		compareBigMapAction(t, want.BigMapActions[i], got.BigMapActions[i])
 	}
-
-	if one.BigMapDiffs != nil && two.BigMapDiffs != nil {
-		for i := range one.BigMapDiffs {
-			if !compareBigMapDiff(t, one.BigMapDiffs[i], two.BigMapDiffs[i]) {
-				return false
-			}
-		}
-	}
-
-	if !assert.Len(t, one.BigMapActions, len(two.BigMapActions)) {
-		return false
-	}
-	if one.BigMapActions != nil && two.BigMapActions != nil {
-		for i := range one.BigMapActions {
-			if !compareBigMapAction(one.BigMapActions[i], two.BigMapActions[i]) {
-				return false
-			}
-		}
-	}
-
-	return true
 }
 
-func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
-	if one.Contract != two.Contract {
-		logger.Info().Msgf("BigMapDiff.Address: %s != %s", one.Contract, two.Contract)
-		return false
-	}
-	if one.KeyHash != two.KeyHash {
-		logger.Info().Msgf("KeyHash: %s != %s", one.KeyHash, two.KeyHash)
-		return false
-	}
-	if len(one.Value) > 0 || len(two.Value) > 0 {
-		if !assert.JSONEq(t, string(one.ValueBytes()), string(two.ValueBytes())) {
-			return false
-		}
-	}
-	if one.Level != two.Level {
-		logger.Info().Msgf("Level: %d != %d", one.Level, two.Level)
-		return false
-	}
-	if one.Timestamp != two.Timestamp {
-		logger.Info().Msgf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
-		return false
-	}
-	if one.ProtocolID != two.ProtocolID {
-		logger.Info().Msgf("Protocol: %d != %d", one.ProtocolID, two.ProtocolID)
-		return false
-	}
-	if one.Ptr != two.Ptr {
-		logger.Info().Msgf("Ptr: %d != %d", one.Ptr, two.Ptr)
-		return false
-	}
-	if !assert.JSONEq(t, string(one.KeyBytes()), string(two.KeyBytes())) {
-		return false
-	}
-	return true
+func compareBigMapDiff(t *testing.T, want, got *bigmapdiff.BigMapDiff) {
+	require.EqualValues(t, want.Contract, got.Contract)
+	require.EqualValues(t, want.KeyHash, got.KeyHash)
+	require.EqualValues(t, want.Level, got.Level)
+	require.EqualValues(t, want.Timestamp, got.Timestamp)
+	require.EqualValues(t, want.ProtocolID, got.ProtocolID)
+	require.EqualValues(t, want.Ptr, got.Ptr)
+	compareBytesArray(t, want.KeyBytes(), got.KeyBytes())
+	compareBytesArray(t, want.ValueBytes(), got.ValueBytes())
 }
 
-func compareBigMapAction(one, two *bigmapaction.BigMapAction) bool {
-	if one.Action != two.Action {
-		logger.Info().Msgf("Action: %s != %s", one.Action, two.Action)
-		return false
+func compareBytesArray(t *testing.T, want, got []byte) {
+	if len(want) > 0 {
+		require.JSONEq(t, string(want), string(got))
 	}
-	if !compareInt64Ptr(one.SourcePtr, two.SourcePtr) {
-		logger.Info().Msgf("SourcePtr: %d != %d", *one.SourcePtr, *two.SourcePtr)
-		return false
-	}
-	if !compareInt64Ptr(one.DestinationPtr, two.DestinationPtr) {
-		logger.Info().Msgf("DestinationPtr: %d != %d", *one.DestinationPtr, *two.DestinationPtr)
-		return false
-	}
-	if one.Level != two.Level {
-		logger.Info().Msgf("Level: %d != %d", one.Level, two.Level)
-		return false
-	}
-	if one.Address != two.Address {
-		logger.Info().Msgf("BigMapAction.Address: %s != %s", one.Address, two.Address)
-		return false
-	}
-	if one.Timestamp != two.Timestamp {
-		logger.Info().Msgf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
-		return false
-	}
-	return true
 }
 
-func compareContract(t *testing.T, one, two *contract.Contract) bool {
-	if !assert.Equal(t, one.Account, two.Account) {
-		return false
-	}
-	if !assert.Equal(t, one.Manager, two.Manager) {
-		return false
-	}
-	if !assert.Equal(t, one.Level, two.Level) {
-		return false
-	}
-	if !assert.Equal(t, one.Timestamp, two.Timestamp) {
-		return false
-	}
-	if !assert.Equal(t, one.Tags, two.Tags) {
-		return false
-	}
-	if !compareScript(t, one.Alpha, two.Alpha) {
-		logger.Info().Msgf("Contract.Alpha: %v != %v", one.Alpha, two.Alpha)
-		return false
-	}
-	if !compareScript(t, one.Babylon, two.Babylon) {
-		logger.Info().Msgf("Contract.Babylon: %v != %v", one.Babylon, two.Babylon)
-		return false
-	}
-	return true
+func compareBigMapAction(t *testing.T, want, got *bigmapaction.BigMapAction) {
+	require.EqualValues(t, want.Action, got.Action)
+	compareInt64Ptr(t, want.SourcePtr, got.SourcePtr)
+	compareInt64Ptr(t, want.DestinationPtr, got.DestinationPtr)
+	require.EqualValues(t, want.Level, got.Level)
+	require.EqualValues(t, want.Address, got.Address)
+	require.EqualValues(t, want.Timestamp, got.Timestamp)
 }
 
-func compareScript(t *testing.T, one, two contract.Script) bool {
-	if !assert.Equal(t, one.Hash, two.Hash) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.Entrypoints, two.Entrypoints) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.Annotations, two.Annotations) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.FailStrings, two.FailStrings) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.Hardcoded, two.Hardcoded) {
-		return false
-	}
-	if !assert.ElementsMatch(t, one.Code, two.Code) {
-		return false
-	}
-	return true
+func compareContract(t *testing.T, want, got *contract.Contract) {
+	require.Equal(t, want.Account, got.Account)
+	require.Equal(t, want.Manager, got.Manager)
+	require.Equal(t, want.Level, got.Level)
+	require.Equal(t, want.Timestamp, got.Timestamp)
+	require.Equal(t, want.Tags, got.Tags)
+	compareScript(t, want.Alpha, got.Alpha)
+	compareScript(t, want.Babylon, got.Babylon)
 }
 
-func compareInt64Ptr(one, two *int64) bool {
-	return (one != nil && two != nil && *one == *two) || (one == nil && two == nil)
+func compareScript(t *testing.T, want, got contract.Script) {
+	require.Equal(t, want.Hash, got.Hash)
+	require.ElementsMatch(t, want.Entrypoints, got.Entrypoints)
+	require.ElementsMatch(t, want.Annotations, got.Annotations)
+	require.ElementsMatch(t, want.FailStrings, got.FailStrings)
+	require.ElementsMatch(t, want.Hardcoded, got.Hardcoded)
+	require.ElementsMatch(t, want.Code, got.Code)
 }
 
-func getInt64Pointer(x int64) *int64 {
-	return &x
+func compareInt64Ptr(t *testing.T, want, got *int64) {
+	require.Condition(t, func() (success bool) {
+		return (want != nil && got != nil && *want == *got) || (want == nil && got == nil)
+	})
 }

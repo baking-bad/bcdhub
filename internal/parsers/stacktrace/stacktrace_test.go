@@ -2,6 +2,8 @@ package stacktrace
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func setInt64(x int64) *int64 {
@@ -35,9 +37,8 @@ func Test_GetID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.sti.GetID(); got != tt.want {
-				t.Errorf("getStackTraceID() = %v, want %v", got, tt.want)
-			}
+			got := tt.sti.GetID()
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -101,9 +102,8 @@ func TestStackTraceItem_gtNonce(t *testing.T) {
 			sti := &Item{
 				nonce: tt.fields.nonce,
 			}
-			if got := sti.gtNonce(tt.nonce); got != tt.want {
-				t.Errorf("StackTraceItem.gtNonce() = %v, want %v", got, tt.want)
-			}
+			got := sti.gtNonce(tt.nonce)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

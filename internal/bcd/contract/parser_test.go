@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_parseConstants(t *testing.T) {
@@ -57,9 +58,8 @@ func Test_parseConstants(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parseConstants(tt.node); got != tt.want {
-				t.Errorf("parseConstants() = %v, want %v", got, tt.want)
-			}
+			got := parseConstants(tt.node)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

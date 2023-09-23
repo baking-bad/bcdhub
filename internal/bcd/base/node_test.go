@@ -3,7 +3,7 @@ package base
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNode_GetAnnotations(t *testing.T) {
@@ -24,12 +24,10 @@ func TestNode_GetAnnotations(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var node Node
-			if err := json.UnmarshalFromString(tt.tree, &node); err != nil {
-				t.Errorf("UnmarshalFromString error=%s", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &node)
+			require.NoError(t, err)
 			got := node.GetAnnotations()
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

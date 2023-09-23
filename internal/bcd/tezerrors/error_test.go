@@ -2,10 +2,10 @@ package tezerrors
 
 import (
 	stdJSON "encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestError_parse(t *testing.T) {
@@ -107,17 +107,10 @@ func TestError_parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert := assert.New(t)
-
 			var e Error
-			if err := json.Unmarshal([]byte(tt.errJSON), &e); err != nil {
-				t.Errorf("json.Unmarshal: %v", err)
-				return
-			}
-
-			if assert.NotNil(e) && assert.NotNil(tt.ret) {
-				assert.Equalf(e, tt.ret, "Invalid parsed error: %##v != %##v", e.IError, tt.ret.IError)
-			}
+			err := json.Unmarshal([]byte(tt.errJSON), &e)
+			require.NoError(t, err)
+			require.Equal(t, tt.ret, e, "Invalid parsed error")
 		})
 	}
 }
@@ -144,20 +137,15 @@ func TestBalanceTooLowError_Parse(t *testing.T) {
 		},
 	}
 
-	if err := LoadErrorDescriptions(); err != nil {
-		panic(err)
-	}
+	err := LoadErrorDescriptions()
+	require.NoError(t, err)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var e Error
-			if err := json.Unmarshal([]byte(tt.args), &e); err != nil {
-				t.Errorf("json.Unmarshal: %v", err)
-				return
-			}
-
-			if !reflect.DeepEqual(e, tt.ret) {
-				t.Errorf("Invalid parsed error: %v != %v", e, tt.ret)
-			}
+			err := json.Unmarshal([]byte(tt.args), &e)
+			require.NoError(t, err)
+			require.Equal(t, tt.ret, e)
 		})
 	}
 }
@@ -246,23 +234,19 @@ func TestError_Format(t *testing.T) {
 		},
 	}
 
-	if err := LoadErrorDescriptions(); err != nil {
-		panic(err)
-	}
+	err := LoadErrorDescriptions()
+	require.NoError(t, err)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert := assert.New(t)
-
 			err := tt.args.Format()
-			if err != nil {
-				t.Errorf("args format error %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			switch err := tt.args.IError.(type) {
 			case *BalanceTooLowError:
-				assert.Equalf(err.With, tt.compareWith, "Invalid formatted with error: %v != %v", err.With, tt.compareWith)
+				require.Equal(t, tt.compareWith, err.With, "Invalid formatted with error")
 			case *DefaultError:
-				assert.Equalf(err.With, tt.compareWith, "Invalid formatted with error: %v != %v", err.With, tt.compareWith)
+				assert.Equal(t, tt.compareWith, err.With, "Invalid formatted with error")
 			}
 		})
 	}
@@ -290,20 +274,15 @@ func TestInvalidSyntacticConstantError_Parse(t *testing.T) {
 		},
 	}
 
-	if err := LoadErrorDescriptions(); err != nil {
-		panic(err)
-	}
+	err := LoadErrorDescriptions()
+	require.NoError(t, err)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var e Error
-			if err := json.Unmarshal([]byte(tt.args), &e); err != nil {
-				t.Errorf("json.Unmarshal: %v", err)
-				return
-			}
-
-			if !reflect.DeepEqual(e, tt.ret) {
-				t.Errorf("Invalid parsed error: %v != %v", e, tt.ret)
-			}
+			err := json.Unmarshal([]byte(tt.args), &e)
+			require.NoError(t, err)
+			require.Equal(t, tt.ret, e)
 		})
 	}
 }

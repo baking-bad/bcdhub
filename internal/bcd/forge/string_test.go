@@ -2,8 +2,9 @@ package forge
 
 import (
 	"encoding/hex"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestString_Unforge(t *testing.T) {
@@ -36,19 +37,14 @@ func TestString_Unforge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			input, err := hex.DecodeString(tt.data)
+			require.NoError(t, err)
+
+			got, err := new(String).Unforge(input)
+			require.Equal(t, tt.wantErr, err != nil)
 			if err != nil {
-				t.Errorf("String.Unforge() DecodeString error = %v", err)
 				return
 			}
-			s := &String{}
-			got, err := s.Unforge(input)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("String.Unforge() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("String.Unforge() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -80,20 +76,14 @@ func TestString_Forge(t *testing.T) {
 			s.StringValue = &tt.s
 
 			got, err := s.Forge()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("String.Forge() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
 
 			want, err := hex.DecodeString(tt.want)
-			if err != nil {
-				t.Errorf("String.Forge() DecodeString error = %v", err)
-				return
-			}
-
-			if !reflect.DeepEqual(got, want) {
-				t.Errorf("String.Forge() = %v, want %v", got, want)
-			}
+			require.NoError(t, err)
+			require.Equal(t, want, got)
 		})
 	}
 }

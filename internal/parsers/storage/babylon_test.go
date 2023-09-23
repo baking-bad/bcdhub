@@ -10,7 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	"go.uber.org/mock/gomock"
@@ -94,28 +94,24 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 				AnyTimes()
 
 			var content noderpc.Operation
-			if err := json.UnmarshalFromString(tt.args.content, &content); err != nil {
-				t.Errorf("UnmarshalFromString error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.args.content, &content)
+			require.NoError(t, err)
 
 			tree, err := ast.NewScriptWithoutCode(tt.args.operation.Script)
-			if err != nil {
-				t.Errorf("NewScriptWithoutCode() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
 			tt.args.operation.AST = tree
 
 			store := parsers.NewTestStore()
-			if err := b.ParseTransaction(content, &tt.args.operation, store); (err != nil) != tt.wantErr {
-				t.Errorf("Babylon.ParseTransaction() error = %v, wantErr %v", err, tt.wantErr)
+			err = b.ParseTransaction(content, &tt.args.operation, store)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
 
-			assert.Equal(t, tt.wantOperation.DeffatedStorage, tt.args.operation.DeffatedStorage)
+			require.Equal(t, tt.wantOperation.DeffatedStorage, tt.args.operation.DeffatedStorage)
 
-			assert.Len(t, tt.args.operation.BigMapDiffs, len(tt.wantOperation.BigMapDiffs))
-			assert.Len(t, store.BigMapState, len(tt.want.BigMapState))
+			require.Len(t, tt.args.operation.BigMapDiffs, len(tt.wantOperation.BigMapDiffs))
+			require.Len(t, store.BigMapState, len(tt.want.BigMapState))
 
 			for i := range tt.wantOperation.BigMapDiffs {
 				tt.wantOperation.BigMapDiffs[i].ID = tt.args.operation.BigMapDiffs[i].GetID()
@@ -125,8 +121,8 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 				tt.want.BigMapState[i].ID = store.BigMapState[i].GetID()
 			}
 
-			assert.Equal(t, tt.wantOperation.BigMapDiffs, tt.args.operation.BigMapDiffs)
-			assert.Equal(t, tt.want.BigMapState, store.BigMapState)
+			require.Equal(t, tt.wantOperation.BigMapDiffs, tt.args.operation.BigMapDiffs)
+			require.Equal(t, tt.want.BigMapState, store.BigMapState)
 		})
 	}
 }

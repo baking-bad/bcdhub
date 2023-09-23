@@ -52,10 +52,8 @@ func Test_parseOperationResult(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var op noderpc.Operation
-			if err := readJSONFile(tt.fileName, &op); err != nil {
-				t.Errorf(`readJSONFile("%s") = error %v`, tt.fileName, err)
-				return
-			}
+			err := readJSONFile(tt.fileName, &op)
+			require.NoError(t, err)
 
 			var res operation.Operation
 			parseOperationResult(op, &res)
