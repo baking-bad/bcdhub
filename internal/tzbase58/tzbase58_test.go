@@ -1,6 +1,10 @@
 package tzbase58
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestEncodeFromHex(t *testing.T) {
 	tests := []struct {
@@ -110,14 +114,8 @@ func TestEncodeFromHex(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := EncodeFromHex(tt.input, tt.prefix)
-			if err != nil {
-				t.Errorf("Error in encodeFromHex: %v", err)
-				return
-			}
-
-			if result != tt.res {
-				t.Errorf("Invalid base58 encoding. Got: %v, Expected: %v", result, tt.res)
-			}
+			require.NoError(t, err)
+			require.Equal(t, tt.res, result)
 		})
 	}
 }
@@ -151,9 +149,8 @@ func TestEncodeFromBytes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if result := EncodeFromBytes(tt.input, tt.prefix); result != tt.res {
-				t.Errorf("Invalid base58 encoding. Got: %v, Expected: %v", result, tt.res)
-			}
+			result := EncodeFromBytes(tt.input, tt.prefix)
+			require.Equal(t, tt.res, result)
 		})
 	}
 }
@@ -206,14 +203,8 @@ func TestDecodeToHex(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := DecodeToHex(tt.input, tt.prefix)
-			if err != nil {
-				t.Errorf("Error in DecodeFromHex: %v", err)
-				return
-			}
-
-			if result != tt.res {
-				t.Errorf("Invalid base58 decoding. Got: %v, Expected: %v", result, tt.res)
-			}
+			require.NoError(t, err)
+			require.Equal(t, tt.res, result)
 		})
 	}
 }

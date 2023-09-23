@@ -2,6 +2,8 @@ package bcd
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestIsContract(t *testing.T) {
@@ -30,9 +32,8 @@ func TestIsContract(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsContract(tt.address); got != tt.want {
-				t.Errorf("IsContract() = %v, want %v", got, tt.want)
-			}
+			got := IsContract(tt.address)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -67,10 +68,8 @@ func TestIsAddress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsAddress(tt.address); got != tt.want {
-				t.Errorf("IsAddress() = %v, want %v", got, tt.want)
-
-			}
+			got := IsAddress(tt.address)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -93,9 +92,8 @@ func TestIsBakerHash(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsBakerHash(tt.str); got != tt.want {
-				t.Errorf("IsBakerHash() = %v, want %v", got, tt.want)
-			}
+			got := IsBakerHash(tt.str)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

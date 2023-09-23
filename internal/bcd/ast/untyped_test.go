@@ -1,8 +1,9 @@
 package ast
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestUntypedAST_GetStrings(t *testing.T) {
@@ -23,18 +24,15 @@ func TestUntypedAST_GetStrings(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var tree UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
-				t.Errorf("UntypedAST.GetStrings() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &tree)
+			require.NoError(t, err)
+
 			got, err := tree.GetStrings(tt.tryUnpack)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UntypedAST.GetStrings() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("UntypedAST.GetStrings() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

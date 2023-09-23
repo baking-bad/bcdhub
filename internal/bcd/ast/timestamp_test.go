@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTimestamp_ParseValue(t *testing.T) {
@@ -46,10 +46,12 @@ func TestTimestamp_ParseValue(t *testing.T) {
 			node := &base.Node{
 				StringValue: &tt.ts,
 			}
-			if err := ts.ParseValue(node); (err != nil) != tt.wantErr {
-				t.Errorf("Timestamp.ParseValue() error = %v, wantErr %v", err, tt.wantErr)
+			err := ts.ParseValue(node)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
+				return
 			}
-			assert.Equal(t, tt.want, ts.Value)
+			require.Equal(t, tt.want, ts.Value)
 		})
 	}
 }

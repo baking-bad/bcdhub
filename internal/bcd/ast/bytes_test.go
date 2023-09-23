@@ -1,8 +1,10 @@
 package ast
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/baking-bad/bcdhub/internal/testsuite"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBytes_ToMiguel(t *testing.T) {
@@ -20,7 +22,7 @@ func TestBytes_ToMiguel(t *testing.T) {
 			want: &MiguelNode{
 				Prim:  "bytes",
 				Type:  "bytes",
-				Name:  getStringPtr("@bytes_1"),
+				Name:  testsuite.Ptr("@bytes_1"),
 				Value: `{ Pair "ledger" "tz1b1L4P8P1ucwuqCEP1Hxs7KB68CX8prFCp" }`,
 			},
 		},
@@ -28,22 +30,14 @@ func TestBytes_ToMiguel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tree, err := NewSettledTypedAst(tt.tree, tt.node)
-			if err != nil {
-				t.Errorf("NewSettledTypedAst error %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			got, err := tree.Nodes[0].ToMiguel()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Bytes.ToMiguel() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bytes.ToMiguel() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
-}
-
-func getStringPtr(val string) *string {
-	return &val
 }

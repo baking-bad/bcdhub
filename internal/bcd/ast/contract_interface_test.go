@@ -3,7 +3,7 @@ package ast
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFindContractInterface(t *testing.T) {
@@ -78,20 +78,13 @@ func TestFindContractInterface(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var tree UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
-				t.Errorf("UnmarshalFromString() error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &tree)
+			require.NoError(t, err)
 
 			typedTree, err := tree.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
 
-			if got := FindContractInterface(typedTree, tt.interfaceName); got != tt.want {
-				t.Errorf("FindContractInterface() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, FindContractInterface(typedTree, tt.interfaceName))
 		})
 	}
 }
@@ -111,18 +104,14 @@ func TestFindContractInterfaces(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var tree UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
-				t.Errorf("UnmarshalFromString() error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &tree)
+			require.NoError(t, err)
 
 			typedTree, err := tree.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			got := FindContractInterfaces(typedTree)
-			assert.ElementsMatch(t, tt.want, got)
+			require.ElementsMatch(t, tt.want, got)
 		})
 	}
 }

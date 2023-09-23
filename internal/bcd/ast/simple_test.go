@@ -1,6 +1,10 @@
 package ast
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestAddress_Compare(t *testing.T) {
 	tests := []struct {
@@ -81,13 +85,11 @@ func TestAddress_Compare(t *testing.T) {
 			second.ValueKind = tt.secondType
 
 			got, err := first.Compare(second)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Address.Compare() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if got != tt.want {
-				t.Errorf("Address.Compare() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

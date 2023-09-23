@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBigMapKeyHash(t *testing.T) {
@@ -42,18 +43,12 @@ func TestBigMapKeyHash(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var node base.Node
-			if err := json.UnmarshalFromString(tt.input, &node); err != nil {
-				t.Errorf("UnmarshalFromString error: %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.input, &node)
+			require.NoError(t, err)
+
 			result, err := BigMapKeyHash(&node)
-			if err != nil {
-				t.Errorf("error in Key, error: %v", err)
-				return
-			}
-			if result != tt.expected {
-				t.Errorf("error in Key, got: %v, expected: %v", result, tt.expected)
-			}
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, result)
 		})
 	}
 }

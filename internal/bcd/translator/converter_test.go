@@ -5,21 +5,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConverter_FromFile(t *testing.T) {
 	files, err := os.ReadDir("./tests/")
-	if err != nil {
-		t.Errorf("os.ReadDir(./tests/) error = %v", err)
-		return
-	}
+	require.NoError(t, err)
 
 	c, err := NewConverter()
-	if err != nil {
-		t.Errorf("Converter.NewConverter() error = %v", err)
-		return
-	}
+	require.NoError(t, err)
 
 	for _, file := range files {
 		if !file.IsDir() {
@@ -29,19 +23,13 @@ func TestConverter_FromFile(t *testing.T) {
 		t.Run(file.Name(), func(t *testing.T) {
 			resultFilename := fmt.Sprintf("tests/%s/code.json", file.Name())
 			resultBytes, err := os.ReadFile(resultFilename)
-			if err != nil {
-				t.Errorf("os.ReadFile() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
 
 			filename := fmt.Sprintf("tests/%s/code.tz", file.Name())
 			got, err := c.FromFile(filename)
-			if err != nil {
-				t.Errorf("Converter.FromFile() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
 
-			assert.JSONEq(t, string(resultBytes), got, "JSON comparing")
+			require.JSONEq(t, string(resultBytes), got, "JSON comparing")
 		})
 	}
 }

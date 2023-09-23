@@ -2,8 +2,9 @@ package forge
 
 import (
 	"math/big"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestInt_Unforge(t *testing.T) {
@@ -60,18 +61,12 @@ func TestInt_Unforge(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			val := NewInt()
 			got, err := val.Unforge(tt.data)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Int.Unforge() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if got != tt.want {
-				t.Errorf("Int.Unforge() = %v, want %v", got, tt.want)
-				return
-			}
-			if val.IntValue.Cmp(tt.val) != 0 {
-				t.Errorf("Int.Unforge() parsed value = %v, want %v", val.IntValue.Int64(), tt.val.Int64())
-				return
-			}
+			require.Equal(t, tt.want, got)
+			require.EqualValues(t, val.IntValue.Cmp(tt.val), 0)
 		})
 	}
 }
@@ -119,13 +114,11 @@ func TestInt_encode(t *testing.T) {
 			val := NewInt()
 			val.IntValue.Set(tt.data)
 			got, err := val.encode()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Int.encode() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Int.encode() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

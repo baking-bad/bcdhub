@@ -1,7 +1,6 @@
 package ast
 
 import (
-	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -9,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTypedAst_ToJSONSchema(t *testing.T) {
@@ -691,10 +691,8 @@ func TestTypedAst_Docs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			untyped, err := NewScript([]byte(tt.data))
-			if err != nil {
-				t.Errorf("NewScript() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			var a *TypedAst
 			switch {
 			case len(untyped.Parameter) > 0:
@@ -705,23 +703,17 @@ func TestTypedAst_Docs(t *testing.T) {
 				t.Errorf("Need to set parameter or storage")
 				return
 			}
-			if err != nil {
-				t.Errorf("ToTypedAST() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			got, err := a.Docs(tt.entrypoint)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.Docs() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			gotStr, err := json.MarshalToString(got)
+			require.Equal(t, tt.wantErr, err != nil)
 			if err != nil {
-				t.Errorf("MarshalToString() error = %v", err)
 				return
 			}
-			if gotStr != tt.want {
-				t.Errorf("TypedAst.Docs() = %v, want %v", gotStr, tt.want)
-			}
+
+			gotStr, err := json.MarshalToString(got)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, gotStr)
 		})
 	}
 }
@@ -789,52 +781,35 @@ func TestTypedAst_Compare(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var typ UntypedAST
-			if err := json.Unmarshal([]byte(tt.typ), &typ); err != nil {
-				t.Errorf("Unmarshal(typA) error = %v", err)
-				return
+			err := json.Unmarshal([]byte(tt.typ), &typ)
+			require.NoError(t, err)
 
-			}
 			typA, err := typ.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			typB, err := typ.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			var aTree UntypedAST
-			if err := json.Unmarshal([]byte(tt.a), &aTree); err != nil {
-				t.Errorf("Unmarshal(a) error = %v", err)
-				return
+			err = json.Unmarshal([]byte(tt.a), &aTree)
+			require.NoError(t, err)
 
-			}
 			var bTree UntypedAST
-			if err := json.Unmarshal([]byte(tt.b), &bTree); err != nil {
-				t.Errorf("Unmarshal(b) error = %v", err)
-				return
+			err = json.Unmarshal([]byte(tt.b), &bTree)
+			require.NoError(t, err)
 
-			}
-			if err := typA.Settle(aTree); err != nil {
-				t.Errorf("typA.Settle error = %v", err)
-				return
+			err = typA.Settle(aTree)
+			require.NoError(t, err)
 
-			}
-			if err := typB.Settle(bTree); err != nil {
-				t.Errorf("typA.Settle error = %v", err)
-				return
-
-			}
+			err = typB.Settle(bTree)
+			require.NoError(t, err)
 
 			got, err := typA.Compare(typB)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.Compare() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if got != tt.want {
-				t.Errorf("TypedAst.Compare() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -899,21 +874,12 @@ func TestTypedAst_Settle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			typ, err := NewSettledTypedAst(tt.tree, tt.data)
-			if err != nil {
-				t.Errorf("NewSettledTypedAstFromString() error = %v", err)
-				return
-			}
-			if !typ.IsSettled() {
-				t.Errorf("tree is not settled")
-				return
-			}
+			require.NoError(t, err)
+			require.True(t, typ.IsSettled())
 
 			b, err := typ.ToParameters(tt.entrypoint)
-			if err != nil {
-				t.Errorf("ToParameters() error = %v", err)
-				return
-			}
-			assert.Equal(t, tt.want, string(b))
+			require.NoError(t, err)
+			require.Equal(t, tt.want, string(b))
 		})
 	}
 }
@@ -955,18 +921,14 @@ func TestTypedAst_GetEntrypoints(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var tree UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
-				t.Errorf("UnmarshalFromString tree error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &tree)
+			require.NoError(t, err)
+
 			typ, err := tree.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST() error = %v", err)
-				return
-			}
-			if got := typ.GetEntrypoints(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TypedAst.GetEntrypoints() = %v, want %v", got, tt.want)
-			}
+			require.NoError(t, err)
+
+			got := typ.GetEntrypoints()
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -1034,35 +996,27 @@ func TestTypedAst_ToMiguel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var tree UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
-				t.Errorf("UnmarshalFromString tree error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &tree)
+			require.NoError(t, err)
+
 			typ, err := tree.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			var data UntypedAST
-			if err := json.UnmarshalFromString(tt.data, &data); err != nil {
-				t.Errorf("UnmarshalFromString data error = %v", err)
-				return
-			}
-			if err := typ.Settle(data); (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.Settle() error = %v, wantErr %v", err, tt.wantErr)
+			err = json.UnmarshalFromString(tt.data, &data)
+			require.NoError(t, err)
+
+			err = typ.Settle(data)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
 			got, err := typ.ToMiguel()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.ToMiguel() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			require.NoError(t, err)
+
 			b, err := json.Marshal(got)
-			if err != nil {
-				t.Errorf("Marshal(got) data error = %v", err)
-				return
-			}
-			assert.Equal(t, tt.want, string(b))
+			require.NoError(t, err)
+			require.Equal(t, tt.want, string(b))
 		})
 	}
 }
@@ -1195,55 +1149,41 @@ func TestTypedAst_Diff(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var treeA UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &treeA); err != nil {
-				t.Errorf("UnmarshalFromString treeA error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &treeA)
+			require.NoError(t, err)
+
 			typA, err := treeA.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST(a) error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			var dataA UntypedAST
-			if err := json.UnmarshalFromString(tt.curr, &dataA); err != nil {
-				t.Errorf("UnmarshalFromString dataA error = %v", err)
-				return
-			}
-			if err := typA.Settle(dataA); (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.Settle(a) error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			err = json.UnmarshalFromString(tt.curr, &dataA)
+			require.NoError(t, err)
+
+			err = typA.Settle(dataA)
+			require.NoError(t, err)
 
 			var treeB UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &treeB); err != nil {
-				t.Errorf("UnmarshalFromString treeB error = %v", err)
-				return
-			}
+			err = json.UnmarshalFromString(tt.tree, &treeB)
+			require.NoError(t, err)
+
 			typB, err := treeB.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST(b) error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			var dataB UntypedAST
-			if err := json.UnmarshalFromString(tt.prev, &dataB); err != nil {
-				t.Errorf("UnmarshalFromString dataB error = %v", err)
-				return
-			}
-			if err := typB.Settle(dataB); (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.Settle(b) error = %v, wantErr %v", err, tt.wantErr)
+			err = json.UnmarshalFromString(tt.prev, &dataB)
+			require.NoError(t, err)
+
+			err = typB.Settle(dataB)
+			require.NoError(t, err)
+
+			got, err := typA.Diff(typB)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
 
-			got, err := typA.Diff(typB)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.Diff() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
 			b, err := json.Marshal(got)
-			if err != nil {
-				t.Errorf("Marshal(got) data error = %v", err)
-				return
-			}
+			require.NoError(t, err)
 			assert.Equal(t, tt.want, string(b))
 		})
 	}
@@ -1303,34 +1243,25 @@ func TestTypedAst_EnrichBigMap(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var treeA UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &treeA); err != nil {
-				t.Errorf("UnmarshalFromString treeA error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &treeA)
+			require.NoError(t, err)
+
 			typA, err := treeA.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST(a) error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			var dataA UntypedAST
-			if err := json.UnmarshalFromString(tt.data, &dataA); err != nil {
-				t.Errorf("UnmarshalFromString dataA error = %v", err)
-				return
-			}
-			if err := typA.Settle(dataA); (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.Settle(a) error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if err := typA.EnrichBigMap(tt.bmd); (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.EnrichBigMap() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			err = json.UnmarshalFromString(tt.data, &dataA)
+			require.NoError(t, err)
+
+			err = typA.Settle(dataA)
+			require.NoError(t, err)
+
+			err = typA.EnrichBigMap(tt.bmd)
+			require.NoError(t, err)
+
 			b, err := typA.ToParameters("")
-			if err != nil {
-				t.Errorf("ToParameters(a) error = %v", err)
-				return
-			}
-			assert.Equal(t, tt.want, string(b))
+			require.NoError(t, err)
+			require.Equal(t, tt.want, string(b))
 		})
 	}
 }
@@ -1341,7 +1272,6 @@ func TestTypedAst_ToBaseNode(t *testing.T) {
 		tree      string
 		data      string
 		optimized bool
-		wantErr   bool
 	}{
 		{
 			name:      "simple big map",
@@ -1398,56 +1328,43 @@ func TestTypedAst_ToBaseNode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var treeA UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &treeA); err != nil {
-				t.Errorf("UnmarshalFromString treeA error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &treeA)
+			require.NoError(t, err)
+
 			a, err := treeA.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST(a) error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			var dataA UntypedAST
-			if err := json.UnmarshalFromString(tt.data, &dataA); err != nil {
-				t.Errorf("UnmarshalFromString dataA error = %v", err)
-				return
-			}
-			if err := a.Settle(dataA); (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.Settle(a) error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			err = json.UnmarshalFromString(tt.data, &dataA)
+			require.NoError(t, err)
+
+			err = a.Settle(dataA)
+			require.NoError(t, err)
+
 			got, err := a.ToBaseNode(tt.optimized)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.ToBaseNode() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			require.NoError(t, err)
+
 			bGot, err := json.Marshal(got)
-			if err != nil {
-				t.Errorf("Marshal(got) error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			var mGot map[string]interface{}
-			if err := json.Unmarshal(bGot, &mGot); err != nil {
-				t.Errorf("Unmarshal(got) error = %v", err)
-				return
-			}
+			err = json.Unmarshal(bGot, &mGot)
+			require.NoError(t, err)
+
 			var mWant map[string]interface{}
-			if err := json.UnmarshalFromString(tt.data, &mWant); err != nil {
-				t.Errorf("UnmarshalFromString(want) error = %v", err)
-				return
-			}
-			assert.Equal(t, mWant, mGot)
+			err = json.UnmarshalFromString(tt.data, &mWant)
+			require.NoError(t, err)
+			require.Equal(t, mWant, mGot)
 		})
 	}
 }
 
 func TestTypedAst_FromJSONSchema(t *testing.T) {
 	tests := []struct {
-		name    string
-		tree    string
-		data    string
-		want    string
-		wantErr bool
+		name string
+		tree string
+		data string
+		want string
 	}{
 		{
 			name: "atomex initiate",
@@ -1514,30 +1431,22 @@ func TestTypedAst_FromJSONSchema(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var treeA UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &treeA); err != nil {
-				t.Errorf("UnmarshalFromString treeA error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &treeA)
+			require.NoError(t, err)
+
 			a, err := treeA.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST(a) error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			var m map[string]interface{}
-			if err := json.UnmarshalFromString(tt.data, &m); err != nil {
-				t.Errorf("UnmarshalFromString(want) error = %v", err)
-				return
-			}
-			if err := a.FromJSONSchema(m); (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.FromJSONSchema() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			err = json.UnmarshalFromString(tt.data, &m)
+			require.NoError(t, err)
+
+			err = a.FromJSONSchema(m)
+			require.NoError(t, err)
+
 			b, err := a.ToParameters("")
-			if err != nil {
-				t.Errorf("ToParameters(a) error = %v", err)
-				return
-			}
-			assert.Equal(t, tt.want, string(b))
+			require.NoError(t, err)
+			require.Equal(t, tt.want, string(b))
 		})
 	}
 }
@@ -1601,23 +1510,17 @@ func TestTypedAst_FindByName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var treeA UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &treeA); err != nil {
-				t.Errorf("UnmarshalFromString treeA error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &treeA)
+			require.NoError(t, err)
+
 			a, err := treeA.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST(a) error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			got := a.FindByName(tt.fieldName, tt.isEntrypoint)
 			s, err := json.MarshalToString(got)
-			if err != nil {
-				t.Errorf("ToParameters(a) error = %v", err)
-				return
-			}
+			require.NoError(t, err)
 			s = strings.ReplaceAll(s, " ", "")
-			assert.Equal(t, tt.want, s)
+			require.Equal(t, tt.want, s)
 		})
 	}
 }
@@ -1629,7 +1532,6 @@ func TestTypedAst_FromParameters(t *testing.T) {
 		entrypoint string
 		data       string
 		want       string
-		wantErr    bool
 	}{
 		{
 			name:       "atomex/initiate",
@@ -1661,38 +1563,28 @@ func TestTypedAst_FromParameters(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a, err := NewTypedAstFromString(tt.tree)
-			if err != nil {
-				t.Errorf("NewTypedAstFromString error = %v", err)
-				return
-			}
+			require.NoError(t, err)
 			p := &types.Parameters{
 				Entrypoint: tt.entrypoint,
 				Value:      []byte(tt.data),
 			}
 			got, err := a.FromParameters(p)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.FromParameters() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			require.NoError(t, err)
 			res, err := got.ToParameters(DocsFull)
-			if err != nil {
-				t.Errorf("ToParameters() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
 			if tt.want == "" {
 				tt.want = tt.data
 			}
-			assert.Equal(t, tt.want, string(res))
+			require.Equal(t, tt.want, string(res))
 		})
 	}
 }
 
 func TestTypedAst_GetEntrypointsDocs(t *testing.T) {
 	tests := []struct {
-		name    string
-		tree    string
-		result  string
-		wantErr bool
+		name   string
+		tree   string
+		result string
 	}{
 		{
 			name:   "mainnet/KT1VsSxSXUkgw6zkBGgUuDXXuJs9ToPqkrCg/VestedFunds4",
@@ -1723,26 +1615,18 @@ func TestTypedAst_GetEntrypointsDocs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var tree UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
-				t.Errorf("UnmarshalFromString tree error = %v", err)
-				return
-			}
+			err := json.UnmarshalFromString(tt.tree, &tree)
+			require.NoError(t, err)
+
 			a, err := tree.ToTypedAST()
-			if err != nil {
-				t.Errorf("ToTypedAST(a) error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			got, err := a.GetEntrypointsDocs()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.GetEntrypointsDocs() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			require.NoError(t, err)
+
 			gotStr, err := json.MarshalToString(got)
-			if err != nil {
-				t.Errorf("MarshalToString(fot) error = %v", err)
-				return
-			}
-			assert.Equal(t, tt.result, gotStr)
+			require.NoError(t, err)
+			require.Equal(t, tt.result, gotStr)
 		})
 	}
 }
@@ -1764,18 +1648,13 @@ func TestTypedAst_EqualType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a, err := NewTypedAstFromString(tt.typ1)
-			if err != nil {
-				t.Errorf("NewTypedAstFromString(a) = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			b, err := NewTypedAstFromString(tt.typ2)
-			if err != nil {
-				t.Errorf("NewTypedAstFromString(b) = %v", err)
-				return
-			}
-			if got := a.EqualType(b); got != tt.want {
-				t.Errorf("TypedAst.EqualType() = %v, want %v", got, tt.want)
-			}
+			require.NoError(t, err)
+
+			got := a.EqualType(b)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -1809,18 +1688,15 @@ func TestTypedAst_ParametersForExecution(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a, err := NewTypedAstFromString(tt.tree)
-			if err != nil {
-				t.Errorf("NewTypedAstFromString(a) = %v", err)
-				return
-			}
-			var data map[string]interface{}
-			if err := json.UnmarshalFromString(tt.data, &data); err != nil {
-				t.Errorf("UnmarshalFromString() error = %v", err)
-				return
-			}
+			require.NoError(t, err)
 
-			if _, err := a.ParametersForExecution(tt.entrypoint, data); (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.ParametersForExecution() error = %v, wantErr %v", err, tt.wantErr)
+			var data map[string]interface{}
+			err = json.UnmarshalFromString(tt.data, &data)
+			require.NoError(t, err)
+
+			_, err = a.ParametersForExecution(tt.entrypoint, data)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
 		})

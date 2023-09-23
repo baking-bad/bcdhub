@@ -2,6 +2,8 @@ package encoding
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestDecodeBase58String(t *testing.T) {
@@ -55,13 +57,11 @@ func TestDecodeBase58String(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := DecodeBase58String(tt.data)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("DecodeBase58() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if got != tt.want {
-				t.Errorf("DecodeBase58() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -186,13 +186,11 @@ func TestEncodeBase58String(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := EncodeBase58String(tt.data, []byte(tt.prefix))
-			if (err != nil) != tt.wantErr {
-				t.Errorf("EncodeBase58() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if got != tt.want {
-				t.Errorf("EncodeBase58() = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

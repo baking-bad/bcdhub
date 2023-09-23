@@ -12,7 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
@@ -66,10 +66,8 @@ func TestMigration_Parse(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var op noderpc.Operation
-			if err := readJSONFile(tt.fileName, &op); err != nil {
-				t.Errorf(`readJSONFile("%s") = error %v`, tt.fileName, err)
-				return
-			}
+			err := readJSONFile(tt.fileName, &op)
+			require.NoError(t, err)
 
 			contractRepo.
 				EXPECT().
@@ -78,15 +76,14 @@ func TestMigration_Parse(t *testing.T) {
 				AnyTimes()
 
 			store := parsers.NewTestStore()
-			if err := NewMigration(contractRepo).Parse(op, tt.operation, "PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq", store); err != nil {
-				t.Errorf("Migration.Parse() = %s", err)
-				return
-			}
+			err = NewMigration(contractRepo).Parse(op, tt.operation, "PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq", store)
+			require.NoError(t, err)
+
 			if tt.want != nil {
 				tt.want.ID = store.Migrations[0].ID
-				assert.Equal(t, tt.want, store.Migrations[0])
+				require.Equal(t, tt.want, store.Migrations[0])
 			} else {
-				assert.Len(t, store.Migrations, 0)
+				require.Len(t, store.Migrations, 0)
 			}
 		})
 	}

@@ -6,12 +6,9 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/baking-bad/bcdhub/internal/testsuite"
+	"github.com/stretchr/testify/require"
 )
-
-func getStringPtr(val string) *string {
-	return &val
-}
 
 func TestMichelson_Unforge(t *testing.T) {
 	tests := []struct {
@@ -79,7 +76,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "01000000096d696368656c696e65",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("micheline"),
+					StringValue: testsuite.Ptr("micheline"),
 				},
 			},
 		},
@@ -88,7 +85,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0100000000",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr(""),
+					StringValue: testsuite.Ptr(""),
 				},
 			},
 		},
@@ -97,7 +94,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0a000000080123456789abcdef",
 			want: []*base.Node{
 				{
-					BytesValue: getStringPtr("0123456789abcdef"),
+					BytesValue: testsuite.Ptr("0123456789abcdef"),
 				},
 			},
 		},
@@ -111,11 +108,11 @@ func TestMichelson_Unforge(t *testing.T) {
 						{
 							IntValue: types.NewBigInt(-33),
 						}, {
-							StringValue: getStringPtr("tezos"),
+							StringValue: testsuite.Ptr("tezos"),
 						}, {
-							StringValue: getStringPtr(""),
+							StringValue: testsuite.Ptr(""),
 						}, {
-							StringValue: getStringPtr("cryptonomic"),
+							StringValue: testsuite.Ptr("cryptonomic"),
 						},
 					},
 				},
@@ -233,7 +230,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "010000000561646d696e",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("admin"),
+					StringValue: testsuite.Ptr("admin"),
 				},
 			},
 		},
@@ -242,7 +239,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0a00000016000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
 			want: []*base.Node{
 				{
-					BytesValue: getStringPtr("000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9"),
+					BytesValue: testsuite.Ptr("000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9"),
 				},
 			},
 		},
@@ -251,7 +248,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0100000006706175736564",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("paused"),
+					StringValue: testsuite.Ptr("paused"),
 				},
 			},
 		},
@@ -269,7 +266,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "010000000866616c6c6261636b",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("fallback"),
+					StringValue: testsuite.Ptr("fallback"),
 				},
 			},
 		},
@@ -292,7 +289,7 @@ func TestMichelson_Unforge(t *testing.T) {
 								{
 									Prim: "string",
 								}, {
-									StringValue: getStringPtr("UparamNoSuchEntryPoint"),
+									StringValue: testsuite.Ptr("UparamNoSuchEntryPoint"),
 								},
 							},
 						},
@@ -311,7 +308,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "01000000086e65774f776e6572",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("newOwner"),
+					StringValue: testsuite.Ptr("newOwner"),
 				},
 			},
 		},
@@ -329,7 +326,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "01000000096f70657261746f7273",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("operators"),
+					StringValue: testsuite.Ptr("operators"),
 				},
 			},
 		},
@@ -348,7 +345,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0100000009746f6b656e636f6465",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("tokencode"),
+					StringValue: testsuite.Ptr("tokencode"),
 				},
 			},
 		},
@@ -357,7 +354,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0100000005545a425443",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("TZBTC"),
+					StringValue: testsuite.Ptr("TZBTC"),
 				},
 			},
 		},
@@ -366,7 +363,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0100000009746f6b656e6e616d65",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("tokenname"),
+					StringValue: testsuite.Ptr("tokenname"),
 				},
 			},
 		},
@@ -375,7 +372,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "010000000b746f74616c4275726e6564",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("totalBurned"),
+					StringValue: testsuite.Ptr("totalBurned"),
 				},
 			},
 		},
@@ -393,7 +390,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "010000000b746f74616c4d696e746564",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("totalMinted"),
+					StringValue: testsuite.Ptr("totalMinted"),
 				},
 			},
 		},
@@ -402,7 +399,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "010000000b746f74616c537570706c79",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("totalSupply"),
+					StringValue: testsuite.Ptr("totalSupply"),
 				},
 			},
 		},
@@ -411,7 +408,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "010000000d72656465656d41646472657373",
 			want: []*base.Node{
 				{
-					StringValue: getStringPtr("redeemAddress"),
+					StringValue: testsuite.Ptr("redeemAddress"),
 				},
 			},
 		},
@@ -420,7 +417,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0a00000016000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
 			want: []*base.Node{
 				{
-					BytesValue: getStringPtr("000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9"),
+					BytesValue: testsuite.Ptr("000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9"),
 				},
 			},
 		},
@@ -429,24 +426,14 @@ func TestMichelson_Unforge(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := NewMichelson()
 			b, err := hex.DecodeString(tt.data)
-			if err != nil {
-				t.Errorf("Michelson.Unforge() DecodeString error = %v", err)
-				return
-			}
+			require.NoError(t, err)
+
 			_, err = m.Unforge(b)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Michelson.Unforge() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			if len(m.Nodes) != len(tt.want) {
-				t.Errorf("Michelson.Unforge() len = %d, len(want) %v", len(m.Nodes), len(tt.want))
-				return
-			}
-			for i := range tt.want {
-				if !assert.Equal(t, tt.want[i], m.Nodes[i]) {
-					return
-				}
-			}
+			require.ElementsMatch(t, tt.want, m.Nodes)
 		})
 	}
 }
@@ -517,7 +504,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "01000000096d696368656c696e65",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("micheline"),
+					StringValue: testsuite.Ptr("micheline"),
 				},
 			},
 		},
@@ -526,7 +513,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0100000000",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr(""),
+					StringValue: testsuite.Ptr(""),
 				},
 			},
 		},
@@ -535,7 +522,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0a000000080123456789abcdef",
 			nodes: []*base.Node{
 				{
-					BytesValue: getStringPtr("0123456789abcdef"),
+					BytesValue: testsuite.Ptr("0123456789abcdef"),
 				},
 			},
 		},
@@ -549,11 +536,11 @@ func TestMichelson_Forge(t *testing.T) {
 						{
 							IntValue: types.NewBigInt(-33),
 						}, {
-							StringValue: getStringPtr("tezos"),
+							StringValue: testsuite.Ptr("tezos"),
 						}, {
-							StringValue: getStringPtr(""),
+							StringValue: testsuite.Ptr(""),
 						}, {
-							StringValue: getStringPtr("cryptonomic"),
+							StringValue: testsuite.Ptr("cryptonomic"),
 						},
 					},
 				},
@@ -654,7 +641,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "010000000561646d696e",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("admin"),
+					StringValue: testsuite.Ptr("admin"),
 				},
 			},
 		},
@@ -663,7 +650,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0a00000016000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
 			nodes: []*base.Node{
 				{
-					BytesValue: getStringPtr("000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9"),
+					BytesValue: testsuite.Ptr("000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9"),
 				},
 			},
 		},
@@ -672,7 +659,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0100000006706175736564",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("paused"),
+					StringValue: testsuite.Ptr("paused"),
 				},
 			},
 		},
@@ -690,7 +677,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "010000000866616c6c6261636b",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("fallback"),
+					StringValue: testsuite.Ptr("fallback"),
 				},
 			},
 		},
@@ -713,7 +700,7 @@ func TestMichelson_Forge(t *testing.T) {
 								{
 									Prim: "string",
 								}, {
-									StringValue: getStringPtr("UparamNoSuchEntryPoint"),
+									StringValue: testsuite.Ptr("UparamNoSuchEntryPoint"),
 								},
 							},
 						},
@@ -732,7 +719,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "01000000086e65774f776e6572",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("newOwner"),
+					StringValue: testsuite.Ptr("newOwner"),
 				},
 			},
 		},
@@ -750,7 +737,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "01000000096f70657261746f7273",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("operators"),
+					StringValue: testsuite.Ptr("operators"),
 				},
 			},
 		},
@@ -769,7 +756,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0100000009746f6b656e636f6465",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("tokencode"),
+					StringValue: testsuite.Ptr("tokencode"),
 				},
 			},
 		},
@@ -778,7 +765,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0100000005545a425443",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("TZBTC"),
+					StringValue: testsuite.Ptr("TZBTC"),
 				},
 			},
 		},
@@ -787,7 +774,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0100000009746f6b656e6e616d65",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("tokenname"),
+					StringValue: testsuite.Ptr("tokenname"),
 				},
 			},
 		},
@@ -796,7 +783,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "010000000b746f74616c4275726e6564",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("totalBurned"),
+					StringValue: testsuite.Ptr("totalBurned"),
 				},
 			},
 		},
@@ -814,7 +801,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "010000000b746f74616c4d696e746564",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("totalMinted"),
+					StringValue: testsuite.Ptr("totalMinted"),
 				},
 			},
 		},
@@ -823,7 +810,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "010000000b746f74616c537570706c79",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("totalSupply"),
+					StringValue: testsuite.Ptr("totalSupply"),
 				},
 			},
 		},
@@ -832,7 +819,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "010000000d72656465656d41646472657373",
 			nodes: []*base.Node{
 				{
-					StringValue: getStringPtr("redeemAddress"),
+					StringValue: testsuite.Ptr("redeemAddress"),
 				},
 			},
 		},
@@ -841,7 +828,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0a00000016000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
 			nodes: []*base.Node{
 				{
-					BytesValue: getStringPtr("000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9"),
+					BytesValue: testsuite.Ptr("000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9"),
 				},
 			},
 		},
@@ -852,14 +839,11 @@ func TestMichelson_Forge(t *testing.T) {
 				Nodes: tt.nodes,
 			}
 			got, err := m.Forge()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Michelson.Forge() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
-			gotStr := hex.EncodeToString(got)
-			if gotStr != tt.want {
-				t.Errorf("Michelson.Forge() = %v, want %v", gotStr, tt.want)
-			}
+			require.Equal(t, tt.want, hex.EncodeToString(got))
 		})
 	}
 }
