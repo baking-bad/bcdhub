@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -33,7 +34,31 @@ func newBCDLogger() zerolog.Logger {
 		}
 	}
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	return log.Output(consoleWriter)
+	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
+		short := file
+		for i := len(file) - 1; i > 0; i-- {
+			if file[i] == '/' {
+				short = file[i+1:]
+				break
+			}
+		}
+		file = short
+		return file + ":" + strconv.Itoa(line)
+	}
+	log.Logger = log.Logger.With().Caller().Logger().Output(consoleWriter)
+	return log.Logger
+}
+
+func SetLevel(level string) error {
+	if level == "" {
+		level = "info"
+	}
+	logLevel, err := zerolog.ParseLevel(level)
+	if err != nil {
+		return err
+	}
+	zerolog.SetGlobalLevel(logLevel)
+	return nil
 }
 
 // Info -

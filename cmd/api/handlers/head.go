@@ -29,7 +29,7 @@ func GetHead() gin.HandlerFunc {
 
 		body := make([]Head, 0)
 		for network, ctx := range ctxs {
-			block, err := ctx.Blocks.Last()
+			block, err := ctx.Blocks.Last(c.Request.Context())
 			if err != nil {
 				if ctx.Storage.IsRecordNotFound(err) {
 					continue
@@ -68,7 +68,7 @@ func GetHeadByNetwork() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 
-		block, err := ctx.Blocks.Last()
+		block, err := ctx.Blocks.Last(c.Request.Context())
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

@@ -1,21 +1,21 @@
 package operation
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/go-pg/pg/v10"
-	"github.com/go-pg/pg/v10/orm"
 	"github.com/pkg/errors"
+	"github.com/uptrace/bun"
 )
 
 // Storage -
@@ -34,8 +34,8 @@ type opgForContract struct {
 	ID      int64
 }
 
-func (storage *Storage) getContractOPG(accountID int64, size uint64, filters map[string]interface{}) (response []opgForContract, err error) {
-	subQuery := storage.DB.Model().Table(models.DocOperations).Column("hash", "counter", "id")
+func (storage *Storage) getContractOPG(ctx context.Context, accountID int64, size uint64, filters map[string]interface{}) (response []opgForContract, err error) {
+	subQuery := storage.DB.NewSelect().Model((*operation.Operation)(nil)).Column("hash", "counter", "id")
 
 	if _, ok := filters["entrypoints"]; !ok {
 		subQuery.Where("source_id = ? OR destination_id = ?", accountID, accountID)
@@ -47,17 +47,17 @@ func (storage *Storage) getContractOPG(accountID int64, size uint64, filters map
 		return nil, err
 	}
 
-	query := storage.DB.Model().TableExpr("(?) as foo", subQuery.Order("id desc").Limit(1000)).
+	query := storage.DB.NewSelect().TableExpr("(?) as foo", subQuery.Order("id desc").Limit(1000)).
 		ColumnExpr("foo.hash, foo.counter, max(id) as id")
 
 	limit := storage.GetPageSize(int64(size))
 	query.GroupExpr("foo.hash, foo.counter").Order("id desc").Limit(limit)
 
-	err = query.Select(&response)
+	err = query.Scan(ctx, &response)
 	return
 }
 
-func prepareOperationFilters(query *orm.Query, filters map[string]interface{}) error {
+func prepareOperationFilters(query *bun.SelectQuery, filters map[string]interface{}) error {
 	for k, v := range filters {
 		if v != "" {
 			switch k {
@@ -66,13 +66,13 @@ func prepareOperationFilters(query *orm.Query, filters map[string]interface{}) e
 			case "to":
 				query.Where("timestamp <= to_timestamp(?)", v)
 			case "entrypoints":
-				query.WhereIn("entrypoint IN (?)", v)
+				query.Where("entrypoint IN (?)", bun.In(v))
 			case "last_id":
 				query.Where("id < ?", v)
 			case "status":
-				query.WhereIn("status IN (?)", v)
+				query.Where("status IN (?)", bun.In(v))
 			default:
-				return errors.Errorf("Unknown operation filter: %s %v", k, v)
+				return errors.Errorf("unknown operation filter: %s %v", k, v)
 			}
 		}
 	}
@@ -80,8 +80,8 @@ func prepareOperationFilters(query *orm.Query, filters map[string]interface{}) e
 }
 
 // GetByContract -
-func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters map[string]interface{}) (po operation.Pageable, err error) {
-	opg, err := storage.getContractOPG(acc.ID, size, filters)
+func (storage *Storage) GetByAccount(ctx context.Context, acc account.Account, size uint64, filters map[string]interface{}) (po operation.Pageable, err error) {
+	opg, err := storage.getContractOPG(ctx, acc.ID, size, filters)
 	if err != nil {
 		return
 	}
@@ -89,23 +89,24 @@ func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters m
 		return
 	}
 
-	query := storage.DB.Model((*operation.Operation)(nil)).WhereGroup(func(q *orm.Query) (*orm.Query, error) {
-		for i := range opg {
-			q.WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
-				if opg[i].Hash == nil {
-					q.Where("operation.hash is null")
-				} else {
-					q.Where("operation.hash = ?", opg[i].Hash)
-				}
-				return q.Where("operation.counter = ?", opg[i].Counter), nil
-			})
-		}
-		return q, nil
-	}).Relation("Destination").Relation("Source").Relation("Initiator").Relation("Delegate")
+	query := storage.DB.NewSelect().Model(&po.Operations).WhereGroup(
+		" AND ", func(q *bun.SelectQuery) *bun.SelectQuery {
+			for i := range opg {
+				q.WhereGroup(" OR ", func(q *bun.SelectQuery) *bun.SelectQuery {
+					if opg[i].Hash == nil {
+						q.Where("operation.hash is null")
+					} else {
+						q.Where("operation.hash = ?", opg[i].Hash)
+					}
+					return q.Where("operation.counter = ?", opg[i].Counter)
+				})
+			}
+			return q
+		}).Relation("Destination").Relation("Source").Relation("Initiator").Relation("Delegate")
 
 	addOperationSorting(query)
 
-	if err = query.Select(&po.Operations); err != nil {
+	if err = query.Scan(ctx); err != nil {
 		return
 	}
 
@@ -125,7 +126,7 @@ func (storage *Storage) GetByAccount(acc account.Account, size uint64, filters m
 }
 
 // Last - get last operation by `filters` with not empty deffated_storage
-func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (operation.Operation, error) {
+func (storage *Storage) Last(ctx context.Context, filters map[string]interface{}, lastID int64) (operation.Operation, error) {
 	var (
 		current = time.Now()
 		endTime = consts.BeginningOfTime
@@ -150,7 +151,7 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 	}
 
 	for current.After(endTime) {
-		query := storage.DB.Model((*operation.Operation)(nil)).
+		query := storage.DB.NewSelect().Model((*operation.Operation)(nil)).
 			Where("deffated_storage is not null").
 			OrderExpr("operation.id desc")
 
@@ -159,7 +160,7 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 			case core.TimestampFilter:
 				query = val.Apply(query)
 			default:
-				query.Where("? = ?", pg.Ident(key), value)
+				query.Where("? = ?", bun.Ident(key), value)
 			}
 		}
 
@@ -175,13 +176,13 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 		query.Limit(1)
 
 		var ops []operation.Operation
-		if err := storage.DB.Model().TableExpr("(?) as operation", query).
+		if err := storage.DB.NewSelect().TableExpr("(?) as operation", query).
 			ColumnExpr("operation.*").
 			ColumnExpr("source.address as source__address").
 			ColumnExpr("destination.address as destination__address").
 			Join("LEFT JOIN accounts as source ON source.id = operation.source_id").
 			Join("LEFT JOIN accounts as destination ON destination.id = operation.destination_id").
-			Select(&ops); err != nil {
+			Scan(ctx, &ops); err != nil {
 			return operation.Operation{}, err
 		}
 		if len(ops) > 0 {
@@ -191,15 +192,15 @@ func (storage *Storage) Last(filters map[string]interface{}, lastID int64) (oper
 		current = lowCurrent
 	}
 
-	return operation.Operation{}, pg.ErrNoRows
+	return operation.Operation{}, sql.ErrNoRows
 }
 
 // Get -
-func (storage *Storage) Get(filters map[string]interface{}, size int64, sort bool) (operations []operation.Operation, err error) {
-	query := storage.DB.Model((*operation.Operation)(nil)).Relation("Destination.address")
+func (storage *Storage) Get(ctx context.Context, filters map[string]interface{}, size int64, sort bool) (operations []operation.Operation, err error) {
+	query := storage.DB.NewSelect().Model(&operations).Relation("Destination.address")
 
 	for key, value := range filters {
-		query.Where("? = ?", pg.Ident(key), value)
+		query.Where("? = ?", bun.Ident(key), value)
 	}
 
 	if sort {
@@ -210,69 +211,53 @@ func (storage *Storage) Get(filters map[string]interface{}, size int64, sort boo
 		query.Limit(storage.GetPageSize(size))
 	}
 
-	err = query.Select(&operations)
+	err = query.Scan(ctx)
 	return operations, err
 }
 
 // GetByHash -
-func (storage *Storage) GetByHash(hash []byte) (operations []operation.Operation, err error) {
-	query := storage.DB.Model((*operation.Operation)(nil)).Where("hash = ?", hash)
+func (storage *Storage) GetByHash(ctx context.Context, hash []byte) (operations []operation.Operation, err error) {
+	query := storage.DB.NewSelect().Model((*operation.Operation)(nil)).Where("hash = ?", hash)
 	addOperationSorting(query)
-	err = storage.DB.Model().TableExpr("(?) as operation", query).
+	err = storage.DB.NewSelect().TableExpr("(?) as operation", query).
 		ColumnExpr("operation.*").
 		ColumnExpr("source.address as source__address, source.alias as source__alias, source.type as source__type,source.id as source__id").
 		ColumnExpr("destination.address as destination__address, destination.alias as destination__alias, destination.type as destination__type, destination.id as destination__id").
 		Join("LEFT JOIN accounts as source ON source.id = operation.source_id").
 		Join("LEFT JOIN accounts as destination ON destination.id = operation.destination_id").
-		Select(&operations)
+		Scan(ctx, &operations)
 	return operations, err
 }
 
-// GetContract24HoursVolume -
-func (storage *Storage) GetContract24HoursVolume(address string, entrypoints []string) (float64, error) {
-	aDayAgo := time.Now().UTC().AddDate(0, 0, -1)
-	var destinationID int64
-	if err := storage.DB.Model((*account.Account)(nil)).
-		Column("id").
-		Where("address = ?", address).
-		Select(&destinationID); err != nil {
-		return 0, err
-	}
-
-	var volume float64
-	query := storage.DB.Model((*operation.Operation)(nil)).
-		ColumnExpr("COALESCE(SUM(amount), 0)").
-		Where("destination_id = ?", destinationID).
-		Where("status = ?", types.OperationStatusApplied).
-		Where("timestamp > ?", aDayAgo)
-
-	if len(entrypoints) > 0 {
-		query.WhereIn("entrypoint IN (?)", entrypoints)
-	}
-
-	err := query.Select(&volume)
-	return volume, err
-}
-
 // GetByIDs -
-func (storage *Storage) GetByIDs(ids ...int64) (result []operation.Operation, err error) {
-	err = storage.DB.Model((*operation.Operation)(nil)).Where("id IN (?)", pg.In(ids)).Order("id asc").Select(&result)
+func (storage *Storage) GetByIDs(ctx context.Context, ids ...int64) (result []operation.Operation, err error) {
+	err = storage.DB.NewSelect().
+		Model(&result).
+		Where("id IN (?)", bun.In(ids)).
+		Order("id asc").
+		Scan(ctx)
 	return
 }
 
 // GetByID -
-func (storage *Storage) GetByID(id int64) (result operation.Operation, err error) {
-	err = storage.DB.Model(&result).Relation("Destination").Where("operation.id = ?", id).First()
+func (storage *Storage) GetByID(ctx context.Context, id int64) (result operation.Operation, err error) {
+	err = storage.DB.NewSelect().
+		Model(&result).
+		Relation("Destination").
+		Where("operation.id = ?", id).
+		Limit(1).
+		Scan(ctx)
 	return
 }
 
 // OPG -
-func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG, error) {
+func (storage *Storage) OPG(ctx context.Context, address string, size, lastID int64) ([]operation.OPG, error) {
 	var accountID int64
-	if err := storage.DB.Model((*account.Account)(nil)).
+	if err := storage.DB.NewSelect().
+		Model((*account.Account)(nil)).
 		Column("id").
 		Where("address = ?", address).
-		Select(&accountID); err != nil {
+		Scan(ctx, &accountID); err != nil {
 		return nil, err
 	}
 
@@ -285,7 +270,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 
 	lastActionSet := false
 	if lastID > 0 {
-		op, err := storage.GetByID(lastID)
+		op, err := storage.GetByID(ctx, lastID)
 		if err != nil {
 			if !storage.IsRecordNotFound(err) {
 				return nil, err
@@ -296,10 +281,11 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 		}
 	}
 	if !lastActionSet && bcd.IsContractLazy(address) {
-		if err := storage.DB.Model((*contract.Contract)(nil)).
+		if err := storage.DB.NewSelect().
+			Model((*contract.Contract)(nil)).
 			Column("last_action").
 			Where("account_id = ?", accountID).
-			Select(&lastAction); err != nil {
+			Scan(ctx, &lastAction); err != nil {
 			return nil, err
 		}
 	}
@@ -310,11 +296,11 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			return nil, err
 		}
 
-		subQuery := storage.DB.Model(new(operation.Operation)).
+		subQuery := storage.DB.NewSelect().Model(new(operation.Operation)).
 			Column("id", "hash", "counter", "status", "kind", "level", "timestamp", "content_index", "entrypoint").
-			WhereGroup(
-				func(q *orm.Query) (*orm.Query, error) {
-					return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
+			WhereGroup(" AND ",
+				func(q *bun.SelectQuery) *bun.SelectQuery {
+					return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID)
 				},
 			).
 			Where("timestamp < ?", endTime).
@@ -327,7 +313,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 		}
 
 		var opg []operation.OPG
-		if _, err := storage.DB.Query(&opg, `
+		if err := storage.DB.NewRaw(`
 		with opg as (?0)
 		select 
 			ta.last_id, 
@@ -368,7 +354,7 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 			limit ?2
 		) as ta
 		order by last_id desc
-	`, subQuery, accountID, limit, startTime, endTime); err != nil {
+	`, subQuery, accountID, limit, startTime, endTime).Scan(ctx, &opg); err != nil {
 			return nil, err
 		}
 
@@ -393,32 +379,30 @@ func (storage *Storage) OPG(address string, size, lastID int64) ([]operation.OPG
 }
 
 // GetByHashAndCounter -
-func (storage *Storage) GetByHashAndCounter(hash []byte, counter int64) ([]operation.Operation, error) {
-	var operations []operation.Operation
-	err := storage.DB.Model((*operation.Operation)(nil)).
+func (storage *Storage) GetByHashAndCounter(ctx context.Context, hash []byte, counter int64) (operations []operation.Operation, err error) {
+	err = storage.DB.NewSelect().Model(&operations).
 		Where("hash = ?", hash).
 		Where("counter = ?", counter).
 		Relation("Destination").Relation("Source").Relation("Initiator").Relation("Delegate").
 		Order("id asc").
-		Select(&operations)
-	return operations, err
+		Scan(ctx)
+	return
 }
 
 // GetImplicitOperation -
-func (storage *Storage) GetImplicitOperation(counter int64) (operation.Operation, error) {
-	var op operation.Operation
-	err := storage.DB.Model((*operation.Operation)(nil)).
+func (storage *Storage) GetImplicitOperation(ctx context.Context, counter int64) (op operation.Operation, err error) {
+	err = storage.DB.NewSelect().Model(&op).
 		Where("hash is null").
 		Where("counter = ?", counter).
 		Relation("Destination").Relation("Source").Relation("Initiator").Relation("Delegate").
 		Order("id asc").
-		Select(&op)
-	return op, err
+		Scan(ctx)
+	return
 }
 
 // ListEvents -
-func (storage *Storage) ListEvents(accountID int64, size, offset int64) ([]operation.Operation, error) {
-	query := storage.DB.Model((*operation.Operation)(nil)).
+func (storage *Storage) ListEvents(ctx context.Context, accountID int64, size, offset int64) (operations []operation.Operation, err error) {
+	query := storage.DB.NewSelect().Model(&operations).
 		Where("source_id = ?", accountID).
 		Where("kind = 7").
 		Order("id desc")
@@ -432,54 +416,58 @@ func (storage *Storage) ListEvents(accountID int64, size, offset int64) ([]opera
 		query.Limit(10)
 	}
 
-	var op []operation.Operation
-	err := query.Select(&op)
-	return op, err
+	err = query.Scan(ctx)
+	return
 }
 
 // EventsCount -
-func (storage *Storage) EventsCount(accountID int64) (int, error) {
-	return storage.DB.Model((*operation.Operation)(nil)).
+func (storage *Storage) EventsCount(ctx context.Context, accountID int64) (int, error) {
+	return storage.DB.NewSelect().Model((*operation.Operation)(nil)).
 		Where("source_id = ?", accountID).
-		Where("kind = 7").Count()
+		Where("kind = 7").Count(ctx)
 }
 
 // ContractStats -
-func (storage *Storage) ContractStats(address string) (stats operation.ContractStats, err error) {
+func (storage *Storage) ContractStats(ctx context.Context, address string) (stats operation.ContractStats, err error) {
 	var accountID int64
-	if err = storage.DB.Model((*account.Account)(nil)).
+	if err = storage.DB.
+		NewSelect().
+		Model((*account.Account)(nil)).
 		Column("id").
 		Where("address = ?", address).
-		Select(&accountID); err != nil {
+		Scan(ctx, &accountID); err != nil {
 		return
 	}
 
 	if bcd.IsContractLazy(address) {
-		if err := storage.DB.Model((*contract.Contract)(nil)).
+		if err := storage.DB.NewSelect().
+			Model((*contract.Contract)(nil)).
 			Column("last_action").
 			Where("account_id = ?", accountID).
-			Select(&stats.LastAction); err != nil {
+			Scan(ctx, &stats.LastAction); err != nil {
 			return stats, err
 		}
 	} else {
-		if err := storage.DB.Model((*operation.Operation)(nil)).
+		if err := storage.DB.NewSelect().
+			Model((*operation.Operation)(nil)).
 			Column("timestamp").
 			Where("destination_id = ?", accountID).
 			Order("timestamp desc").
 			Limit(1).
-			Select(&stats.LastAction); err != nil {
+			Scan(ctx, &stats.LastAction); err != nil {
 			if !storage.IsRecordNotFound(err) {
 				return stats, err
 			}
 		}
 
 		var sourceLastAction time.Time
-		if err := storage.DB.Model((*operation.Operation)(nil)).
+		if err := storage.DB.NewSelect().
+			Model((*operation.Operation)(nil)).
 			Column("timestamp").
 			Where("source_id = ?", accountID).
 			Order("timestamp desc").
 			Limit(1).
-			Select(&sourceLastAction); err != nil {
+			Scan(ctx, &sourceLastAction); err != nil {
 			if !storage.IsRecordNotFound(err) {
 				return stats, err
 			}
@@ -490,11 +478,11 @@ func (storage *Storage) ContractStats(address string) (stats operation.ContractS
 		}
 	}
 
-	count, err := storage.DB.Model((*operation.Operation)(nil)).WhereGroup(
-		func(q *orm.Query) (*orm.Query, error) {
-			return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID), nil
+	count, err := storage.DB.NewSelect().Model((*operation.Operation)(nil)).WhereGroup(
+		" AND ", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID)
 		},
-	).CountEstimate(100000)
+	).Count(ctx)
 	if err != nil {
 		return
 	}
@@ -505,16 +493,16 @@ func (storage *Storage) ContractStats(address string) (stats operation.ContractS
 }
 
 // Origination -
-func (storage *Storage) Origination(accountID int64) (operation.Operation, error) {
-	var result operation.Operation
-	err := storage.DB.Model((*operation.Operation)(nil)).
+func (storage *Storage) Origination(ctx context.Context, accountID int64) (result operation.Operation, err error) {
+	err = storage.DB.NewSelect().
+		Model(&result).
 		Where("destination_id = ?", accountID).
 		Where("kind = ?", types.OperationKindOrigination).
 		Limit(1).
-		Select(&result)
+		Scan(ctx)
 	return result, err
 }
 
-func addOperationSorting(query *orm.Query) {
+func addOperationSorting(query *bun.SelectQuery) {
 	query.OrderExpr("operation.level desc, operation.counter desc, operation.id asc")
 }

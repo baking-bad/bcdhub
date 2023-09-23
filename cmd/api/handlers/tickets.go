@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -40,11 +41,11 @@ func GetContractTicketUpdates() gin.HandlerFunc {
 			return
 		}
 
-		updates, err := ctx.TicketUpdates.Get(req.Address, args.Size, args.Offset)
+		updates, err := ctx.TicketUpdates.Get(c.Request.Context(), req.Address, args.Size, args.Offset)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		response, err := prepareTicketUpdates(ctx, updates, nil)
+		response, err := prepareTicketUpdates(c.Request.Context(), ctx, updates, nil)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -62,15 +63,15 @@ func GetTicketUpdatesForOperation() gin.HandlerFunc {
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		operation, err := ctx.Operations.GetByID(req.ID)
+		operation, err := ctx.Operations.GetByID(c.Request.Context(), req.ID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		updates, err := ctx.TicketUpdates.ForOperation(req.ID)
+		updates, err := ctx.TicketUpdates.ForOperation(c.Request.Context(), req.ID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		response, err := prepareTicketUpdates(ctx, updates, operation.Hash)
+		response, err := prepareTicketUpdates(c.Request.Context(), ctx, updates, operation.Hash)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -78,7 +79,7 @@ func GetTicketUpdatesForOperation() gin.HandlerFunc {
 	}
 }
 
-func prepareTicketUpdates(ctx *config.Context, updates []ticket.TicketUpdate, hash []byte) ([]TicketUpdate, error) {
+func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []ticket.TicketUpdate, hash []byte) ([]TicketUpdate, error) {
 	response := make([]TicketUpdate, 0, len(updates))
 	for i := range updates {
 		update := NewTicketUpdateFromModel(updates[i])
@@ -105,7 +106,7 @@ func prepareTicketUpdates(ctx *config.Context, updates []ticket.TicketUpdate, ha
 		}
 
 		if len(hash) == 0 {
-			operation, err := ctx.Operations.GetByID(updates[i].OperationID)
+			operation, err := ctx.Operations.GetByID(c, updates[i].OperationID)
 			if err != nil {
 				return nil, err
 			}

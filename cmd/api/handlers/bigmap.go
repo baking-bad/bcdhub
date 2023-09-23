@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -38,7 +39,7 @@ func GetBigMap() gin.HandlerFunc {
 			return
 		}
 
-		stats, err := ctx.BigMapDiffs.GetStats(req.Ptr)
+		stats, err := ctx.BigMapDiffs.GetStats(c.Request.Context(), req.Ptr)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -52,7 +53,7 @@ func GetBigMap() gin.HandlerFunc {
 		}
 
 		if stats.Total == 0 {
-			actions, err := ctx.BigMapActions.Get(req.Ptr, 1, 0)
+			actions, err := ctx.BigMapActions.Get(c.Request.Context(), req.Ptr, 1, 0)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -60,13 +61,14 @@ func GetBigMap() gin.HandlerFunc {
 				res.Address = actions[0].Address
 			}
 		} else {
-			destination, err := ctx.Accounts.Get(res.Address)
+			destination, err := ctx.Accounts.Get(c.Request.Context(), res.Address)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 			res.ContractAlias = destination.Alias
 
 			operation, err := ctx.Operations.Last(
+				c.Request.Context(),
 				map[string]interface{}{
 					"status":         types.OperationStatusApplied,
 					"destination_id": destination.ID,
@@ -74,7 +76,7 @@ func GetBigMap() gin.HandlerFunc {
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
-			proto, err := ctx.Cache.ProtocolByID(operation.ProtocolID)
+			proto, err := ctx.Cache.ProtocolByID(c.Request.Context(), operation.ProtocolID)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -94,7 +96,7 @@ func GetBigMap() gin.HandlerFunc {
 				return
 			}
 
-			script, err := ctx.Contracts.ScriptPart(res.Address, proto.SymLink, consts.STORAGE)
+			script, err := ctx.Contracts.ScriptPart(c.Request.Context(), res.Address, proto.SymLink, consts.STORAGE)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -146,7 +148,7 @@ func GetBigMapHistory() gin.HandlerFunc {
 			return
 		}
 
-		bm, err := ctx.BigMapActions.Get(req.Ptr, 0, 0)
+		bm, err := ctx.BigMapActions.Get(c.Request.Context(), req.Ptr, 0, 0)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -189,7 +191,7 @@ func GetBigMapKeys() gin.HandlerFunc {
 			return
 		}
 
-		keys, err := ctx.BigMapDiffs.Keys(bigmapdiff.GetContext{
+		keys, err := ctx.BigMapDiffs.Keys(c.Request.Context(), bigmapdiff.GetContext{
 			Ptr:      &req.Ptr,
 			Size:     pageReq.Size,
 			Offset:   pageReq.Offset,
@@ -201,12 +203,12 @@ func GetBigMapKeys() gin.HandlerFunc {
 			return
 		}
 
-		symLink, err := getCurrentSymLink(ctx.Blocks)
+		symLink, err := getCurrentSymLink(c.Request.Context(), ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		response, err := prepareBigMapKeys(ctx, keys, symLink)
+		response, err := prepareBigMapKeys(c.Request.Context(), ctx, keys, symLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -246,7 +248,7 @@ func GetBigMapByKeyHash() gin.HandlerFunc {
 			return
 		}
 
-		bm, total, err := ctx.BigMapDiffs.GetByPtrAndKeyHash(req.Ptr, req.KeyHash, pageReq.Size, pageReq.Offset)
+		bm, total, err := ctx.BigMapDiffs.GetByPtrAndKeyHash(c.Request.Context(), req.Ptr, req.KeyHash, pageReq.Size, pageReq.Offset)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -255,12 +257,12 @@ func GetBigMapByKeyHash() gin.HandlerFunc {
 			c.SecureJSON(http.StatusNoContent, gin.H{})
 			return
 		}
-		symLink, err := getCurrentSymLink(ctx.Blocks)
+		symLink, err := getCurrentSymLink(c.Request.Context(), ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		response, err := prepareBigMapItem(ctx, bm, req.KeyHash, symLink)
+		response, err := prepareBigMapItem(c.Request.Context(), ctx, bm, req.KeyHash, symLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -294,17 +296,17 @@ func GetCurrentBigMapKeyHash() gin.HandlerFunc {
 			return
 		}
 
-		state, err := ctx.BigMapDiffs.Current(req.KeyHash, req.Ptr)
+		state, err := ctx.BigMapDiffs.Current(c.Request.Context(), req.KeyHash, req.Ptr)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		symLink, err := getCurrentSymLink(ctx.Blocks)
+		symLink, err := getCurrentSymLink(c.Request.Context(), ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		bigMapType, err := getBigMapType(ctx, state.Contract, state.Ptr, symLink)
+		bigMapType, err := getBigMapType(c.Request.Context(), ctx, state.Contract, state.Ptr, symLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -348,7 +350,7 @@ func GetBigMapDiffCount() gin.HandlerFunc {
 			return
 		}
 
-		count, err := ctx.BigMapDiffs.Count(req.Ptr)
+		count, err := ctx.BigMapDiffs.Count(c.Request.Context(), req.Ptr)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				c.SecureJSON(http.StatusOK, CountResponse{})
@@ -357,16 +359,16 @@ func GetBigMapDiffCount() gin.HandlerFunc {
 			handleError(c, ctx.Storage, err, 0)
 			return
 		}
-		c.SecureJSON(http.StatusOK, CountResponse{count})
+		c.SecureJSON(http.StatusOK, CountResponse{int64(count)})
 	}
 }
 
-func prepareBigMapKeys(ctx *config.Context, data []bigmapdiff.BigMapState, symLink string) ([]BigMapResponseItem, error) {
+func prepareBigMapKeys(c context.Context, ctx *config.Context, data []bigmapdiff.BigMapState, symLink string) ([]BigMapResponseItem, error) {
 	if len(data) == 0 {
 		return []BigMapResponseItem{}, nil
 	}
 
-	bigMapType, err := getBigMapType(ctx, data[0].Contract, data[0].Ptr, symLink)
+	bigMapType, err := getBigMapType(c, ctx, data[0].Contract, data[0].Ptr, symLink)
 	if err != nil {
 		return nil, err
 	}
@@ -393,12 +395,12 @@ func prepareBigMapKeys(ctx *config.Context, data []bigmapdiff.BigMapState, symLi
 	return res, nil
 }
 
-func prepareBigMapItem(ctx *config.Context, data []bigmapdiff.BigMapDiff, keyHash, symLink string) (res BigMapDiffByKeyResponse, err error) {
+func prepareBigMapItem(c context.Context, ctx *config.Context, data []bigmapdiff.BigMapDiff, keyHash, symLink string) (res BigMapDiffByKeyResponse, err error) {
 	if len(data) == 0 {
 		return
 	}
 
-	bigMapType, err := getBigMapType(ctx, data[0].Contract, data[0].Ptr, symLink)
+	bigMapType, err := getBigMapType(c, ctx, data[0].Contract, data[0].Ptr, symLink)
 	if err != nil {
 		return
 	}
@@ -424,13 +426,13 @@ func prepareBigMapItem(ctx *config.Context, data []bigmapdiff.BigMapDiff, keyHas
 	return
 }
 
-func getBigMapType(ctx *config.Context, contract string, ptr int64, symLink string) (*ast.BigMap, error) {
-	storageType, err := getStorageType(ctx.Contracts, contract, symLink)
+func getBigMapType(c context.Context, ctx *config.Context, contract string, ptr int64, symLink string) (*ast.BigMap, error) {
+	storageType, err := getStorageType(c, ctx.Contracts, contract, symLink)
 	if err != nil {
 		return nil, err
 	}
 
-	actions, err := ctx.BigMapActions.Get(ptr, 2, 0)
+	actions, err := ctx.BigMapActions.Get(c, ptr, 2, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -443,18 +445,18 @@ func getBigMapType(ctx *config.Context, contract string, ptr int64, symLink stri
 				operationID = actions[1].OperationID
 			}
 		}
-		operation, err := ctx.Operations.GetByID(operationID)
+		operation, err := ctx.Operations.GetByID(c, operationID)
 		if err != nil {
 			return nil, err
 		}
 		deffatedStorage = operation.DeffatedStorage
 	} else {
-		contract, err := ctx.Accounts.Get(contract)
+		contract, err := ctx.Accounts.Get(c, contract)
 		if err != nil {
 			return nil, err
 		}
 
-		operation, err := ctx.Operations.Last(map[string]interface{}{
+		operation, err := ctx.Operations.Last(c, map[string]interface{}{
 			"destination_id": contract.ID,
 			"status":         types.OperationStatusApplied,
 		}, 0)

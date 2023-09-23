@@ -1,6 +1,8 @@
 package account
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
@@ -16,10 +18,10 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(address string) (account account.Account, err error) {
-	err = storage.DB.Model(&account).
+func (storage *Storage) Get(ctx context.Context, address string) (account account.Account, err error) {
+	err = storage.DB.NewSelect().Model(&account).
 		Where("address = ?", address).
 		Limit(1).
-		Select(&account)
+		Scan(ctx)
 	return
 }

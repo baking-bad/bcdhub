@@ -1,19 +1,19 @@
 package bigmapaction
 
 import (
+	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // BigMapAction -
 type BigMapAction struct {
-	// nolint
-	tableName struct{} `pg:"big_map_actions"`
+	bun.BaseModel `bun:"big_map_actions"`
 
-	ID             int64
-	Action         types.BigMapAction `pg:",type:SMALLINT"`
+	ID             int64              `bun:"id,pk,notnull,autoincrement"`
+	Action         types.BigMapAction `bun:",type:SMALLINT"`
 	SourcePtr      *int64
 	DestinationPtr *int64
 	OperationID    int64
@@ -33,16 +33,20 @@ func (b *BigMapAction) GetIndex() string {
 }
 
 // Save -
-func (b *BigMapAction) Save(tx pg.DBI) error {
-	_, err := tx.Model(b).OnConflict("(id) DO UPDATE").
-		Set(`
-		action = excluded.action, 
-		source_ptr = excluded.source_ptr, 
-		destination_ptr = excluded.destination_ptr,
-		operation_id = excluded.operation_id,
-		level = excluded.level,
-		address = excluded.address,
-		timestamp = excluded.timestamp`).
-		Returning("id").Insert()
+func (b *BigMapAction) Save(ctx context.Context, tx bun.IDB) error {
+	_, err := tx.NewInsert().Model(b).On("CONFLICT (id) DO UPDATE").
+		Set("action = excluded.action").
+		Set("source_ptr = excluded.source_ptr").
+		Set("destination_ptr = excluded.destination_ptr").
+		Set("operation_id = excluded.operation_id").
+		Set("level = excluded.level").
+		Set("address = excluded.address").
+		Set("timestamp = excluded.timestamp").
+		Returning("id").
+		Exec(ctx)
 	return err
+}
+
+func (BigMapAction) PartitionBy() string {
+	return ""
 }

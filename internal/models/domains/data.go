@@ -11,8 +11,8 @@ import (
 type BigMapDiff struct {
 	*bigmapdiff.BigMapDiff
 
-	Operation *operation.Operation `pg:"rel:has-one"`
-	Protocol  *protocol.Protocol   `pg:"rel:has-one"`
+	Operation *operation.Operation `bun:"rel:belongs-to"`
+	Protocol  *protocol.Protocol   `bun:"rel:belongs-to"`
 }
 
 // Same -

@@ -1,6 +1,7 @@
 package contract
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -24,7 +25,7 @@ func NewAlpha(ctx *config.Context) *Alpha {
 }
 
 // Parse -
-func (p *Alpha) Parse(operation *operation.Operation, store parsers.Store) error {
+func (p *Alpha) Parse(ctx context.Context, operation *operation.Operation, store parsers.Store) error {
 	if !operation.IsOrigination() {
 		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
@@ -38,7 +39,7 @@ func (p *Alpha) Parse(operation *operation.Operation, store parsers.Store) error
 		LastAction: operation.Timestamp,
 	}
 
-	if err := p.computeMetrics(operation, &contract); err != nil {
+	if err := p.computeMetrics(ctx, operation, &contract); err != nil {
 		return err
 	}
 
@@ -46,14 +47,14 @@ func (p *Alpha) Parse(operation *operation.Operation, store parsers.Store) error
 	return nil
 }
 
-func (p *Alpha) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
+func (p *Alpha) computeMetrics(ctx context.Context, operation *operation.Operation, c *contract.Contract) error {
 	script, err := astContract.NewParser(operation.Script)
 	if err != nil {
 		return errors.Wrap(err, "astContract.NewParser")
 	}
 	operation.AST = script.Code
 
-	contractScript, err := p.ctx.Scripts.ByHash(script.Hash)
+	contractScript, err := p.ctx.Scripts.ByHash(ctx, script.Hash)
 	if err != nil {
 		if !p.ctx.Storage.IsRecordNotFound(err) {
 			return err

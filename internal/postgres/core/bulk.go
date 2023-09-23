@@ -2,10 +2,9 @@ package core
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // Save - perform insert or update items
@@ -14,9 +13,9 @@ func (p *Postgres) Save(ctx context.Context, items []models.Model) error {
 		return nil
 	}
 
-	return p.DB.RunInTransaction(ctx, func(tx *pg.Tx) error {
+	return p.DB.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		for i := range items {
-			if err := items[i].Save(tx); err != nil {
+			if err := items[i].Save(ctx, tx); err != nil {
 				return err
 			}
 		}
@@ -30,10 +29,9 @@ func (p *Postgres) BulkDelete(ctx context.Context, items []models.Model) error {
 		return nil
 	}
 
-	return p.DB.RunInTransaction(ctx, func(tx *pg.Tx) error {
+	return p.DB.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		for i := range items {
-			el := reflect.ValueOf(items[i]).Interface()
-			if _, err := tx.Model().Table(items[i].GetIndex()).Delete(el); err != nil {
+			if _, err := tx.NewDelete().Table(items[i].GetIndex()).Exec(ctx); err != nil {
 				return err
 			}
 		}

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/hex"
 	"net/http"
 	"strings"
@@ -60,18 +61,18 @@ func GetContractOperations() gin.HandlerFunc {
 			return
 		}
 
-		account, err := ctx.Accounts.Get(req.Address)
+		account, err := ctx.Accounts.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
 		filters := prepareFilters(filtersReq)
-		ops, err := ctx.Operations.GetByAccount(account, filtersReq.Size, filters)
+		ops, err := ctx.Operations.GetByAccount(c.Request.Context(), account, filtersReq.Size, filters)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		resp, err := PrepareOperations(ctx, ops.Operations, filtersReq.WithStorageDiff)
+		resp, err := PrepareOperations(c.Request.Context(), ctx, ops.Operations, filtersReq.WithStorageDiff)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -123,7 +124,7 @@ func GetOperation() gin.HandlerFunc {
 
 		network := modelTypes.NewNetwork(queryReq.Network)
 		if ctx, ok := ctxs[network]; ok {
-			op, err := ctx.Operations.GetByHash(hash)
+			op, err := ctx.Operations.GetByHash(c.Request.Context(), hash)
 			if err != nil {
 				if !ctx.Storage.IsRecordNotFound(err) {
 					handleError(c, ctx.Storage, err, 0)
@@ -135,7 +136,7 @@ func GetOperation() gin.HandlerFunc {
 			}
 		} else {
 			for _, ctx := range ctxs {
-				op, err := ctx.Operations.GetByHash(hash)
+				op, err := ctx.Operations.GetByHash(c.Request.Context(), hash)
 				if err != nil {
 					if !ctx.Storage.IsRecordNotFound(err) {
 						handleError(c, ctx.Storage, err, 0)
@@ -156,7 +157,7 @@ func GetOperation() gin.HandlerFunc {
 
 			if queryReq.WithMempool {
 				ctx := ctxs.Any()
-				operation, err := getOperationFromMempool(ctx, req.Hash)
+				operation, err := getOperationFromMempool(c, ctx, req.Hash)
 				if handleError(c, ctx.Storage, err, 0) {
 					return
 				}
@@ -174,7 +175,7 @@ func GetOperation() gin.HandlerFunc {
 			return
 		}
 
-		resp, err := PrepareOperations(foundContext, operations, queryReq.WithStorageDiff)
+		resp, err := PrepareOperations(c.Request.Context(), foundContext, operations, queryReq.WithStorageDiff)
 		if handleError(c, foundContext.Storage, err, 0) {
 			return
 		}
@@ -206,12 +207,12 @@ func GetImplicitOperation() gin.HandlerFunc {
 			return
 		}
 
-		op, err := ctx.Operations.GetImplicitOperation(req.Counter)
+		op, err := ctx.Operations.GetImplicitOperation(c.Request.Context(), req.Counter)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		resp, err := PrepareOperations(ctx, []operation.Operation{op}, false)
+		resp, err := PrepareOperations(c.Request.Context(), ctx, []operation.Operation{op}, false)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -242,7 +243,7 @@ func GetOperationErrorLocation() gin.HandlerFunc {
 			return
 		}
 
-		operation, err := ctx.Operations.GetByID(req.ID)
+		operation, err := ctx.Operations.GetByID(c.Request.Context(), req.ID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -252,7 +253,7 @@ func GetOperationErrorLocation() gin.HandlerFunc {
 			return
 		}
 
-		response, err := getErrorLocation(ctx, operation, 2)
+		response, err := getErrorLocation(c.Request.Context(), ctx, operation, 2)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -281,7 +282,7 @@ func GetOperationDiff() gin.HandlerFunc {
 		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		operation, err := ctx.Operations.GetByID(req.ID)
+		operation, err := ctx.Operations.GetByID(c.Request.Context(), req.ID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -290,13 +291,13 @@ func GetOperationDiff() gin.HandlerFunc {
 		result.FromModel(operation)
 
 		if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination() || operation.IsImplicit()) && operation.IsApplied() {
-			proto, err := ctx.Cache.ProtocolByID(operation.ProtocolID)
+			proto, err := ctx.Cache.ProtocolByID(c.Request.Context(), operation.ProtocolID)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 			result.Protocol = proto.Hash
 
-			storageBytes, err := ctx.Contracts.ScriptPart(operation.Destination.Address, proto.SymLink, consts.STORAGE)
+			storageBytes, err := ctx.Contracts.ScriptPart(c.Request.Context(), operation.Destination.Address, proto.SymLink, consts.STORAGE)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -308,12 +309,12 @@ func GetOperationDiff() gin.HandlerFunc {
 
 			var bmd []bigmapdiff.BigMapDiff
 			if operation.BigMapDiffsCount > 0 {
-				bmd, err = ctx.BigMapDiffs.GetForOperation(operation.ID)
+				bmd, err = ctx.BigMapDiffs.GetForOperation(c.Request.Context(), operation.ID)
 				if handleError(c, ctx.Storage, err, 0) {
 					return
 				}
 			}
-			if err := setStorageDiff(ctx, operation.DestinationID, operation.DeffatedStorage, &result, bmd, storageType); handleError(c, ctx.Storage, err, 0) {
+			if err := setStorageDiff(c.Request.Context(), ctx, operation.DestinationID, operation.DeffatedStorage, &result, bmd, storageType); handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 		}
@@ -351,7 +352,7 @@ func GetOperationGroups() gin.HandlerFunc {
 			return
 		}
 
-		opg, err := ctx.Operations.OPG(req.Address, int64(args.Size), args.LastID)
+		opg, err := ctx.Operations.OPG(c.Request.Context(), req.Address, int64(args.Size), args.LastID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -403,14 +404,14 @@ func GetByHashAndCounter() gin.HandlerFunc {
 
 		ctx, err := ctxs.Get(modelTypes.NewNetwork(args.Network))
 		if err == nil {
-			opg, err = ctx.Operations.GetByHashAndCounter(hash, req.Counter)
+			opg, err = ctx.Operations.GetByHashAndCounter(c.Request.Context(), hash, req.Counter)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 			foundContext = ctx
 		} else {
 			for _, ctx := range ctxs {
-				opg, err = ctx.Operations.GetByHashAndCounter(hash, req.Counter)
+				opg, err = ctx.Operations.GetByHashAndCounter(c.Request.Context(), hash, req.Counter)
 				if handleError(c, ctx.Storage, err, 0) {
 					return
 				}
@@ -421,7 +422,7 @@ func GetByHashAndCounter() gin.HandlerFunc {
 			}
 		}
 
-		resp, err := PrepareOperations(foundContext, opg, false)
+		resp, err := PrepareOperations(c.Request.Context(), foundContext, opg, false)
 		if handleError(c, foundContext.Storage, err, 0) {
 			return
 		}
@@ -430,8 +431,8 @@ func GetByHashAndCounter() gin.HandlerFunc {
 	}
 }
 
-func getOperationFromMempool(ctx *config.Context, hash string) (*Operation, error) {
-	res, err := ctx.Mempool.GetByHash(hash)
+func getOperationFromMempool(c context.Context, ctx *config.Context, hash string) (*Operation, error) {
+	res, err := ctx.Mempool.GetByHash(c, hash)
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +441,7 @@ func getOperationFromMempool(ctx *config.Context, hash string) (*Operation, erro
 	case len(res.Originations) > 0:
 		return prepareMempoolOrigination(ctx, res.Originations[0]), nil
 	case len(res.Transactions) > 0:
-		return prepareMempoolTransaction(ctx, res.Transactions[0]), nil
+		return prepareMempoolTransaction(c, ctx, res.Transactions[0]), nil
 	default:
 		return nil, nil
 	}
@@ -486,14 +487,11 @@ func formatErrors(errs []*tezerrors.Error, op *Operation) error {
 	return nil
 }
 
-func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []bigmapdiff.BigMapDiff, withStorageDiff bool) (Operation, error) {
+func prepareOperation(c context.Context, ctx *config.Context, operation operation.Operation, bmd []bigmapdiff.BigMapDiff, withStorageDiff bool) (Operation, error) {
 	var op Operation
 	op.FromModel(operation)
 
-	op.SourceAlias = operation.Source.Alias
-	op.DestinationAlias = operation.Destination.Alias
-
-	proto, err := ctx.Cache.ProtocolByID(operation.ProtocolID)
+	proto, err := ctx.Cache.ProtocolByID(c, operation.ProtocolID)
 	if err != nil {
 		return op, err
 	}
@@ -549,12 +547,12 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 
 	if bcd.IsContract(op.Destination) {
 		if withStorageDiff {
-			storageType, err := getStorageType(ctx.Contracts, op.Destination, proto.SymLink)
+			storageType, err := getStorageType(c, ctx.Contracts, op.Destination, proto.SymLink)
 			if err != nil {
 				return op, err
 			}
 			if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination() || operation.IsImplicit()) && operation.IsApplied() {
-				if err := setStorageDiff(ctx, operation.DestinationID, operation.DeffatedStorage, &op, bmd, storageType); err != nil {
+				if err := setStorageDiff(c, ctx, operation.DestinationID, operation.DeffatedStorage, &op, bmd, storageType); err != nil {
 					return op, err
 				}
 			}
@@ -565,7 +563,7 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 		}
 
 		if operation.IsCall() && !tezerrors.HasParametersError(op.Errors) {
-			parameterType, err := getParameterType(ctx.Contracts, op.Destination, proto.SymLink)
+			parameterType, err := getParameterType(c, ctx.Contracts, op.Destination, proto.SymLink)
 			if err != nil {
 				return op, err
 			}
@@ -576,7 +574,7 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 	}
 
 	if bcd.IsSmartRollupHash(op.Destination) && operation.IsTransaction() && operation.IsCall() && !tezerrors.HasParametersError(op.Errors) {
-		rollup, err := ctx.SmartRollups.Get(op.Destination)
+		rollup, err := ctx.SmartRollups.Get(c, op.Destination)
 		if err != nil {
 			return op, err
 		}
@@ -593,20 +591,20 @@ func prepareOperation(ctx *config.Context, operation operation.Operation, bmd []
 }
 
 // PrepareOperations -
-func PrepareOperations(ctx *config.Context, ops []operation.Operation, withStorageDiff bool) ([]Operation, error) {
+func PrepareOperations(c context.Context, ctx *config.Context, ops []operation.Operation, withStorageDiff bool) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
 		var diffs []bigmapdiff.BigMapDiff
 		var err error
 
 		if withStorageDiff && ops[i].BigMapDiffsCount > 0 {
-			diffs, err = ctx.BigMapDiffs.GetForOperation(ops[i].ID)
+			diffs, err = ctx.BigMapDiffs.GetForOperation(c, ops[i].ID)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		op, err := prepareOperation(ctx, ops[i], diffs, withStorageDiff)
+		op, err := prepareOperation(c, ctx, ops[i], diffs, withStorageDiff)
 		if err != nil {
 			return nil, err
 		}
@@ -646,8 +644,8 @@ func setParatemetersWithType(params *types.Parameters, parameter *ast.TypedAst, 
 	return nil
 }
 
-func setStorageDiff(ctx *config.Context, destinationID int64, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, storageType *ast.TypedAst) error {
-	storageDiff, err := getStorageDiff(ctx, destinationID, bmd, storage, storageType, op)
+func setStorageDiff(c context.Context, ctx *config.Context, destinationID int64, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, storageType *ast.TypedAst) error {
+	storageDiff, err := getStorageDiff(c, ctx, destinationID, bmd, storage, storageType, op)
 	if err != nil {
 		return err
 	}
@@ -655,13 +653,14 @@ func setStorageDiff(ctx *config.Context, destinationID int64, storage []byte, op
 	return nil
 }
 
-func getStorageDiff(ctx *config.Context, destinationID int64, bmd []bigmapdiff.BigMapDiff, storage []byte, storageType *ast.TypedAst, op *Operation) (*ast.MiguelNode, error) {
+func getStorageDiff(c context.Context, ctx *config.Context, destinationID int64, bmd []bigmapdiff.BigMapDiff, storage []byte, storageType *ast.TypedAst, op *Operation) (*ast.MiguelNode, error) {
 	currentStorage := &ast.TypedAst{
 		Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
 	}
 	var prevStorage *ast.TypedAst
 
 	prev, err := ctx.Operations.Last(
+		c,
 		map[string]interface{}{
 			"destination_id": destinationID,
 			"status":         modelTypes.OperationStatusApplied,
@@ -674,7 +673,7 @@ func getStorageDiff(ctx *config.Context, destinationID int64, bmd []bigmapdiff.B
 			Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
 		}
 
-		prevBmd, err := ctx.BigMapDiffs.Previous(bmd)
+		prevBmd, err := ctx.BigMapDiffs.Previous(c, bmd)
 		if err != nil {
 			return nil, err
 		}
@@ -719,12 +718,12 @@ func getEnrichStorage(storageType *ast.TypedAst, bmd []bigmapdiff.BigMapDiff) er
 	return storage.Enrich(storageType, bmd, false, true)
 }
 
-func getErrorLocation(ctx *config.Context, operation operation.Operation, window int) (GetErrorLocationResponse, error) {
-	proto, err := ctx.Cache.ProtocolByID(operation.ProtocolID)
+func getErrorLocation(c context.Context, ctx *config.Context, operation operation.Operation, window int) (GetErrorLocationResponse, error) {
+	proto, err := ctx.Cache.ProtocolByID(c, operation.ProtocolID)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}
-	code, err := getScriptBytes(ctx.Contracts, operation.Destination.Address, proto.SymLink)
+	code, err := getScriptBytes(c, ctx.Contracts, operation.Destination.Address, proto.SymLink)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}

@@ -4,16 +4,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/iancoleman/strcase"
 )
-
-// UpdateDoc -
-func (p *Postgres) UpdateDoc(model models.Model) error {
-	el := reflect.ValueOf(model).Interface()
-	_, err := p.DB.Model().Table(model.GetIndex()).Where("id = ?", model.GetID()).Update(el)
-	return err
-}
 
 // GetFieldsForModel -
 func GetFieldsForModel(data interface{}, fields ...string) map[string]interface{} {

@@ -1,19 +1,20 @@
 package protocol
 
 import (
-	"github.com/go-pg/pg/v10"
+	"context"
+
+	"github.com/uptrace/bun"
 )
 
 // Protocol -
 type Protocol struct {
-	// nolint
-	tableName struct{} `pg:"protocols"`
+	bun.BaseModel `bun:"protocols"`
 
-	ID int64
+	ID int64 `bun:"id,pk,notnull,autoincrement"`
 
-	Hash       string `pg:",unique:protocol"`
-	StartLevel int64  `pg:",use_zero"`
-	EndLevel   int64  `pg:",use_zero"`
+	Hash       string `bun:"hash,unique:protocol_hash_idx"`
+	StartLevel int64
+	EndLevel   int64
 	SymLink    string
 	Alias      string
 	ChainID    string
@@ -22,10 +23,10 @@ type Protocol struct {
 
 // Constants -
 type Constants struct {
-	CostPerByte                  int64 `pg:",use_zero"`
-	HardGasLimitPerOperation     int64 `pg:",use_zero"`
-	HardStorageLimitPerOperation int64 `pg:",use_zero"`
-	TimeBetweenBlocks            int64 `pg:",use_zero"`
+	CostPerByte                  int64
+	HardGasLimitPerOperation     int64
+	HardStorageLimitPerOperation int64
+	TimeBetweenBlocks            int64
 }
 
 // GetID -
@@ -39,11 +40,12 @@ func (p *Protocol) GetIndex() string {
 }
 
 // Save -
-func (p *Protocol) Save(tx pg.DBI) error {
-	_, err := tx.Model(p).
-		OnConflict("(hash) DO UPDATE").
+func (p *Protocol) Save(ctx context.Context, tx bun.IDB) error {
+	_, err := tx.NewInsert().Model(p).
+		On("CONFLICT ON CONSTRAINT protocol_hash_idx DO UPDATE").
 		Set("end_level = ?", p.EndLevel).
-		Returning("id").Insert()
+		Returning("id").
+		Exec(ctx)
 	return err
 }
 
@@ -53,4 +55,8 @@ func (p *Protocol) ValidateChainID(chainID string) bool {
 		return p.StartLevel == 0
 	}
 	return p.ChainID == chainID
+}
+
+func (Protocol) PartitionBy() string {
+	return ""
 }

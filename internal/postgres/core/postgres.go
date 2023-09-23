@@ -2,96 +2,97 @@ package core
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"strings"
+	"runtime"
 	"time"
 
 	bcdLogger "github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
-	pg "github.com/go-pg/pg/v10"
-	"github.com/go-pg/pg/v10/orm"
 	"github.com/pkg/errors"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
 )
 
 // Postgres -
 type Postgres struct {
-	DB *pg.DB
+	DB   *bun.DB
+	conn *sql.DB
 
 	PageSize int64
 
 	schema string
 }
 
-func parseConnectionString(connection, schemaName string) (*pg.Options, error) {
-	if len(connection) == 0 {
-		return nil, errors.New("invalid connection string")
+func connectionOptions(cfg Config, schema string, appName string) ([]pgdriver.Option, error) {
+	opts := make([]pgdriver.Option, 0)
+
+	if cfg.DBName != "" {
+		opts = append(opts, pgdriver.WithDatabase(cfg.DBName))
+	} else {
+		return nil, errors.New("empty database name")
 	}
 
-	items := strings.Split(connection, " ")
-	if len(items) == 0 {
-		return nil, errors.Errorf("invalid connection string: %s", connection)
+	if cfg.Host != "" && cfg.Port > 0 {
+		opts = append(opts, pgdriver.WithAddr(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)))
+	} else {
+		return nil, errors.Errorf("empty host or zero port: host=%s port=%d", cfg.Host, cfg.Port)
 	}
 
-	opts := new(pg.Options)
-	var host string
-	var port string
-	for i := range items {
-		values := strings.Split(items[i], "=")
-		if len(values) != 2 {
-			return nil, errors.Errorf("invalid connection string: %s", connection)
-		}
+	if cfg.User != "" {
+		opts = append(opts, pgdriver.WithUser(cfg.User))
+	} else {
+		return nil, errors.New("empty database user")
+	}
 
-		switch values[0] {
-		case "host":
-			host = values[1]
-		case "user":
-			opts.User = values[1]
-		case "password":
-			opts.Password = values[1]
-		case "port":
-			port = values[1]
-		case "dbname":
-			opts.Database = values[1]
+	if cfg.Password != "" {
+		opts = append(opts, pgdriver.WithPassword(cfg.Password))
+	} else {
+		return nil, errors.New("empty database password")
+	}
+
+	if appName != "" {
+		opts = append(opts, pgdriver.WithApplicationName(appName))
+	}
+
+	if cfg.SslMode != "" {
+		switch cfg.SslMode {
+		case "disable":
+			opts = append(opts, pgdriver.WithInsecure(true))
+		default:
 		}
 	}
 
-	opts.Addr = fmt.Sprintf("%s:%s", host, port)
-	opts.IdleTimeout = time.Second * 15
-	opts.IdleCheckFrequency = time.Second * 10
-	opts.OnConnect = func(ctx context.Context, cn *pg.Conn) error {
-		schema := pg.Ident(schemaName)
-		if _, err := cn.Exec("create schema if not exists ?", schema); err != nil {
-			return err
-		}
-		_, err := cn.Exec("set search_path = ?", schema)
-		return err
+	if schema != "" {
+		opts = append(opts, pgdriver.WithConnParams(map[string]interface{}{
+			"search_path": schema,
+		}))
 	}
 
 	return opts, nil
 }
 
 // New -
-func New(connection, schemaName, appName string, opts ...PostgresOption) (*Postgres, error) {
+func New(cfg Config, schemaName, appName string, opts ...PostgresOption) (*Postgres, error) {
 	postgres := Postgres{
 		schema: schemaName,
 	}
-	if appName != "" {
-		connection = fmt.Sprintf("%s application_name=%s", connection, appName)
-	}
 
-	opt, err := parseConnectionString(connection, schemaName)
+	connectionOptions, err := connectionOptions(cfg, schemaName, appName)
 	if err != nil {
 		return nil, err
 	}
 
-	postgres.DB = pg.Connect(opt)
+	pgconn := pgdriver.NewConnector(connectionOptions...)
+	postgres.conn = sql.OpenDB(pgconn)
+	postgres.DB = bun.NewDB(postgres.conn, pgdialect.New())
+
+	maxOpenConns := 4 * runtime.GOMAXPROCS(0)
+	postgres.conn.SetMaxOpenConns(maxOpenConns)
+	postgres.conn.SetMaxIdleConns(maxOpenConns)
 
 	for _, opt := range opts {
 		opt(&postgres)
-	}
-
-	for _, model := range models.ManyToMany() {
-		orm.RegisterTable(model)
 	}
 
 	return &postgres, nil
@@ -102,7 +103,7 @@ const (
 )
 
 // WaitNew - waiting for db up and creating connection
-func WaitNew(connectionString, schemaName, appName string, timeout int, opts ...PostgresOption) *Postgres {
+func WaitNew(cfg Config, schemaName, appName string, timeout int, opts ...PostgresOption) *Postgres {
 	var db *Postgres
 	var err error
 
@@ -111,14 +112,14 @@ func WaitNew(connectionString, schemaName, appName string, timeout int, opts ...
 	}
 
 	for db == nil {
-		db, err = New(connectionString, schemaName, appName, opts...)
+		db, err = New(cfg, schemaName, appName, opts...)
 		if err != nil {
 			bcdLogger.Warning().Msgf("Waiting postgres up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))
 		}
 	}
 
-	for err := db.DB.Ping(context.Background()); err != nil; err = db.DB.Ping(context.Background()) {
+	for err := db.DB.Ping(); err != nil; err = db.DB.Ping() {
 		bcdLogger.Warning().Msgf("Waiting postgres up %d seconds...", timeout)
 		time.Sleep(time.Second * time.Duration(timeout))
 	}
@@ -126,14 +127,33 @@ func WaitNew(connectionString, schemaName, appName string, timeout int, opts ...
 	return db
 }
 
+func (p *Postgres) InitDatabase(ctx context.Context) error {
+	if err := createSchema(p.DB, p.schema); err != nil {
+		return err
+	}
+
+	if err := createTables(ctx, p.DB); err != nil {
+		return err
+	}
+
+	if err := createBaseIndices(ctx, p.DB); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Close -
 func (p *Postgres) Close() error {
-	return p.DB.Close()
+	if err := p.conn.Close(); err != nil {
+		return err
+	}
+	return p.conn.Close()
 }
 
 // IsRecordNotFound -
 func (p *Postgres) IsRecordNotFound(err error) bool {
-	return err != nil && errors.Is(err, pg.ErrNoRows)
+	return err != nil && errors.Is(err, sql.ErrNoRows)
 }
 
 // Execute -

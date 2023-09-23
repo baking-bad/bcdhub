@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -45,12 +46,12 @@ func GetContractStorage() gin.HandlerFunc {
 		var header block.Block
 		var err error
 		if sReq.Level == 0 {
-			header, err = ctx.Blocks.Last()
+			header, err = ctx.Blocks.Last(c.Request.Context())
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 		} else {
-			header, err = ctx.Blocks.Get(int64(sReq.Level))
+			header, err = ctx.Blocks.Get(c.Request.Context(), int64(sReq.Level))
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -60,7 +61,7 @@ func GetContractStorage() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		storageType, err := getStorageType(ctx.Contracts, req.Address, header.Protocol.SymLink)
+		storageType, err := getStorageType(c.Request.Context(), ctx.Contracts, req.Address, header.Protocol.SymLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -155,17 +156,17 @@ func GetContractStorageRich() gin.HandlerFunc {
 			return
 		}
 
-		block, err := ctx.Blocks.Get(int64(sReq.Level))
+		block, err := ctx.Blocks.Get(c.Request.Context(), int64(sReq.Level))
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		storageType, err := getStorageType(ctx.Contracts, req.Address, block.Protocol.SymLink)
+		storageType, err := getStorageType(c.Request.Context(), ctx.Contracts, req.Address, block.Protocol.SymLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		states, err := ctx.BigMapDiffs.GetForAddress(req.Address)
+		states, err := ctx.BigMapDiffs.GetForAddress(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -215,12 +216,12 @@ func GetContractStorageSchema() gin.HandlerFunc {
 			return
 		}
 
-		symLink, err := getCurrentSymLink(ctx.Blocks)
+		symLink, err := getCurrentSymLink(c.Request.Context(), ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		storageType, err := getStorageType(ctx.Contracts, req.Address, symLink)
+		storageType, err := getStorageType(c.Request.Context(), ctx.Contracts, req.Address, symLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -258,7 +259,7 @@ func GetContractStorageSchema() gin.HandlerFunc {
 				return
 			}
 
-			bmd, err := ctx.BigMapDiffs.GetForOperation(operation.ID)
+			bmd, err := ctx.BigMapDiffs.GetForOperation(c.Request.Context(), operation.ID)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -276,8 +277,8 @@ func GetContractStorageSchema() gin.HandlerFunc {
 	}
 }
 
-func getDeffattedStorage(c *gin.Context, ctx *config.Context, address string, level int64) ([]byte, error) {
-	destination, err := ctx.Accounts.Get(address)
+func getDeffattedStorage(c context.Context, ctx *config.Context, address string, level int64) ([]byte, error) {
+	destination, err := ctx.Accounts.Get(c, address)
 	if err != nil {
 		return nil, err
 	}
@@ -289,14 +290,14 @@ func getDeffattedStorage(c *gin.Context, ctx *config.Context, address string, le
 	if level > 0 {
 		filters["level"] = level
 	}
-	operation, err := ctx.Operations.Last(filters, 0)
+	operation, err := ctx.Operations.Last(c, filters, 0)
 	switch {
 	case err != nil && !ctx.Storage.IsRecordNotFound(err):
 		return nil, err
 	case len(operation.DeffatedStorage) == 0 || ctx.Storage.IsRecordNotFound(err):
 		return ctx.RPC.GetScriptStorageRaw(c, address, level)
 	default:
-		protocol, err := ctx.Cache.ProtocolByID(operation.ProtocolID)
+		protocol, err := ctx.Cache.ProtocolByID(c, operation.ProtocolID)
 		if err != nil {
 			return nil, err
 		}
@@ -314,12 +315,12 @@ func getDeffattedStorage(c *gin.Context, ctx *config.Context, address string, le
 	}
 }
 
-func getInitialOperation(c *gin.Context, ctx *config.Context, address string) (operation.Operation, error) {
-	destination, err := ctx.Accounts.Get(address)
+func getInitialOperation(c context.Context, ctx *config.Context, address string) (operation.Operation, error) {
+	destination, err := ctx.Accounts.Get(c, address)
 	if err != nil {
 		return operation.Operation{}, err
 	}
 
-	return ctx.Operations.Origination(destination.ID)
+	return ctx.Operations.Origination(c, destination.ID)
 
 }

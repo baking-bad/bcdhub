@@ -1,6 +1,7 @@
 package operations
 
 import (
+	"context"
 	"encoding/hex"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
@@ -23,7 +24,7 @@ func NewSrExecuteOutboxMessage(params *ParseParams) SrExecuteOutboxMessage {
 }
 
 // Parse -
-func (p SrExecuteOutboxMessage) Parse(data noderpc.Operation, store parsers.Store) error {
+func (p SrExecuteOutboxMessage) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),

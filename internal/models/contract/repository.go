@@ -1,6 +1,7 @@
 package contract
 
 import (
+	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -8,39 +9,37 @@ import (
 
 //go:generate mockgen -source=$GOFILE -destination=../mock/contract/mock.go -package=contract -typed
 type Repository interface {
-	Get(address string) (Contract, error)
-	GetAll(filters map[string]interface{}) ([]Contract, error)
-	GetRandom() (Contract, error)
-	GetTokens(tokenInterface string, offset, size int64) ([]Contract, int64, error)
-	RecentlyCalled(offset, size int64) ([]Contract, error)
-	Count() (int, error)
+	Get(ctx context.Context, address string) (Contract, error)
+	GetAll(ctx context.Context, filters map[string]interface{}) ([]Contract, error)
+	GetTokens(ctx context.Context, tokenInterface string, offset, size int64) ([]Contract, int64, error)
+	RecentlyCalled(ctx context.Context, offset, size int64) ([]Contract, error)
+	Count(ctx context.Context) (int, error)
 
-	Script(address string, symLink string) (Script, error)
+	Script(ctx context.Context, address string, symLink string) (Script, error)
 
 	// ScriptPart - returns part of script type. Part can be `storage`, `parameter` or `code`.
-	ScriptPart(address string, symLink, part string) ([]byte, error)
-	FindOne(tags types.Tags) (Contract, error)
+	ScriptPart(ctx context.Context, address string, symLink, part string) ([]byte, error)
+	FindOne(ctx context.Context, tags types.Tags) (Contract, error)
 }
 
 //go:generate mockgen -source=$GOFILE -destination=../mock/contract/mock.go -package=contract -typed
 type ScriptRepository interface {
-	GetScripts(limit, offset int) ([]Script, error)
-	ByHash(hash string) (Script, error)
-	UpdateProjectID(script []Script) error
+	GetScripts(ctx context.Context, limit, offset int) ([]Script, error)
+	ByHash(ctx context.Context, hash string) (Script, error)
 
-	Code(id int64) ([]byte, error)
-	Parameter(id int64) ([]byte, error)
-	Storage(id int64) ([]byte, error)
-	Views(id int64) ([]byte, error)
+	Code(ctx context.Context, id int64) ([]byte, error)
+	Parameter(ctx context.Context, id int64) ([]byte, error)
+	Storage(ctx context.Context, id int64) ([]byte, error)
+	Views(ctx context.Context, id int64) ([]byte, error)
 }
 
 //go:generate mockgen -source=$GOFILE -destination=../mock/contract/mock.go -package=contract -typed
 type ConstantRepository interface {
-	Get(address string) (GlobalConstant, error)
-	All(addresses ...string) ([]GlobalConstant, error)
-	List(size, offset int64, orderBy, sort string) ([]ListGlobalConstantItem, error)
-	ForContract(address string, size, offset int64) ([]GlobalConstant, error)
-	ContractList(address string, size, offset int64) ([]Contract, error)
+	Get(ctx context.Context, address string) (GlobalConstant, error)
+	All(ctx context.Context, addresses ...string) ([]GlobalConstant, error)
+	List(ctx context.Context, size, offset int64, orderBy, sort string) ([]ListGlobalConstantItem, error)
+	ForContract(ctx context.Context, address string, size, offset int64) ([]GlobalConstant, error)
+	ContractList(ctx context.Context, address string, size, offset int64) ([]Contract, error)
 }
 
 // ListGlobalConstantItem -

@@ -63,7 +63,7 @@ func (p *ImplicitParser) IsMigratable(address string) bool {
 }
 
 func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.ImplicitOperationsResult, head noderpc.Header, store parsers.Store) error {
-	if _, err := p.contractsRepo.Get(implicit.OriginatedContracts[0]); err == nil {
+	if _, err := p.contractsRepo.Get(ctx, implicit.OriginatedContracts[0]); err == nil {
 		return nil
 	}
 	origination := operation.Operation{
@@ -87,7 +87,7 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 	}
 	origination.Script = script
 
-	if err := p.contractParser.Parse(&origination, store); err != nil {
+	if err := p.contractParser.Parse(ctx, &origination, store); err != nil {
 		return err
 	}
 

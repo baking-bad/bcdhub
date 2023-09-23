@@ -4,29 +4,23 @@ import (
 	"context"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/go-pg/pg/v10"
+	"github.com/rs/zerolog/log"
+	"github.com/uptrace/bun"
 )
 
 type logQueryHook struct{}
 
 // BeforeQuery -
-func (h *logQueryHook) BeforeQuery(ctx context.Context, event *pg.QueryEvent) (context.Context, error) {
+func (h *logQueryHook) BeforeQuery(ctx context.Context, event *bun.QueryEvent) context.Context {
 	event.StartTime = time.Now()
-	return ctx, nil
+	return ctx
 }
 
-func (h *logQueryHook) AfterQuery(ctx context.Context, event *pg.QueryEvent) error {
-	query, err := event.FormattedQuery()
-	if err != nil {
-		return err
-	}
-
-	// logger.Info().Interface("params", event.Params).Msg("")
+// AfterQuery -
+func (h *logQueryHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
 	if event.Err != nil {
-		logger.Info().Msgf("[%d ms] %s : %s", time.Since(event.StartTime).Milliseconds(), event.Err.Error(), string(query))
+		log.Trace().Msgf("[%d mcs] %s : %s", time.Since(event.StartTime).Microseconds(), event.Err.Error(), event.Query)
 	} else {
-		logger.Info().Msgf("[%d ms] %d rows | %s", time.Since(event.StartTime).Milliseconds(), event.Result.RowsReturned(), string(query))
+		log.Trace().Msgf("[%d mcs] %s", time.Since(event.StartTime).Microseconds(), event.Query)
 	}
-	return nil
 }

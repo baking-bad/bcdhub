@@ -23,7 +23,7 @@ func GetBigMapPtr(ctx context.Context, repo models.GeneralRepository, contracts 
 	if err != nil {
 		return 0, err
 	}
-	storageTypeByte, err := contracts.ScriptPart(address, symLink, consts.STORAGE)
+	storageTypeByte, err := contracts.ScriptPart(ctx, address, symLink, consts.STORAGE)
 	if err != nil {
 		return 0, err
 	}
@@ -57,12 +57,12 @@ func GetBigMapPtr(ctx context.Context, repo models.GeneralRepository, contracts 
 }
 
 // FindByName -
-func FindByName(repo models.GeneralRepository, contracts contract.Repository, address, key, protocol string) *ast.BigMap {
+func FindByName(ctx context.Context, repo models.GeneralRepository, contracts contract.Repository, address, key, protocol string) *ast.BigMap {
 	symLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return nil
 	}
-	storageTypeByte, err := contracts.ScriptPart(address, symLink, consts.STORAGE)
+	storageTypeByte, err := contracts.ScriptPart(ctx, address, symLink, consts.STORAGE)
 	if err != nil {
 		return nil
 	}

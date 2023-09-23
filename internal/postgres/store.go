@@ -10,8 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // Store -
@@ -24,11 +23,11 @@ type Store struct {
 	SmartRollups    []*smartrollup.SmartRollup
 
 	partitions *PartitionManager
-	tx         pg.DBI
+	tx         bun.IDB
 }
 
 // NewStore -
-func NewStore(tx pg.DBI, pm *PartitionManager) *Store {
+func NewStore(tx bun.IDB, pm *PartitionManager) *Store {
 	return &Store{
 		BigMapState:     make([]*bigmapdiff.BigMapState, 0),
 		Contracts:       make([]*contract.Contract, 0),
@@ -88,34 +87,34 @@ func (store *Store) Save(ctx context.Context) error {
 		return err
 	}
 
-	if err := store.saveContracts(store.tx); err != nil {
+	if err := store.saveContracts(ctx, store.tx); err != nil {
 		return err
 	}
 
-	if err := store.saveMigrations(store.tx); err != nil {
+	if err := store.saveMigrations(ctx, store.tx); err != nil {
 		return err
 	}
 
 	for i := range store.BigMapState {
-		if err := store.BigMapState[i].Save(store.tx); err != nil {
+		if err := store.BigMapState[i].Save(ctx, store.tx); err != nil {
 			return err
 		}
 	}
 
 	if len(store.GlobalConstants) > 0 {
-		if _, err := store.tx.Model(&store.GlobalConstants).Returning("id").Insert(); err != nil {
+		if _, err := store.tx.NewInsert().Model(&store.GlobalConstants).Returning("id").Exec(ctx); err != nil {
 			return err
 		}
 	}
 
-	if err := store.saveSmartRollups(store.tx); err != nil {
+	if err := store.saveSmartRollups(ctx, store.tx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (store *Store) saveMigrations(tx pg.DBI) error {
+func (store *Store) saveMigrations(ctx context.Context, tx bun.IDB) error {
 	if len(store.Migrations) == 0 {
 		return nil
 	}
@@ -126,54 +125,54 @@ func (store *Store) saveMigrations(tx pg.DBI) error {
 		}
 	}
 
-	_, err := tx.Model(&store.Migrations).Returning("id").Insert()
+	_, err := tx.NewInsert().Model(&store.Migrations).Returning("id").Exec(ctx)
 	return err
 }
 
-func (store *Store) saveSmartRollups(tx pg.DBI) error {
+func (store *Store) saveSmartRollups(ctx context.Context, tx bun.IDB) error {
 	if len(store.SmartRollups) == 0 {
 		return nil
 	}
 
 	for i := range store.SmartRollups {
 		if !store.SmartRollups[i].Address.IsEmpty() {
-			if err := store.SmartRollups[i].Address.Save(tx); err != nil {
+			if err := store.SmartRollups[i].Address.Save(ctx, tx); err != nil {
 				return err
 			}
 			store.SmartRollups[i].AddressId = store.SmartRollups[i].Address.ID
 		}
 	}
 
-	_, err := tx.Model(&store.SmartRollups).Returning("id").Insert()
+	_, err := tx.NewInsert().Model(&store.SmartRollups).Returning("id").Exec(ctx)
 	return err
 }
 
-func (store *Store) saveOperations(ctx context.Context, tx pg.DBI) error {
+func (store *Store) saveOperations(ctx context.Context, tx bun.IDB) error {
 	if len(store.Operations) == 0 {
 		return nil
 	}
 
 	for i := range store.Operations {
 		if !store.Operations[i].Source.IsEmpty() {
-			if err := store.Operations[i].Source.Save(tx); err != nil {
+			if err := store.Operations[i].Source.Save(ctx, tx); err != nil {
 				return err
 			}
 			store.Operations[i].SourceID = store.Operations[i].Source.ID
 		}
 		if !store.Operations[i].Destination.IsEmpty() {
-			if err := store.Operations[i].Destination.Save(tx); err != nil {
+			if err := store.Operations[i].Destination.Save(ctx, tx); err != nil {
 				return err
 			}
 			store.Operations[i].DestinationID = store.Operations[i].Destination.ID
 		}
 		if !store.Operations[i].Initiator.IsEmpty() {
-			if err := store.Operations[i].Initiator.Save(tx); err != nil {
+			if err := store.Operations[i].Initiator.Save(ctx, tx); err != nil {
 				return err
 			}
 			store.Operations[i].InitiatorID = store.Operations[i].Initiator.ID
 		}
 		if !store.Operations[i].Delegate.IsEmpty() {
-			if err := store.Operations[i].Delegate.Save(tx); err != nil {
+			if err := store.Operations[i].Delegate.Save(ctx, tx); err != nil {
 				return err
 			}
 			store.Operations[i].DelegateID = store.Operations[i].Delegate.ID
@@ -184,7 +183,7 @@ func (store *Store) saveOperations(ctx context.Context, tx pg.DBI) error {
 		return err
 	}
 
-	if _, err := tx.Model(&store.Operations).Returning("id").Insert(); err != nil {
+	if _, err := tx.NewInsert().Model(&store.Operations).Returning("id").Exec(ctx); err != nil {
 		return err
 	}
 
@@ -197,13 +196,13 @@ func (store *Store) saveOperations(ctx context.Context, tx pg.DBI) error {
 		}
 		for j := range store.Operations[i].TickerUpdates {
 			if !store.Operations[i].TickerUpdates[j].Account.IsEmpty() {
-				if err := store.Operations[i].TickerUpdates[j].Account.Save(tx); err != nil {
+				if err := store.Operations[i].TickerUpdates[j].Account.Save(ctx, tx); err != nil {
 					return err
 				}
 				store.Operations[i].TickerUpdates[j].AccountID = store.Operations[i].TickerUpdates[j].Account.ID
 			}
 			if !store.Operations[i].TickerUpdates[j].Ticketer.IsEmpty() {
-				if err := store.Operations[i].TickerUpdates[j].Ticketer.Save(tx); err != nil {
+				if err := store.Operations[i].TickerUpdates[j].Ticketer.Save(ctx, tx); err != nil {
 					return err
 				}
 				store.Operations[i].TickerUpdates[j].TicketerID = store.Operations[i].TickerUpdates[j].Ticketer.ID
@@ -212,41 +211,41 @@ func (store *Store) saveOperations(ctx context.Context, tx pg.DBI) error {
 		}
 
 		if len(store.Operations[i].BigMapDiffs) > 0 {
-			if _, err := tx.Model(&store.Operations[i].BigMapDiffs).Returning("id").Insert(); err != nil {
+			if _, err := tx.NewInsert().Model(&store.Operations[i].BigMapDiffs).Returning("id").Exec(ctx); err != nil {
 				return err
 			}
 		}
 
 		if len(store.Operations[i].BigMapActions) > 0 {
-			if _, err := tx.Model(&store.Operations[i].BigMapActions).Returning("id").Insert(); err != nil {
+			if _, err := tx.NewInsert().Model(&store.Operations[i].BigMapActions).Returning("id").Exec(ctx); err != nil {
 				return err
 			}
 		}
 
 		if len(store.Operations[i].TickerUpdates) > 0 {
-			if _, err := tx.Model(&store.Operations[i].TickerUpdates).Returning("id").Insert(); err != nil {
+			if _, err := tx.NewInsert().Model(&store.Operations[i].TickerUpdates).Returning("id").Exec(ctx); err != nil {
 				return err
 			}
 		}
 	}
-	return store.updateContracts(tx)
+	return store.updateContracts(ctx, tx)
 }
 
-func (store *Store) saveContracts(tx pg.DBI) error {
+func (store *Store) saveContracts(ctx context.Context, tx bun.IDB) error {
 	if len(store.Contracts) == 0 {
 		return nil
 	}
 
 	for i := range store.Contracts {
 		if store.Contracts[i].Alpha.Code != nil {
-			if err := store.Contracts[i].Alpha.Save(tx); err != nil {
+			if err := store.Contracts[i].Alpha.Save(ctx, tx); err != nil {
 				return err
 			}
 			store.Contracts[i].AlphaID = store.Contracts[i].Alpha.ID
 		}
 		if store.Contracts[i].Babylon.Code != nil {
 			if store.Contracts[i].Alpha.Hash != store.Contracts[i].Babylon.Hash {
-				if err := store.Contracts[i].Babylon.Save(tx); err != nil {
+				if err := store.Contracts[i].Babylon.Save(ctx, tx); err != nil {
 					return err
 				}
 				store.Contracts[i].BabylonID = store.Contracts[i].Babylon.ID
@@ -257,7 +256,7 @@ func (store *Store) saveContracts(tx pg.DBI) error {
 							ScriptId:         store.Contracts[i].BabylonID,
 							GlobalConstantId: store.Contracts[i].Babylon.Constants[j].ID,
 						}
-						if _, err := tx.Model(&relation).Insert(); err != nil {
+						if _, err := tx.NewInsert().Model(&relation).Exec(ctx); err != nil {
 							return err
 						}
 					}
@@ -269,7 +268,7 @@ func (store *Store) saveContracts(tx pg.DBI) error {
 		}
 		if store.Contracts[i].Jakarta.Code != nil {
 			if store.Contracts[i].Babylon.Hash != store.Contracts[i].Jakarta.Hash {
-				if err := store.Contracts[i].Jakarta.Save(tx); err != nil {
+				if err := store.Contracts[i].Jakarta.Save(ctx, tx); err != nil {
 					return err
 				}
 				store.Contracts[i].JakartaID = store.Contracts[i].Jakarta.ID
@@ -280,7 +279,7 @@ func (store *Store) saveContracts(tx pg.DBI) error {
 							ScriptId:         store.Contracts[i].JakartaID,
 							GlobalConstantId: store.Contracts[i].Jakarta.Constants[j].ID,
 						}
-						if _, err := tx.Model(&relation).Insert(); err != nil {
+						if _, err := tx.NewInsert().Model(&relation).Exec(ctx); err != nil {
 							return err
 						}
 					}
@@ -291,43 +290,42 @@ func (store *Store) saveContracts(tx pg.DBI) error {
 			}
 		}
 
-		if err := store.Contracts[i].Account.Save(tx); err != nil {
+		if err := store.Contracts[i].Account.Save(ctx, tx); err != nil {
 			return err
 		}
 		store.Contracts[i].AccountID = store.Contracts[i].Account.ID
 
 		if !store.Contracts[i].Manager.IsEmpty() {
-			if err := store.Contracts[i].Manager.Save(tx); err != nil {
+			if err := store.Contracts[i].Manager.Save(ctx, tx); err != nil {
 				return err
 			}
 			store.Contracts[i].ManagerID = store.Contracts[i].Manager.ID
 		}
 
 		if !store.Contracts[i].Delegate.IsEmpty() {
-			if err := store.Contracts[i].Delegate.Save(tx); err != nil {
+			if err := store.Contracts[i].Delegate.Save(ctx, tx); err != nil {
 				return err
 			}
 			store.Contracts[i].DelegateID = store.Contracts[i].Delegate.ID
 		}
 	}
 
-	if _, err := tx.Model(&store.Contracts).Returning("id").Insert(); err != nil {
+	if _, err := tx.NewInsert().Model(&store.Contracts).Returning("id").Exec(ctx); err != nil {
 		return err
 	}
 
-	return store.updateContracts(tx)
+	return store.updateContracts(ctx, tx)
 }
 
 type contractUpdates struct {
-	//nolint
-	tableName struct{} `pg:"contracts"`
+	bun.BaseModel `bun:"contracts"`
 
 	AccountID  int64
 	LastAction time.Time
 	TxCount    uint64
 }
 
-func (store *Store) updateContracts(tx pg.DBI) error {
+func (store *Store) updateContracts(ctx context.Context, tx bun.IDB) error {
 	if len(store.Operations) == 0 {
 		return nil
 	}
@@ -369,9 +367,14 @@ func (store *Store) updateContracts(tx pg.DBI) error {
 		})
 	}
 
-	_, err := tx.Model(&contracts).
-		Set("last_action = ?last_action, tx_count = contract_updates.tx_count + ?tx_count").
-		Where("contract_updates.account_id = ?account_id").
-		Update()
+	values := tx.NewValues(&contracts)
+	_, err := tx.NewUpdate().
+		With("_data", values).
+		Model((*contract.Contract)(nil)).
+		TableExpr("_data").
+		Set("last_action = _data.last_action").
+		Set("tx_count = contract.tx_count + _data.tx_count").
+		Where("contract.account_id = _data.account_id").
+		Exec(ctx)
 	return err
 }

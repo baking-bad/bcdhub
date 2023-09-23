@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -37,7 +38,7 @@ func GetContract() gin.HandlerFunc {
 			return
 		}
 
-		contract, err := ctx.Contracts.Get(req.Address)
+		contract, err := ctx.Contracts.Get(c.Request.Context(), req.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				c.SecureJSON(http.StatusNoContent, gin.H{})
@@ -47,10 +48,8 @@ func GetContract() gin.HandlerFunc {
 			return
 		}
 
-		ctxs := c.MustGet("contexts").(config.Contexts)
-
 		if args.HasStats() {
-			res, err := contractWithStatsPostprocessing(ctxs, ctx, contract)
+			res, err := contractWithStatsPostprocessing(c.Request.Context(), ctx, contract)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -95,12 +94,12 @@ func GetSameContracts() gin.HandlerFunc {
 			return
 		}
 
-		contract, err := ctx.Contracts.Get(req.Address)
+		contract, err := ctx.Contracts.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		count, err := ctx.Domains.SameCount(contract, ctx.Config.API.Networks...)
+		count, err := ctx.Domains.SameCount(c.Request.Context(), contract, ctx.Config.API.Networks...)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -110,7 +109,7 @@ func GetSameContracts() gin.HandlerFunc {
 			Contracts: make([]ContractWithStats, 0),
 		}
 
-		same, err := ctx.Domains.Same(req.Network, contract, int(page.Size), int(page.Offset), ctx.Config.API.Networks...)
+		same, err := ctx.Domains.Same(c.Request.Context(), req.Network, contract, int(page.Size), int(page.Offset), ctx.Config.API.Networks...)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -139,26 +138,26 @@ func contractPostprocessing(ctx *config.Context, contract contract.Contract) (Co
 	return res, nil
 }
 
-func contractWithStatsPostprocessing(ctxs config.Contexts, ctx *config.Context, contractModel contract.Contract) (ContractWithStats, error) {
-	c, err := contractPostprocessing(ctx, contractModel)
+func contractWithStatsPostprocessing(c context.Context, ctx *config.Context, contractModel contract.Contract) (ContractWithStats, error) {
+	contract, err := contractPostprocessing(ctx, contractModel)
 	if err != nil {
 		return ContractWithStats{}, err
 	}
-	res := ContractWithStats{c, 0, 0, false}
+	res := ContractWithStats{contract, 0, 0, false}
 
-	eventsCount, err := ctx.Operations.EventsCount(contractModel.AccountID)
+	eventsCount, err := ctx.Operations.EventsCount(c, contractModel.AccountID)
 	if err != nil {
 		return res, err
 	}
 	res.EventsCount = eventsCount
 
-	stats, err := ctx.Domains.SameCount(contractModel, ctx.Config.API.Networks...)
+	stats, err := ctx.Domains.SameCount(c, contractModel, ctx.Config.API.Networks...)
 	if err != nil {
 		return res, err
 	}
 	res.SameCount += int64(stats)
 
-	hasTicketUpdates, err := ctx.TicketUpdates.Has(contractModel.AccountID)
+	hasTicketUpdates, err := ctx.TicketUpdates.Has(c, contractModel.AccountID)
 	if err != nil {
 		return res, err
 	}

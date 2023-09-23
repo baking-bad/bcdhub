@@ -32,7 +32,7 @@ func GetGlobalConstant() gin.HandlerFunc {
 			return
 		}
 
-		constant, err := ctx.GlobalConstants.Get(req.Address)
+		constant, err := ctx.GlobalConstants.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -75,7 +75,7 @@ func ListGlobalConstants() gin.HandlerFunc {
 			return
 		}
 
-		constants, err := ctx.GlobalConstants.List(args.Size, args.Offset, args.OrderBy, args.Sort)
+		constants, err := ctx.GlobalConstants.List(c.Request.Context(), args.Size, args.Offset, args.OrderBy, args.Sort)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -113,7 +113,7 @@ func GetContractGlobalConstants() gin.HandlerFunc {
 			return
 		}
 
-		constants, err := ctx.GlobalConstants.ForContract(req.Address, args.Size, args.Offset)
+		constants, err := ctx.GlobalConstants.ForContract(c.Request.Context(), req.Address, args.Size, args.Offset)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -156,7 +156,7 @@ func GetGlobalConstantContracts() gin.HandlerFunc {
 			return
 		}
 
-		contracts, err := ctx.GlobalConstants.ContractList(args.Address, args.Size, args.Offset)
+		contracts, err := ctx.GlobalConstants.ContractList(c.Request.Context(), args.Address, args.Size, args.Offset)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -18,8 +19,8 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get - returns current protocol for `level` (`hash` is optional, leave empty string for default)
-func (storage *Storage) Get(hash string, level int64) (p protocol.Protocol, err error) {
-	query := storage.DB.Model(&p)
+func (storage *Storage) Get(ctx context.Context, hash string, level int64) (p protocol.Protocol, err error) {
+	query := storage.DB.NewSelect().Model(&p)
 	if level > -1 {
 		query = query.Where("start_level <= ?", level)
 	}
@@ -27,25 +28,25 @@ func (storage *Storage) Get(hash string, level int64) (p protocol.Protocol, err 
 		query = query.Where("hash = ?", hash)
 	}
 
-	err = query.Order("start_level DESC").First()
+	err = query.Order("start_level DESC").Limit(1).Scan(ctx)
 	return
 }
 
 // GetByNetworkWithSort -
-func (storage *Storage) GetByNetworkWithSort(sortField, order string) (response []protocol.Protocol, err error) {
+func (storage *Storage) GetByNetworkWithSort(ctx context.Context, sortField, order string) (response []protocol.Protocol, err error) {
 	orderValue := fmt.Sprintf("%s %s", sortField, order)
-	err = storage.DB.Model((*protocol.Protocol)(nil)).Order(orderValue).Select(&response)
+	err = storage.DB.NewSelect().Model(&response).Order(orderValue).Scan(ctx)
 	return
 }
 
 // GetAll - returns all protocol`s entities
-func (storage *Storage) GetAll() (response []protocol.Protocol, err error) {
-	err = storage.DB.Model((*protocol.Protocol)(nil)).Select(&response)
+func (storage *Storage) GetAll(ctx context.Context) (response []protocol.Protocol, err error) {
+	err = storage.DB.NewSelect().Model(&response).Scan(ctx)
 	return
 }
 
 // GetByID - returns protocol by id
-func (storage *Storage) GetByID(id int64) (response protocol.Protocol, err error) {
-	err = storage.DB.Model(&response).Where("id = ?", id).First()
+func (storage *Storage) GetByID(ctx context.Context, id int64) (response protocol.Protocol, err error) {
+	err = storage.DB.NewSelect().Model(&response).Where("id = ?", id).Limit(1).Scan(ctx)
 	return
 }

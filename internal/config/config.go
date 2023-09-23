@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/baking-bad/bcdhub/internal/periodic"
+	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"gopkg.in/yaml.v3"
 )
 
@@ -27,6 +28,7 @@ type Config struct {
 	SharePath string                   `yaml:"share_path"`
 	BaseURL   string                   `yaml:"base_url"`
 	Profiler  *Profiler                `yaml:"profiler"`
+	LogLevel  string                   `yaml:"log_level"`
 
 	API APIConfig `yaml:"api"`
 
@@ -34,12 +36,10 @@ type Config struct {
 		Networks      map[string]IndexerConfig `yaml:"networks"`
 		ProjectName   string                   `yaml:"project_name"`
 		SentryEnabled bool                     `yaml:"sentry_enabled"`
-		Connections   Connections              `yaml:"connections"`
 	} `yaml:"indexer"`
 
 	Scripts struct {
-		Networks    []string    `yaml:"networks"`
-		Connections Connections `yaml:"connections"`
+		Networks []string `yaml:"networks"`
 	} `yaml:"scripts"`
 }
 
@@ -77,9 +77,9 @@ type ServiceConfig struct {
 
 // StorageConfig -
 type StorageConfig struct {
-	Postgres   PostgresConfig `yaml:"pg"`
-	Timeout    int            `yaml:"timeout"`
-	LogQueries bool           `yaml:"log_queries,omitempty"`
+	Postgres   core.Config `yaml:"pg"`
+	Timeout    int         `yaml:"timeout"`
+	LogQueries bool        `yaml:"log_queries,omitempty"`
 }
 
 // PostgresConfig -
@@ -171,7 +171,6 @@ type APIConfig struct {
 	Seed          SeedConfig       `yaml:"seed"`
 	Networks      []string         `yaml:"networks"`
 	PageSize      uint64           `yaml:"page_size"`
-	Connections   Connections      `yaml:"connections"`
 	Periodic      *periodic.Config `yaml:"periodic"`
 }
 
@@ -185,12 +184,6 @@ type SentryConfig struct {
 
 // TezosDomainsConfig -
 type TezosDomainsConfig map[string]string
-
-// Connections -
-type Connections struct {
-	Open int `yaml:"open"`
-	Idle int `yaml:"idle"`
-}
 
 // LoadDefaultConfig -
 func LoadDefaultConfig() (Config, error) {

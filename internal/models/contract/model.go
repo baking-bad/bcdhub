@@ -2,41 +2,41 @@ package contract
 
 import (
 	"bytes"
+	"context"
 	stdJSON "encoding/json"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // Contract - entity for contract
 type Contract struct {
-	// nolint
-	tableName struct{} `pg:"contracts"`
+	bun.BaseModel `bun:"contracts"`
 
-	ID        int64
+	ID        int64 `bun:"id,pk,notnull,autoincrement"`
 	Level     int64
 	Timestamp time.Time
 
 	AccountID  int64
-	Account    account.Account `pg:",rel:has-one"`
+	Account    account.Account `bun:"rel:belongs-to"`
 	ManagerID  int64
-	Manager    account.Account `pg:",rel:has-one"`
+	Manager    account.Account `bun:"rel:belongs-to"`
 	DelegateID int64
-	Delegate   account.Account `pg:",rel:has-one"`
+	Delegate   account.Account `bun:"rel:belongs-to"`
 
-	TxCount         int64 `pg:",use_zero"`
+	TxCount         int64
 	LastAction      time.Time
-	MigrationsCount int64      `pg:",use_zero"`
-	Tags            types.Tags `pg:",use_zero"`
+	MigrationsCount int64
+	Tags            types.Tags
 
 	AlphaID   int64
-	Alpha     Script `pg:",rel:has-one"`
+	Alpha     Script `bun:"rel:belongs-to"`
 	BabylonID int64
-	Babylon   Script `pg:",rel:has-one"`
+	Babylon   Script `bun:"rel:belongs-to"`
 	JakartaID int64
-	Jakarta   Script `pg:",rel:has-one"`
+	Jakarta   Script `bun:"rel:belongs-to"`
 }
 
 // GetID -
@@ -50,8 +50,8 @@ func (c *Contract) GetIndex() string {
 }
 
 // Save -
-func (c *Contract) Save(tx pg.DBI) error {
-	_, err := tx.Model(c).OnConflict("DO NOTHING").Returning("id").Insert()
+func (c *Contract) Save(ctx context.Context, tx bun.IDB) error {
+	_, err := tx.NewInsert().Model(c).On("CONFLICT DO NOTHING").Returning("id").Exec(ctx)
 	return err
 }
 
@@ -61,6 +61,10 @@ func (c *Contract) LogFields() map[string]interface{} {
 		"address": c.Account,
 		"block":   c.Level,
 	}
+}
+
+func (Contract) PartitionBy() string {
+	return ""
 }
 
 // CurrentScript -

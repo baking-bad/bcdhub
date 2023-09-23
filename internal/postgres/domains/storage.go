@@ -1,6 +1,8 @@
 package domains
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -8,7 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // Storage -
@@ -22,13 +24,13 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // BigMapDiffs -
-func (storage *Storage) BigMapDiffs(lastID, size int64) (result []domains.BigMapDiff, err error) {
+func (storage *Storage) BigMapDiffs(ctx context.Context, lastID, size int64) (result []domains.BigMapDiff, err error) {
 	var ids []int64
-	query := storage.DB.Model((*bigmapdiff.BigMapDiff)(nil)).Column("id").Order("id asc")
+	query := storage.DB.NewSelect().Model((*bigmapdiff.BigMapDiff)(nil)).Column("id").Order("id asc")
 	if lastID > 0 {
 		query.Where("big_map_diff.id > ?", lastID)
 	}
-	if err = query.Limit(storage.GetPageSize(size)).Select(&ids); err != nil {
+	if err = query.Limit(storage.GetPageSize(size)).Scan(ctx, &ids); err != nil {
 		return
 	}
 
@@ -36,14 +38,14 @@ func (storage *Storage) BigMapDiffs(lastID, size int64) (result []domains.BigMap
 		return
 	}
 
-	err = storage.DB.Model((*domains.BigMapDiff)(nil)).WhereIn("big_map_diff.id IN (?)", ids).
+	err = storage.DB.NewSelect().Model(&result).Where("big_map_diff.id IN (?)", bun.In(ids)).
 		Relation("Operation").Relation("Protocol").
-		Select(&result)
+		Scan(ctx)
 	return
 }
 
 // Same -
-func (storage *Storage) Same(network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]domains.Same, error) {
+func (storage *Storage) Same(ctx context.Context, network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]domains.Same, error) {
 	if limit < 1 || limit > 10 {
 		limit = 10
 	}
@@ -61,11 +63,11 @@ func (storage *Storage) Same(network string, c contract.Contract, limit, offset 
 		return nil, errors.New("invalid contract script")
 	}
 
-	var union *pg.Query
+	var union *bun.SelectQuery
 	for i, value := range availiableNetworks {
-		schema := pg.Safe(value)
+		schema := bun.Safe(value)
 
-		query := storage.DB.Model().
+		query := storage.DB.NewSelect().
 			TableExpr("?.contracts", schema).
 			ColumnExpr("? as network", value).
 			ColumnExpr("contracts.*").
@@ -90,16 +92,16 @@ func (storage *Storage) Same(network string, c contract.Contract, limit, offset 
 	}
 
 	var same []domains.Same
-	err := storage.DB.Model().
+	err := storage.DB.NewSelect().
 		TableExpr("(?) as same", union).
 		Limit(limit).
 		Offset(offset).
-		Select(&same)
+		Scan(ctx, &same)
 	return same, err
 }
 
 // SameCount -
-func (storage *Storage) SameCount(c contract.Contract, availiableNetworks ...string) (int, error) {
+func (storage *Storage) SameCount(ctx context.Context, c contract.Contract, availiableNetworks ...string) (int, error) {
 	if len(availiableNetworks) == 0 {
 		return 0, nil
 	}
@@ -109,11 +111,11 @@ func (storage *Storage) SameCount(c contract.Contract, availiableNetworks ...str
 		return 0, errors.New("invalid contract script")
 	}
 
-	var union *pg.Query
+	var union *bun.SelectQuery
 	for i, value := range availiableNetworks {
-		schema := pg.Safe(value)
+		schema := bun.Safe(value)
 
-		query := storage.DB.Model().
+		query := storage.DB.NewSelect().
 			TableExpr("?.contracts", schema).
 			ColumnExpr("count(*) as c").
 			Join("LEFT JOIN ?.scripts as alpha on alpha.id = contracts.alpha_id", schema).
@@ -131,8 +133,8 @@ func (storage *Storage) SameCount(c contract.Contract, availiableNetworks ...str
 	}
 
 	var count int
-	if err := storage.DB.Model().ColumnExpr("sum(c)").TableExpr("(?) as same", union).Select(&count); err != nil {
-		if errors.Is(err, pg.ErrNoRows) {
+	if err := storage.DB.NewSelect().ColumnExpr("sum(c)").TableExpr("(?) as same", union).Scan(ctx, &count); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, nil
 		}
 		return 0, err

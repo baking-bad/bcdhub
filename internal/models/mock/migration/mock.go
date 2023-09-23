@@ -9,6 +9,7 @@
 package migration
 
 import (
+	context "context"
 	reflect "reflect"
 
 	migration "github.com/baking-bad/bcdhub/internal/models/migration"
@@ -39,18 +40,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockRepository) Get(contractID int64) ([]migration.Migration, error) {
+func (m *MockRepository) Get(ctx context.Context, contractID int64) ([]migration.Migration, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", contractID)
+	ret := m.ctrl.Call(m, "Get", ctx, contractID)
 	ret0, _ := ret[0].([]migration.Migration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(contractID any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, contractID any) *RepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), contractID)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, contractID)
 	return &RepositoryGetCall{Call: call}
 }
 
@@ -66,13 +67,13 @@ func (c *RepositoryGetCall) Return(arg0 []migration.Migration, arg1 error) *Repo
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(int64) ([]migration.Migration, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) Do(f func(context.Context, int64) ([]migration.Migration, error)) *RepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(int64) ([]migration.Migration, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, int64) ([]migration.Migration, error)) *RepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -34,16 +35,16 @@ func RunOperation() gin.HandlerFunc {
 			return
 		}
 
-		state, err := ctx.Blocks.Last()
+		state, err := ctx.Blocks.Last(c.Request.Context())
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		predecessor, err := ctx.Blocks.Get(state.Level - 1)
+		predecessor, err := ctx.Blocks.Get(c.Request.Context(), state.Level-1)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		parameters, err := buildParametersForExecution(ctx, req.Address, state.Protocol.SymLink, reqRunOp.Name, reqRunOp.Data)
+		parameters, err := buildParametersForExecution(c.Request.Context(), ctx, req.Address, state.Protocol.SymLink, reqRunOp.Name, reqRunOp.Data)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -85,6 +86,7 @@ func RunOperation() gin.HandlerFunc {
 		}
 
 		parserParams, err := operations.NewParseParams(
+			c.Request.Context(),
 			ctx,
 			operations.WithProtocol(&state.Protocol),
 			operations.WithHead(header),
@@ -95,7 +97,7 @@ func RunOperation() gin.HandlerFunc {
 		parser := operations.NewGroup(parserParams)
 
 		store := postgres.NewStore(ctx.StorageDB.DB, ctx.Partitions)
-		if err := parser.Parse(response, store); handleError(c, ctx.Storage, err, 0) {
+		if err := parser.Parse(c.Request.Context(), response, store); handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 		operations := store.ListOperations()
@@ -106,7 +108,7 @@ func RunOperation() gin.HandlerFunc {
 			for j := range operations[i].BigMapDiffs {
 				bmd = append(bmd, *operations[i].BigMapDiffs[j])
 			}
-			op, err := prepareOperation(ctx, *operations[i], bmd, true)
+			op, err := prepareOperation(c.Request.Context(), ctx, *operations[i], bmd, true)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -145,17 +147,17 @@ func RunCode() gin.HandlerFunc {
 			return
 		}
 
-		state, err := ctx.Blocks.Last()
+		state, err := ctx.Blocks.Last(c.Request.Context())
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		scriptBytes, err := getScriptBytes(ctx.Contracts, req.Address, state.Protocol.SymLink)
+		scriptBytes, err := getScriptBytes(c.Request.Context(), ctx.Contracts, req.Address, state.Protocol.SymLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		input, err := buildParametersForExecution(ctx, req.Address, state.Protocol.SymLink, reqRunCode.Name, reqRunCode.Data)
+		input, err := buildParametersForExecution(c.Request.Context(), ctx, req.Address, state.Protocol.SymLink, reqRunCode.Name, reqRunCode.Data)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -226,7 +228,7 @@ func RunCode() gin.HandlerFunc {
 	}
 }
 
-func parseAppliedRunCode(c *gin.Context, ctx *config.Context, response noderpc.RunCodeResponse, script *ast.Script, main *Operation, proto protocol.Protocol) ([]Operation, error) {
+func parseAppliedRunCode(c context.Context, ctx *config.Context, response noderpc.RunCodeResponse, script *ast.Script, main *Operation, proto protocol.Protocol) ([]Operation, error) {
 	operations := []Operation{*main}
 
 	for i := range response.Operations {
@@ -248,7 +250,7 @@ func parseAppliedRunCode(c *gin.Context, ctx *config.Context, response noderpc.R
 				s = script
 			} else {
 				var err error
-				s, err = getScript(ctx.Contracts, op.Destination, proto.SymLink)
+				s, err = getScript(c, ctx.Contracts, op.Destination, proto.SymLink)
 				if err != nil {
 					return nil, err
 				}
@@ -275,7 +277,7 @@ func parseAppliedRunCode(c *gin.Context, ctx *config.Context, response noderpc.R
 	return operations, nil
 }
 
-func parseBigMapDiffs(c *gin.Context, ctx *config.Context, response noderpc.RunCodeResponse, script *ast.Script, operation *Operation, proto protocol.Protocol) ([]bigmapdiff.BigMapDiff, error) {
+func parseBigMapDiffs(c context.Context, ctx *config.Context, response noderpc.RunCodeResponse, script *ast.Script, operation *Operation, proto protocol.Protocol) ([]bigmapdiff.BigMapDiff, error) {
 	model := operation.ToModel()
 	model.AST = script
 
@@ -307,9 +309,9 @@ func parseBigMapDiffs(c *gin.Context, ctx *config.Context, response noderpc.RunC
 	store := postgres.NewStore(ctx.StorageDB.DB, ctx.Partitions)
 	switch operation.Kind {
 	case types.OperationKindTransaction.String():
-		err = specific.StorageParser.ParseTransaction(nodeOperation, &model, store)
+		err = specific.StorageParser.ParseTransaction(c, nodeOperation, &model, store)
 	case types.OperationKindOrigination.String(), types.OperationKindOriginationNew.String():
-		err = specific.StorageParser.ParseOrigination(nodeOperation, &model, store)
+		err = specific.StorageParser.ParseOrigination(c, nodeOperation, &model, store)
 	}
 	if err != nil {
 		return nil, err
@@ -321,7 +323,7 @@ func parseBigMapDiffs(c *gin.Context, ctx *config.Context, response noderpc.RunC
 	return bmd, nil
 }
 
-func setSimulateStorageDiff(c *gin.Context, ctx *config.Context, response noderpc.RunCodeResponse, proto protocol.Protocol, script *ast.Script, operation *Operation) error {
+func setSimulateStorageDiff(c context.Context, ctx *config.Context, response noderpc.RunCodeResponse, proto protocol.Protocol, script *ast.Script, operation *Operation) error {
 	if len(response.Storage) == 0 || !bcd.IsContract(operation.Destination) || operation.Status != consts.Applied {
 		return nil
 	}
@@ -334,12 +336,12 @@ func setSimulateStorageDiff(c *gin.Context, ctx *config.Context, response noderp
 		return err
 	}
 
-	destination, err := ctx.Accounts.Get(operation.Destination)
+	destination, err := ctx.Accounts.Get(c, operation.Destination)
 	if err != nil {
 		return err
 	}
 
-	storageDiff, err := getStorageDiff(ctx, destination.ID, bmd, operation.Storage, storageType, operation)
+	storageDiff, err := getStorageDiff(c, ctx, destination.ID, bmd, operation.Storage, storageType, operation)
 	if err != nil {
 		return err
 	}

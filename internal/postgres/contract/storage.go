@@ -1,7 +1,7 @@
 package contract
 
 import (
-	"math/rand"
+	"context"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -9,8 +9,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
+	"github.com/uptrace/bun"
 )
 
 // Storage -
@@ -24,53 +24,51 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(address string) (response contract.Contract, err error) {
+func (storage *Storage) Get(ctx context.Context, address string) (response contract.Contract, err error) {
 	var accountID int64
-	if err = storage.DB.Model((*account.Account)(nil)).Column("id").Where("address = ?", address).Select(&accountID); err != nil {
+	if err = storage.DB.NewSelect().
+		Model((*account.Account)(nil)).
+		Column("id").
+		Where("address = ?", address).
+		Scan(ctx, &accountID); err != nil {
 		return
 	}
 
-	err = storage.DB.Model(&response).Where("contract.account_id = ?", accountID).Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").Relation("Jakarta").Select()
+	err = storage.DB.NewSelect().
+		Model(&response).
+		Where("contract.account_id = ?", accountID).
+		Relation("Account").Relation("Manager").
+		Relation("Delegate").Relation("Alpha").
+		Relation("Babylon").Relation("Jakarta").
+		Scan(ctx)
 	return
 }
 
 // GetAll -
-func (storage *Storage) GetAll(filters map[string]interface{}) (response []contract.Contract, err error) {
-	query := storage.DB.Model((*contract.Contract)(nil))
+func (storage *Storage) GetAll(ctx context.Context, filters map[string]interface{}) (response []contract.Contract, err error) {
+	query := storage.DB.NewSelect().Model(response)
 	for key, value := range filters {
-		query.Where("? = ?", pg.Ident(key), value)
+		query.Where("? = ?", bun.Ident(key), value)
 	}
-	err = query.Relation("Account").Relation("Manager").Relation("Delegate").Select(&response)
-	return
-}
-
-// GetRandom -
-func (storage *Storage) GetRandom() (response contract.Contract, err error) {
-	var id int64
-	if err = storage.DB.Model(&response).ColumnExpr("max(contract.id)").Select(&id); err != nil {
-		return
-	}
-
-	err = storage.DB.Model(&response).Where("contract.id = ?", rand.Int63n(id)).
-		Relation("Account").Relation("Manager").Relation("Delegate").Relation("Alpha").Relation("Babylon").Relation("Jakarta").First()
+	err = query.Relation("Account").Relation("Manager").Relation("Delegate").Scan(ctx)
 	return
 }
 
 // GetTokens -
-func (storage *Storage) GetTokens(tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
+func (storage *Storage) GetTokens(ctx context.Context, tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
 	tags := types.FA12Tag | types.FA1Tag | types.FA2Tag
 	if tokenInterface == "fa1-2" || tokenInterface == "fa1" || tokenInterface == "fa2" {
 		tags = types.NewTags([]string{tokenInterface})
 	}
 
-	query := storage.DB.Model((*contract.Contract)(nil)).
+	query := storage.DB.NewSelect().Model((*contract.Contract)(nil)).
 		Where("(tags & ?) > 0", tags).
 		Order("id desc").
 		Limit(storage.GetPageSize(size)).
 		Offset(int(offset))
 
 	var contracts []contract.Contract
-	err := storage.DB.Model().TableExpr("(?) as contract", query).
+	err := storage.DB.NewSelect().TableExpr("(?) as contract", query).
 		ColumnExpr("contract.*").
 		ColumnExpr("account.address as account__address, account.alias as account__alias").
 		ColumnExpr("manager.address as manager__address, manager.alias as manager__alias").
@@ -78,94 +76,111 @@ func (storage *Storage) GetTokens(tokenInterface string, offset, size int64) ([]
 		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
 		Join(`LEFT JOIN "accounts" AS "manager" ON "manager"."id" = "contract"."manager_id" `).
 		Join(`LEFT JOIN "accounts" AS "delegate" ON "delegate"."id" = "contract"."delegate_id"`).
-		Select(&contracts)
+		Scan(ctx, &contracts)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	count, err := storage.DB.Model((*contract.Contract)(nil)).Where("(contract.tags & ?) > 0", tags).Count()
+	count, err := storage.DB.NewSelect().Model((*contract.Contract)(nil)).
+		Where("(contract.tags & ?) > 0", tags).
+		Count(ctx)
 	return contracts, int64(count), err
 }
 
 // ByHash -
-func (storage *Storage) ByHash(hash string) (result contract.Script, err error) {
-	err = storage.DB.Model(&result).Where("hash = ?", hash).First()
+func (storage *Storage) ByHash(ctx context.Context, hash string) (result contract.Script, err error) {
+	err = storage.DB.NewSelect().Model(&result).Where("hash = ?", hash).Limit(1).Scan(ctx)
 	return
 }
 
 // Script -
-func (storage *Storage) Script(address string, symLink string) (contract.Script, error) {
+func (storage *Storage) Script(ctx context.Context, address string, symLink string) (contract.Script, error) {
 	var accountID int64
-	if err := storage.DB.Model((*account.Account)(nil)).Column("id").Where("address = ?", address).Select(&accountID); err != nil {
+	if err := storage.DB.
+		NewSelect().
+		Model((*account.Account)(nil)).
+		Column("id").
+		Where("address = ?", address).
+		Scan(ctx, &accountID); err != nil {
 		return contract.Script{}, err
 	}
 
 	var c contract.Contract
-	query := storage.DB.Model(&c).Where("account_id = ?", accountID)
+	query := storage.DB.NewSelect().Model(&c).Where("account_id = ?", accountID)
 	switch symLink {
 	case bcd.SymLinkAlpha:
-		err := query.Relation("Alpha").Select()
+		err := query.Relation("Alpha").Scan(ctx)
 		return c.Alpha, err
 	case bcd.SymLinkBabylon:
-		err := query.Relation("Babylon").Select()
+		err := query.Relation("Babylon").Scan(ctx)
 		return c.Babylon, err
 	case bcd.SymLinkJakarta:
-		err := query.Relation("Jakarta").Select()
+		err := query.Relation("Jakarta").Scan(ctx)
 		return c.Jakarta, err
 	}
 	return c.Alpha, errors.Errorf("unknown protocol symbolic link: %s", symLink)
 }
 
 // GetScripts -
-func (storage *Storage) GetScripts(limit, offset int) (scripts []contract.Script, err error) {
-	err = storage.DB.Model(&scripts).
+func (storage *Storage) GetScripts(ctx context.Context, limit, offset int) (scripts []contract.Script, err error) {
+	err = storage.DB.NewSelect().Model(&scripts).
 		ColumnExpr("id, tags, hash, fail_strings, annotations, entrypoints").
-		Limit(limit).Offset(offset).Order("id asc").Select()
+		Limit(limit).Offset(offset).Order("id asc").Scan(ctx)
 	return
 }
 
-// UpdateProjectID -
-func (storage *Storage) UpdateProjectID(scripts []contract.Script) error {
-	_, err := storage.DB.Model(&scripts).Set("project_id = _data.project_id").WherePK().Update()
-	return err
-}
-
 // Code -
-func (storage *Storage) Code(id int64) ([]byte, error) {
+func (storage *Storage) Code(ctx context.Context, id int64) ([]byte, error) {
 	var data []byte
-	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("code").Select(&data)
+	err := storage.DB.NewSelect().Model((*contract.Script)(nil)).Where("id = ?", id).Column("code").Scan(ctx, &data)
 	return data, err
 }
 
 // Parameter -
-func (storage *Storage) Parameter(id int64) ([]byte, error) {
+func (storage *Storage) Parameter(ctx context.Context, id int64) ([]byte, error) {
 	var data []byte
-	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("parameter").Select(&data)
+	err := storage.DB.NewSelect().
+		Model((*contract.Script)(nil)).
+		Where("id = ?", id).
+		Column("parameter").
+		Scan(ctx, &data)
 	return data, err
 }
 
 // Storage -
-func (storage *Storage) Storage(id int64) ([]byte, error) {
+func (storage *Storage) Storage(ctx context.Context, id int64) ([]byte, error) {
 	var data []byte
-	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("storage").Select(&data)
+	err := storage.DB.NewSelect().
+		Model((*contract.Script)(nil)).
+		Where("id = ?", id).
+		Column("storage").
+		Scan(ctx, &data)
 	return data, err
 }
 
 // Storage -
-func (storage *Storage) Views(id int64) ([]byte, error) {
+func (storage *Storage) Views(ctx context.Context, id int64) ([]byte, error) {
 	var data []byte
-	err := storage.DB.Model((*contract.Script)(nil)).Where("id = ?", id).Column("views").Select(&data)
+	err := storage.DB.NewSelect().
+		Model((*contract.Script)(nil)).
+		Where("id = ?", id).
+		Column("views").
+		Scan(ctx, &data)
 	return data, err
 }
 
 // ScriptPart -
-func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte, error) {
+func (storage *Storage) ScriptPart(ctx context.Context, address string, symLink, part string) ([]byte, error) {
 	var accountID int64
-	if err := storage.DB.Model((*account.Account)(nil)).Column("id").Where("address = ?", address).Select(&accountID); err != nil {
+	if err := storage.DB.NewSelect().
+		Model((*account.Account)(nil)).
+		Column("id").
+		Where("address = ?", address).
+		Scan(ctx, &accountID); err != nil {
 		return nil, err
 	}
 
-	query := storage.DB.Model((*contract.Contract)(nil)).Where("account_id = ?", accountID)
+	query := storage.DB.NewSelect().Model((*contract.Contract)(nil)).Where("account_id = ?", accountID)
 
 	switch symLink {
 	case bcd.SymLinkAlpha:
@@ -211,13 +226,13 @@ func (storage *Storage) ScriptPart(address string, symLink, part string) ([]byte
 		return nil, errors.Errorf("unknown protocol symbolic link: %s", symLink)
 	}
 	var data []byte
-	err := query.Select(pg.Scan(&data))
+	err := query.Scan(ctx, &data)
 	return data, err
 }
 
 // RecentlyCalled -
-func (storage *Storage) RecentlyCalled(offset, size int64) (contracts []contract.Contract, err error) {
-	query := storage.DB.Model((*contract.Contract)(nil)).
+func (storage *Storage) RecentlyCalled(ctx context.Context, offset, size int64) (contracts []contract.Contract, err error) {
+	query := storage.DB.NewSelect().Model(&contracts).
 		ColumnExpr("contract.id, contract.tx_count, contract.last_action, contract.account_id").
 		ColumnExpr("account.address as account__address, account.alias as account__alias").
 		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`)
@@ -232,22 +247,23 @@ func (storage *Storage) RecentlyCalled(offset, size int64) (contracts []contract
 	}
 	err = query.
 		OrderExpr("contract.last_action desc, contract.tx_count desc").
-		Select(&contracts)
+		Scan(ctx)
 	return
 }
 
 // Count -
-func (storage *Storage) Count() (int, error) {
-	return storage.DB.Model((*contract.Contract)(nil)).CountEstimate(1000000)
+func (storage *Storage) Count(ctx context.Context) (int, error) {
+	return storage.DB.NewSelect().Model((*contract.Contract)(nil)).Count(ctx)
 }
 
 // FindOne -
-func (storage *Storage) FindOne(tags types.Tags) (result contract.Contract, err error) {
-	err = storage.DB.Model(&result).
+func (storage *Storage) FindOne(ctx context.Context, tags types.Tags) (result contract.Contract, err error) {
+	err = storage.DB.NewSelect().Model(&result).
 		Where("tags&? > 0", tags).
 		ColumnExpr("contract.id, contract.tx_count, contract.last_action, contract.account_id, contract.timestamp, contract.level").
 		ColumnExpr("account.address as account__address, account.alias as account__alias").
 		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
-		First()
+		Limit(1).
+		Scan(ctx)
 	return
 }

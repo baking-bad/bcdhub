@@ -1,6 +1,8 @@
 package models
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -12,14 +14,15 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // Model -
 type Model interface {
 	GetID() int64
 	GetIndex() string
-	Save(tx pg.DBI) error
+	Save(ctx context.Context, tx bun.IDB) error
+	PartitionBy() string
 }
 
 // Constraint -

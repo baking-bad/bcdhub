@@ -1,6 +1,8 @@
 package migration
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
@@ -16,7 +18,12 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(contractID int64) (migrations []migration.Migration, err error) {
-	err = storage.DB.Model(&migrations).Where("contract_id = ?", contractID).Order("id desc").Select(&migrations)
+func (storage *Storage) Get(ctx context.Context, contractID int64) (migrations []migration.Migration, err error) {
+	err = storage.DB.
+		NewSelect().
+		Model(&migrations).
+		Where("contract_id = ?", contractID).
+		Order("id desc").
+		Scan(ctx)
 	return
 }

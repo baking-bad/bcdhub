@@ -9,6 +9,7 @@
 package bigmapaction
 
 import (
+	context "context"
 	reflect "reflect"
 
 	bigmapaction "github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -39,18 +40,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockRepository) Get(ptr, limit, offset int64) ([]bigmapaction.BigMapAction, error) {
+func (m *MockRepository) Get(ctx context.Context, ptr, limit, offset int64) ([]bigmapaction.BigMapAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ptr, limit, offset)
+	ret := m.ctrl.Call(m, "Get", ctx, ptr, limit, offset)
 	ret0, _ := ret[0].([]bigmapaction.BigMapAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(ptr, limit, offset any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, ptr, limit, offset any) *RepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ptr, limit, offset)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, ptr, limit, offset)
 	return &RepositoryGetCall{Call: call}
 }
 
@@ -66,13 +67,13 @@ func (c *RepositoryGetCall) Return(arg0 []bigmapaction.BigMapAction, arg1 error)
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(int64, int64, int64) ([]bigmapaction.BigMapAction, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) Do(f func(context.Context, int64, int64, int64) ([]bigmapaction.BigMapAction, error)) *RepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(int64, int64, int64) ([]bigmapaction.BigMapAction, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, int64, int64, int64) ([]bigmapaction.BigMapAction, error)) *RepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

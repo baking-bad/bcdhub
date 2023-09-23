@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
@@ -32,17 +33,17 @@ func GetContractMigrations() gin.HandlerFunc {
 			return
 		}
 
-		contract, err := ctx.Contracts.Get(req.Address)
+		contract, err := ctx.Contracts.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		migrations, err := ctx.Migrations.Get(contract.ID)
+		migrations, err := ctx.Migrations.Get(c.Request.Context(), contract.ID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		result, err := prepareMigrations(ctx, migrations)
+		result, err := prepareMigrations(c.Request.Context(), ctx, migrations)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -51,14 +52,14 @@ func GetContractMigrations() gin.HandlerFunc {
 	}
 }
 
-func prepareMigrations(ctx *config.Context, data []migration.Migration) ([]Migration, error) {
+func prepareMigrations(c context.Context, ctx *config.Context, data []migration.Migration) ([]Migration, error) {
 	result := make([]Migration, len(data))
 	for i := range data {
-		proto, err := ctx.Cache.ProtocolByID(data[i].ProtocolID)
+		proto, err := ctx.Cache.ProtocolByID(c, data[i].ProtocolID)
 		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}
-		prevProto, err := ctx.Cache.ProtocolByID(data[i].PrevProtocolID)
+		prevProto, err := ctx.Cache.ProtocolByID(c, data[i].PrevProtocolID)
 		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}

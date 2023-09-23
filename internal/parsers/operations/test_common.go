@@ -53,7 +53,7 @@ func readRPCScript(_ context.Context, address string, _ int64) (noderpc.Script, 
 	return script, errors.Errorf("unknown RPC script: %s", address)
 }
 
-func readTestScriptModel(address, symLink string) (contract.Script, error) {
+func readTestScriptModel(_ context.Context, address, symLink string) (contract.Script, error) {
 	data, err := readTestScript(address, bcd.SymLinkBabylon)
 	if err != nil {
 		return contract.Script{}, err
@@ -85,7 +85,7 @@ func readTestScriptModel(address, symLink string) (contract.Script, error) {
 	}, nil
 }
 
-func readTestScriptPart(address, symLink, part string) ([]byte, error) {
+func readTestScriptPart(_ context.Context, address, symLink, part string) ([]byte, error) {
 	data, err := readTestScript(address, bcd.SymLinkBabylon)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func readTestScriptPart(address, symLink, part string) ([]byte, error) {
 	return nil, nil
 }
 
-func readTestContractModel(address string) (contract.Contract, error) {
+func readTestContractModel(_ context.Context, address string) (contract.Contract, error) {
 	var c contract.Contract
 	f, err := os.Open(fmt.Sprintf("./data/models/contract/%s.json", address))
 	if err != nil {

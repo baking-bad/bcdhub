@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -67,25 +69,25 @@ func WithMainOperation(main *operation.Operation) ParseParamsOption {
 }
 
 // NewParseParams -
-func NewParseParams(ctx *config.Context, opts ...ParseParamsOption) (*ParseParams, error) {
+func NewParseParams(ctx context.Context, configContext *config.Context, opts ...ParseParamsOption) (*ParseParams, error) {
 	params := &ParseParams{
-		ctx:        ctx,
+		ctx:        configContext,
 		stackTrace: stacktrace.New(),
-		withEvents: ctx.Network == types.Mainnet,
+		withEvents: configContext.Network == types.Mainnet,
 	}
 	for i := range opts {
 		opts[i](params)
 	}
 
 	if params.protocol == nil {
-		proto, err := ctx.Protocols.Get(bcd.GetCurrentProtocol(), 0)
+		proto, err := configContext.Protocols.Get(ctx, bcd.GetCurrentProtocol(), 0)
 		if err != nil {
 			return nil, err
 		}
 		params.protocol = &proto
 	}
 
-	specific, err := protocols.Get(ctx, params.protocol.Hash)
+	specific, err := protocols.Get(configContext, params.protocol.Hash)
 	if err != nil {
 		return nil, err
 	}

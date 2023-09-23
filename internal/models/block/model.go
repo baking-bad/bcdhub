@@ -1,24 +1,24 @@
 package block
 
 import (
+	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // Block -
 type Block struct {
-	// nolint
-	tableName struct{} `pg:"blocks"`
+	bun.BaseModel `bun:"blocks"`
 
+	ID         int64 `bun:"id,pk,notnull,autoincrement"`
 	Hash       string
 	Timestamp  time.Time
-	ID         int64
 	Level      int64
-	ProtocolID int64 `pg:",type:SMALLINT"`
+	ProtocolID int64 `bun:",type:SMALLINT"`
 
-	Protocol protocol.Protocol `pg:",rel:has-one"`
+	Protocol protocol.Protocol `bun:",rel:belongs-to"`
 }
 
 // GetID -
@@ -32,7 +32,11 @@ func (b *Block) GetIndex() string {
 }
 
 // Save -
-func (b *Block) Save(tx pg.DBI) error {
-	_, err := tx.Model(b).Returning("id").Insert(b)
+func (b *Block) Save(ctx context.Context, tx bun.IDB) error {
+	_, err := tx.NewInsert().Model(b).Returning("id").Exec(ctx)
 	return err
+}
+
+func (Block) PartitionBy() string {
+	return ""
 }

@@ -9,6 +9,7 @@
 package contract
 
 import (
+	context "context"
 	reflect "reflect"
 
 	contract "github.com/baking-bad/bcdhub/internal/models/contract"
@@ -40,18 +41,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Count mocks base method.
-func (m *MockRepository) Count() (int, error) {
+func (m *MockRepository) Count(ctx context.Context) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Count")
+	ret := m.ctrl.Call(m, "Count", ctx)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Count indicates an expected call of Count.
-func (mr *MockRepositoryMockRecorder) Count() *RepositoryCountCall {
+func (mr *MockRepositoryMockRecorder) Count(ctx any) *RepositoryCountCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockRepository)(nil).Count))
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockRepository)(nil).Count), ctx)
 	return &RepositoryCountCall{Call: call}
 }
 
@@ -67,30 +68,30 @@ func (c *RepositoryCountCall) Return(arg0 int, arg1 error) *RepositoryCountCall 
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryCountCall) Do(f func() (int, error)) *RepositoryCountCall {
+func (c *RepositoryCountCall) Do(f func(context.Context) (int, error)) *RepositoryCountCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryCountCall) DoAndReturn(f func() (int, error)) *RepositoryCountCall {
+func (c *RepositoryCountCall) DoAndReturn(f func(context.Context) (int, error)) *RepositoryCountCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // FindOne mocks base method.
-func (m *MockRepository) FindOne(tags types.Tags) (contract.Contract, error) {
+func (m *MockRepository) FindOne(ctx context.Context, tags types.Tags) (contract.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindOne", tags)
+	ret := m.ctrl.Call(m, "FindOne", ctx, tags)
 	ret0, _ := ret[0].(contract.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindOne indicates an expected call of FindOne.
-func (mr *MockRepositoryMockRecorder) FindOne(tags any) *RepositoryFindOneCall {
+func (mr *MockRepositoryMockRecorder) FindOne(ctx, tags any) *RepositoryFindOneCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOne", reflect.TypeOf((*MockRepository)(nil).FindOne), tags)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOne", reflect.TypeOf((*MockRepository)(nil).FindOne), ctx, tags)
 	return &RepositoryFindOneCall{Call: call}
 }
 
@@ -106,30 +107,30 @@ func (c *RepositoryFindOneCall) Return(arg0 contract.Contract, arg1 error) *Repo
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryFindOneCall) Do(f func(types.Tags) (contract.Contract, error)) *RepositoryFindOneCall {
+func (c *RepositoryFindOneCall) Do(f func(context.Context, types.Tags) (contract.Contract, error)) *RepositoryFindOneCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryFindOneCall) DoAndReturn(f func(types.Tags) (contract.Contract, error)) *RepositoryFindOneCall {
+func (c *RepositoryFindOneCall) DoAndReturn(f func(context.Context, types.Tags) (contract.Contract, error)) *RepositoryFindOneCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Get mocks base method.
-func (m *MockRepository) Get(address string) (contract.Contract, error) {
+func (m *MockRepository) Get(ctx context.Context, address string) (contract.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", address)
+	ret := m.ctrl.Call(m, "Get", ctx, address)
 	ret0, _ := ret[0].(contract.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(address any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, address any) *RepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), address)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, address)
 	return &RepositoryGetCall{Call: call}
 }
 
@@ -145,30 +146,30 @@ func (c *RepositoryGetCall) Return(arg0 contract.Contract, arg1 error) *Reposito
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(string) (contract.Contract, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) Do(f func(context.Context, string) (contract.Contract, error)) *RepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(string) (contract.Contract, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, string) (contract.Contract, error)) *RepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetAll mocks base method.
-func (m *MockRepository) GetAll(filters map[string]any) ([]contract.Contract, error) {
+func (m *MockRepository) GetAll(ctx context.Context, filters map[string]any) ([]contract.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll", filters)
+	ret := m.ctrl.Call(m, "GetAll", ctx, filters)
 	ret0, _ := ret[0].([]contract.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockRepositoryMockRecorder) GetAll(filters any) *RepositoryGetAllCall {
+func (mr *MockRepositoryMockRecorder) GetAll(ctx, filters any) *RepositoryGetAllCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll), filters)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll), ctx, filters)
 	return &RepositoryGetAllCall{Call: call}
 }
 
@@ -184,60 +185,21 @@ func (c *RepositoryGetAllCall) Return(arg0 []contract.Contract, arg1 error) *Rep
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetAllCall) Do(f func(map[string]any) ([]contract.Contract, error)) *RepositoryGetAllCall {
+func (c *RepositoryGetAllCall) Do(f func(context.Context, map[string]any) ([]contract.Contract, error)) *RepositoryGetAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetAllCall) DoAndReturn(f func(map[string]any) ([]contract.Contract, error)) *RepositoryGetAllCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetRandom mocks base method.
-func (m *MockRepository) GetRandom() (contract.Contract, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRandom")
-	ret0, _ := ret[0].(contract.Contract)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRandom indicates an expected call of GetRandom.
-func (mr *MockRepositoryMockRecorder) GetRandom() *RepositoryGetRandomCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRandom", reflect.TypeOf((*MockRepository)(nil).GetRandom))
-	return &RepositoryGetRandomCall{Call: call}
-}
-
-// RepositoryGetRandomCall wrap *gomock.Call
-type RepositoryGetRandomCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetRandomCall) Return(arg0 contract.Contract, arg1 error) *RepositoryGetRandomCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetRandomCall) Do(f func() (contract.Contract, error)) *RepositoryGetRandomCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetRandomCall) DoAndReturn(f func() (contract.Contract, error)) *RepositoryGetRandomCall {
+func (c *RepositoryGetAllCall) DoAndReturn(f func(context.Context, map[string]any) ([]contract.Contract, error)) *RepositoryGetAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetTokens mocks base method.
-func (m *MockRepository) GetTokens(tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
+func (m *MockRepository) GetTokens(ctx context.Context, tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTokens", tokenInterface, offset, size)
+	ret := m.ctrl.Call(m, "GetTokens", ctx, tokenInterface, offset, size)
 	ret0, _ := ret[0].([]contract.Contract)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -245,9 +207,9 @@ func (m *MockRepository) GetTokens(tokenInterface string, offset, size int64) ([
 }
 
 // GetTokens indicates an expected call of GetTokens.
-func (mr *MockRepositoryMockRecorder) GetTokens(tokenInterface, offset, size any) *RepositoryGetTokensCall {
+func (mr *MockRepositoryMockRecorder) GetTokens(ctx, tokenInterface, offset, size any) *RepositoryGetTokensCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokens", reflect.TypeOf((*MockRepository)(nil).GetTokens), tokenInterface, offset, size)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokens", reflect.TypeOf((*MockRepository)(nil).GetTokens), ctx, tokenInterface, offset, size)
 	return &RepositoryGetTokensCall{Call: call}
 }
 
@@ -263,30 +225,30 @@ func (c *RepositoryGetTokensCall) Return(arg0 []contract.Contract, arg1 int64, a
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetTokensCall) Do(f func(string, int64, int64) ([]contract.Contract, int64, error)) *RepositoryGetTokensCall {
+func (c *RepositoryGetTokensCall) Do(f func(context.Context, string, int64, int64) ([]contract.Contract, int64, error)) *RepositoryGetTokensCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetTokensCall) DoAndReturn(f func(string, int64, int64) ([]contract.Contract, int64, error)) *RepositoryGetTokensCall {
+func (c *RepositoryGetTokensCall) DoAndReturn(f func(context.Context, string, int64, int64) ([]contract.Contract, int64, error)) *RepositoryGetTokensCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // RecentlyCalled mocks base method.
-func (m *MockRepository) RecentlyCalled(offset, size int64) ([]contract.Contract, error) {
+func (m *MockRepository) RecentlyCalled(ctx context.Context, offset, size int64) ([]contract.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecentlyCalled", offset, size)
+	ret := m.ctrl.Call(m, "RecentlyCalled", ctx, offset, size)
 	ret0, _ := ret[0].([]contract.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // RecentlyCalled indicates an expected call of RecentlyCalled.
-func (mr *MockRepositoryMockRecorder) RecentlyCalled(offset, size any) *RepositoryRecentlyCalledCall {
+func (mr *MockRepositoryMockRecorder) RecentlyCalled(ctx, offset, size any) *RepositoryRecentlyCalledCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecentlyCalled", reflect.TypeOf((*MockRepository)(nil).RecentlyCalled), offset, size)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecentlyCalled", reflect.TypeOf((*MockRepository)(nil).RecentlyCalled), ctx, offset, size)
 	return &RepositoryRecentlyCalledCall{Call: call}
 }
 
@@ -302,30 +264,30 @@ func (c *RepositoryRecentlyCalledCall) Return(arg0 []contract.Contract, arg1 err
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryRecentlyCalledCall) Do(f func(int64, int64) ([]contract.Contract, error)) *RepositoryRecentlyCalledCall {
+func (c *RepositoryRecentlyCalledCall) Do(f func(context.Context, int64, int64) ([]contract.Contract, error)) *RepositoryRecentlyCalledCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryRecentlyCalledCall) DoAndReturn(f func(int64, int64) ([]contract.Contract, error)) *RepositoryRecentlyCalledCall {
+func (c *RepositoryRecentlyCalledCall) DoAndReturn(f func(context.Context, int64, int64) ([]contract.Contract, error)) *RepositoryRecentlyCalledCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Script mocks base method.
-func (m *MockRepository) Script(address, symLink string) (contract.Script, error) {
+func (m *MockRepository) Script(ctx context.Context, address, symLink string) (contract.Script, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Script", address, symLink)
+	ret := m.ctrl.Call(m, "Script", ctx, address, symLink)
 	ret0, _ := ret[0].(contract.Script)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Script indicates an expected call of Script.
-func (mr *MockRepositoryMockRecorder) Script(address, symLink any) *RepositoryScriptCall {
+func (mr *MockRepositoryMockRecorder) Script(ctx, address, symLink any) *RepositoryScriptCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Script", reflect.TypeOf((*MockRepository)(nil).Script), address, symLink)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Script", reflect.TypeOf((*MockRepository)(nil).Script), ctx, address, symLink)
 	return &RepositoryScriptCall{Call: call}
 }
 
@@ -341,30 +303,30 @@ func (c *RepositoryScriptCall) Return(arg0 contract.Script, arg1 error) *Reposit
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryScriptCall) Do(f func(string, string) (contract.Script, error)) *RepositoryScriptCall {
+func (c *RepositoryScriptCall) Do(f func(context.Context, string, string) (contract.Script, error)) *RepositoryScriptCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryScriptCall) DoAndReturn(f func(string, string) (contract.Script, error)) *RepositoryScriptCall {
+func (c *RepositoryScriptCall) DoAndReturn(f func(context.Context, string, string) (contract.Script, error)) *RepositoryScriptCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ScriptPart mocks base method.
-func (m *MockRepository) ScriptPart(address, symLink, part string) ([]byte, error) {
+func (m *MockRepository) ScriptPart(ctx context.Context, address, symLink, part string) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ScriptPart", address, symLink, part)
+	ret := m.ctrl.Call(m, "ScriptPart", ctx, address, symLink, part)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ScriptPart indicates an expected call of ScriptPart.
-func (mr *MockRepositoryMockRecorder) ScriptPart(address, symLink, part any) *RepositoryScriptPartCall {
+func (mr *MockRepositoryMockRecorder) ScriptPart(ctx, address, symLink, part any) *RepositoryScriptPartCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScriptPart", reflect.TypeOf((*MockRepository)(nil).ScriptPart), address, symLink, part)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScriptPart", reflect.TypeOf((*MockRepository)(nil).ScriptPart), ctx, address, symLink, part)
 	return &RepositoryScriptPartCall{Call: call}
 }
 
@@ -380,13 +342,13 @@ func (c *RepositoryScriptPartCall) Return(arg0 []byte, arg1 error) *RepositorySc
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryScriptPartCall) Do(f func(string, string, string) ([]byte, error)) *RepositoryScriptPartCall {
+func (c *RepositoryScriptPartCall) Do(f func(context.Context, string, string, string) ([]byte, error)) *RepositoryScriptPartCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryScriptPartCall) DoAndReturn(f func(string, string, string) ([]byte, error)) *RepositoryScriptPartCall {
+func (c *RepositoryScriptPartCall) DoAndReturn(f func(context.Context, string, string, string) ([]byte, error)) *RepositoryScriptPartCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -415,18 +377,18 @@ func (m *MockScriptRepository) EXPECT() *MockScriptRepositoryMockRecorder {
 }
 
 // ByHash mocks base method.
-func (m *MockScriptRepository) ByHash(hash string) (contract.Script, error) {
+func (m *MockScriptRepository) ByHash(ctx context.Context, hash string) (contract.Script, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ByHash", hash)
+	ret := m.ctrl.Call(m, "ByHash", ctx, hash)
 	ret0, _ := ret[0].(contract.Script)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ByHash indicates an expected call of ByHash.
-func (mr *MockScriptRepositoryMockRecorder) ByHash(hash any) *ScriptRepositoryByHashCall {
+func (mr *MockScriptRepositoryMockRecorder) ByHash(ctx, hash any) *ScriptRepositoryByHashCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ByHash", reflect.TypeOf((*MockScriptRepository)(nil).ByHash), hash)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ByHash", reflect.TypeOf((*MockScriptRepository)(nil).ByHash), ctx, hash)
 	return &ScriptRepositoryByHashCall{Call: call}
 }
 
@@ -442,30 +404,30 @@ func (c *ScriptRepositoryByHashCall) Return(arg0 contract.Script, arg1 error) *S
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ScriptRepositoryByHashCall) Do(f func(string) (contract.Script, error)) *ScriptRepositoryByHashCall {
+func (c *ScriptRepositoryByHashCall) Do(f func(context.Context, string) (contract.Script, error)) *ScriptRepositoryByHashCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ScriptRepositoryByHashCall) DoAndReturn(f func(string) (contract.Script, error)) *ScriptRepositoryByHashCall {
+func (c *ScriptRepositoryByHashCall) DoAndReturn(f func(context.Context, string) (contract.Script, error)) *ScriptRepositoryByHashCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Code mocks base method.
-func (m *MockScriptRepository) Code(id int64) ([]byte, error) {
+func (m *MockScriptRepository) Code(ctx context.Context, id int64) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Code", id)
+	ret := m.ctrl.Call(m, "Code", ctx, id)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Code indicates an expected call of Code.
-func (mr *MockScriptRepositoryMockRecorder) Code(id any) *ScriptRepositoryCodeCall {
+func (mr *MockScriptRepositoryMockRecorder) Code(ctx, id any) *ScriptRepositoryCodeCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Code", reflect.TypeOf((*MockScriptRepository)(nil).Code), id)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Code", reflect.TypeOf((*MockScriptRepository)(nil).Code), ctx, id)
 	return &ScriptRepositoryCodeCall{Call: call}
 }
 
@@ -481,30 +443,30 @@ func (c *ScriptRepositoryCodeCall) Return(arg0 []byte, arg1 error) *ScriptReposi
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ScriptRepositoryCodeCall) Do(f func(int64) ([]byte, error)) *ScriptRepositoryCodeCall {
+func (c *ScriptRepositoryCodeCall) Do(f func(context.Context, int64) ([]byte, error)) *ScriptRepositoryCodeCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ScriptRepositoryCodeCall) DoAndReturn(f func(int64) ([]byte, error)) *ScriptRepositoryCodeCall {
+func (c *ScriptRepositoryCodeCall) DoAndReturn(f func(context.Context, int64) ([]byte, error)) *ScriptRepositoryCodeCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetScripts mocks base method.
-func (m *MockScriptRepository) GetScripts(limit, offset int) ([]contract.Script, error) {
+func (m *MockScriptRepository) GetScripts(ctx context.Context, limit, offset int) ([]contract.Script, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetScripts", limit, offset)
+	ret := m.ctrl.Call(m, "GetScripts", ctx, limit, offset)
 	ret0, _ := ret[0].([]contract.Script)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetScripts indicates an expected call of GetScripts.
-func (mr *MockScriptRepositoryMockRecorder) GetScripts(limit, offset any) *ScriptRepositoryGetScriptsCall {
+func (mr *MockScriptRepositoryMockRecorder) GetScripts(ctx, limit, offset any) *ScriptRepositoryGetScriptsCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScripts", reflect.TypeOf((*MockScriptRepository)(nil).GetScripts), limit, offset)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScripts", reflect.TypeOf((*MockScriptRepository)(nil).GetScripts), ctx, limit, offset)
 	return &ScriptRepositoryGetScriptsCall{Call: call}
 }
 
@@ -520,30 +482,30 @@ func (c *ScriptRepositoryGetScriptsCall) Return(arg0 []contract.Script, arg1 err
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ScriptRepositoryGetScriptsCall) Do(f func(int, int) ([]contract.Script, error)) *ScriptRepositoryGetScriptsCall {
+func (c *ScriptRepositoryGetScriptsCall) Do(f func(context.Context, int, int) ([]contract.Script, error)) *ScriptRepositoryGetScriptsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ScriptRepositoryGetScriptsCall) DoAndReturn(f func(int, int) ([]contract.Script, error)) *ScriptRepositoryGetScriptsCall {
+func (c *ScriptRepositoryGetScriptsCall) DoAndReturn(f func(context.Context, int, int) ([]contract.Script, error)) *ScriptRepositoryGetScriptsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Parameter mocks base method.
-func (m *MockScriptRepository) Parameter(id int64) ([]byte, error) {
+func (m *MockScriptRepository) Parameter(ctx context.Context, id int64) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Parameter", id)
+	ret := m.ctrl.Call(m, "Parameter", ctx, id)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Parameter indicates an expected call of Parameter.
-func (mr *MockScriptRepositoryMockRecorder) Parameter(id any) *ScriptRepositoryParameterCall {
+func (mr *MockScriptRepositoryMockRecorder) Parameter(ctx, id any) *ScriptRepositoryParameterCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Parameter", reflect.TypeOf((*MockScriptRepository)(nil).Parameter), id)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Parameter", reflect.TypeOf((*MockScriptRepository)(nil).Parameter), ctx, id)
 	return &ScriptRepositoryParameterCall{Call: call}
 }
 
@@ -559,30 +521,30 @@ func (c *ScriptRepositoryParameterCall) Return(arg0 []byte, arg1 error) *ScriptR
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ScriptRepositoryParameterCall) Do(f func(int64) ([]byte, error)) *ScriptRepositoryParameterCall {
+func (c *ScriptRepositoryParameterCall) Do(f func(context.Context, int64) ([]byte, error)) *ScriptRepositoryParameterCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ScriptRepositoryParameterCall) DoAndReturn(f func(int64) ([]byte, error)) *ScriptRepositoryParameterCall {
+func (c *ScriptRepositoryParameterCall) DoAndReturn(f func(context.Context, int64) ([]byte, error)) *ScriptRepositoryParameterCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Storage mocks base method.
-func (m *MockScriptRepository) Storage(id int64) ([]byte, error) {
+func (m *MockScriptRepository) Storage(ctx context.Context, id int64) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Storage", id)
+	ret := m.ctrl.Call(m, "Storage", ctx, id)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Storage indicates an expected call of Storage.
-func (mr *MockScriptRepositoryMockRecorder) Storage(id any) *ScriptRepositoryStorageCall {
+func (mr *MockScriptRepositoryMockRecorder) Storage(ctx, id any) *ScriptRepositoryStorageCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Storage", reflect.TypeOf((*MockScriptRepository)(nil).Storage), id)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Storage", reflect.TypeOf((*MockScriptRepository)(nil).Storage), ctx, id)
 	return &ScriptRepositoryStorageCall{Call: call}
 }
 
@@ -598,68 +560,30 @@ func (c *ScriptRepositoryStorageCall) Return(arg0 []byte, arg1 error) *ScriptRep
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ScriptRepositoryStorageCall) Do(f func(int64) ([]byte, error)) *ScriptRepositoryStorageCall {
+func (c *ScriptRepositoryStorageCall) Do(f func(context.Context, int64) ([]byte, error)) *ScriptRepositoryStorageCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ScriptRepositoryStorageCall) DoAndReturn(f func(int64) ([]byte, error)) *ScriptRepositoryStorageCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// UpdateProjectID mocks base method.
-func (m *MockScriptRepository) UpdateProjectID(script []contract.Script) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateProjectID", script)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateProjectID indicates an expected call of UpdateProjectID.
-func (mr *MockScriptRepositoryMockRecorder) UpdateProjectID(script any) *ScriptRepositoryUpdateProjectIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProjectID", reflect.TypeOf((*MockScriptRepository)(nil).UpdateProjectID), script)
-	return &ScriptRepositoryUpdateProjectIDCall{Call: call}
-}
-
-// ScriptRepositoryUpdateProjectIDCall wrap *gomock.Call
-type ScriptRepositoryUpdateProjectIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *ScriptRepositoryUpdateProjectIDCall) Return(arg0 error) *ScriptRepositoryUpdateProjectIDCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *ScriptRepositoryUpdateProjectIDCall) Do(f func([]contract.Script) error) *ScriptRepositoryUpdateProjectIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ScriptRepositoryUpdateProjectIDCall) DoAndReturn(f func([]contract.Script) error) *ScriptRepositoryUpdateProjectIDCall {
+func (c *ScriptRepositoryStorageCall) DoAndReturn(f func(context.Context, int64) ([]byte, error)) *ScriptRepositoryStorageCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Views mocks base method.
-func (m *MockScriptRepository) Views(id int64) ([]byte, error) {
+func (m *MockScriptRepository) Views(ctx context.Context, id int64) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Views", id)
+	ret := m.ctrl.Call(m, "Views", ctx, id)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Views indicates an expected call of Views.
-func (mr *MockScriptRepositoryMockRecorder) Views(id any) *ScriptRepositoryViewsCall {
+func (mr *MockScriptRepositoryMockRecorder) Views(ctx, id any) *ScriptRepositoryViewsCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Views", reflect.TypeOf((*MockScriptRepository)(nil).Views), id)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Views", reflect.TypeOf((*MockScriptRepository)(nil).Views), ctx, id)
 	return &ScriptRepositoryViewsCall{Call: call}
 }
 
@@ -675,13 +599,13 @@ func (c *ScriptRepositoryViewsCall) Return(arg0 []byte, arg1 error) *ScriptRepos
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ScriptRepositoryViewsCall) Do(f func(int64) ([]byte, error)) *ScriptRepositoryViewsCall {
+func (c *ScriptRepositoryViewsCall) Do(f func(context.Context, int64) ([]byte, error)) *ScriptRepositoryViewsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ScriptRepositoryViewsCall) DoAndReturn(f func(int64) ([]byte, error)) *ScriptRepositoryViewsCall {
+func (c *ScriptRepositoryViewsCall) DoAndReturn(f func(context.Context, int64) ([]byte, error)) *ScriptRepositoryViewsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -710,9 +634,9 @@ func (m *MockConstantRepository) EXPECT() *MockConstantRepositoryMockRecorder {
 }
 
 // All mocks base method.
-func (m *MockConstantRepository) All(addresses ...string) ([]contract.GlobalConstant, error) {
+func (m *MockConstantRepository) All(ctx context.Context, addresses ...string) ([]contract.GlobalConstant, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{}
+	varargs := []any{ctx}
 	for _, a := range addresses {
 		varargs = append(varargs, a)
 	}
@@ -723,9 +647,10 @@ func (m *MockConstantRepository) All(addresses ...string) ([]contract.GlobalCons
 }
 
 // All indicates an expected call of All.
-func (mr *MockConstantRepositoryMockRecorder) All(addresses ...any) *ConstantRepositoryAllCall {
+func (mr *MockConstantRepositoryMockRecorder) All(ctx any, addresses ...any) *ConstantRepositoryAllCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockConstantRepository)(nil).All), addresses...)
+	varargs := append([]any{ctx}, addresses...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockConstantRepository)(nil).All), varargs...)
 	return &ConstantRepositoryAllCall{Call: call}
 }
 
@@ -741,30 +666,30 @@ func (c *ConstantRepositoryAllCall) Return(arg0 []contract.GlobalConstant, arg1 
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ConstantRepositoryAllCall) Do(f func(...string) ([]contract.GlobalConstant, error)) *ConstantRepositoryAllCall {
+func (c *ConstantRepositoryAllCall) Do(f func(context.Context, ...string) ([]contract.GlobalConstant, error)) *ConstantRepositoryAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ConstantRepositoryAllCall) DoAndReturn(f func(...string) ([]contract.GlobalConstant, error)) *ConstantRepositoryAllCall {
+func (c *ConstantRepositoryAllCall) DoAndReturn(f func(context.Context, ...string) ([]contract.GlobalConstant, error)) *ConstantRepositoryAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ContractList mocks base method.
-func (m *MockConstantRepository) ContractList(address string, size, offset int64) ([]contract.Contract, error) {
+func (m *MockConstantRepository) ContractList(ctx context.Context, address string, size, offset int64) ([]contract.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ContractList", address, size, offset)
+	ret := m.ctrl.Call(m, "ContractList", ctx, address, size, offset)
 	ret0, _ := ret[0].([]contract.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ContractList indicates an expected call of ContractList.
-func (mr *MockConstantRepositoryMockRecorder) ContractList(address, size, offset any) *ConstantRepositoryContractListCall {
+func (mr *MockConstantRepositoryMockRecorder) ContractList(ctx, address, size, offset any) *ConstantRepositoryContractListCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractList", reflect.TypeOf((*MockConstantRepository)(nil).ContractList), address, size, offset)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractList", reflect.TypeOf((*MockConstantRepository)(nil).ContractList), ctx, address, size, offset)
 	return &ConstantRepositoryContractListCall{Call: call}
 }
 
@@ -780,30 +705,30 @@ func (c *ConstantRepositoryContractListCall) Return(arg0 []contract.Contract, ar
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ConstantRepositoryContractListCall) Do(f func(string, int64, int64) ([]contract.Contract, error)) *ConstantRepositoryContractListCall {
+func (c *ConstantRepositoryContractListCall) Do(f func(context.Context, string, int64, int64) ([]contract.Contract, error)) *ConstantRepositoryContractListCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ConstantRepositoryContractListCall) DoAndReturn(f func(string, int64, int64) ([]contract.Contract, error)) *ConstantRepositoryContractListCall {
+func (c *ConstantRepositoryContractListCall) DoAndReturn(f func(context.Context, string, int64, int64) ([]contract.Contract, error)) *ConstantRepositoryContractListCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ForContract mocks base method.
-func (m *MockConstantRepository) ForContract(address string, size, offset int64) ([]contract.GlobalConstant, error) {
+func (m *MockConstantRepository) ForContract(ctx context.Context, address string, size, offset int64) ([]contract.GlobalConstant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ForContract", address, size, offset)
+	ret := m.ctrl.Call(m, "ForContract", ctx, address, size, offset)
 	ret0, _ := ret[0].([]contract.GlobalConstant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ForContract indicates an expected call of ForContract.
-func (mr *MockConstantRepositoryMockRecorder) ForContract(address, size, offset any) *ConstantRepositoryForContractCall {
+func (mr *MockConstantRepositoryMockRecorder) ForContract(ctx, address, size, offset any) *ConstantRepositoryForContractCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForContract", reflect.TypeOf((*MockConstantRepository)(nil).ForContract), address, size, offset)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForContract", reflect.TypeOf((*MockConstantRepository)(nil).ForContract), ctx, address, size, offset)
 	return &ConstantRepositoryForContractCall{Call: call}
 }
 
@@ -819,30 +744,30 @@ func (c *ConstantRepositoryForContractCall) Return(arg0 []contract.GlobalConstan
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ConstantRepositoryForContractCall) Do(f func(string, int64, int64) ([]contract.GlobalConstant, error)) *ConstantRepositoryForContractCall {
+func (c *ConstantRepositoryForContractCall) Do(f func(context.Context, string, int64, int64) ([]contract.GlobalConstant, error)) *ConstantRepositoryForContractCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ConstantRepositoryForContractCall) DoAndReturn(f func(string, int64, int64) ([]contract.GlobalConstant, error)) *ConstantRepositoryForContractCall {
+func (c *ConstantRepositoryForContractCall) DoAndReturn(f func(context.Context, string, int64, int64) ([]contract.GlobalConstant, error)) *ConstantRepositoryForContractCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Get mocks base method.
-func (m *MockConstantRepository) Get(address string) (contract.GlobalConstant, error) {
+func (m *MockConstantRepository) Get(ctx context.Context, address string) (contract.GlobalConstant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", address)
+	ret := m.ctrl.Call(m, "Get", ctx, address)
 	ret0, _ := ret[0].(contract.GlobalConstant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockConstantRepositoryMockRecorder) Get(address any) *ConstantRepositoryGetCall {
+func (mr *MockConstantRepositoryMockRecorder) Get(ctx, address any) *ConstantRepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockConstantRepository)(nil).Get), address)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockConstantRepository)(nil).Get), ctx, address)
 	return &ConstantRepositoryGetCall{Call: call}
 }
 
@@ -858,30 +783,30 @@ func (c *ConstantRepositoryGetCall) Return(arg0 contract.GlobalConstant, arg1 er
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ConstantRepositoryGetCall) Do(f func(string) (contract.GlobalConstant, error)) *ConstantRepositoryGetCall {
+func (c *ConstantRepositoryGetCall) Do(f func(context.Context, string) (contract.GlobalConstant, error)) *ConstantRepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ConstantRepositoryGetCall) DoAndReturn(f func(string) (contract.GlobalConstant, error)) *ConstantRepositoryGetCall {
+func (c *ConstantRepositoryGetCall) DoAndReturn(f func(context.Context, string) (contract.GlobalConstant, error)) *ConstantRepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // List mocks base method.
-func (m *MockConstantRepository) List(size, offset int64, orderBy, sort string) ([]contract.ListGlobalConstantItem, error) {
+func (m *MockConstantRepository) List(ctx context.Context, size, offset int64, orderBy, sort string) ([]contract.ListGlobalConstantItem, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", size, offset, orderBy, sort)
+	ret := m.ctrl.Call(m, "List", ctx, size, offset, orderBy, sort)
 	ret0, _ := ret[0].([]contract.ListGlobalConstantItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockConstantRepositoryMockRecorder) List(size, offset, orderBy, sort any) *ConstantRepositoryListCall {
+func (mr *MockConstantRepositoryMockRecorder) List(ctx, size, offset, orderBy, sort any) *ConstantRepositoryListCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockConstantRepository)(nil).List), size, offset, orderBy, sort)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockConstantRepository)(nil).List), ctx, size, offset, orderBy, sort)
 	return &ConstantRepositoryListCall{Call: call}
 }
 
@@ -897,13 +822,13 @@ func (c *ConstantRepositoryListCall) Return(arg0 []contract.ListGlobalConstantIt
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ConstantRepositoryListCall) Do(f func(int64, int64, string, string) ([]contract.ListGlobalConstantItem, error)) *ConstantRepositoryListCall {
+func (c *ConstantRepositoryListCall) Do(f func(context.Context, int64, int64, string, string) ([]contract.ListGlobalConstantItem, error)) *ConstantRepositoryListCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ConstantRepositoryListCall) DoAndReturn(f func(int64, int64, string, string) ([]contract.ListGlobalConstantItem, error)) *ConstantRepositoryListCall {
+func (c *ConstantRepositoryListCall) DoAndReturn(f func(context.Context, int64, int64, string, string) ([]contract.ListGlobalConstantItem, error)) *ConstantRepositoryListCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

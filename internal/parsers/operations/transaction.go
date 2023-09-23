@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -28,7 +30,7 @@ func NewTransaction(params *ParseParams) Transaction {
 }
 
 // Parse -
-func (p Transaction) Parse(data noderpc.Operation, store parsers.Store) error {
+func (p Transaction) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
 		Address: data.Source,
 		Type:    modelsTypes.NewAccountType(data.Source),
@@ -70,7 +72,7 @@ func (p Transaction) Parse(data noderpc.Operation, store parsers.Store) error {
 
 	switch tx.Destination.Type {
 	case modelsTypes.AccountTypeContract:
-		return p.parseContractParams(data, store, &tx)
+		return p.parseContractParams(ctx, data, store, &tx)
 	case modelsTypes.AccountTypeSmartRollup:
 		return p.parseSmartRollupParams(data, &tx)
 	default:
@@ -90,14 +92,14 @@ func (p Transaction) parseSmartRollupParams(data noderpc.Operation, tx *operatio
 	return nil
 }
 
-func (p Transaction) parseContractParams(data noderpc.Operation, store parsers.Store, tx *operation.Operation) error {
+func (p Transaction) parseContractParams(ctx context.Context, data noderpc.Operation, store parsers.Store, tx *operation.Operation) error {
 	for i := range tx.Errors {
 		if tx.Errors[i].Is("contract.non_existing_contract") {
 			return nil
 		}
 	}
 
-	scriptEntity, err := p.ctx.Contracts.Script(tx.Destination.Address, p.protocol.SymLink)
+	scriptEntity, err := p.ctx.Contracts.Script(ctx, tx.Destination.Address, p.protocol.SymLink)
 	if err != nil {
 		if !tx.Internal {
 			return nil
@@ -142,7 +144,7 @@ func (p Transaction) parseContractParams(data noderpc.Operation, store parsers.S
 		return err
 	}
 
-	if err := setTags(p.ctx, nil, tx); err != nil {
+	if err := setTags(ctx, p.ctx, nil, tx); err != nil {
 		return err
 	}
 
@@ -152,7 +154,7 @@ func (p Transaction) parseContractParams(data noderpc.Operation, store parsers.S
 	p.stackTrace.Add(*tx)
 
 	if tx.IsApplied() {
-		if err := p.appliedHandler(data, tx, store); err != nil {
+		if err := p.appliedHandler(ctx, data, tx, store); err != nil {
 			return err
 		}
 	}
@@ -173,12 +175,12 @@ func (p Transaction) fillInternal(tx *operation.Operation) {
 	tx.Initiator = p.main.Source
 }
 
-func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operation, store parsers.Store) error {
-	if err := p.specific.StorageParser.ParseTransaction(item, tx, store); err != nil {
+func (p Transaction) appliedHandler(ctx context.Context, item noderpc.Operation, tx *operation.Operation, store parsers.Store) error {
+	if err := p.specific.StorageParser.ParseTransaction(ctx, item, tx, store); err != nil {
 		return err
 	}
 
-	return NewMigration(p.ctx.Contracts).Parse(item, tx, p.protocol.Hash, store)
+	return NewMigration(p.ctx.Contracts).Parse(ctx, item, tx, p.protocol.Hash, store)
 }
 
 func (p Transaction) getEntrypoint(tx *operation.Operation) error {

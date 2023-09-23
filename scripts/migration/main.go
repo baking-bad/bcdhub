@@ -32,7 +32,7 @@ func main() {
 
 	ctxs := config.NewContexts(
 		cfg, cfg.Scripts.Networks,
-		config.WithStorage(cfg.Storage, "migrations", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle, false),
+		config.WithStorage(cfg.Storage, "migrations", 0),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions(),

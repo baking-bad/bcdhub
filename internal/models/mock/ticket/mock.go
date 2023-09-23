@@ -9,6 +9,7 @@
 package ticket
 
 import (
+	context "context"
 	reflect "reflect"
 
 	ticket "github.com/baking-bad/bcdhub/internal/models/ticket"
@@ -39,18 +40,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // ForOperation mocks base method.
-func (m *MockRepository) ForOperation(operationId int64) ([]ticket.TicketUpdate, error) {
+func (m *MockRepository) ForOperation(ctx context.Context, operationId int64) ([]ticket.TicketUpdate, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ForOperation", operationId)
+	ret := m.ctrl.Call(m, "ForOperation", ctx, operationId)
 	ret0, _ := ret[0].([]ticket.TicketUpdate)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ForOperation indicates an expected call of ForOperation.
-func (mr *MockRepositoryMockRecorder) ForOperation(operationId any) *RepositoryForOperationCall {
+func (mr *MockRepositoryMockRecorder) ForOperation(ctx, operationId any) *RepositoryForOperationCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForOperation", reflect.TypeOf((*MockRepository)(nil).ForOperation), operationId)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForOperation", reflect.TypeOf((*MockRepository)(nil).ForOperation), ctx, operationId)
 	return &RepositoryForOperationCall{Call: call}
 }
 
@@ -66,30 +67,30 @@ func (c *RepositoryForOperationCall) Return(arg0 []ticket.TicketUpdate, arg1 err
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryForOperationCall) Do(f func(int64) ([]ticket.TicketUpdate, error)) *RepositoryForOperationCall {
+func (c *RepositoryForOperationCall) Do(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *RepositoryForOperationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryForOperationCall) DoAndReturn(f func(int64) ([]ticket.TicketUpdate, error)) *RepositoryForOperationCall {
+func (c *RepositoryForOperationCall) DoAndReturn(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *RepositoryForOperationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Get mocks base method.
-func (m *MockRepository) Get(ticketer string, limit, offset int64) ([]ticket.TicketUpdate, error) {
+func (m *MockRepository) Get(ctx context.Context, ticketer string, limit, offset int64) ([]ticket.TicketUpdate, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ticketer, limit, offset)
+	ret := m.ctrl.Call(m, "Get", ctx, ticketer, limit, offset)
 	ret0, _ := ret[0].([]ticket.TicketUpdate)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(ticketer, limit, offset any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, ticketer, limit, offset any) *RepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ticketer, limit, offset)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, ticketer, limit, offset)
 	return &RepositoryGetCall{Call: call}
 }
 
@@ -105,30 +106,30 @@ func (c *RepositoryGetCall) Return(arg0 []ticket.TicketUpdate, arg1 error) *Repo
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(string, int64, int64) ([]ticket.TicketUpdate, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) Do(f func(context.Context, string, int64, int64) ([]ticket.TicketUpdate, error)) *RepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(string, int64, int64) ([]ticket.TicketUpdate, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, string, int64, int64) ([]ticket.TicketUpdate, error)) *RepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Has mocks base method.
-func (m *MockRepository) Has(contractID int64) (bool, error) {
+func (m *MockRepository) Has(ctx context.Context, contractID int64) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Has", contractID)
+	ret := m.ctrl.Call(m, "Has", ctx, contractID)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Has indicates an expected call of Has.
-func (mr *MockRepositoryMockRecorder) Has(contractID any) *RepositoryHasCall {
+func (mr *MockRepositoryMockRecorder) Has(ctx, contractID any) *RepositoryHasCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockRepository)(nil).Has), contractID)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockRepository)(nil).Has), ctx, contractID)
 	return &RepositoryHasCall{Call: call}
 }
 
@@ -144,13 +145,13 @@ func (c *RepositoryHasCall) Return(arg0 bool, arg1 error) *RepositoryHasCall {
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryHasCall) Do(f func(int64) (bool, error)) *RepositoryHasCall {
+func (c *RepositoryHasCall) Do(f func(context.Context, int64) (bool, error)) *RepositoryHasCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryHasCall) DoAndReturn(f func(int64) (bool, error)) *RepositoryHasCall {
+func (c *RepositoryHasCall) DoAndReturn(f func(context.Context, int64) (bool, error)) *RepositoryHasCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

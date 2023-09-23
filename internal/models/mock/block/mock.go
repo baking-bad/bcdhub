@@ -9,6 +9,7 @@
 package block
 
 import (
+	context "context"
 	reflect "reflect"
 
 	block "github.com/baking-bad/bcdhub/internal/models/block"
@@ -39,18 +40,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockRepository) Get(level int64) (block.Block, error) {
+func (m *MockRepository) Get(ctx context.Context, level int64) (block.Block, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", level)
+	ret := m.ctrl.Call(m, "Get", ctx, level)
 	ret0, _ := ret[0].(block.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(level any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, level any) *RepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), level)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, level)
 	return &RepositoryGetCall{Call: call}
 }
 
@@ -66,30 +67,30 @@ func (c *RepositoryGetCall) Return(arg0 block.Block, arg1 error) *RepositoryGetC
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(int64) (block.Block, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) Do(f func(context.Context, int64) (block.Block, error)) *RepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(int64) (block.Block, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, int64) (block.Block, error)) *RepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Last mocks base method.
-func (m *MockRepository) Last() (block.Block, error) {
+func (m *MockRepository) Last(ctx context.Context) (block.Block, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Last")
+	ret := m.ctrl.Call(m, "Last", ctx)
 	ret0, _ := ret[0].(block.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Last indicates an expected call of Last.
-func (mr *MockRepositoryMockRecorder) Last() *RepositoryLastCall {
+func (mr *MockRepositoryMockRecorder) Last(ctx any) *RepositoryLastCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Last", reflect.TypeOf((*MockRepository)(nil).Last))
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Last", reflect.TypeOf((*MockRepository)(nil).Last), ctx)
 	return &RepositoryLastCall{Call: call}
 }
 
@@ -105,13 +106,13 @@ func (c *RepositoryLastCall) Return(arg0 block.Block, arg1 error) *RepositoryLas
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryLastCall) Do(f func() (block.Block, error)) *RepositoryLastCall {
+func (c *RepositoryLastCall) Do(f func(context.Context) (block.Block, error)) *RepositoryLastCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryLastCall) DoAndReturn(f func() (block.Block, error)) *RepositoryLastCall {
+func (c *RepositoryLastCall) DoAndReturn(f func(context.Context) (block.Block, error)) *RepositoryLastCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

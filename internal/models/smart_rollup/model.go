@@ -1,29 +1,29 @@
 package smartrollup
 
 import (
+	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // SmartRollup - entity for smart rollup
 type SmartRollup struct {
-	// nolint
-	tableName struct{} `pg:"smart_rollup"`
+	bun.BaseModel `bun:"smart_rollup"`
 
-	ID        int64
+	ID        int64 `bun:"id,pk,notnull,autoincrement"`
 	Level     int64
 	Timestamp time.Time
 
-	Size      uint64 `pg:",use_zero"`
+	Size      uint64
 	AddressId int64
-	Address   account.Account `pg:",rel:has-one"`
+	Address   account.Account `bun:",rel:belongs-to"`
 
 	GenesisCommitmentHash string
 	PvmKind               string
-	Kernel                []byte `pg:",type:bytea"`
-	Type                  []byte `pg:",type:bytea"`
+	Kernel                []byte `bun:",type:bytea"`
+	Type                  []byte `bun:",type:bytea"`
 }
 
 // GetID -
@@ -37,8 +37,8 @@ func (SmartRollup) GetIndex() string {
 }
 
 // Save -
-func (sr *SmartRollup) Save(tx pg.DBI) error {
-	_, err := tx.Model(sr).OnConflict("DO NOTHING").Returning("id").Insert()
+func (sr *SmartRollup) Save(ctx context.Context, tx bun.IDB) error {
+	_, err := tx.NewInsert().Model(sr).On("CONFLICT DO NOTHING").Returning("id").Exec(ctx)
 	return err
 }
 
@@ -48,4 +48,8 @@ func (sr *SmartRollup) LogFields() map[string]interface{} {
 		"address": sr.Address.Address,
 		"block":   sr.Level,
 	}
+}
+
+func (SmartRollup) PartitionBy() string {
+	return ""
 }

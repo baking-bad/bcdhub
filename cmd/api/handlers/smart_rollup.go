@@ -31,7 +31,7 @@ func GetSmartRollup() gin.HandlerFunc {
 			return
 		}
 
-		rollup, err := ctx.SmartRollups.Get(req.Address)
+		rollup, err := ctx.SmartRollups.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -75,7 +75,7 @@ func ListSmartRollups() gin.HandlerFunc {
 			return
 		}
 
-		rollups, err := ctx.SmartRollups.List(args.Size, args.Offset, args.Sort)
+		rollups, err := ctx.SmartRollups.List(c.Request.Context(), args.Size, args.Offset, args.Sort)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

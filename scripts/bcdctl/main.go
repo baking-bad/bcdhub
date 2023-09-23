@@ -20,7 +20,7 @@ func main() {
 	}
 
 	ctxs = config.NewContexts(cfg, cfg.Scripts.Networks,
-		config.WithStorage(cfg.Storage, "bcdctl", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle, false),
+		config.WithStorage(cfg.Storage, "bcdctl", 0),
 		config.WithConfigCopy(cfg),
 		config.WithRPC(cfg.RPC),
 	)

@@ -1,29 +1,29 @@
 package bigmapdiff
 
 import (
+	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // BigMapState -
 type BigMapState struct {
-	// nolint
-	tableName struct{} `pg:"big_map_states"`
+	bun.BaseModel `bun:"big_map_states"`
 
-	ID              int64       `pg:",pk"`
-	Ptr             int64       `pg:",notnull,unique:big_map_key,use_zero"`
-	LastUpdateLevel int64       `pg:"last_update_level"`
-	Count           int64       `pg:",use_zero"`
-	LastUpdateTime  time.Time   `pg:"last_update_time"`
-	KeyHash         string      `pg:",notnull,unique:big_map_key"`
-	Contract        string      `pg:",notnull,unique:big_map_key"` // contract is in primary key for supporting alpha protocol (mainnet before babylon)
-	Key             types.Bytes `pg:",type:bytea,notnull"`
-	Value           types.Bytes `pg:",type:bytea"`
-	Removed         bool        `pg:",use_zero"`
+	ID              int64       `bun:"id,pk,notnull,autoincrement"`
+	Ptr             int64       `bun:"ptr,notnull,unique:big_map_state_unique"`
+	LastUpdateLevel int64       `bun:"last_update_level"`
+	Count           int64       `bun:"count"`
+	LastUpdateTime  time.Time   `bun:"last_update_time"`
+	KeyHash         string      `bun:"key_hash,notnull,unique:big_map_state_unique"`
+	Contract        string      `bun:"contract,notnull,unique:big_map_state_unique"`
+	Key             types.Bytes `bun:"key,type:bytea,notnull"`
+	Value           types.Bytes `bun:"value,type:bytea"`
+	Removed         bool        `bun:"removed"`
 
-	IsRollback bool `pg:"-"`
+	IsRollback bool `bun:"-"`
 }
 
 // GetID -
@@ -37,13 +37,18 @@ func (b *BigMapState) GetIndex() string {
 }
 
 // Save -
-func (b *BigMapState) Save(tx pg.DBI) error {
+func (b *BigMapState) Save(ctx context.Context, tx bun.IDB) error {
 	_, err := tx.
+		NewInsert().
 		Model(b).
-		OnConflict("(contract, ptr, key_hash) DO UPDATE").
-		Set("removed = EXCLUDED.removed, last_update_level = EXCLUDED.last_update_level, last_update_time = EXCLUDED.last_update_time, count = big_map_state.count + 1, value = CASE WHEN EXCLUDED.removed THEN big_map_state.value ELSE EXCLUDED.value END").
+		On("CONFLICT ON CONSTRAINT big_map_state_unique DO UPDATE").
+		Set("removed = EXCLUDED.removed").
+		Set("last_update_level = EXCLUDED.last_update_level").
+		Set("last_update_time = EXCLUDED.last_update_time").
+		Set("count = big_map_state.count + 1").
+		Set("value = CASE WHEN EXCLUDED.removed THEN big_map_state.value ELSE EXCLUDED.value END").
 		Returning("id").
-		Insert(b)
+		Exec(ctx)
 	return err
 }
 
@@ -73,4 +78,8 @@ func (b *BigMapState) ToDiff() BigMapDiff {
 	}
 
 	return bmd
+}
+
+func (BigMapState) PartitionBy() string {
+	return ""
 }

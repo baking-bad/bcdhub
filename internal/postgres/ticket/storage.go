@@ -1,6 +1,8 @@
 package ticket
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
@@ -16,9 +18,10 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(ticketer string, limit, offset int64) ([]ticket.TicketUpdate, error) {
+func (storage *Storage) Get(ctx context.Context, ticketer string, limit, offset int64) (response []ticket.TicketUpdate, err error) {
 	query := storage.DB.
-		Model((*ticket.TicketUpdate)(nil)).
+		NewSelect().
+		Model(&response).
 		Relation("Ticketer").
 		Relation("Account").
 		Where("ticketer.address = ?", ticketer)
@@ -30,21 +33,21 @@ func (storage *Storage) Get(ticketer string, limit, offset int64) ([]ticket.Tick
 		query.Limit(storage.GetPageSize(limit))
 	}
 
-	var response []ticket.TicketUpdate
-	err := query.Order("id desc").Select(&response)
-	return response, err
+	err = query.Order("id desc").Scan(ctx)
+	return
 }
 
 // Has -
-func (storage *Storage) Has(contractID int64) (bool, error) {
+func (storage *Storage) Has(ctx context.Context, contractID int64) (bool, error) {
 	var id int64
 	err := storage.DB.
+		NewSelect().
 		Model((*ticket.TicketUpdate)(nil)).
 		Column("id").
 		Where("ticketer_id = ?", contractID).
 		OrderExpr("id ASC").
 		Limit(1).
-		Select(&id)
+		Scan(ctx, &id)
 
 	if err != nil {
 		if storage.IsRecordNotFound(err) {
@@ -56,12 +59,13 @@ func (storage *Storage) Has(contractID int64) (bool, error) {
 }
 
 // ForOperation -
-func (storage *Storage) ForOperation(operationId int64) (response []ticket.TicketUpdate, err error) {
+func (storage *Storage) ForOperation(ctx context.Context, operationId int64) (response []ticket.TicketUpdate, err error) {
 	err = storage.DB.
+		NewSelect().
 		Model(&response).
 		Relation("Ticketer").
 		Relation("Account").
 		Where("operation_id = ?", operationId).
-		Select()
+		Scan(ctx)
 	return
 }

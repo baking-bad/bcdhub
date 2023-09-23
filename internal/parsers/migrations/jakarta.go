@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // Jakarta -
@@ -77,7 +78,7 @@ func NewJakarta() *Jakarta {
 }
 
 // Parse -
-func (p *Jakarta) Parse(script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx pg.DBI) error {
+func (p *Jakarta) Parse(ctx context.Context, script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx bun.IDB) error {
 	codeBytes, err := json.Marshal(script.Code)
 	if err != nil {
 		return err
@@ -106,7 +107,7 @@ func (p *Jakarta) Parse(script noderpc.Script, old *modelsContract.Contract, pre
 		Views:     s.Views,
 	}
 
-	if err := contractScript.Save(tx); err != nil {
+	if err := contractScript.Save(ctx, tx); err != nil {
 		return err
 	}
 
@@ -121,7 +122,7 @@ func (p *Jakarta) Parse(script noderpc.Script, old *modelsContract.Contract, pre
 		Kind:           types.MigrationKindUpdate,
 	}
 
-	return m.Save(tx)
+	return m.Save(ctx, tx)
 }
 
 // IsMigratable -

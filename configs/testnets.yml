@@ -8,6 +8,8 @@ rpc:
     timeout: 20
     requests_per_second: 10
 
+log_level: ${LOG_LEVEL:-info}
+
 storage:
   pg: 
     host: ${DB_HOSTNAME:-127.0.0.1}
@@ -50,9 +52,6 @@ api:
   networks:
     - dailynet
     - mondaynet
-  connections:
-    max: 50
-    idle: 50
 
 indexer:
   project_name: indexer
@@ -68,14 +67,8 @@ indexer:
       periodic:
         info_base_url: https://teztnets.xyz
         schedule: "0 5 0 * * MON" # at 00:05:00 every monday
-  connections:
-    max: 5
-    idle: 5
 
 scripts:
   networks:
     - dailynet
     - mondaynet
-  connections:
-    max: 5
-    idle: 5

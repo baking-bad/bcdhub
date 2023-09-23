@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -38,12 +39,12 @@ func GetEntrypoints() gin.HandlerFunc {
 			return
 		}
 
-		symLink, err := getCurrentSymLink(ctx.Blocks)
+		symLink, err := getCurrentSymLink(c.Request.Context(), ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		parameter, err := getParameterType(ctx.Contracts, req.Address, symLink)
+		parameter, err := getParameterType(c.Request.Context(), ctx.Contracts, req.Address, symLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -99,12 +100,12 @@ func GetEntrypointData() gin.HandlerFunc {
 			return
 		}
 
-		symLink, err := getCurrentSymLink(ctx.Blocks)
+		symLink, err := getCurrentSymLink(c.Request.Context(), ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		result, err := buildParametersForExecution(ctx, req.Address, symLink, reqData.Name, reqData.Data)
+		result, err := buildParametersForExecution(c.Request.Context(), ctx, req.Address, symLink, reqData.Name, reqData.Data)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -164,12 +165,12 @@ func GetEntrypointSchema() gin.HandlerFunc {
 			}
 		}
 
-		symLink, err := getCurrentSymLink(ctx.Blocks)
+		symLink, err := getCurrentSymLink(c.Request.Context(), ctx.Blocks)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		parameter, err := getParameterType(ctx.Contracts, req.Address, symLink)
+		parameter, err := getParameterType(c.Request.Context(), ctx.Contracts, req.Address, symLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -198,12 +199,13 @@ func GetEntrypointSchema() gin.HandlerFunc {
 			var usingOperation operation.Operation
 			switch esReq.FillType {
 			case "latest":
-				account, err := ctx.Accounts.Get(req.Address)
+				account, err := ctx.Accounts.Get(c.Request.Context(), req.Address)
 				if handleError(c, ctx.Storage, err, 0) {
 					return
 				}
 
 				op, err := ctx.Operations.Last(
+					c.Request.Context(),
 					map[string]interface{}{
 						"destination_id": account.ID,
 						"kind":           modelTypes.OperationKindTransaction,
@@ -220,7 +222,7 @@ func GetEntrypointSchema() gin.HandlerFunc {
 					return
 				}
 
-				opg, err := ctx.Operations.GetByHashAndCounter(hash, int64(*esReq.Counter))
+				opg, err := ctx.Operations.GetByHashAndCounter(c.Request.Context(), hash, int64(*esReq.Counter))
 				if handleError(c, ctx.Storage, err, 0) {
 					return
 				}
@@ -250,8 +252,8 @@ func GetEntrypointSchema() gin.HandlerFunc {
 	}
 }
 
-func buildParametersForExecution(ctx *config.Context, address, symLink, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
-	parameterType, err := getParameterType(ctx.Contracts, address, symLink)
+func buildParametersForExecution(c context.Context, ctx *config.Context, address, symLink, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
+	parameterType, err := getParameterType(c, ctx.Contracts, address, symLink)
 	if err != nil {
 		return nil, err
 	}

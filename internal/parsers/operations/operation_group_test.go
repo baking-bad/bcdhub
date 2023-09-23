@@ -2,6 +2,7 @@ package operations
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"testing"
@@ -31,7 +32,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
-	"github.com/go-pg/pg/v10"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -112,26 +112,26 @@ func TestGroup_Parse(t *testing.T) {
 
 	contractRepo.
 		EXPECT().
-		Get(gomock.Any()).
+		Get(gomock.Any(), gomock.Any()).
 		DoAndReturn(readTestContractModel).
 		AnyTimes()
 
 	contractRepo.
 		EXPECT().
-		Script(gomock.Any(), gomock.Any()).
+		Script(gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(readTestScriptModel).
 		AnyTimes()
 
 	contractRepo.
 		EXPECT().
-		ScriptPart(gomock.Any(), gomock.Any(), gomock.Any()).
+		ScriptPart(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(readTestScriptPart).
 		AnyTimes()
 
 	scriptRepo.
 		EXPECT().
-		ByHash(gomock.Any()).
-		Return(modelContract.Script{}, pg.ErrNoRows).
+		ByHash(gomock.Any(), gomock.Any()).
+		Return(modelContract.Script{}, sql.ErrNoRows).
 		AnyTimes()
 
 	globalConstantRepo.
@@ -150,7 +150,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	generalRepo.
 		EXPECT().
-		Save(context.Background(), gomock.AssignableToTypeOf([]models.Model{})).
+		Save(gomock.Any(), gomock.AssignableToTypeOf([]models.Model{})).
 		Return(nil).
 		AnyTimes()
 
@@ -162,7 +162,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	bmdRepo.
 		EXPECT().
-		GetByPtr("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU", int64(2416)).
+		GetByPtr(gomock.Any(), "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU", int64(2416)).
 		Return([]bigmapdiff.BigMapState{
 			{
 				Ptr:             2416,
@@ -179,7 +179,7 @@ func TestGroup_Parse(t *testing.T) {
 	for _, ptr := range []int{25167, 25166, 25165, 25164} {
 		bmdRepo.
 			EXPECT().
-			GetByPtr("KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264", int64(ptr)).
+			GetByPtr(gomock.Any(), "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264", int64(ptr)).
 			Return([]bigmapdiff.BigMapState{}, nil).
 			AnyTimes()
 	}
@@ -187,14 +187,14 @@ func TestGroup_Parse(t *testing.T) {
 	for _, ptr := range []int{40067, 40065} {
 		bmdRepo.
 			EXPECT().
-			GetByPtr("KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6", int64(ptr)).
+			GetByPtr(gomock.Any(), "KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6", int64(ptr)).
 			Return([]bigmapdiff.BigMapState{}, nil).
 			AnyTimes()
 	}
 
 	bmdRepo.
 		EXPECT().
-		GetByPtr("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ", int64(2417)).
+		GetByPtr(gomock.Any(), "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ", int64(2417)).
 		Return([]bigmapdiff.BigMapState{
 			{
 				Ptr:             2417,
@@ -210,7 +210,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get("PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo", int64(-1)).
+		Get(gomock.Any(), "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 			SymLink: bcd.SymLinkBabylon,
@@ -220,7 +220,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get("PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo", int64(-1)).
+		Get(gomock.Any(), "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 			SymLink: bcd.SymLinkBabylon,
@@ -230,7 +230,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get("PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP", int64(-1)).
+		Get(gomock.Any(), "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
 			SymLink: bcd.SymLinkAlpha,
@@ -240,7 +240,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get("PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA", int64(-1)).
+		Get(gomock.Any(), "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
 			SymLink: bcd.SymLinkBabylon,
@@ -250,7 +250,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get("PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i", int64(-1)).
+		Get(gomock.Any(), "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
 			SymLink: bcd.SymLinkBabylon,
@@ -260,7 +260,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get("PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r", int64(-1)).
+		Get(gomock.Any(), "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
 			SymLink: bcd.SymLinkBabylon,
@@ -270,7 +270,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		Get("Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A", int64(-1)).
+		Get(gomock.Any(), "Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A", int64(-1)).
 		Return(protocol.Protocol{
 			Hash:    "Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A",
 			SymLink: bcd.SymLinkBabylon,
@@ -280,7 +280,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(int64(0)).
+		GetByID(gomock.Any(), int64(0)).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 			SymLink: bcd.SymLinkBabylon,
@@ -289,7 +289,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(int64(1)).
+		GetByID(gomock.Any(), int64(1)).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 			SymLink: bcd.SymLinkBabylon,
@@ -299,7 +299,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(int64(2)).
+		GetByID(gomock.Any(), int64(2)).
 		Return(protocol.Protocol{
 			Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
 			SymLink: bcd.SymLinkAlpha,
@@ -309,7 +309,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(int64(3)).
+		GetByID(gomock.Any(), int64(3)).
 		Return(protocol.Protocol{
 			Hash:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
 			SymLink: bcd.SymLinkBabylon,
@@ -319,7 +319,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(int64(4)).
+		GetByID(gomock.Any(), int64(4)).
 		Return(protocol.Protocol{
 			Hash:    "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
 			SymLink: bcd.SymLinkBabylon,
@@ -329,7 +329,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(int64(5)).
+		GetByID(gomock.Any(), int64(5)).
 		Return(protocol.Protocol{
 			Hash:    "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
 			SymLink: bcd.SymLinkBabylon,
@@ -339,7 +339,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
-		GetByID(int64(6)).
+		GetByID(gomock.Any(), int64(6)).
 		Return(protocol.Protocol{
 			Hash:    "Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A",
 			SymLink: bcd.SymLinkBabylon,
@@ -349,7 +349,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	accountsRepo.
 		EXPECT().
-		Get("KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264").
+		Get(gomock.Any(), "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264").
 		Return(account.Account{
 			Address: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 			Type:    types.AccountTypeContract,
@@ -359,7 +359,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	operaitonsRepo.
 		EXPECT().
-		Last(gomock.Any(), int64(0)).
+		Last(gomock.Any(), gomock.Any(), int64(0)).
 		Return(operation.Operation{
 			Status:          types.OperationStatusApplied,
 			DestinationID:   6,
@@ -2199,11 +2199,11 @@ func TestGroup_Parse(t *testing.T) {
 			err := readJSONFile(tt.filename, &op)
 			require.NoError(t, err)
 
-			parseParams, err := NewParseParams(tt.ctx, tt.paramsOpts...)
+			parseParams, err := NewParseParams(context.Background(), tt.ctx, tt.paramsOpts...)
 			require.NoError(t, err)
 
 			store := parsers.NewTestStore()
-			err = NewGroup(parseParams).Parse(op, store)
+			err = NewGroup(parseParams).Parse(context.Background(), op, store)
 			require.Equal(t, tt.wantErr, err != nil)
 			if err == nil {
 				compareParserResponse(t, store, tt.want)

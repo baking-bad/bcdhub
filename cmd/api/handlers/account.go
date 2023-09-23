@@ -33,17 +33,17 @@ func GetInfo() gin.HandlerFunc {
 			return
 		}
 
-		acc, err := ctx.Accounts.Get(req.Address)
+		acc, err := ctx.Accounts.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		stats, err := ctx.Operations.ContractStats(acc.Address)
+		stats, err := ctx.Operations.ContractStats(c.Request.Context(), acc.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 		var balance int64
 		if !(bcd.IsRollupAddressLazy(acc.Address) || bcd.IsSmartRollupAddressLazy(acc.Address)) {
-			block, err := ctx.Blocks.Last()
+			block, err := ctx.Blocks.Last(c.Request.Context())
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}

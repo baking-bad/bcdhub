@@ -22,6 +22,11 @@ func main() {
 		return
 	}
 
+	if err := logger.SetLevel(cfg.LogLevel); err != nil {
+		logger.Err(err)
+		return
+	}
+
 	if cfg.Indexer.SentryEnabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
 		helpers.SetTagSentry("project", cfg.Indexer.ProjectName)

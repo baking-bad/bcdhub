@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
@@ -27,8 +29,8 @@ func NewVestingParser(ctx *config.Context, contractParser contract.Parser, proto
 }
 
 // Parse -
-func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, address string, store parsers.Store) error {
-	if err := p.parser.Parse(&operation.Operation{
+func (p *VestingParser) Parse(ctx context.Context, data noderpc.ContractData, head noderpc.Header, address string, store parsers.Store) error {
+	if err := p.parser.Parse(ctx, &operation.Operation{
 		ProtocolID: p.protocol.ID,
 		Status:     types.OperationStatusApplied,
 		Kind:       types.OperationKindOrigination,

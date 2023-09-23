@@ -10,7 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // PartitionManager -
@@ -53,8 +53,8 @@ func (pm *PartitionManager) CreatePartitions(ctx context.Context, currentTime ti
 		if _, err := pm.conn.DB.ExecContext(
 			ctx,
 			createPartitionTemplate,
-			pg.Ident(partitionName),
-			pg.Ident(model.GetIndex()),
+			bun.Ident(partitionName),
+			bun.Ident(model.GetIndex()),
 			start.Format(time.RFC3339Nano),
 			end.Format(time.RFC3339Nano),
 		); err != nil {

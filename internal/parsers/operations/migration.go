@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -23,7 +25,7 @@ func NewMigration(contracts contract.Repository) Migration {
 }
 
 // Parse -
-func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation, protocol string, store parsers.Store) error {
+func (m Migration) Parse(ctx context.Context, data noderpc.Operation, operation *operation.Operation, protocol string, store parsers.Store) error {
 	switch protocol {
 	case
 		"ProtoGenesisGenesisGenesisGenesisGenesisGenesk612im",
@@ -43,7 +45,7 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation,
 		"PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 		"PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq",
 		"PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA":
-		return m.fromBigMapDiffs(data, operation, store)
+		return m.fromBigMapDiffs(ctx, data, operation, store)
 	case
 		"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK",
 		"PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx",
@@ -62,13 +64,13 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation,
 		"PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf",
 		"ProxfordSW2S7fvchT1Zgj2avb5UES194neRyYVXoaDGvF9egt8":
 
-		return m.fromLazyStorageDiff(data, operation, store)
+		return m.fromLazyStorageDiff(ctx, data, operation, store)
 	default:
 		return errors.Errorf("unknown protocol for migration parser: %s", protocol)
 	}
 }
 
-func (m Migration) fromLazyStorageDiff(data noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
+func (m Migration) fromLazyStorageDiff(ctx context.Context, data noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	var lsd []noderpc.LazyStorageDiff
 	switch {
 	case data.Result != nil && data.Result.LazyStorageDiff != nil:
@@ -89,7 +91,7 @@ func (m Migration) fromLazyStorageDiff(data noderpc.Operation, operation *operat
 		}
 
 		for j := range lsd[i].Diff.BigMap.Updates {
-			migration, err := m.createMigration(lsd[i].Diff.BigMap.Updates[j].Value, operation)
+			migration, err := m.createMigration(ctx, lsd[i].Diff.BigMap.Updates[j].Value, operation)
 			if err != nil {
 				return err
 			}
@@ -102,7 +104,7 @@ func (m Migration) fromLazyStorageDiff(data noderpc.Operation, operation *operat
 	return nil
 }
 
-func (m Migration) fromBigMapDiffs(data noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
+func (m Migration) fromBigMapDiffs(ctx context.Context, data noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	var bmd []noderpc.BigMapDiff
 	switch {
 	case data.Result != nil && data.Result.BigMapDiffs != nil:
@@ -118,7 +120,7 @@ func (m Migration) fromBigMapDiffs(data noderpc.Operation, operation *operation.
 			continue
 		}
 
-		migration, err := m.createMigration(bmd[i].Value, operation)
+		migration, err := m.createMigration(ctx, bmd[i].Value, operation)
 		if err != nil {
 			return err
 		}
@@ -130,7 +132,7 @@ func (m Migration) fromBigMapDiffs(data noderpc.Operation, operation *operation.
 	return nil
 }
 
-func (m Migration) createMigration(value []byte, operation *operation.Operation) (*migration.Migration, error) {
+func (m Migration) createMigration(ctx context.Context, value []byte, operation *operation.Operation) (*migration.Migration, error) {
 	if len(value) == 0 {
 		return nil, nil
 	}
@@ -147,7 +149,7 @@ func (m Migration) createMigration(value []byte, operation *operation.Operation)
 		return nil, nil
 	}
 
-	c, err := m.contracts.Get(operation.Destination.Address)
+	c, err := m.contracts.Get(ctx, operation.Destination.Address)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,7 @@
 package domains
 
 import (
+	context "context"
 	reflect "reflect"
 
 	contract "github.com/baking-bad/bcdhub/internal/models/contract"
@@ -40,18 +41,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // BigMapDiffs mocks base method.
-func (m *MockRepository) BigMapDiffs(lastID, size int64) ([]domains.BigMapDiff, error) {
+func (m *MockRepository) BigMapDiffs(ctx context.Context, lastID, size int64) ([]domains.BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BigMapDiffs", lastID, size)
+	ret := m.ctrl.Call(m, "BigMapDiffs", ctx, lastID, size)
 	ret0, _ := ret[0].([]domains.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BigMapDiffs indicates an expected call of BigMapDiffs.
-func (mr *MockRepositoryMockRecorder) BigMapDiffs(lastID, size any) *RepositoryBigMapDiffsCall {
+func (mr *MockRepositoryMockRecorder) BigMapDiffs(ctx, lastID, size any) *RepositoryBigMapDiffsCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BigMapDiffs", reflect.TypeOf((*MockRepository)(nil).BigMapDiffs), lastID, size)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BigMapDiffs", reflect.TypeOf((*MockRepository)(nil).BigMapDiffs), ctx, lastID, size)
 	return &RepositoryBigMapDiffsCall{Call: call}
 }
 
@@ -67,21 +68,21 @@ func (c *RepositoryBigMapDiffsCall) Return(arg0 []domains.BigMapDiff, arg1 error
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryBigMapDiffsCall) Do(f func(int64, int64) ([]domains.BigMapDiff, error)) *RepositoryBigMapDiffsCall {
+func (c *RepositoryBigMapDiffsCall) Do(f func(context.Context, int64, int64) ([]domains.BigMapDiff, error)) *RepositoryBigMapDiffsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryBigMapDiffsCall) DoAndReturn(f func(int64, int64) ([]domains.BigMapDiff, error)) *RepositoryBigMapDiffsCall {
+func (c *RepositoryBigMapDiffsCall) DoAndReturn(f func(context.Context, int64, int64) ([]domains.BigMapDiff, error)) *RepositoryBigMapDiffsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Same mocks base method.
-func (m *MockRepository) Same(network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]domains.Same, error) {
+func (m *MockRepository) Same(ctx context.Context, network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]domains.Same, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{network, c, limit, offset}
+	varargs := []any{ctx, network, c, limit, offset}
 	for _, a := range availiableNetworks {
 		varargs = append(varargs, a)
 	}
@@ -92,9 +93,9 @@ func (m *MockRepository) Same(network string, c contract.Contract, limit, offset
 }
 
 // Same indicates an expected call of Same.
-func (mr *MockRepositoryMockRecorder) Same(network, c, limit, offset any, availiableNetworks ...any) *RepositorySameCall {
+func (mr *MockRepositoryMockRecorder) Same(ctx, network, c, limit, offset any, availiableNetworks ...any) *RepositorySameCall {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{network, c, limit, offset}, availiableNetworks...)
+	varargs := append([]any{ctx, network, c, limit, offset}, availiableNetworks...)
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Same", reflect.TypeOf((*MockRepository)(nil).Same), varargs...)
 	return &RepositorySameCall{Call: call}
 }
@@ -111,21 +112,21 @@ func (c_2 *RepositorySameCall) Return(arg0 []domains.Same, arg1 error) *Reposito
 }
 
 // Do rewrite *gomock.Call.Do
-func (c_2 *RepositorySameCall) Do(f func(string, contract.Contract, int, int, ...string) ([]domains.Same, error)) *RepositorySameCall {
+func (c_2 *RepositorySameCall) Do(f func(context.Context, string, contract.Contract, int, int, ...string) ([]domains.Same, error)) *RepositorySameCall {
 	c_2.Call = c_2.Call.Do(f)
 	return c_2
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c_2 *RepositorySameCall) DoAndReturn(f func(string, contract.Contract, int, int, ...string) ([]domains.Same, error)) *RepositorySameCall {
+func (c_2 *RepositorySameCall) DoAndReturn(f func(context.Context, string, contract.Contract, int, int, ...string) ([]domains.Same, error)) *RepositorySameCall {
 	c_2.Call = c_2.Call.DoAndReturn(f)
 	return c_2
 }
 
 // SameCount mocks base method.
-func (m *MockRepository) SameCount(c contract.Contract, availiableNetworks ...string) (int, error) {
+func (m *MockRepository) SameCount(ctx context.Context, c contract.Contract, availiableNetworks ...string) (int, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{c}
+	varargs := []any{ctx, c}
 	for _, a := range availiableNetworks {
 		varargs = append(varargs, a)
 	}
@@ -136,9 +137,9 @@ func (m *MockRepository) SameCount(c contract.Contract, availiableNetworks ...st
 }
 
 // SameCount indicates an expected call of SameCount.
-func (mr *MockRepositoryMockRecorder) SameCount(c any, availiableNetworks ...any) *RepositorySameCountCall {
+func (mr *MockRepositoryMockRecorder) SameCount(ctx, c any, availiableNetworks ...any) *RepositorySameCountCall {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{c}, availiableNetworks...)
+	varargs := append([]any{ctx, c}, availiableNetworks...)
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SameCount", reflect.TypeOf((*MockRepository)(nil).SameCount), varargs...)
 	return &RepositorySameCountCall{Call: call}
 }
@@ -155,13 +156,13 @@ func (c_2 *RepositorySameCountCall) Return(arg0 int, arg1 error) *RepositorySame
 }
 
 // Do rewrite *gomock.Call.Do
-func (c_2 *RepositorySameCountCall) Do(f func(contract.Contract, ...string) (int, error)) *RepositorySameCountCall {
+func (c_2 *RepositorySameCountCall) Do(f func(context.Context, contract.Contract, ...string) (int, error)) *RepositorySameCountCall {
 	c_2.Call = c_2.Call.Do(f)
 	return c_2
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c_2 *RepositorySameCountCall) DoAndReturn(f func(contract.Contract, ...string) (int, error)) *RepositorySameCountCall {
+func (c_2 *RepositorySameCountCall) DoAndReturn(f func(context.Context, contract.Contract, ...string) (int, error)) *RepositorySameCountCall {
 	c_2.Call = c_2.Call.DoAndReturn(f)
 	return c_2
 }

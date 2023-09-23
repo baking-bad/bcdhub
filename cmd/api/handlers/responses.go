@@ -54,9 +54,7 @@ type Operation struct {
 	Network                            string             `json:"network"`
 	Kind                               string             `json:"kind"`
 	Source                             string             `json:"source,omitempty" extensions:"x-nullable"`
-	SourceAlias                        string             `json:"source_alias,omitempty" extensions:"x-nullable"`
 	Destination                        string             `json:"destination,omitempty" extensions:"x-nullable"`
-	DestinationAlias                   string             `json:"destination_alias,omitempty" extensions:"x-nullable"`
 	PublicKey                          string             `json:"public_key,omitempty" extensions:"x-nullable"`
 	ManagerPubKey                      string             `json:"manager_pubkey,omitempty" extensions:"x-nullable"`
 	Delegate                           string             `json:"delegate,omitempty" extensions:"x-nullable"`

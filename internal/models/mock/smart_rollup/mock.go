@@ -9,6 +9,7 @@
 package smart_rollup
 
 import (
+	context "context"
 	reflect "reflect"
 
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
@@ -39,18 +40,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockRepository) Get(address string) (smartrollup.SmartRollup, error) {
+func (m *MockRepository) Get(ctx context.Context, address string) (smartrollup.SmartRollup, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", address)
+	ret := m.ctrl.Call(m, "Get", ctx, address)
 	ret0, _ := ret[0].(smartrollup.SmartRollup)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(address any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, address any) *RepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), address)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, address)
 	return &RepositoryGetCall{Call: call}
 }
 
@@ -66,30 +67,30 @@ func (c *RepositoryGetCall) Return(arg0 smartrollup.SmartRollup, arg1 error) *Re
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(string) (smartrollup.SmartRollup, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) Do(f func(context.Context, string) (smartrollup.SmartRollup, error)) *RepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(string) (smartrollup.SmartRollup, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, string) (smartrollup.SmartRollup, error)) *RepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // List mocks base method.
-func (m *MockRepository) List(limit, offset int64, sort string) ([]smartrollup.SmartRollup, error) {
+func (m *MockRepository) List(ctx context.Context, limit, offset int64, sort string) ([]smartrollup.SmartRollup, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", limit, offset, sort)
+	ret := m.ctrl.Call(m, "List", ctx, limit, offset, sort)
 	ret0, _ := ret[0].([]smartrollup.SmartRollup)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockRepositoryMockRecorder) List(limit, offset, sort any) *RepositoryListCall {
+func (mr *MockRepositoryMockRecorder) List(ctx, limit, offset, sort any) *RepositoryListCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRepository)(nil).List), limit, offset, sort)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRepository)(nil).List), ctx, limit, offset, sort)
 	return &RepositoryListCall{Call: call}
 }
 
@@ -105,13 +106,13 @@ func (c *RepositoryListCall) Return(arg0 []smartrollup.SmartRollup, arg1 error) 
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryListCall) Do(f func(int64, int64, string) ([]smartrollup.SmartRollup, error)) *RepositoryListCall {
+func (c *RepositoryListCall) Do(f func(context.Context, int64, int64, string) ([]smartrollup.SmartRollup, error)) *RepositoryListCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryListCall) DoAndReturn(f func(int64, int64, string) ([]smartrollup.SmartRollup, error)) *RepositoryListCall {
+func (c *RepositoryListCall) DoAndReturn(f func(context.Context, int64, int64, string) ([]smartrollup.SmartRollup, error)) *RepositoryListCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

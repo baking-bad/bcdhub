@@ -37,12 +37,12 @@ func ListEvents() gin.HandlerFunc {
 			return
 		}
 
-		account, err := ctx.Accounts.Get(req.Address)
+		account, err := ctx.Accounts.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
-		operations, err := ctx.Operations.ListEvents(account.ID, page.Size, page.Offset)
+		operations, err := ctx.Operations.ListEvents(c.Request.Context(), account.ID, page.Size, page.Offset)
 		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}

@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -19,7 +21,7 @@ func NewTransferTicket(params *ParseParams) TransferTicket {
 }
 
 // Parse -
-func (p TransferTicket) Parse(data noderpc.Operation, store parsers.Store) error {
+func (p TransferTicket) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),

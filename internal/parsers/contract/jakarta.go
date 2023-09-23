@@ -2,6 +2,7 @@ package contract
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -28,7 +29,7 @@ func NewJakarta(ctx *config.Context) *Jakarta {
 }
 
 // Parse -
-func (p *Jakarta) Parse(operation *operation.Operation, store parsers.Store) error {
+func (p *Jakarta) Parse(ctx context.Context, operation *operation.Operation, store parsers.Store) error {
 	if !operation.IsOrigination() {
 		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
@@ -42,7 +43,7 @@ func (p *Jakarta) Parse(operation *operation.Operation, store parsers.Store) err
 		LastAction: operation.Timestamp,
 	}
 
-	if err := p.computeMetrics(operation, &contract); err != nil {
+	if err := p.computeMetrics(ctx, operation, &contract); err != nil {
 		return err
 	}
 
@@ -50,8 +51,8 @@ func (p *Jakarta) Parse(operation *operation.Operation, store parsers.Store) err
 	return nil
 }
 
-func (p *Jakarta) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
-	constants, err := getGlobalConstants(p.ctx.GlobalConstants, operation)
+func (p *Jakarta) computeMetrics(ctx context.Context, operation *operation.Operation, c *contract.Contract) error {
+	constants, err := getGlobalConstants(ctx, p.ctx.GlobalConstants, operation)
 	if err != nil {
 		return errors.Wrap(err, "getGlobalConstants")
 	}
@@ -62,7 +63,7 @@ func (p *Jakarta) computeMetrics(operation *operation.Operation, c *contract.Con
 	}
 	operation.AST = script.Code
 
-	contractScript, err := p.ctx.Scripts.ByHash(script.Hash)
+	contractScript, err := p.ctx.Scripts.ByHash(ctx, script.Hash)
 	if err != nil {
 		if !p.ctx.Storage.IsRecordNotFound(err) {
 			return err
@@ -116,7 +117,7 @@ func replaceConstants(constants []contract.GlobalConstant, operation *operation.
 	}
 }
 
-func getGlobalConstants(repo contract.ConstantRepository, operation *operation.Operation) ([]contract.GlobalConstant, error) {
+func getGlobalConstants(ctx context.Context, repo contract.ConstantRepository, operation *operation.Operation) ([]contract.GlobalConstant, error) {
 	var cd astContract.ContractData
 	if err := json.Unmarshal(operation.Script, &cd); err != nil {
 		return nil, err
@@ -144,7 +145,7 @@ func getGlobalConstants(repo contract.ConstantRepository, operation *operation.O
 			}
 		}
 
-		entities, err := repo.All(addresses...)
+		entities, err := repo.All(ctx, addresses...)
 		if err != nil {
 			return nil, err
 		}

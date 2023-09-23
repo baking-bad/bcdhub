@@ -23,7 +23,7 @@ func NewOrigination(params *ParseParams) Origination {
 var delegatorContract = []byte(`{"code":[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%do"]},{"prim":"unit","annots":["%default"]}]}]},{"prim":"storage","args":[{"prim":"key_hash"}]},{"prim":"code","args":[[[[{"prim":"DUP"},{"prim":"CAR"},{"prim":"DIP","args":[[{"prim":"CDR"}]]}]],{"prim":"IF_LEFT","args":[[{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},{"prim":"AMOUNT"},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}],{"prim":"IMPLICIT_ACCOUNT"},{"prim":"ADDRESS"},{"prim":"SENDER"},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"UNIT"},{"prim":"EXEC"},{"prim":"PAIR"}],[{"prim":"DROP"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]]}],"storage":{"bytes":"0079943a60100e0394ac1c8f6ccfaeee71ec9c2d94"}}`)
 
 // Parse -
-func (p Origination) Parse(data noderpc.Operation, store parsers.Store) error {
+func (p Origination) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
@@ -65,7 +65,7 @@ func (p Origination) Parse(data noderpc.Operation, store parsers.Store) error {
 	p.stackTrace.Add(origination)
 
 	if origination.IsApplied() {
-		if err := p.appliedHandler(context.Background(), data, &origination, store); err != nil {
+		if err := p.appliedHandler(ctx, data, &origination, store); err != nil {
 			return err
 		}
 	}
@@ -88,16 +88,16 @@ func (p Origination) appliedHandler(ctx context.Context, item noderpc.Operation,
 		origination.DeffatedStorage = rawStorage
 	}
 
-	if err := p.specific.ContractParser.Parse(origination, store); err != nil {
+	if err := p.specific.ContractParser.Parse(ctx, origination, store); err != nil {
 		return err
 	}
 
 	contracts := store.ListContracts()
-	if err := setTags(p.ctx, contracts[0], origination); err != nil {
+	if err := setTags(ctx, p.ctx, contracts[0], origination); err != nil {
 		return err
 	}
 
-	if err := p.specific.StorageParser.ParseOrigination(item, origination, store); err != nil {
+	if err := p.specific.StorageParser.ParseOrigination(ctx, item, origination, store); err != nil {
 		return err
 	}
 

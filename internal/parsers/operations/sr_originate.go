@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -19,7 +21,7 @@ func NewSrOriginate(params *ParseParams) SrOriginate {
 }
 
 // Parse -
-func (p SrOriginate) Parse(data noderpc.Operation, store parsers.Store) error {
+func (p SrOriginate) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),

@@ -40,17 +40,17 @@ func (m *MockGeneralRepository) EXPECT() *MockGeneralRepositoryMockRecorder {
 }
 
 // BulkDelete mocks base method.
-func (m *MockGeneralRepository) BulkDelete(arg0 context.Context, arg1 []models.Model) error {
+func (m *MockGeneralRepository) BulkDelete(ctx context.Context, models []models.Model) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDelete", arg0, arg1)
+	ret := m.ctrl.Call(m, "BulkDelete", ctx, models)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // BulkDelete indicates an expected call of BulkDelete.
-func (mr *MockGeneralRepositoryMockRecorder) BulkDelete(arg0, arg1 any) *GeneralRepositoryBulkDeleteCall {
+func (mr *MockGeneralRepositoryMockRecorder) BulkDelete(ctx, models any) *GeneralRepositoryBulkDeleteCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockGeneralRepository)(nil).BulkDelete), arg0, arg1)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockGeneralRepository)(nil).BulkDelete), ctx, models)
 	return &GeneralRepositoryBulkDeleteCall{Call: call}
 }
 
@@ -77,78 +77,40 @@ func (c *GeneralRepositoryBulkDeleteCall) DoAndReturn(f func(context.Context, []
 	return c
 }
 
-// CreateTables mocks base method.
-func (m *MockGeneralRepository) CreateTables() error {
+// CreateIndex mocks base method.
+func (m *MockGeneralRepository) CreateIndex(ctx context.Context, name, columns string, model any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTables")
+	ret := m.ctrl.Call(m, "CreateIndex", ctx, name, columns, model)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CreateTables indicates an expected call of CreateTables.
-func (mr *MockGeneralRepositoryMockRecorder) CreateTables() *GeneralRepositoryCreateTablesCall {
+// CreateIndex indicates an expected call of CreateIndex.
+func (mr *MockGeneralRepositoryMockRecorder) CreateIndex(ctx, name, columns, model any) *GeneralRepositoryCreateIndexCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTables", reflect.TypeOf((*MockGeneralRepository)(nil).CreateTables))
-	return &GeneralRepositoryCreateTablesCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIndex", reflect.TypeOf((*MockGeneralRepository)(nil).CreateIndex), ctx, name, columns, model)
+	return &GeneralRepositoryCreateIndexCall{Call: call}
 }
 
-// GeneralRepositoryCreateTablesCall wrap *gomock.Call
-type GeneralRepositoryCreateTablesCall struct {
+// GeneralRepositoryCreateIndexCall wrap *gomock.Call
+type GeneralRepositoryCreateIndexCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryCreateTablesCall) Return(arg0 error) *GeneralRepositoryCreateTablesCall {
+func (c *GeneralRepositoryCreateIndexCall) Return(arg0 error) *GeneralRepositoryCreateIndexCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryCreateTablesCall) Do(f func() error) *GeneralRepositoryCreateTablesCall {
+func (c *GeneralRepositoryCreateIndexCall) Do(f func(context.Context, string, string, any) error) *GeneralRepositoryCreateIndexCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryCreateTablesCall) DoAndReturn(f func() error) *GeneralRepositoryCreateTablesCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// DeleteByContract mocks base method.
-func (m *MockGeneralRepository) DeleteByContract(indices []string, address string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByContract", indices, address)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteByContract indicates an expected call of DeleteByContract.
-func (mr *MockGeneralRepositoryMockRecorder) DeleteByContract(indices, address any) *GeneralRepositoryDeleteByContractCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByContract", reflect.TypeOf((*MockGeneralRepository)(nil).DeleteByContract), indices, address)
-	return &GeneralRepositoryDeleteByContractCall{Call: call}
-}
-
-// GeneralRepositoryDeleteByContractCall wrap *gomock.Call
-type GeneralRepositoryDeleteByContractCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryDeleteByContractCall) Return(arg0 error) *GeneralRepositoryDeleteByContractCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryDeleteByContractCall) Do(f func([]string, string) error) *GeneralRepositoryDeleteByContractCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryDeleteByContractCall) DoAndReturn(f func([]string, string) error) *GeneralRepositoryDeleteByContractCall {
+func (c *GeneralRepositoryCreateIndexCall) DoAndReturn(f func(context.Context, string, string, any) error) *GeneralRepositoryCreateIndexCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -191,79 +153,40 @@ func (c *GeneralRepositoryDropCall) DoAndReturn(f func(context.Context) error) *
 	return c
 }
 
-// GetAll mocks base method.
-func (m *MockGeneralRepository) GetAll(index string) ([]models.Model, error) {
+// InitDatabase mocks base method.
+func (m *MockGeneralRepository) InitDatabase(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll", index)
-	ret0, _ := ret[0].([]models.Model)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAll indicates an expected call of GetAll.
-func (mr *MockGeneralRepositoryMockRecorder) GetAll(index any) *GeneralRepositoryGetAllCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGeneralRepository)(nil).GetAll), index)
-	return &GeneralRepositoryGetAllCall{Call: call}
-}
-
-// GeneralRepositoryGetAllCall wrap *gomock.Call
-type GeneralRepositoryGetAllCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryGetAllCall) Return(arg0 []models.Model, arg1 error) *GeneralRepositoryGetAllCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryGetAllCall) Do(f func(string) ([]models.Model, error)) *GeneralRepositoryGetAllCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryGetAllCall) DoAndReturn(f func(string) ([]models.Model, error)) *GeneralRepositoryGetAllCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetByID mocks base method.
-func (m *MockGeneralRepository) GetByID(output models.Model) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", output)
+	ret := m.ctrl.Call(m, "InitDatabase", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// GetByID indicates an expected call of GetByID.
-func (mr *MockGeneralRepositoryMockRecorder) GetByID(output any) *GeneralRepositoryGetByIDCall {
+// InitDatabase indicates an expected call of InitDatabase.
+func (mr *MockGeneralRepositoryMockRecorder) InitDatabase(ctx any) *GeneralRepositoryInitDatabaseCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockGeneralRepository)(nil).GetByID), output)
-	return &GeneralRepositoryGetByIDCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitDatabase", reflect.TypeOf((*MockGeneralRepository)(nil).InitDatabase), ctx)
+	return &GeneralRepositoryInitDatabaseCall{Call: call}
 }
 
-// GeneralRepositoryGetByIDCall wrap *gomock.Call
-type GeneralRepositoryGetByIDCall struct {
+// GeneralRepositoryInitDatabaseCall wrap *gomock.Call
+type GeneralRepositoryInitDatabaseCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryGetByIDCall) Return(arg0 error) *GeneralRepositoryGetByIDCall {
+func (c *GeneralRepositoryInitDatabaseCall) Return(arg0 error) *GeneralRepositoryInitDatabaseCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryGetByIDCall) Do(f func(models.Model) error) *GeneralRepositoryGetByIDCall {
+func (c *GeneralRepositoryInitDatabaseCall) Do(f func(context.Context) error) *GeneralRepositoryInitDatabaseCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryGetByIDCall) DoAndReturn(f func(models.Model) error) *GeneralRepositoryGetByIDCall {
+func (c *GeneralRepositoryInitDatabaseCall) DoAndReturn(f func(context.Context) error) *GeneralRepositoryInitDatabaseCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -345,17 +268,17 @@ func (c *GeneralRepositorySaveCall) DoAndReturn(f func(context.Context, []models
 }
 
 // TablesExist mocks base method.
-func (m *MockGeneralRepository) TablesExist() bool {
+func (m *MockGeneralRepository) TablesExist(ctx context.Context) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TablesExist")
+	ret := m.ctrl.Call(m, "TablesExist", ctx)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // TablesExist indicates an expected call of TablesExist.
-func (mr *MockGeneralRepositoryMockRecorder) TablesExist() *GeneralRepositoryTablesExistCall {
+func (mr *MockGeneralRepositoryMockRecorder) TablesExist(ctx any) *GeneralRepositoryTablesExistCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TablesExist", reflect.TypeOf((*MockGeneralRepository)(nil).TablesExist))
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TablesExist", reflect.TypeOf((*MockGeneralRepository)(nil).TablesExist), ctx)
 	return &GeneralRepositoryTablesExistCall{Call: call}
 }
 
@@ -371,51 +294,13 @@ func (c *GeneralRepositoryTablesExistCall) Return(arg0 bool) *GeneralRepositoryT
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryTablesExistCall) Do(f func() bool) *GeneralRepositoryTablesExistCall {
+func (c *GeneralRepositoryTablesExistCall) Do(f func(context.Context) bool) *GeneralRepositoryTablesExistCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryTablesExistCall) DoAndReturn(f func() bool) *GeneralRepositoryTablesExistCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// UpdateDoc mocks base method.
-func (m *MockGeneralRepository) UpdateDoc(model models.Model) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateDoc", model)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateDoc indicates an expected call of UpdateDoc.
-func (mr *MockGeneralRepositoryMockRecorder) UpdateDoc(model any) *GeneralRepositoryUpdateDocCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDoc", reflect.TypeOf((*MockGeneralRepository)(nil).UpdateDoc), model)
-	return &GeneralRepositoryUpdateDocCall{Call: call}
-}
-
-// GeneralRepositoryUpdateDocCall wrap *gomock.Call
-type GeneralRepositoryUpdateDocCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryUpdateDocCall) Return(err error) *GeneralRepositoryUpdateDocCall {
-	c.Call = c.Call.Return(err)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryUpdateDocCall) Do(f func(models.Model) error) *GeneralRepositoryUpdateDocCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryUpdateDocCall) DoAndReturn(f func(models.Model) error) *GeneralRepositoryUpdateDocCall {
+func (c *GeneralRepositoryTablesExistCall) DoAndReturn(f func(context.Context) bool) *GeneralRepositoryTablesExistCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -16,6 +16,8 @@ rpc:
   #   timeout: 20
   #   requests_per_second: 20
 
+log_level: ${LOG_LEVEL:-info}
+
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
@@ -68,9 +70,6 @@ api:
     - ghostnet
     - nairobinet
     # - oxfordnet
-  connections:
-    max: 50
-    idle: 50
 
 indexer:
   project_name: indexer
@@ -84,9 +83,7 @@ indexer:
       receiver_threads: 15
     # oxfordnet:
     #   receiver_threads: 10
-  connections:
-    max: 5
-    idle: 5
+  
 
 scripts:
   networks:
@@ -94,6 +91,3 @@ scripts:
     - ghostnet
     - nairobinet
     # - oxfordnet
-  connections:
-    max: 5
-    idle: 5

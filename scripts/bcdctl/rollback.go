@@ -23,7 +23,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		panic(err)
 	}
 
-	state, err := ctx.Blocks.Last()
+	state, err := ctx.Blocks.Last(context.Background())
 	if err != nil {
 		panic(err)
 	}

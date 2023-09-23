@@ -14,8 +14,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
+	"github.com/uptrace/bun"
 )
 
 // Manager -
@@ -34,7 +34,7 @@ func NewManager(rpc noderpc.INode, storage models.GeneralRepository, blockRepo b
 }
 
 // Rollback - rollback indexer state to level
-func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network, fromState block.Block, toLevel int64) error {
+func (rm Manager) Rollback(ctx context.Context, db bun.IDB, network types.Network, fromState block.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
 		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
@@ -42,24 +42,24 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network
 	for level := fromState.Level; level > toLevel; level-- {
 		logger.Info().Msgf("Rollback to %d block", level)
 
-		if _, err := rm.blockRepo.Get(level); err != nil {
+		if _, err := rm.blockRepo.Get(ctx, level); err != nil {
 			if rm.storage.IsRecordNotFound(err) {
 				continue
 			}
 			return err
 		}
 
-		err := db.RunInTransaction(ctx, func(tx *pg.Tx) error {
-			if err := rm.rollbackAll(tx, level); err != nil {
+		err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+			if err := rm.rollbackAll(ctx, tx, level); err != nil {
 				return err
 			}
-			if err := rm.rollbackOperations(tx, level); err != nil {
+			if err := rm.rollbackOperations(ctx, tx, level); err != nil {
 				return err
 			}
-			if err := rm.rollbackMigrations(tx, level); err != nil {
+			if err := rm.rollbackMigrations(ctx, tx, level); err != nil {
 				return err
 			}
-			if err := rm.rollbackBigMapState(tx, level); err != nil {
+			if err := rm.rollbackBigMapState(ctx, tx, level); err != nil {
 				return err
 			}
 			return nil
@@ -71,14 +71,15 @@ func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network
 	return nil
 }
 
-func (rm Manager) rollbackAll(tx pg.DBI, level int64) error {
+func (rm Manager) rollbackAll(ctx context.Context, tx bun.Tx, level int64) error {
 	for _, index := range []models.Model{
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
 		&bigmapaction.BigMapAction{}, &contract.GlobalConstant{},
 	} {
-		if _, err := tx.Model(index).
+		if _, err := tx.NewDelete().
+			Model(index).
 			Where("level = ?", level).
-			Delete(index); err != nil {
+			Exec(ctx); err != nil {
 			return err
 		}
 
@@ -89,29 +90,30 @@ func (rm Manager) rollbackAll(tx pg.DBI, level int64) error {
 	return nil
 }
 
-func (rm Manager) rollbackMigrations(tx pg.DBI, level int64) error {
+func (rm Manager) rollbackMigrations(ctx context.Context, tx bun.Tx, level int64) error {
 	logger.Info().Msg("rollback migrations...")
-	if _, err := tx.Model(new(migration.Migration)).
-		Where("contract_id IN (?)", tx.Model(new(contract.Contract)).Column("id").Where("level > ?", level)).
+	query := tx.NewSelect().Model(new(contract.Contract)).Column("id").Where("level > ?", level)
+	if err := tx.NewDelete().Model(new(migration.Migration)).
+		Where("contract_id IN (?)", query).
 		Where("level = ?", level).
-		Delete(); err != nil {
+		Scan(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (rm Manager) rollbackBigMapState(tx pg.DBI, level int64) error {
+func (rm Manager) rollbackBigMapState(ctx context.Context, tx bun.Tx, level int64) error {
 	logger.Info().Msg("rollback big map states...")
-	states, err := rm.bmdRepo.StatesChangedAfter(level)
+	states, err := rm.bmdRepo.StatesChangedAfter(ctx, level)
 	if err != nil {
 		return err
 	}
 
 	for i, state := range states {
-		diff, err := rm.bmdRepo.LastDiff(state.Ptr, state.KeyHash, false)
+		diff, err := rm.bmdRepo.LastDiff(ctx, state.Ptr, state.KeyHash, false)
 		if err != nil {
 			if rm.storage.IsRecordNotFound(err) {
-				if _, err := tx.Model(&states[i]).Delete(); err != nil {
+				if _, err := tx.NewDelete().Model(&states[i]).Exec(ctx); err != nil {
 					return err
 				}
 				continue
@@ -127,7 +129,7 @@ func (rm Manager) rollbackBigMapState(tx pg.DBI, level int64) error {
 			states[i].Removed = false
 		} else {
 			states[i].Removed = true
-			valuedDiff, err := rm.bmdRepo.LastDiff(state.Ptr, state.KeyHash, true)
+			valuedDiff, err := rm.bmdRepo.LastDiff(ctx, state.Ptr, state.KeyHash, true)
 			if err != nil {
 				if !rm.storage.IsRecordNotFound(err) {
 					return err
@@ -137,7 +139,7 @@ func (rm Manager) rollbackBigMapState(tx pg.DBI, level int64) error {
 			}
 		}
 
-		if err := states[i].Save(tx); err != nil {
+		if err := states[i].Save(ctx, tx); err != nil {
 			return err
 		}
 	}
@@ -146,16 +148,16 @@ func (rm Manager) rollbackBigMapState(tx pg.DBI, level int64) error {
 }
 
 type lastAction struct {
-	Address string    `pg:"address"`
-	Time    time.Time `pg:"time"`
+	Address string    `bun:"address"`
+	Time    time.Time `bun:"time"`
 }
 
-func (rm Manager) rollbackOperations(tx pg.DBI, level int64) error {
+func (rm Manager) rollbackOperations(ctx context.Context, tx bun.Tx, level int64) error {
 	logger.Info().Msg("rollback operations...")
 	var ops []operation.Operation
-	if err := tx.Model(&operation.Operation{}).
+	if err := tx.NewSelect().Model(&ops).
 		Where("level = ?", level).
-		Select(&ops); err != nil {
+		Scan(ctx); err != nil {
 		return err
 	}
 	if len(ops) == 0 {
@@ -167,9 +169,9 @@ func (rm Manager) rollbackOperations(tx pg.DBI, level int64) error {
 		ids[i] = ops[i].ID
 	}
 
-	if _, err := tx.Model(&operation.Operation{}).
-		WhereIn("id IN (?)", ids).
-		Delete(); err != nil {
+	if _, err := tx.NewDelete().Model(&operation.Operation{}).
+		Where("id IN (?)", bun.In(ids)).
+		Exec(ctx); err != nil {
 		return err
 	}
 
@@ -203,13 +205,13 @@ func (rm Manager) rollbackOperations(tx pg.DBI, level int64) error {
 
 		var actions []lastAction
 
-		if _, err := tx.Query(&actions, `select max(foo.ts) as time, foo.address from (
+		if _, err := tx.NewRaw(`select max(foo.ts) as time, foo.address from (
 			(select "timestamp" as ts, source as address from operations where source in (?) order by id desc limit ?)
 			union all
 			(select "timestamp" as ts, destination as address from operations where destination in (?) order by id desc limit ?)
 		) as foo
 		group by address
-		`, addresses, length, addresses, length); err != nil {
+		`, addresses, length, addresses, length).Exec(ctx, &actions); err != nil {
 			return err
 		}
 
@@ -218,7 +220,13 @@ func (rm Manager) rollbackOperations(tx pg.DBI, level int64) error {
 			if !ok {
 				count = 1
 			}
-			if _, err := tx.Exec(`update contracts set tx_count = tx_count - ?, last_action = ? where address = ?;`, count, actions[i].Time.UTC(), actions[i].Address); err != nil {
+
+			_, err := tx.NewUpdate().Model((*contract.Contract)(nil)).
+				Where("address = ?", actions[i].Address).
+				Set("tx_count = tx_count - ?", count).
+				Set("last_action = ?", actions[i].Time).
+				Exec(ctx)
+			if err != nil {
 				return err
 			}
 		}
