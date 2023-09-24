@@ -1,7 +1,6 @@
 package bigmapdiff
 
 import (
-	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -36,24 +35,6 @@ func (b *BigMapDiff) GetID() int64 {
 // GetIndex -
 func (b *BigMapDiff) GetIndex() string {
 	return "big_map_diffs"
-}
-
-// Save -
-func (b *BigMapDiff) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(b).
-		On("CONFLICT (id, timestamp) DO UPDATE").
-		Set("ptr = excluded.ptr").
-		Set("key = excluded.key").
-		Set("key_hash = excluded.key_hash").
-		Set("value = excluded.value").
-		Set("level = excluded.level").
-		Set("contract = excluded.contract").
-		Set("timestamp = excluded.timestamp").
-		Set("protocol_id = excluded.protocol_id").
-		Set("operation_id = excluded.operation_id").
-		Returning("id").
-		Exec(ctx)
-	return err
 }
 
 // LogFields -

@@ -1,7 +1,6 @@
 package contract
 
 import (
-	"context"
 	"time"
 
 	"github.com/uptrace/bun"
@@ -28,12 +27,6 @@ func (m *GlobalConstant) GetID() int64 {
 // GetIndex -
 func (m *GlobalConstant) GetIndex() string {
 	return "global_constants"
-}
-
-// Save -
-func (m *GlobalConstant) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(m).Returning("id").Exec(ctx)
-	return err
 }
 
 // LogFields -

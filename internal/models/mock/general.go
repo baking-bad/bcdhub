@@ -12,7 +12,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	models "github.com/baking-bad/bcdhub/internal/models"
 	account "github.com/baking-bad/bcdhub/internal/models/account"
 	bigmapaction "github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	bigmapdiff "github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -47,44 +46,6 @@ func NewMockGeneralRepository(ctrl *gomock.Controller) *MockGeneralRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockGeneralRepository) EXPECT() *MockGeneralRepositoryMockRecorder {
 	return m.recorder
-}
-
-// BulkDelete mocks base method.
-func (m *MockGeneralRepository) BulkDelete(ctx context.Context, models []models.Model) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDelete", ctx, models)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkDelete indicates an expected call of BulkDelete.
-func (mr *MockGeneralRepositoryMockRecorder) BulkDelete(ctx, models any) *GeneralRepositoryBulkDeleteCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockGeneralRepository)(nil).BulkDelete), ctx, models)
-	return &GeneralRepositoryBulkDeleteCall{Call: call}
-}
-
-// GeneralRepositoryBulkDeleteCall wrap *gomock.Call
-type GeneralRepositoryBulkDeleteCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryBulkDeleteCall) Return(arg0 error) *GeneralRepositoryBulkDeleteCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryBulkDeleteCall) Do(f func(context.Context, []models.Model) error) *GeneralRepositoryBulkDeleteCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryBulkDeleteCall) DoAndReturn(f func(context.Context, []models.Model) error) *GeneralRepositoryBulkDeleteCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
 }
 
 // CreateIndex mocks base method.
@@ -235,44 +196,6 @@ func (c *GeneralRepositoryIsRecordNotFoundCall) Do(f func(error) bool) *GeneralR
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *GeneralRepositoryIsRecordNotFoundCall) DoAndReturn(f func(error) bool) *GeneralRepositoryIsRecordNotFoundCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// Save mocks base method.
-func (m *MockGeneralRepository) Save(ctx context.Context, items []models.Model) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", ctx, items)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Save indicates an expected call of Save.
-func (mr *MockGeneralRepositoryMockRecorder) Save(ctx, items any) *GeneralRepositorySaveCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockGeneralRepository)(nil).Save), ctx, items)
-	return &GeneralRepositorySaveCall{Call: call}
-}
-
-// GeneralRepositorySaveCall wrap *gomock.Call
-type GeneralRepositorySaveCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *GeneralRepositorySaveCall) Return(arg0 error) *GeneralRepositorySaveCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *GeneralRepositorySaveCall) Do(f func(context.Context, []models.Model) error) *GeneralRepositorySaveCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositorySaveCall) DoAndReturn(f func(context.Context, []models.Model) error) *GeneralRepositorySaveCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

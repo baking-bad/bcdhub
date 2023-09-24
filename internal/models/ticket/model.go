@@ -1,7 +1,6 @@
 package ticket
 
 import (
-	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -34,12 +33,6 @@ func (t *TicketUpdate) GetID() int64 {
 // GetIndex -
 func (t *TicketUpdate) GetIndex() string {
 	return "ticket_updates"
-}
-
-// Save -
-func (t *TicketUpdate) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(t).Returning("id").Exec(ctx)
-	return err
 }
 
 // LogFields -

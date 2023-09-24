@@ -12,7 +12,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/cache"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -146,12 +145,6 @@ func TestGroup_Parse(t *testing.T) {
 				Value:     []byte(`[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%lambda"]},{"prim":"option","args":[{"prim":"address"}],"annots":["%update_admin"]}]}]},{"prim":"storage","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%current"]},{"prim":"option","args":[{"prim":"address"}],"annots":["%pending"]}],"annots":["%admin"]},{"prim":"address","annots":["%whitelist_contract"]}]}]},{"prim":"code","args":[[{"prim":"UNPAIR"},{"prim":"IF_LEFT","args":[[{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"CAR"},{"prim":"SENDER"},{"prim":"COMPARE"},{"prim":"NEQ"},{"prim":"IF","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"SENDER_NOT_ADMIN"}]},{"prim":"FAILWITH"}],[]]},{"prim":"SWAP"},{"prim":"UNIT"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"SWAP"},{"prim":"EXEC"},{"prim":"PAIR"}],[{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CDR"},{"prim":"NIL","args":[{"prim":"address"}]},{"prim":"SENDER"},{"prim":"CONS"},{"prim":"VIEW","args":[{"string":"are_whitelisted"},{"prim":"bool"}]},{"prim":"IF_NONE","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"CALL_ARE_WHITELISED_VIEW_FAILED"}]},{"prim":"FAILWITH"}],[]]},{"prim":"IF","args":[[{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"SWAP"},{"prim":"IF_NONE","args":[[{"prim":"CDR"},{"prim":"IF_NONE","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"NO_PENDING_ADMIN"}]},{"prim":"FAILWITH"}],[{"prim":"DUP"},{"prim":"SENDER"},{"prim":"COMPARE"},{"prim":"NEQ"},{"prim":"IF","args":[[{"prim":"DROP"},{"prim":"PUSH","args":[{"prim":"string"},{"string":"NOT_PENDING_ADMIN"}]},{"prim":"FAILWITH"}],[{"prim":"NONE","args":[{"prim":"address"}]},{"prim":"SWAP"},{"prim":"PAIR"}]]}]]}],[{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"SENDER"},{"prim":"COMPARE"},{"prim":"NEQ"},{"prim":"IF","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"SENDER_NOT_ADMIN"}]},{"prim":"FAILWITH"}],[]]},{"prim":"SOME"},{"prim":"UPDATE","args":[{"int":"2"}]}]]},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"UPDATE","args":[{"int":"1"}]},{"prim":"SWAP"},{"prim":"PAIR"}],[{"prim":"DROP","args":[{"int":"2"}]},{"prim":"PUSH","args":[{"prim":"string"},{"string":"ADDRESS_NOT_WHITELISTED"}]},{"prim":"FAILWITH"}]]}]]}]]},{"prim":"view","args":[{"string":"admin"},{"prim":"unit"},{"prim":"address"},[{"prim":"CDR"},{"prim":"CAR"},{"prim":"CAR"}]]}]`),
 			},
 		}, nil).
-		AnyTimes()
-
-	generalRepo.
-		EXPECT().
-		Save(gomock.Any(), gomock.AssignableToTypeOf([]models.Model{})).
-		Return(nil).
 		AnyTimes()
 
 	generalRepo.

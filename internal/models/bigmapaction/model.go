@@ -1,7 +1,6 @@
 package bigmapaction
 
 import (
-	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -30,21 +29,6 @@ func (b *BigMapAction) GetID() int64 {
 // GetIndex -
 func (b *BigMapAction) GetIndex() string {
 	return "big_map_actions"
-}
-
-// Save -
-func (b *BigMapAction) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(b).On("CONFLICT (id) DO UPDATE").
-		Set("action = excluded.action").
-		Set("source_ptr = excluded.source_ptr").
-		Set("destination_ptr = excluded.destination_ptr").
-		Set("operation_id = excluded.operation_id").
-		Set("level = excluded.level").
-		Set("address = excluded.address").
-		Set("timestamp = excluded.timestamp").
-		Returning("id").
-		Exec(ctx)
-	return err
 }
 
 func (BigMapAction) PartitionBy() string {

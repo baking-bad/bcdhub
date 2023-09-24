@@ -1,7 +1,6 @@
 package bigmapdiff
 
 import (
-	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -34,22 +33,6 @@ func (b *BigMapState) GetID() int64 {
 // GetIndex -
 func (b *BigMapState) GetIndex() string {
 	return "big_map_states"
-}
-
-// Save -
-func (b *BigMapState) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.
-		NewInsert().
-		Model(b).
-		On("CONFLICT ON CONSTRAINT big_map_state_unique DO UPDATE").
-		Set("removed = EXCLUDED.removed").
-		Set("last_update_level = EXCLUDED.last_update_level").
-		Set("last_update_time = EXCLUDED.last_update_time").
-		Set("count = big_map_state.count + 1").
-		Set("value = CASE WHEN EXCLUDED.removed THEN big_map_state.value ELSE EXCLUDED.value END").
-		Returning("id").
-		Exec(ctx)
-	return err
 }
 
 // LogFields -

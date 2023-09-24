@@ -1,8 +1,6 @@
 package account
 
 import (
-	"context"
-
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/uptrace/bun"
 )
@@ -25,16 +23,6 @@ func (a *Account) GetID() int64 {
 // GetIndex -
 func (a *Account) GetIndex() string {
 	return "accounts"
-}
-
-// Save -
-func (a *Account) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(a).
-		On("CONFLICT (address) DO UPDATE").
-		Set("alias = ''").
-		Returning("id").
-		Exec(ctx)
-	return err
 }
 
 // IsEmpty -

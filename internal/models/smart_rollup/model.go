@@ -1,7 +1,6 @@
 package smartrollup
 
 import (
-	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -34,12 +33,6 @@ func (sr *SmartRollup) GetID() int64 {
 // GetIndex -
 func (SmartRollup) GetIndex() string {
 	return "smart_rollup"
-}
-
-// Save -
-func (sr *SmartRollup) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(sr).On("CONFLICT DO NOTHING").Returning("id").Exec(ctx)
-	return err
 }
 
 // LogFields -

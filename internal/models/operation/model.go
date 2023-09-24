@@ -1,7 +1,6 @@
 package operation
 
 import (
-	"context"
 	"encoding/hex"
 	"time"
 
@@ -86,12 +85,6 @@ func (o *Operation) GetID() int64 {
 // GetIndex -
 func (o *Operation) GetIndex() string {
 	return "operations"
-}
-
-// Save -
-func (o *Operation) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(o).Returning("id").Exec(ctx)
-	return err
 }
 
 // LogFields -

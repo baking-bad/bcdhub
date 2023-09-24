@@ -1,8 +1,6 @@
 package protocol
 
 import (
-	"context"
-
 	"github.com/uptrace/bun"
 )
 
@@ -37,16 +35,6 @@ func (p *Protocol) GetID() int64 {
 // GetIndex -
 func (p *Protocol) GetIndex() string {
 	return "protocols"
-}
-
-// Save -
-func (p *Protocol) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(p).
-		On("CONFLICT ON CONSTRAINT protocol_hash_idx DO UPDATE").
-		Set("end_level = ?", p.EndLevel).
-		Returning("id").
-		Exec(ctx)
-	return err
 }
 
 // ValidateChainID -

@@ -1,7 +1,6 @@
 package migration
 
 import (
-	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -32,12 +31,6 @@ func (m *Migration) GetID() int64 {
 // GetIndex -
 func (m *Migration) GetIndex() string {
 	return "migrations"
-}
-
-// Save -
-func (m *Migration) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(m).Returning("id").Exec(ctx)
-	return err
 }
 
 // LogFields -

@@ -2,7 +2,6 @@ package contract
 
 import (
 	"bytes"
-	"context"
 	stdJSON "encoding/json"
 	"time"
 
@@ -47,12 +46,6 @@ func (c *Contract) GetID() int64 {
 // GetIndex -
 func (c *Contract) GetIndex() string {
 	return "contracts"
-}
-
-// Save -
-func (c *Contract) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(c).On("CONFLICT DO NOTHING").Returning("id").Exec(ctx)
-	return err
 }
 
 // LogFields -

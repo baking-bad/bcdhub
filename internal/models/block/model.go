@@ -1,7 +1,6 @@
 package block
 
 import (
-	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -29,12 +28,6 @@ func (b *Block) GetID() int64 {
 // GetIndex -
 func (b *Block) GetIndex() string {
 	return "blocks"
-}
-
-// Save -
-func (b *Block) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.NewInsert().Model(b).Returning("id").Exec(ctx)
-	return err
 }
 
 func (Block) PartitionBy() string {

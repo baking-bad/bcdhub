@@ -121,7 +121,14 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 			return err
 		}
 
-		if err := currentProtocol.Save(ctx, db.DB); err != nil {
+		tx, err := postgres.NewTransaction(ctx, bi.StorageDB.DB)
+		if err != nil {
+			return err
+		}
+		if err := tx.Protocol(ctx, &currentProtocol); err != nil {
+			return err
+		}
+		if err := tx.Commit(); err != nil {
 			return err
 		}
 	}
@@ -448,7 +455,7 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header, t
 	if bi.currentProtocol.EndLevel == 0 && head.Level > 1 {
 		logger.Info().Str("network", bi.Network.String()).Msgf("Finalizing the previous protocol: %s", bi.currentProtocol.Alias)
 		bi.currentProtocol.EndLevel = head.Level - 1
-		if err := bi.currentProtocol.Save(ctx, bi.StorageDB.DB); err != nil {
+		if err := tx.Protocol(ctx, &bi.currentProtocol); err != nil {
 			return err
 		}
 	}
@@ -460,7 +467,7 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header, t
 		if err != nil {
 			return err
 		}
-		if err := newProtocol.Save(ctx, bi.StorageDB.DB); err != nil {
+		if err := tx.Protocol(ctx, &newProtocol); err != nil {
 			return err
 		}
 	}

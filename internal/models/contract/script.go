@@ -2,7 +2,6 @@ package contract
 
 import (
 	"bytes"
-	"context"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
@@ -40,17 +39,6 @@ func (s *Script) GetID() int64 {
 // GetIndex -
 func (s *Script) GetIndex() string {
 	return "scripts"
-}
-
-// Save -
-func (s *Script) Save(ctx context.Context, tx bun.IDB) error {
-	_, err := tx.
-		NewInsert().
-		Model(s).
-		On("CONFLICT (hash) DO NOTHING").
-		Returning("id").
-		Exec(ctx)
-	return err
 }
 
 // Full -
