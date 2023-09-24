@@ -8,13 +8,13 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/contract"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/uptrace/bun"
 )
 
 // Babylon -
@@ -30,7 +30,7 @@ func NewBabylon(bmdRepo bigmapdiff.Repository) *Babylon {
 }
 
 // Parse -
-func (p *Babylon) Parse(ctx context.Context, script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx bun.IDB) error {
+func (p *Babylon) Parse(ctx context.Context, script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx models.Transaction) error {
 	if err := p.getUpdates(ctx, script, *old, tx); err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (p *Babylon) Parse(ctx context.Context, script noderpc.Script, old *modelsC
 		Views:     s.Views,
 	}
 
-	if err := contractScript.Save(ctx, tx); err != nil {
+	if err := tx.Scripts(ctx, &contractScript); err != nil {
 		return err
 	}
 
@@ -78,7 +78,7 @@ func (p *Babylon) Parse(ctx context.Context, script noderpc.Script, old *modelsC
 		Kind:           types.MigrationKindUpdate,
 	}
 
-	return m.Save(ctx, tx)
+	return tx.Migrations(ctx, m)
 }
 
 // IsMigratable -
@@ -86,7 +86,7 @@ func (p *Babylon) IsMigratable(address string) bool {
 	return true
 }
 
-func (p *Babylon) getUpdates(ctx context.Context, script noderpc.Script, contract modelsContract.Contract, tx bun.IDB) error {
+func (p *Babylon) getUpdates(ctx context.Context, script noderpc.Script, contract modelsContract.Contract, tx models.Transaction) error {
 	storage, err := script.GetSettledStorage()
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (p *Babylon) getUpdates(ctx context.Context, script noderpc.Script, contrac
 
 	for i := range bmd {
 		bmd[i].Ptr = newPtr
-		if err := bmd[i].Save(ctx, tx); err != nil {
+		if err := tx.BigMapDiffs(ctx, &bmd[i]); err != nil {
 			return err
 		}
 	}
@@ -125,12 +125,8 @@ func (p *Babylon) getUpdates(ctx context.Context, script noderpc.Script, contrac
 	}
 
 	for i := range keys {
-		if _, err := tx.NewDelete().Model(&keys[i]).WherePK().Exec(ctx); err != nil {
-			return err
-		}
-
 		keys[i].Ptr = newPtr
-		if err := keys[i].Save(ctx, tx); err != nil {
+		if err := tx.BabylonBigMapStates(ctx, &keys[i]); err != nil {
 			return err
 		}
 	}

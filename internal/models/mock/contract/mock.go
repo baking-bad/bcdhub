@@ -40,6 +40,45 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
+// AllExceptDelegators mocks base method.
+func (m *MockRepository) AllExceptDelegators(ctx context.Context) ([]contract.Contract, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AllExceptDelegators", ctx)
+	ret0, _ := ret[0].([]contract.Contract)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AllExceptDelegators indicates an expected call of AllExceptDelegators.
+func (mr *MockRepositoryMockRecorder) AllExceptDelegators(ctx any) *RepositoryAllExceptDelegatorsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllExceptDelegators", reflect.TypeOf((*MockRepository)(nil).AllExceptDelegators), ctx)
+	return &RepositoryAllExceptDelegatorsCall{Call: call}
+}
+
+// RepositoryAllExceptDelegatorsCall wrap *gomock.Call
+type RepositoryAllExceptDelegatorsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *RepositoryAllExceptDelegatorsCall) Return(arg0 []contract.Contract, arg1 error) *RepositoryAllExceptDelegatorsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *RepositoryAllExceptDelegatorsCall) Do(f func(context.Context) ([]contract.Contract, error)) *RepositoryAllExceptDelegatorsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *RepositoryAllExceptDelegatorsCall) DoAndReturn(f func(context.Context) ([]contract.Contract, error)) *RepositoryAllExceptDelegatorsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // Count mocks base method.
 func (m *MockRepository) Count(ctx context.Context) (int, error) {
 	m.ctrl.T.Helper()

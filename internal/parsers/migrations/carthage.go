@@ -8,12 +8,12 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/contract"
+	"github.com/baking-bad/bcdhub/internal/models"
 	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/uptrace/bun"
 )
 
 // Carthage -
@@ -26,7 +26,7 @@ func NewCarthage() *Carthage {
 }
 
 // Parse -
-func (p *Carthage) Parse(ctx context.Context, script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx bun.IDB) error {
+func (p *Carthage) Parse(ctx context.Context, script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx models.Transaction) error {
 	codeBytes, err := json.Marshal(script.Code)
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (p *Carthage) Parse(ctx context.Context, script noderpc.Script, old *models
 		Views:     s.Views,
 	}
 
-	if err := contractScript.Save(ctx, tx); err != nil {
+	if err := tx.Scripts(ctx, &contractScript); err != nil {
 		return err
 	}
 
@@ -70,7 +70,7 @@ func (p *Carthage) Parse(ctx context.Context, script noderpc.Script, old *models
 		Kind:           types.MigrationKindUpdate,
 	}
 
-	return m.Save(ctx, tx)
+	return tx.Migrations(ctx, m)
 }
 
 // IsMigratable -

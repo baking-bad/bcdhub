@@ -114,3 +114,11 @@ type View struct {
 type ViewImplementation struct {
 	MichelsonStorageView Sections `json:"michelsonStorageView"`
 }
+
+type Update struct {
+	bun.BaseModel `bun:"contracts"`
+
+	AccountID  int64
+	LastAction time.Time
+	TxCount    uint64
+}

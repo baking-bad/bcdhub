@@ -17,6 +17,7 @@ type Repository interface {
 	// ScriptPart - returns part of script type. Part can be `storage`, `parameter` or `code`.
 	ScriptPart(ctx context.Context, address string, symLink, part string) ([]byte, error)
 	FindOne(ctx context.Context, tags types.Tags) (Contract, error)
+	AllExceptDelegators(ctx context.Context) ([]Contract, error)
 }
 
 //go:generate mockgen -source=$GOFILE -destination=../mock/contract/mock.go -package=contract -typed

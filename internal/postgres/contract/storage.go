@@ -207,3 +207,11 @@ func (storage *Storage) FindOne(ctx context.Context, tags types.Tags) (result co
 		Scan(ctx)
 	return
 }
+
+func (storage *Storage) AllExceptDelegators(ctx context.Context) (contracts []contract.Contract, err error) {
+	err = storage.DB.NewSelect().Model(&contracts).
+		Relation("Account").
+		Where("tags & 4 = 0"). // except delegator contracts
+		Scan(ctx)
+	return
+}

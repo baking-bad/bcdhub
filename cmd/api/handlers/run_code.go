@@ -14,9 +14,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
 	"github.com/baking-bad/bcdhub/internal/parsers/protocols"
-	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -96,7 +96,7 @@ func RunOperation() gin.HandlerFunc {
 		}
 		parser := operations.NewGroup(parserParams)
 
-		store := postgres.NewStore(ctx.StorageDB.DB, ctx.Partitions)
+		store := parsers.NewTestStore()
 		if err := parser.Parse(c.Request.Context(), response, store); handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -306,7 +306,7 @@ func parseBigMapDiffs(c context.Context, ctx *config.Context, response noderpc.R
 		},
 	}
 
-	store := postgres.NewStore(ctx.StorageDB.DB, ctx.Partitions)
+	store := parsers.NewTestStore()
 	switch operation.Kind {
 	case types.OperationKindTransaction.String():
 		err = specific.StorageParser.ParseTransaction(c, nodeOperation, &model, store)

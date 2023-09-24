@@ -55,7 +55,7 @@ func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState
 	return nil
 }
 
-// TODO: rollback protocol
+// TODO: rollback protocol and m2m entities
 func (rm Manager) rollback(ctx context.Context, level int64) error {
 	if err := rm.rollbackOperations(ctx, level); err != nil {
 		return err
