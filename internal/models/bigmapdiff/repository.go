@@ -15,7 +15,5 @@ type Repository interface {
 	CurrentByContract(ctx context.Context, contract string) ([]BigMapState, error)
 	Previous(ctx context.Context, diffs []BigMapDiff) ([]BigMapDiff, error)
 	GetStats(ctx context.Context, ptr int64) (Stats, error)
-	StatesChangedAtLevel(ctx context.Context, level int64) ([]BigMapState, error)
-	LastDiff(ctx context.Context, ptr int64, keyHash string, skipRemoved bool) (BigMapDiff, error)
 	Keys(ctx context.Context, reqCtx GetContext) (states []BigMapState, err error)
 }

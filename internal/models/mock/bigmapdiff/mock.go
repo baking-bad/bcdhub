@@ -469,45 +469,6 @@ func (c *RepositoryKeysCall) DoAndReturn(f func(context.Context, bigmapdiff.GetC
 	return c
 }
 
-// LastDiff mocks base method.
-func (m *MockRepository) LastDiff(ctx context.Context, ptr int64, keyHash string, skipRemoved bool) (bigmapdiff.BigMapDiff, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LastDiff", ctx, ptr, keyHash, skipRemoved)
-	ret0, _ := ret[0].(bigmapdiff.BigMapDiff)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LastDiff indicates an expected call of LastDiff.
-func (mr *MockRepositoryMockRecorder) LastDiff(ctx, ptr, keyHash, skipRemoved any) *RepositoryLastDiffCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastDiff", reflect.TypeOf((*MockRepository)(nil).LastDiff), ctx, ptr, keyHash, skipRemoved)
-	return &RepositoryLastDiffCall{Call: call}
-}
-
-// RepositoryLastDiffCall wrap *gomock.Call
-type RepositoryLastDiffCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryLastDiffCall) Return(arg0 bigmapdiff.BigMapDiff, arg1 error) *RepositoryLastDiffCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryLastDiffCall) Do(f func(context.Context, int64, string, bool) (bigmapdiff.BigMapDiff, error)) *RepositoryLastDiffCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryLastDiffCall) DoAndReturn(f func(context.Context, int64, string, bool) (bigmapdiff.BigMapDiff, error)) *RepositoryLastDiffCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // Previous mocks base method.
 func (m *MockRepository) Previous(ctx context.Context, diffs []bigmapdiff.BigMapDiff) ([]bigmapdiff.BigMapDiff, error) {
 	m.ctrl.T.Helper()
@@ -543,45 +504,6 @@ func (c *RepositoryPreviousCall) Do(f func(context.Context, []bigmapdiff.BigMapD
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *RepositoryPreviousCall) DoAndReturn(f func(context.Context, []bigmapdiff.BigMapDiff) ([]bigmapdiff.BigMapDiff, error)) *RepositoryPreviousCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// StatesChangedAtLevel mocks base method.
-func (m *MockRepository) StatesChangedAtLevel(ctx context.Context, level int64) ([]bigmapdiff.BigMapState, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StatesChangedAtLevel", ctx, level)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapState)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// StatesChangedAtLevel indicates an expected call of StatesChangedAtLevel.
-func (mr *MockRepositoryMockRecorder) StatesChangedAtLevel(ctx, level any) *RepositoryStatesChangedAtLevelCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatesChangedAtLevel", reflect.TypeOf((*MockRepository)(nil).StatesChangedAtLevel), ctx, level)
-	return &RepositoryStatesChangedAtLevelCall{Call: call}
-}
-
-// RepositoryStatesChangedAtLevelCall wrap *gomock.Call
-type RepositoryStatesChangedAtLevelCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryStatesChangedAtLevelCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *RepositoryStatesChangedAtLevelCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryStatesChangedAtLevelCall) Do(f func(context.Context, int64) ([]bigmapdiff.BigMapState, error)) *RepositoryStatesChangedAtLevelCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryStatesChangedAtLevelCall) DoAndReturn(f func(context.Context, int64) ([]bigmapdiff.BigMapState, error)) *RepositoryStatesChangedAtLevelCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

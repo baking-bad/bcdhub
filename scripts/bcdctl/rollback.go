@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 )
 
@@ -34,8 +35,12 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		return nil
 	}
 
-	manager := rollback.NewManager(ctx.RPC, ctx.Storage, ctx.Blocks, ctx.BigMapDiffs)
-	if err = manager.Rollback(context.Background(), ctx.StorageDB.DB, network, state, x.Level); err != nil {
+	saver, err := postgres.NewRollback(ctx.StorageDB.DB)
+	if err != nil {
+		return err
+	}
+	manager := rollback.NewManager(ctx.Storage, ctx.Blocks, saver)
+	if err = manager.Rollback(context.Background(), network, state, x.Level); err != nil {
 		return err
 	}
 	logger.Info().Msg("Done")

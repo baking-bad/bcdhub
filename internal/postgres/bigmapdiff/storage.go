@@ -191,27 +191,6 @@ func (storage *Storage) CurrentByContract(ctx context.Context, contract string) 
 	return
 }
 
-// StatesChangedAtLevel -
-func (storage *Storage) StatesChangedAtLevel(ctx context.Context, level int64) (states []bigmapdiff.BigMapState, err error) {
-	err = storage.DB.NewSelect().Model(&states).
-		Where("last_update_level = ?", level).
-		Scan(ctx)
-	return
-}
-
-// LastDiff -
-func (storage *Storage) LastDiff(ctx context.Context, ptr int64, keyHash string, skipRemoved bool) (diff bigmapdiff.BigMapDiff, err error) {
-	query := storage.DB.NewSelect().Model(&diff)
-	query = bigMapKey(query, keyHash, ptr)
-
-	if skipRemoved {
-		query.Where("value is not null")
-	}
-
-	err = query.Order("id desc").Limit(1).Scan(ctx)
-	return
-}
-
 // Keys -
 func (storage *Storage) Keys(ctx context.Context, req bigmapdiff.GetContext) (states []bigmapdiff.BigMapState, err error) {
 	err = storage.buildGetContextForState(req).Scan(ctx, &states)

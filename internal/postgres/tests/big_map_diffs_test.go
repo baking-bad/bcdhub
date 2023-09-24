@@ -156,31 +156,6 @@ func (s *StorageTestSuite) TestBigMapDiffsCurrentByContract() {
 	s.Require().Len(diff, 4)
 }
 
-func (s *StorageTestSuite) TestBigMapDiffsStatesChangedAtLevel() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	diff, err := s.bigMapDiffs.StatesChangedAtLevel(ctx, 40)
-	s.Require().NoError(err)
-	s.Require().Len(diff, 6)
-}
-
-func (s *StorageTestSuite) TestBigMapDiffsLastDiff() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	diff, err := s.bigMapDiffs.LastDiff(ctx, 41, "exprurUjYU5axnk1qjE6F2t7uDtqR64bnsxGu3AHfWiVREftRDcRPX", true)
-	s.Require().NoError(err)
-
-	s.Require().EqualValues(55, diff.ID)
-	s.Require().EqualValues(41, diff.Ptr)
-	s.Require().EqualValues(40, diff.Level)
-	s.Require().EqualValues(2, diff.ProtocolID)
-	s.Require().EqualValues(109, diff.OperationID)
-	s.Require().EqualValues("KT1NSpRTVR4MUwx64XCADXDUmpMGQw5yVNK1", diff.Contract)
-	s.Require().Equal("exprurUjYU5axnk1qjE6F2t7uDtqR64bnsxGu3AHfWiVREftRDcRPX", diff.KeyHash)
-}
-
 func (s *StorageTestSuite) TestBigMapDiffsKeys() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

@@ -306,8 +306,12 @@ func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.RPC, bi.Storage, bi.Blocks, bi.BigMapDiffs)
-	if err := manager.Rollback(ctx, bi.StorageDB.DB, bi.Network, bi.state, lastLevel); err != nil {
+	saver, err := postgres.NewRollback(bi.StorageDB.DB)
+	if err != nil {
+		return err
+	}
+	manager := rollback.NewManager(bi.Storage, bi.Blocks, saver)
+	if err := manager.Rollback(ctx, bi.Network, bi.state, lastLevel); err != nil {
 		return err
 	}
 
