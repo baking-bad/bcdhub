@@ -30,7 +30,8 @@ func (a *Account) GetIndex() string {
 // Save -
 func (a *Account) Save(ctx context.Context, tx bun.IDB) error {
 	_, err := tx.NewInsert().Model(a).
-		On("CONFLICT (address) DO NOTHING").
+		On("CONFLICT (address) DO UPDATE").
+		Set("alias = ''").
 		Returning("id").
 		Exec(ctx)
 	return err

@@ -12,6 +12,8 @@ import (
 )
 
 func TestTypedAst_ToJSONSchema(t *testing.T) {
+	ts := time.Now().UTC()
+
 	tests := []struct {
 		name    string
 		data    string
@@ -185,7 +187,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 						Prim:    "timestamp",
 						Title:   "refund_time",
 						Format:  "date-time",
-						Default: time.Now().UTC().Format(time.RFC3339),
+						Default: ts.Format(time.RFC3339),
 					},
 				},
 			},
@@ -605,18 +607,15 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ta, err := NewTypedAstFromString(tt.data)
-			if err != nil {
-				t.Errorf("NewTypedAstFromString error = %v", err)
-				return
-			}
+			require.NoError(t, err)
 
 			got, err := ta.ToJSONSchema()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.ToJSONSchema() error = %v, wantErr %v", err, tt.wantErr)
+			require.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
 				return
 			}
 
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

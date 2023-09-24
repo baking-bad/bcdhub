@@ -430,45 +430,6 @@ func (c *RepositoryGetStatsCall) DoAndReturn(f func(context.Context, int64) (big
 	return c
 }
 
-// GetValuesByKey mocks base method.
-func (m *MockRepository) GetValuesByKey(ctx context.Context, keyHash string) ([]bigmapdiff.BigMapState, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetValuesByKey", ctx, keyHash)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapState)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetValuesByKey indicates an expected call of GetValuesByKey.
-func (mr *MockRepositoryMockRecorder) GetValuesByKey(ctx, keyHash any) *RepositoryGetValuesByKeyCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValuesByKey", reflect.TypeOf((*MockRepository)(nil).GetValuesByKey), ctx, keyHash)
-	return &RepositoryGetValuesByKeyCall{Call: call}
-}
-
-// RepositoryGetValuesByKeyCall wrap *gomock.Call
-type RepositoryGetValuesByKeyCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetValuesByKeyCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *RepositoryGetValuesByKeyCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetValuesByKeyCall) Do(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *RepositoryGetValuesByKeyCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetValuesByKeyCall) DoAndReturn(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *RepositoryGetValuesByKeyCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // Keys mocks base method.
 func (m *MockRepository) Keys(ctx context.Context, reqCtx bigmapdiff.GetContext) ([]bigmapdiff.BigMapState, error) {
 	m.ctrl.T.Helper()
@@ -586,41 +547,41 @@ func (c *RepositoryPreviousCall) DoAndReturn(f func(context.Context, []bigmapdif
 	return c
 }
 
-// StatesChangedAfter mocks base method.
-func (m *MockRepository) StatesChangedAfter(ctx context.Context, level int64) ([]bigmapdiff.BigMapState, error) {
+// StatesChangedAtLevel mocks base method.
+func (m *MockRepository) StatesChangedAtLevel(ctx context.Context, level int64) ([]bigmapdiff.BigMapState, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StatesChangedAfter", ctx, level)
+	ret := m.ctrl.Call(m, "StatesChangedAtLevel", ctx, level)
 	ret0, _ := ret[0].([]bigmapdiff.BigMapState)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// StatesChangedAfter indicates an expected call of StatesChangedAfter.
-func (mr *MockRepositoryMockRecorder) StatesChangedAfter(ctx, level any) *RepositoryStatesChangedAfterCall {
+// StatesChangedAtLevel indicates an expected call of StatesChangedAtLevel.
+func (mr *MockRepositoryMockRecorder) StatesChangedAtLevel(ctx, level any) *RepositoryStatesChangedAtLevelCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatesChangedAfter", reflect.TypeOf((*MockRepository)(nil).StatesChangedAfter), ctx, level)
-	return &RepositoryStatesChangedAfterCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatesChangedAtLevel", reflect.TypeOf((*MockRepository)(nil).StatesChangedAtLevel), ctx, level)
+	return &RepositoryStatesChangedAtLevelCall{Call: call}
 }
 
-// RepositoryStatesChangedAfterCall wrap *gomock.Call
-type RepositoryStatesChangedAfterCall struct {
+// RepositoryStatesChangedAtLevelCall wrap *gomock.Call
+type RepositoryStatesChangedAtLevelCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryStatesChangedAfterCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *RepositoryStatesChangedAfterCall {
+func (c *RepositoryStatesChangedAtLevelCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *RepositoryStatesChangedAtLevelCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryStatesChangedAfterCall) Do(f func(context.Context, int64) ([]bigmapdiff.BigMapState, error)) *RepositoryStatesChangedAfterCall {
+func (c *RepositoryStatesChangedAtLevelCall) Do(f func(context.Context, int64) ([]bigmapdiff.BigMapState, error)) *RepositoryStatesChangedAtLevelCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryStatesChangedAfterCall) DoAndReturn(f func(context.Context, int64) ([]bigmapdiff.BigMapState, error)) *RepositoryStatesChangedAfterCall {
+func (c *RepositoryStatesChangedAtLevelCall) DoAndReturn(f func(context.Context, int64) ([]bigmapdiff.BigMapState, error)) *RepositoryStatesChangedAtLevelCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -78,45 +78,6 @@ func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, string, int64) (
 	return c
 }
 
-// GetAll mocks base method.
-func (m *MockRepository) GetAll(ctx context.Context) ([]protocol.Protocol, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll", ctx)
-	ret0, _ := ret[0].([]protocol.Protocol)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAll indicates an expected call of GetAll.
-func (mr *MockRepositoryMockRecorder) GetAll(ctx any) *RepositoryGetAllCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll), ctx)
-	return &RepositoryGetAllCall{Call: call}
-}
-
-// RepositoryGetAllCall wrap *gomock.Call
-type RepositoryGetAllCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetAllCall) Return(response []protocol.Protocol, err error) *RepositoryGetAllCall {
-	c.Call = c.Call.Return(response, err)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetAllCall) Do(f func(context.Context) ([]protocol.Protocol, error)) *RepositoryGetAllCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetAllCall) DoAndReturn(f func(context.Context) ([]protocol.Protocol, error)) *RepositoryGetAllCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // GetByID mocks base method.
 func (m *MockRepository) GetByID(ctx context.Context, id int64) (protocol.Protocol, error) {
 	m.ctrl.T.Helper()
@@ -152,45 +113,6 @@ func (c *RepositoryGetByIDCall) Do(f func(context.Context, int64) (protocol.Prot
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *RepositoryGetByIDCall) DoAndReturn(f func(context.Context, int64) (protocol.Protocol, error)) *RepositoryGetByIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetByNetworkWithSort mocks base method.
-func (m *MockRepository) GetByNetworkWithSort(ctx context.Context, sortField, order string) ([]protocol.Protocol, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByNetworkWithSort", ctx, sortField, order)
-	ret0, _ := ret[0].([]protocol.Protocol)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByNetworkWithSort indicates an expected call of GetByNetworkWithSort.
-func (mr *MockRepositoryMockRecorder) GetByNetworkWithSort(ctx, sortField, order any) *RepositoryGetByNetworkWithSortCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByNetworkWithSort", reflect.TypeOf((*MockRepository)(nil).GetByNetworkWithSort), ctx, sortField, order)
-	return &RepositoryGetByNetworkWithSortCall{Call: call}
-}
-
-// RepositoryGetByNetworkWithSortCall wrap *gomock.Call
-type RepositoryGetByNetworkWithSortCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetByNetworkWithSortCall) Return(response []protocol.Protocol, err error) *RepositoryGetByNetworkWithSortCall {
-	c.Call = c.Call.Return(response, err)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetByNetworkWithSortCall) Do(f func(context.Context, string, string) ([]protocol.Protocol, error)) *RepositoryGetByNetworkWithSortCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetByNetworkWithSortCall) DoAndReturn(f func(context.Context, string, string) ([]protocol.Protocol, error)) *RepositoryGetByNetworkWithSortCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

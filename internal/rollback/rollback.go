@@ -104,7 +104,7 @@ func (rm Manager) rollbackMigrations(ctx context.Context, tx bun.Tx, level int64
 
 func (rm Manager) rollbackBigMapState(ctx context.Context, tx bun.Tx, level int64) error {
 	logger.Info().Msg("rollback big map states...")
-	states, err := rm.bmdRepo.StatesChangedAfter(ctx, level)
+	states, err := rm.bmdRepo.StatesChangedAtLevel(ctx, level)
 	if err != nil {
 		return err
 	}

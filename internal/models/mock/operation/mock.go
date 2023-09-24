@@ -313,50 +313,6 @@ func (c *RepositoryGetByIDCall) DoAndReturn(f func(context.Context, int64) (oper
 	return c
 }
 
-// GetByIDs mocks base method.
-func (m *MockRepository) GetByIDs(ctx context.Context, ids ...int64) ([]operation.Operation, error) {
-	m.ctrl.T.Helper()
-	varargs := []any{ctx}
-	for _, a := range ids {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetByIDs", varargs...)
-	ret0, _ := ret[0].([]operation.Operation)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByIDs indicates an expected call of GetByIDs.
-func (mr *MockRepositoryMockRecorder) GetByIDs(ctx any, ids ...any) *RepositoryGetByIDsCall {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx}, ids...)
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockRepository)(nil).GetByIDs), varargs...)
-	return &RepositoryGetByIDsCall{Call: call}
-}
-
-// RepositoryGetByIDsCall wrap *gomock.Call
-type RepositoryGetByIDsCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetByIDsCall) Return(arg0 []operation.Operation, arg1 error) *RepositoryGetByIDsCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetByIDsCall) Do(f func(context.Context, ...int64) ([]operation.Operation, error)) *RepositoryGetByIDsCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetByIDsCall) DoAndReturn(f func(context.Context, ...int64) ([]operation.Operation, error)) *RepositoryGetByIDsCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // GetImplicitOperation mocks base method.
 func (m *MockRepository) GetImplicitOperation(ctx context.Context, counter int64) (operation.Operation, error) {
 	m.ctrl.T.Helper()

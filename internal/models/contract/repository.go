@@ -10,11 +10,8 @@ import (
 //go:generate mockgen -source=$GOFILE -destination=../mock/contract/mock.go -package=contract -typed
 type Repository interface {
 	Get(ctx context.Context, address string) (Contract, error)
-	GetAll(ctx context.Context, filters map[string]interface{}) ([]Contract, error)
-	GetTokens(ctx context.Context, tokenInterface string, offset, size int64) ([]Contract, int64, error)
 	RecentlyCalled(ctx context.Context, offset, size int64) ([]Contract, error)
 	Count(ctx context.Context) (int, error)
-
 	Script(ctx context.Context, address string, symLink string) (Script, error)
 
 	// ScriptPart - returns part of script type. Part can be `storage`, `parameter` or `code`.
@@ -24,9 +21,7 @@ type Repository interface {
 
 //go:generate mockgen -source=$GOFILE -destination=../mock/contract/mock.go -package=contract -typed
 type ScriptRepository interface {
-	GetScripts(ctx context.Context, limit, offset int) ([]Script, error)
 	ByHash(ctx context.Context, hash string) (Script, error)
-
 	Code(ctx context.Context, id int64) ([]byte, error)
 	Parameter(ctx context.Context, id int64) ([]byte, error)
 	Storage(ctx context.Context, id int64) ([]byte, error)

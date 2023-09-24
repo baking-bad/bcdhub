@@ -1,6 +1,8 @@
 package types
 
-import "database/sql/driver"
+import (
+	"database/sql/driver"
+)
 
 // NullString represents a string that may be null.
 // NullString implements the Scanner interface so
@@ -47,9 +49,13 @@ func (ns *NullString) Scan(value interface{}) error {
 		return nil
 	}
 
-	if val, ok := value.([]byte); ok {
+	switch val := value.(type) {
+	case string:
+		ns.Str, ns.Valid = val, true
+	case []byte:
 		ns.Str, ns.Valid = string(val), true
 	}
+
 	return nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -91,17 +92,47 @@ func (storage *Storage) ForContract(ctx context.Context, address string, size, o
 		size = consts.DefaultSize
 	}
 
-	err = storage.DB.NewSelect().Model(&response).
+	var accountID int64
+	if err = storage.DB.
+		NewSelect().
+		Model((*account.Account)(nil)).
+		Column("id").
+		Where("address = ?", address).
+		Scan(ctx, &accountID); err != nil {
+		return
+	}
+
+	var contr contract.Contract
+	if err = storage.DB.
+		NewSelect().
+		Column("id", "alpha_id", "babylon_id", "jakarta_id").
+		Model(&contr).
+		Column("id").
+		Where("account_id = ?", accountID).
+		Scan(ctx); err != nil {
+		return
+	}
+
+	ids := make([]int64, 0)
+	if contr.BabylonID > 0 {
+		ids = append(ids, contr.BabylonID)
+	}
+	if contr.JakartaID > 0 {
+		ids = append(ids, contr.JakartaID)
+	}
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	err = storage.DB.NewSelect().Model((*contract.ScriptConstants)(nil)).
 		ColumnExpr("global_constants.*").
-		Join("LEFT JOIN accounts on account_id = accounts.id").
-		Join("LEFT JOIN script_constants as t on t.script_id = jakarta_id or t.script_id = babylon_id").
-		Join("LEFT JOIN global_constants on t.global_constant_id = global_constants.id").
-		Where("accounts.address = ?", address).
+		Join("LEFT JOIN global_constants on global_constant_id = global_constants.id").
 		Where("global_constant_id is not null").
+		Where("script_id IN (?)", bun.In(ids)).
 		Limit(int(size)).
 		Offset(int(offset)).
-		Order("id desc").
-		Scan(ctx)
+		Order("global_constants.id desc").
+		Scan(ctx, &response)
 	return
 }
 

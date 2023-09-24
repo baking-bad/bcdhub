@@ -20,8 +20,6 @@ type Repository interface {
 	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
 	// `Sort` - sort by time and content index by desc
 	Get(ctx context.Context, filter map[string]interface{}, size int64, sort bool) ([]Operation, error)
-
-	GetByIDs(ctx context.Context, ids ...int64) ([]Operation, error)
 	GetByID(ctx context.Context, id int64) (Operation, error)
 
 	ListEvents(ctx context.Context, accountID int64, size, offset int64) ([]Operation, error)

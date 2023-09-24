@@ -30,7 +30,7 @@ func NewStorage(es *core.Postgres) *Storage {
 
 type opgForContract struct {
 	Counter int64
-	Hash    *string
+	Hash    []byte
 	ID      int64
 }
 
@@ -197,7 +197,11 @@ func (storage *Storage) Last(ctx context.Context, filters map[string]interface{}
 
 // Get -
 func (storage *Storage) Get(ctx context.Context, filters map[string]interface{}, size int64, sort bool) (operations []operation.Operation, err error) {
-	query := storage.DB.NewSelect().Model(&operations).Relation("Destination.address")
+	query := storage.DB.NewSelect().
+		Model(&operations).
+		Relation("Destination", func(q *bun.SelectQuery) *bun.SelectQuery {
+			return q.Column("address")
+		})
 
 	for key, value := range filters {
 		query.Where("? = ?", bun.Ident(key), value)
@@ -227,16 +231,6 @@ func (storage *Storage) GetByHash(ctx context.Context, hash []byte) (operations 
 		Join("LEFT JOIN accounts as destination ON destination.id = operation.destination_id").
 		Scan(ctx, &operations)
 	return operations, err
-}
-
-// GetByIDs -
-func (storage *Storage) GetByIDs(ctx context.Context, ids ...int64) (result []operation.Operation, err error) {
-	err = storage.DB.NewSelect().
-		Model(&result).
-		Where("id IN (?)", bun.In(ids)).
-		Order("id asc").
-		Scan(ctx)
-	return
 }
 
 // GetByID -

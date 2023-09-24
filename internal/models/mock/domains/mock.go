@@ -40,45 +40,6 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// BigMapDiffs mocks base method.
-func (m *MockRepository) BigMapDiffs(ctx context.Context, lastID, size int64) ([]domains.BigMapDiff, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BigMapDiffs", ctx, lastID, size)
-	ret0, _ := ret[0].([]domains.BigMapDiff)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BigMapDiffs indicates an expected call of BigMapDiffs.
-func (mr *MockRepositoryMockRecorder) BigMapDiffs(ctx, lastID, size any) *RepositoryBigMapDiffsCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BigMapDiffs", reflect.TypeOf((*MockRepository)(nil).BigMapDiffs), ctx, lastID, size)
-	return &RepositoryBigMapDiffsCall{Call: call}
-}
-
-// RepositoryBigMapDiffsCall wrap *gomock.Call
-type RepositoryBigMapDiffsCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryBigMapDiffsCall) Return(arg0 []domains.BigMapDiff, arg1 error) *RepositoryBigMapDiffsCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryBigMapDiffsCall) Do(f func(context.Context, int64, int64) ([]domains.BigMapDiff, error)) *RepositoryBigMapDiffsCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryBigMapDiffsCall) DoAndReturn(f func(context.Context, int64, int64) ([]domains.BigMapDiff, error)) *RepositoryBigMapDiffsCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // Same mocks base method.
 func (m *MockRepository) Same(ctx context.Context, network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]domains.Same, error) {
 	m.ctrl.T.Helper()

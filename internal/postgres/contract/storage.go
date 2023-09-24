@@ -10,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
-	"github.com/uptrace/bun"
 )
 
 // Storage -
@@ -42,49 +41,6 @@ func (storage *Storage) Get(ctx context.Context, address string) (response contr
 		Relation("Babylon").Relation("Jakarta").
 		Scan(ctx)
 	return
-}
-
-// GetAll -
-func (storage *Storage) GetAll(ctx context.Context, filters map[string]interface{}) (response []contract.Contract, err error) {
-	query := storage.DB.NewSelect().Model(response)
-	for key, value := range filters {
-		query.Where("? = ?", bun.Ident(key), value)
-	}
-	err = query.Relation("Account").Relation("Manager").Relation("Delegate").Scan(ctx)
-	return
-}
-
-// GetTokens -
-func (storage *Storage) GetTokens(ctx context.Context, tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
-	tags := types.FA12Tag | types.FA1Tag | types.FA2Tag
-	if tokenInterface == "fa1-2" || tokenInterface == "fa1" || tokenInterface == "fa2" {
-		tags = types.NewTags([]string{tokenInterface})
-	}
-
-	query := storage.DB.NewSelect().Model((*contract.Contract)(nil)).
-		Where("(tags & ?) > 0", tags).
-		Order("id desc").
-		Limit(storage.GetPageSize(size)).
-		Offset(int(offset))
-
-	var contracts []contract.Contract
-	err := storage.DB.NewSelect().TableExpr("(?) as contract", query).
-		ColumnExpr("contract.*").
-		ColumnExpr("account.address as account__address, account.alias as account__alias").
-		ColumnExpr("manager.address as manager__address, manager.alias as manager__alias").
-		ColumnExpr("delegate.address as delegate__address, delegate.alias as delegate__alias").
-		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
-		Join(`LEFT JOIN "accounts" AS "manager" ON "manager"."id" = "contract"."manager_id" `).
-		Join(`LEFT JOIN "accounts" AS "delegate" ON "delegate"."id" = "contract"."delegate_id"`).
-		Scan(ctx, &contracts)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	count, err := storage.DB.NewSelect().Model((*contract.Contract)(nil)).
-		Where("(contract.tags & ?) > 0", tags).
-		Count(ctx)
-	return contracts, int64(count), err
 }
 
 // ByHash -
@@ -119,14 +75,6 @@ func (storage *Storage) Script(ctx context.Context, address string, symLink stri
 		return c.Jakarta, err
 	}
 	return c.Alpha, errors.Errorf("unknown protocol symbolic link: %s", symLink)
-}
-
-// GetScripts -
-func (storage *Storage) GetScripts(ctx context.Context, limit, offset int) (scripts []contract.Script, err error) {
-	err = storage.DB.NewSelect().Model(&scripts).
-		ColumnExpr("id, tags, hash, fail_strings, annotations, entrypoints").
-		Limit(limit).Offset(offset).Order("id asc").Scan(ctx)
-	return
 }
 
 // Code -
@@ -180,53 +128,45 @@ func (storage *Storage) ScriptPart(ctx context.Context, address string, symLink,
 		return nil, err
 	}
 
-	query := storage.DB.NewSelect().Model((*contract.Contract)(nil)).Where("account_id = ?", accountID)
+	var scriptId int64
+	scriptIdQuery := storage.DB.NewSelect().
+		Model((*contract.Contract)(nil)).
+		Where("account_id = ?", accountID)
 
 	switch symLink {
 	case bcd.SymLinkAlpha:
-		switch part {
-		case consts.PARAMETER:
-			query.Column("alpha.parameter").Relation("Alpha._")
-		case consts.CODE:
-			query.Column("alpha.code").Relation("Alpha._")
-		case consts.STORAGE:
-			query.Column("alpha.storage").Relation("Alpha._")
-		case consts.VIEWS:
-			query.Column("alpha.views").Relation("Alpha._")
-		default:
-			return nil, errors.Errorf("unknown script part name: %s", part)
-		}
+		scriptIdQuery = scriptIdQuery.Column("alpha_id")
 	case bcd.SymLinkBabylon:
-		switch part {
-		case consts.PARAMETER:
-			query.Column("babylon.parameter").Relation("Babylon._")
-		case consts.CODE:
-			query.Column("babylon.code").Relation("Babylon._")
-		case consts.STORAGE:
-			query.Column("babylon.storage").Relation("Babylon._")
-		case consts.VIEWS:
-			query.Column("babylon.views").Relation("Babylon._")
-		default:
-			return nil, errors.Errorf("unknown script part name: %s", part)
-		}
+		scriptIdQuery = scriptIdQuery.Column("babylon_id")
 	case bcd.SymLinkJakarta:
-		switch part {
-		case consts.PARAMETER:
-			query.Column("jakarta.parameter").Relation("Jakarta._")
-		case consts.CODE:
-			query.Column("jakarta.code").Relation("Jakarta._")
-		case consts.STORAGE:
-			query.Column("jakarta.storage").Relation("Jakarta._")
-		case consts.VIEWS:
-			query.Column("jakarta.views").Relation("Jakarta._")
-		default:
-			return nil, errors.Errorf("unknown script part name: %s", part)
-		}
+		scriptIdQuery = scriptIdQuery.Column("jakarta_id")
 	default:
 		return nil, errors.Errorf("unknown protocol symbolic link: %s", symLink)
 	}
+
+	if err := scriptIdQuery.Scan(ctx, &scriptId); err != nil {
+		return nil, err
+	}
+
+	partQuery := storage.DB.NewSelect().
+		Model((*contract.Script)(nil)).
+		Where("id = ?", scriptId)
+
+	switch part {
+	case consts.PARAMETER:
+		partQuery.Column("parameter")
+	case consts.CODE:
+		partQuery.Column("code")
+	case consts.STORAGE:
+		partQuery.Column("storage")
+	case consts.VIEWS:
+		partQuery.Column("views")
+	default:
+		return nil, errors.Errorf("unknown script part name: %s", part)
+	}
+
 	var data []byte
-	err := query.Scan(ctx, &data)
+	err := partQuery.Scan(ctx, &data)
 	return data, err
 }
 

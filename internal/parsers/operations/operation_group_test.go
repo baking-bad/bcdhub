@@ -136,7 +136,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	globalConstantRepo.
 		EXPECT().
-		All(gomock.Eq("exprv5uiw7xXoEgRahR3YBn4iAVwfkNCMsrkneutuBZCGG5sS64kRw")).
+		All(gomock.Any(), gomock.Eq("exprv5uiw7xXoEgRahR3YBn4iAVwfkNCMsrkneutuBZCGG5sS64kRw")).
 		Return([]modelContract.GlobalConstant{
 			{
 				ID:        1,

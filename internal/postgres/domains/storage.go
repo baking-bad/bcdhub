@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -21,27 +20,6 @@ type Storage struct {
 // NewStorage -
 func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
-}
-
-// BigMapDiffs -
-func (storage *Storage) BigMapDiffs(ctx context.Context, lastID, size int64) (result []domains.BigMapDiff, err error) {
-	var ids []int64
-	query := storage.DB.NewSelect().Model((*bigmapdiff.BigMapDiff)(nil)).Column("id").Order("id asc")
-	if lastID > 0 {
-		query.Where("big_map_diff.id > ?", lastID)
-	}
-	if err = query.Limit(storage.GetPageSize(size)).Scan(ctx, &ids); err != nil {
-		return
-	}
-
-	if len(ids) == 0 {
-		return
-	}
-
-	err = storage.DB.NewSelect().Model(&result).Where("big_map_diff.id IN (?)", bun.In(ids)).
-		Relation("Operation").Relation("Protocol").
-		Scan(ctx)
-	return
 }
 
 // Same -

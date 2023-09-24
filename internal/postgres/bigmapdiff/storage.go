@@ -38,24 +38,13 @@ func (storage *Storage) Current(ctx context.Context, keyHash string, ptr int64) 
 
 // GetForAddress -
 func (storage *Storage) GetForAddress(ctx context.Context, address string) (response []bigmapdiff.BigMapState, err error) {
-	query := core.Contract(storage.DB.NewSelect().Model(&response), address)
-	err = query.Order("id desc").Scan(ctx)
+	err = core.Contract(storage.DB.NewSelect().Model(&response), address).Order("id desc").Scan(ctx)
 	return
 }
 
 // GetByAddress -
 func (storage *Storage) GetByAddress(ctx context.Context, address string) (response []bigmapdiff.BigMapDiff, err error) {
-	query := storage.DB.NewSelect().Model(&response)
-	err = core.Contract(query, address).Order("level desc").Scan(ctx)
-	return
-}
-
-// GetValuesByKey -
-func (storage *Storage) GetValuesByKey(ctx context.Context, keyHash string) (response []bigmapdiff.BigMapState, err error) {
-	err = storage.DB.NewSelect().Model(&response).
-		Where("key_hash = ?", keyHash).
-		Order("last_update_level desc").
-		Scan(ctx)
+	err = core.Contract(storage.DB.NewSelect().Model(&response), address).Order("id desc").Scan(ctx)
 	return
 }
 
@@ -133,6 +122,7 @@ func (storage *Storage) GetByPtrAndKeyHash(ctx context.Context, ptr int64, keyHa
 	return response, int64(count), err
 }
 
+// TODO: think about remove it
 // GetByPtr -
 func (storage *Storage) GetByPtr(ctx context.Context, contract string, ptr int64) (response []bigmapdiff.BigMapState, err error) {
 	query := storage.DB.NewSelect().
@@ -144,7 +134,7 @@ func (storage *Storage) GetByPtr(ctx context.Context, contract string, ptr int64
 
 // Get -
 func (storage *Storage) Get(ctx context.Context, reqCtx bigmapdiff.GetContext) ([]bigmapdiff.Bucket, error) {
-	if *reqCtx.Ptr < 0 {
+	if reqCtx.Ptr != nil && *reqCtx.Ptr < 0 {
 		return nil, errors.Errorf("Invalid pointer value: %d", *reqCtx.Ptr)
 	}
 
@@ -154,7 +144,8 @@ func (storage *Storage) Get(ctx context.Context, reqCtx bigmapdiff.GetContext) (
 	query := storage.DB.NewSelect().
 		Model((*bigmapdiff.BigMapDiff)(nil)).
 		ColumnExpr("*, bmd.keys_count").
-		Join("inner join (?) as bmd on bmd.id = big_map_diffs.id", subQuery)
+		Join("inner join (?) as bmd on bmd.id = big_map_diff.id", subQuery)
+
 	err := query.Scan(ctx, &bmd)
 	return bmd, err
 }
@@ -200,8 +191,8 @@ func (storage *Storage) CurrentByContract(ctx context.Context, contract string) 
 	return
 }
 
-// StatesChangedAfter -
-func (storage *Storage) StatesChangedAfter(ctx context.Context, level int64) (states []bigmapdiff.BigMapState, err error) {
+// StatesChangedAtLevel -
+func (storage *Storage) StatesChangedAtLevel(ctx context.Context, level int64) (states []bigmapdiff.BigMapState, err error) {
 	err = storage.DB.NewSelect().Model(&states).
 		Where("last_update_level = ?", level).
 		Scan(ctx)
