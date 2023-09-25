@@ -356,3 +356,196 @@ func (s *TransactionTest) TestUpdateContracts() {
 	err = tx.Commit()
 	s.Require().NoError(err)
 }
+
+func (s *TransactionTest) TestBabylonUpdateNonDelegator() {
+	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
+	s.Require().NoError(err)
+
+	fixtures, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Files(
+			"./fixtures/accounts.yml",
+			"./fixtures/contracts.yml",
+		),
+		testfixtures.UseAlterConstraint(),
+	)
+	s.Require().NoError(err)
+	s.Require().NoError(fixtures.Load())
+	s.Require().NoError(db.Close())
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	c := contract.Contract{
+		ID:        2,
+		BabylonID: 10,
+	}
+
+	err = tx.BabylonUpdateNonDelegator(ctx, &c)
+	s.Require().NoError(err)
+
+	err = tx.Commit()
+	s.Require().NoError(err)
+
+	var newContract contract.Contract
+	err = s.storage.DB.NewSelect().Model(&newContract).Where("id = 2").Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(10, newContract.BabylonID)
+}
+
+func (s *TransactionTest) TestJakartaVesting() {
+	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
+	s.Require().NoError(err)
+
+	fixtures, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Files(
+			"./fixtures/accounts.yml",
+			"./fixtures/contracts.yml",
+		),
+		testfixtures.UseAlterConstraint(),
+	)
+	s.Require().NoError(err)
+	s.Require().NoError(fixtures.Load())
+	s.Require().NoError(db.Close())
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	c := contract.Contract{
+		ID: 2,
+	}
+
+	err = tx.JakartaVesting(ctx, &c)
+	s.Require().NoError(err)
+
+	err = tx.Commit()
+	s.Require().NoError(err)
+
+	var newContract contract.Contract
+	err = s.storage.DB.NewSelect().Model(&newContract).Where("id = 2").Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(2, newContract.JakartaID)
+}
+
+func (s *TransactionTest) TestJakartaUpdateNonDelegator() {
+	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
+	s.Require().NoError(err)
+
+	fixtures, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Files(
+			"./fixtures/accounts.yml",
+			"./fixtures/contracts.yml",
+		),
+		testfixtures.UseAlterConstraint(),
+	)
+	s.Require().NoError(err)
+	s.Require().NoError(fixtures.Load())
+	s.Require().NoError(db.Close())
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	c := contract.Contract{
+		ID:        2,
+		JakartaID: 100,
+	}
+
+	err = tx.JakartaUpdateNonDelegator(ctx, &c)
+	s.Require().NoError(err)
+
+	err = tx.Commit()
+	s.Require().NoError(err)
+
+	var newContract contract.Contract
+	err = s.storage.DB.NewSelect().Model(&newContract).Where("id = 2").Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(100, newContract.JakartaID)
+}
+
+func (s *TransactionTest) TestToJakarta() {
+	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
+	s.Require().NoError(err)
+
+	fixtures, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Files(
+			"./fixtures/accounts.yml",
+			"./fixtures/contracts.yml",
+		),
+		testfixtures.UseAlterConstraint(),
+	)
+	s.Require().NoError(err)
+	s.Require().NoError(fixtures.Load())
+	s.Require().NoError(db.Close())
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	err = tx.ToJakarta(ctx)
+	s.Require().NoError(err)
+
+	err = tx.Commit()
+	s.Require().NoError(err)
+
+	var newContract contract.Contract
+	err = s.storage.DB.NewSelect().Model(&newContract).Where("id = 16").Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(11, newContract.JakartaID)
+}
+
+func (s *TransactionTest) TestBabylonBigMapStates() {
+	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
+	s.Require().NoError(err)
+
+	fixtures, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Files(
+			"./fixtures/big_map_states.yml",
+		),
+		testfixtures.UseAlterConstraint(),
+	)
+	s.Require().NoError(err)
+	s.Require().NoError(fixtures.Load())
+	s.Require().NoError(db.Close())
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	err = tx.BabylonBigMapStates(ctx, &bigmapdiff.BigMapState{
+		ID:       3,
+		Ptr:      1000,
+		KeyHash:  "expruDuAZnFKqmLoisJqUGqrNzXTvw7PJM2rYk97JErM5FHCerQqgn",
+		Contract: "KT1Pz65ssbPF7Zv9Dh7ggqUkgAYNSuJ9iia7",
+	})
+	s.Require().NoError(err)
+
+	err = tx.Commit()
+	s.Require().NoError(err)
+
+	var state bigmapdiff.BigMapState
+	err = s.storage.DB.NewSelect().Model(&state).Where("id = 3").Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(1000, state.Ptr)
+}
