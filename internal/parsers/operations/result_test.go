@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,8 +56,10 @@ func Test_parseOperationResult(t *testing.T) {
 			err := readJSONFile(tt.fileName, &op)
 			require.NoError(t, err)
 
+			store := parsers.NewTestStore()
+
 			var res operation.Operation
-			parseOperationResult(op, &res)
+			parseOperationResult(op, &res, store)
 			require.Equal(t, tt.want, res)
 		})
 	}

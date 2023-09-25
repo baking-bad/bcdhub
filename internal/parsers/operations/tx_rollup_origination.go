@@ -46,13 +46,14 @@ func (p TxRollupOrigination) Parse(ctx context.Context, data noderpc.Operation, 
 
 	p.fillInternal(&txRollupOrigination)
 
-	parseOperationResult(data, &txRollupOrigination)
+	parseOperationResult(data, &txRollupOrigination, store)
 
 	txRollupOrigination.SetBurned(*p.protocol.Constants)
 
 	p.stackTrace.Add(txRollupOrigination)
 
 	store.AddOperations(&txRollupOrigination)
+	store.AddAccounts(&txRollupOrigination.Source)
 
 	return nil
 }

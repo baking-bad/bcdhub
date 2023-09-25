@@ -132,6 +132,7 @@ func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, 
 				Address: implicit.BalanceUpdates[i].Contract,
 				Level:   head.Level,
 			}
+			store.AddAccounts(&tx.Destination)
 			break
 		}
 	}
@@ -141,6 +142,5 @@ func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, 
 	}
 
 	store.AddOperations(&tx)
-
 	return nil
 }

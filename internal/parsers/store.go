@@ -3,6 +3,7 @@ package parsers
 import (
 	"context"
 
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -21,6 +22,7 @@ type Store interface {
 	AddSmartRollups(rollups ...*smartrollup.SmartRollup)
 	ListContracts() []*contract.Contract
 	ListOperations() []*operation.Operation
+	AddAccounts(accounts ...*account.Account)
 	Save(ctx context.Context) error
 	SetBlock(block *block.Block)
 }
@@ -34,6 +36,7 @@ type TestStore struct {
 	Operations      []*operation.Operation
 	GlobalConstants []*contract.GlobalConstant
 	SmartRollups    []*smartrollup.SmartRollup
+	Accounts        map[string]*account.Account
 }
 
 // NewTestStore -
@@ -45,6 +48,7 @@ func NewTestStore() *TestStore {
 		Operations:      make([]*operation.Operation, 0),
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
 		SmartRollups:    make([]*smartrollup.SmartRollup, 0),
+		Accounts:        make(map[string]*account.Account),
 	}
 }
 
@@ -86,6 +90,15 @@ func (store *TestStore) ListContracts() []*contract.Contract {
 // ListOperations -
 func (store *TestStore) ListOperations() []*operation.Operation {
 	return store.Operations
+}
+
+// AddAccounts -
+func (store *TestStore) AddAccounts(accounts ...*account.Account) {
+	for i := range accounts {
+		if _, ok := store.Accounts[accounts[i].Address]; !ok {
+			store.Accounts[accounts[i].Address] = accounts[i]
+		}
+	}
 }
 
 // Save -

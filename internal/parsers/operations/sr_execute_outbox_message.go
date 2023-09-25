@@ -52,10 +52,11 @@ func (p SrExecuteOutboxMessage) Parse(ctx context.Context, data noderpc.Operatio
 			Type:    types.NewAccountType(*data.Rollup),
 			Level:   p.head.Level,
 		}
+		store.AddAccounts(&operation.Destination)
 	}
 	p.fillInternal(&operation)
 	operation.SetBurned(*p.protocol.Constants)
-	parseOperationResult(data, &operation)
+	parseOperationResult(data, &operation, store)
 	p.stackTrace.Add(operation)
 
 	if operation.IsApplied() {
@@ -73,6 +74,7 @@ func (p SrExecuteOutboxMessage) Parse(ctx context.Context, data noderpc.Operatio
 	}
 
 	store.AddOperations(&operation)
+	store.AddAccounts(&operation.Source)
 
 	return nil
 }

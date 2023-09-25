@@ -67,11 +67,16 @@ func (p Transaction) Parse(ctx context.Context, data noderpc.Operation, store pa
 
 	p.fillInternal(&tx)
 
-	parseOperationResult(data, &tx)
+	parseOperationResult(data, &tx, store)
 
 	tx.SetBurned(*p.protocol.Constants)
 
 	store.AddOperations(&tx)
+	store.AddAccounts(
+		&tx.Source,
+		&tx.Delegate,
+		&tx.Destination,
+	)
 
 	switch tx.Destination.Type {
 	case modelsTypes.AccountTypeContract:

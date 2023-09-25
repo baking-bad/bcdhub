@@ -48,13 +48,17 @@ func (p Event) Parse(ctx context.Context, data noderpc.Operation, store parsers.
 		Internal:     true,
 	}
 
-	parseOperationResult(data, &event)
+	parseOperationResult(data, &event, store)
 
 	event.SetBurned(*p.protocol.Constants)
 
 	p.stackTrace.Add(event)
 
 	store.AddOperations(&event)
+	store.AddAccounts(
+		&event.Source,
+		&event.Initiator,
+	)
 
 	return nil
 }

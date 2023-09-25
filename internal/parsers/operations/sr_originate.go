@@ -45,7 +45,7 @@ func (p SrOriginate) Parse(ctx context.Context, data noderpc.Operation, store pa
 
 	p.fillInternal(&operation)
 	operation.SetBurned(*p.protocol.Constants)
-	parseOperationResult(data, &operation)
+	parseOperationResult(data, &operation, store)
 	p.stackTrace.Add(operation)
 
 	store.AddOperations(&operation)
@@ -56,8 +56,11 @@ func (p SrOriginate) Parse(ctx context.Context, data noderpc.Operation, store pa
 			return err
 		}
 		store.AddSmartRollups(&smartRollup)
+		store.AddAccounts(&smartRollup.Address)
 		operation.Destination = smartRollup.Address
 	}
+
+	store.AddAccounts(&operation.Destination, &operation.Source)
 
 	return nil
 }

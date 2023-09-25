@@ -52,14 +52,16 @@ func (p TransferTicket) Parse(ctx context.Context, data noderpc.Operation, store
 			Type:    types.NewAccountType(*data.Destination),
 			Level:   p.head.Level,
 		}
+		store.AddAccounts(&transferTicket.Destination)
 	}
 
 	p.fillInternal(&transferTicket)
 	transferTicket.SetBurned(*p.protocol.Constants)
-	parseOperationResult(data, &transferTicket)
+	parseOperationResult(data, &transferTicket, store)
 	p.stackTrace.Add(transferTicket)
 
 	store.AddOperations(&transferTicket)
+	store.AddAccounts(&transferTicket.Source)
 
 	return nil
 }

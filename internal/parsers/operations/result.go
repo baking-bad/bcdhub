@@ -7,9 +7,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 )
 
-func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
+func parseOperationResult(data noderpc.Operation, tx *operation.Operation, store parsers.Store) {
 	result := data.GetResult()
 	if result == nil {
 		return
@@ -55,6 +56,6 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 	}
 
 	if tx.IsApplied() {
-		new(TicketUpdateParser).Parse(result, tx)
+		new(TicketUpdateParser).Parse(result, tx, store)
 	}
 }

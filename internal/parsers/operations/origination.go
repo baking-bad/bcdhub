@@ -60,7 +60,7 @@ func (p Origination) Parse(ctx context.Context, data noderpc.Operation, store pa
 
 	p.fillInternal(&origination)
 
-	parseOperationResult(data, &origination)
+	parseOperationResult(data, &origination, store)
 
 	origination.SetBurned(*p.protocol.Constants)
 
@@ -73,6 +73,11 @@ func (p Origination) Parse(ctx context.Context, data noderpc.Operation, store pa
 	}
 
 	store.AddOperations(&origination)
+	store.AddAccounts(
+		&origination.Source,
+		&origination.Destination,
+		&origination.Delegate,
+	)
 
 	return nil
 }

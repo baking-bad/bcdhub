@@ -43,12 +43,13 @@ func (p RegisterGlobalConstant) Parse(ctx context.Context, data noderpc.Operatio
 		Nonce:        data.Nonce,
 		ContentIndex: p.contentIdx,
 	}
-	parseOperationResult(data, &registerGlobalConstant)
+	parseOperationResult(data, &registerGlobalConstant, store)
 	p.stackTrace.Add(registerGlobalConstant)
 
 	store.AddOperations(&registerGlobalConstant)
 	if registerGlobalConstant.IsApplied() {
 		store.AddGlobalConstants(NewGlobalConstant().Parse(data, registerGlobalConstant))
 	}
+	store.AddAccounts(&registerGlobalConstant.Source)
 	return nil
 }

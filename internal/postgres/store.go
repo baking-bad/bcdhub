@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -25,9 +26,11 @@ type Store struct {
 	Operations      []*operation.Operation
 	GlobalConstants []*contract.GlobalConstant
 	SmartRollups    []*smartrollup.SmartRollup
+	Accounts        map[string]*account.Account
 
 	partitions *PartitionManager
 	db         *bun.DB
+	accIds     map[string]int64
 }
 
 // NewStore -
@@ -39,8 +42,10 @@ func NewStore(pm *PartitionManager, db *bun.DB) *Store {
 		Operations:      make([]*operation.Operation, 0),
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
 		SmartRollups:    make([]*smartrollup.SmartRollup, 0),
+		Accounts:        make(map[string]*account.Account),
 		partitions:      pm,
 		db:              db,
+		accIds:          make(map[string]int64),
 	}
 }
 
@@ -78,6 +83,15 @@ func (store *Store) AddSmartRollups(rollups ...*smartrollup.SmartRollup) {
 	store.SmartRollups = append(store.SmartRollups, rollups...)
 }
 
+// AddAccounts -
+func (store *Store) AddAccounts(accounts ...*account.Account) {
+	for i := range accounts {
+		if _, ok := store.Accounts[accounts[i].Address]; !ok {
+			store.Accounts[accounts[i].Address] = accounts[i]
+		}
+	}
+}
+
 // ListContracts -
 func (store *Store) ListContracts() []*contract.Contract {
 	return store.Contracts
@@ -97,6 +111,10 @@ func (store *Store) Save(ctx context.Context) error {
 
 	if err := tx.Block(ctx, store.Block); err != nil {
 		return errors.Wrap(err, "saving block")
+	}
+
+	if err := store.saveAccounts(ctx, tx); err != nil {
+		return errors.Wrap(err, "saving accounts")
 	}
 
 	if err := store.saveOperations(ctx, tx); err != nil {
@@ -126,6 +144,30 @@ func (store *Store) Save(ctx context.Context) error {
 	return tx.Commit()
 }
 
+func (store *Store) saveAccounts(ctx context.Context, tx models.Transaction) error {
+	if len(store.Accounts) == 0 {
+		return nil
+	}
+
+	arr := make([]*account.Account, 0, len(store.Accounts))
+	for _, acc := range store.Accounts {
+		if acc.IsEmpty() {
+			continue
+		}
+		arr = append(arr, acc)
+	}
+
+	if err := tx.Accounts(ctx, arr...); err != nil {
+		return err
+	}
+
+	for i := range arr {
+		store.accIds[arr[i].Address] = arr[i].ID
+	}
+
+	return nil
+}
+
 func (store *Store) saveMigrations(ctx context.Context, tx models.Transaction) error {
 	if len(store.Migrations) == 0 {
 		return nil
@@ -145,12 +187,13 @@ func (store *Store) saveSmartRollups(ctx context.Context, tx models.Transaction)
 		return nil
 	}
 
-	for i := range store.SmartRollups {
-		if !store.SmartRollups[i].Address.IsEmpty() {
-			if err := tx.Accounts(ctx, &store.SmartRollups[i].Address); err != nil {
-				return err
+	for i, rollup := range store.SmartRollups {
+		if !rollup.Address.IsEmpty() {
+			if id, ok := store.accIds[rollup.Address.Address]; ok {
+				store.SmartRollups[i].AddressId = id
+			} else {
+				return errors.Errorf("unknown smart rollup account: %s", rollup.Address.Address)
 			}
-			store.SmartRollups[i].AddressId = store.SmartRollups[i].Address.ID
 		}
 	}
 
@@ -166,30 +209,34 @@ func (store *Store) saveOperations(ctx context.Context, tx models.Transaction) e
 		return err
 	}
 
-	for i := range store.Operations {
-		if !store.Operations[i].Source.IsEmpty() {
-			if err := tx.Accounts(ctx, &store.Operations[i].Source); err != nil {
-				return err
+	for i, operation := range store.Operations {
+		if !operation.Source.IsEmpty() {
+			if id, ok := store.accIds[operation.Source.Address]; ok {
+				store.Operations[i].SourceID = id
+			} else {
+				return errors.Errorf("unknown source account: %s", operation.Source.Address)
 			}
-			store.Operations[i].SourceID = store.Operations[i].Source.ID
 		}
-		if !store.Operations[i].Destination.IsEmpty() {
-			if err := tx.Accounts(ctx, &store.Operations[i].Destination); err != nil {
-				return err
+		if !operation.Destination.IsEmpty() {
+			if id, ok := store.accIds[operation.Destination.Address]; ok {
+				store.Operations[i].DestinationID = id
+			} else {
+				return errors.Errorf("unknown destination account: %s", operation.Destination.Address)
 			}
-			store.Operations[i].DestinationID = store.Operations[i].Destination.ID
 		}
 		if !store.Operations[i].Initiator.IsEmpty() {
-			if err := tx.Accounts(ctx, &store.Operations[i].Initiator); err != nil {
-				return err
+			if id, ok := store.accIds[operation.Initiator.Address]; ok {
+				store.Operations[i].InitiatorID = id
+			} else {
+				return errors.Errorf("unknown initiator account: %s", operation.Initiator.Address)
 			}
-			store.Operations[i].InitiatorID = store.Operations[i].Initiator.ID
 		}
 		if !store.Operations[i].Delegate.IsEmpty() {
-			if err := tx.Accounts(ctx, &store.Operations[i].Delegate); err != nil {
-				return err
+			if id, ok := store.accIds[operation.Delegate.Address]; ok {
+				store.Operations[i].DelegateID = id
+			} else {
+				return errors.Errorf("unknown delegate account: %s", operation.Delegate.Address)
 			}
-			store.Operations[i].DelegateID = store.Operations[i].Delegate.ID
 		}
 	}
 
@@ -204,18 +251,20 @@ func (store *Store) saveOperations(ctx context.Context, tx models.Transaction) e
 		for j := range store.Operations[i].BigMapActions {
 			store.Operations[i].BigMapActions[j].OperationID = store.Operations[i].ID
 		}
-		for j := range store.Operations[i].TickerUpdates {
-			if !store.Operations[i].TickerUpdates[j].Account.IsEmpty() {
-				if err := tx.Accounts(ctx, &store.Operations[i].TickerUpdates[j].Account); err != nil {
-					return err
+		for j, update := range store.Operations[i].TickerUpdates {
+			if !update.Account.IsEmpty() {
+				if id, ok := store.accIds[update.Account.Address]; ok {
+					store.Operations[i].TickerUpdates[j].AccountID = id
+				} else {
+					return errors.Errorf("unknown ticket update account: %s", update.Account.Address)
 				}
-				store.Operations[i].TickerUpdates[j].AccountID = store.Operations[i].TickerUpdates[j].Account.ID
 			}
-			if !store.Operations[i].TickerUpdates[j].Ticketer.IsEmpty() {
-				if err := tx.Accounts(ctx, &store.Operations[i].TickerUpdates[j].Ticketer); err != nil {
-					return err
+			if !update.Ticketer.IsEmpty() {
+				if id, ok := store.accIds[update.Ticketer.Address]; ok {
+					store.Operations[i].TickerUpdates[j].TicketerID = id
+				} else {
+					return errors.Errorf("unknown ticket update ticketer account: %s", update.Ticketer.Address)
 				}
-				store.Operations[i].TickerUpdates[j].TicketerID = store.Operations[i].TickerUpdates[j].Ticketer.ID
 			}
 			store.Operations[i].TickerUpdates[j].OperationID = store.Operations[i].ID
 		}
@@ -292,22 +341,25 @@ func (store *Store) saveContracts(ctx context.Context, tx models.Transaction) er
 			}
 		}
 
-		if err := tx.Accounts(ctx, &store.Contracts[i].Account); err != nil {
-			return err
+		if id, ok := store.accIds[store.Contracts[i].Account.Address]; ok {
+			store.Contracts[i].AccountID = id
+		} else {
+			return errors.Errorf("unknown contract account: %s", store.Contracts[i].Account.Address)
 		}
-		store.Contracts[i].AccountID = store.Contracts[i].Account.ID
 
 		if !store.Contracts[i].Manager.IsEmpty() {
-			if err := tx.Accounts(ctx, &store.Contracts[i].Manager); err != nil {
-				return err
+			if id, ok := store.accIds[store.Contracts[i].Manager.Address]; ok {
+				store.Contracts[i].ManagerID = id
+			} else {
+				return errors.Errorf("unknown manager account: %s", store.Contracts[i].Manager.Address)
 			}
-			store.Contracts[i].ManagerID = store.Contracts[i].Manager.ID
 		}
 		if !store.Contracts[i].Delegate.IsEmpty() {
-			if err := tx.Accounts(ctx, &store.Contracts[i].Delegate); err != nil {
-				return err
+			if id, ok := store.accIds[store.Contracts[i].Delegate.Address]; ok {
+				store.Contracts[i].DelegateID = id
+			} else {
+				return errors.Errorf("unknown delegate account: %s", store.Contracts[i].Delegate.Address)
 			}
-			store.Contracts[i].DelegateID = store.Contracts[i].Delegate.ID
 		}
 	}
 
