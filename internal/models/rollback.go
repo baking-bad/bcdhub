@@ -27,6 +27,7 @@ type Rollback interface {
 	GlobalConstants(ctx context.Context, level int64) ([]contract.GlobalConstant, error)
 	Scripts(ctx context.Context, level int64) ([]contract.Script, error)
 	DeleteScriptsConstants(ctx context.Context, scriptIds []int64, constantsIds []int64) error
+	Protocols(ctx context.Context, level int64) error
 
 	Commit() error
 	Rollback() error

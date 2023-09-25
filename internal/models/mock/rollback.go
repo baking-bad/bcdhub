@@ -356,6 +356,44 @@ func (c *RollbackLastDiffCall) DoAndReturn(f func(context.Context, int64, string
 	return c
 }
 
+// Protocols mocks base method.
+func (m *MockRollback) Protocols(ctx context.Context, level int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Protocols", ctx, level)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Protocols indicates an expected call of Protocols.
+func (mr *MockRollbackMockRecorder) Protocols(ctx, level any) *RollbackProtocolsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Protocols", reflect.TypeOf((*MockRollback)(nil).Protocols), ctx, level)
+	return &RollbackProtocolsCall{Call: call}
+}
+
+// RollbackProtocolsCall wrap *gomock.Call
+type RollbackProtocolsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *RollbackProtocolsCall) Return(arg0 error) *RollbackProtocolsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *RollbackProtocolsCall) Do(f func(context.Context, int64) error) *RollbackProtocolsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *RollbackProtocolsCall) DoAndReturn(f func(context.Context, int64) error) *RollbackProtocolsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // Rollback mocks base method.
 func (m *MockRollback) Rollback() error {
 	m.ctrl.T.Helper()

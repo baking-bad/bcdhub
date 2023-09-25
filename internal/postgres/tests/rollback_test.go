@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -67,24 +68,26 @@ func (s *RollbackTestSuite) TearDownSuite() {
 	s.Require().NoError(s.psqlContainer.Terminate(ctx))
 }
 
-func TestSuiteRollback_Run(t *testing.T) {
-	suite.Run(t, new(RollbackTestSuite))
-}
-
-func (s *RollbackTestSuite) TestDeleteAll() {
+func (s *RollbackTestSuite) SetupTest() {
 	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
 	s.Require().NoError(err)
 
 	fixtures, err := testfixtures.New(
 		testfixtures.Database(db),
 		testfixtures.Dialect("postgres"),
-		testfixtures.Files("./fixtures/blocks.yml"),
+		testfixtures.Directory("./fixtures"),
 		testfixtures.UseAlterConstraint(),
 	)
 	s.Require().NoError(err)
 	s.Require().NoError(fixtures.Load())
 	s.Require().NoError(db.Close())
+}
 
+func TestSuiteRollback_Run(t *testing.T) {
+	suite.Run(t, new(RollbackTestSuite))
+}
+
+func (s *RollbackTestSuite) TestDeleteAll() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -105,19 +108,6 @@ func (s *RollbackTestSuite) TestDeleteAll() {
 }
 
 func (s *RollbackTestSuite) TestStatesChangedAtLevel() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files("./fixtures/big_map_states.yml"),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -133,19 +123,6 @@ func (s *RollbackTestSuite) TestStatesChangedAtLevel() {
 }
 
 func (s *RollbackTestSuite) TestLastDiff() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files("./fixtures/big_map_diffs.yml"),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -168,19 +145,6 @@ func (s *RollbackTestSuite) TestLastDiff() {
 }
 
 func (s *RollbackTestSuite) TestDeleteBigMapState() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files("./fixtures/big_map_states.yml"),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -199,19 +163,6 @@ func (s *RollbackTestSuite) TestDeleteBigMapState() {
 }
 
 func (s *RollbackTestSuite) TestSaveBigMapState() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files("./fixtures/big_map_states.yml"),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -243,19 +194,6 @@ func (s *RollbackTestSuite) TestSaveBigMapState() {
 }
 
 func (s *RollbackTestSuite) TestGetOperations() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files("./fixtures/operations.yml"),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -272,23 +210,6 @@ func (s *RollbackTestSuite) TestGetOperations() {
 }
 
 func (s *RollbackTestSuite) TestGetContractLastActions() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files(
-			"./fixtures/operations.yml",
-			"./fixtures/accounts.yml",
-			"./fixtures/contracts.yml",
-		),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -310,23 +231,6 @@ func (s *RollbackTestSuite) TestGetContractLastActions() {
 }
 
 func (s *RollbackTestSuite) TestUpdateContractStats() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files(
-			"./fixtures/operations.yml",
-			"./fixtures/accounts.yml",
-			"./fixtures/contracts.yml",
-		),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -346,4 +250,24 @@ func (s *RollbackTestSuite) TestUpdateContractStats() {
 	s.Require().NoError(err)
 	s.Require().EqualValues(0, cntrct.TxCount)
 	s.Require().EqualValues(ts.Format(time.RFC3339), cntrct.LastAction.Format(time.RFC3339))
+}
+
+func (s *RollbackTestSuite) TestProtocols() {
+	saver, err := postgres.NewRollback(s.storage.DB)
+	s.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	err = saver.Protocols(ctx, 2)
+	s.Require().NoError(err)
+
+	err = saver.Commit()
+	s.Require().NoError(err)
+
+	var proto protocol.Protocol
+	err = s.storage.DB.NewSelect().Model(&proto).Order("id desc").Limit(1).Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(0, proto.EndLevel)
+	s.Require().EqualValues("Ps9mPmXaRzmzk35gbAYNCAw6UXdE2qoABTHbN2oEEc1qM7CwT9P", proto.Hash)
 }

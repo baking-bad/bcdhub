@@ -34,7 +34,7 @@ func TestManager_Rollback(t *testing.T) {
 		Return(block.Block{
 			Level: 11,
 		}, nil).
-		MaxTimes(1)
+		Times(1)
 
 	storage.EXPECT().IsRecordNotFound(sql.ErrNoRows).Return(true).AnyTimes()
 
@@ -113,12 +113,12 @@ func TestManager_Rollback(t *testing.T) {
 				Kind:     types.OperationKindTransaction,
 			},
 		}, nil).
-		MaxTimes(1)
+		Times(1)
 
 	rb.EXPECT().
 		DeleteAll(gomock.Any(), (*operation.Operation)(nil), level).
 		Return(nil).
-		MaxTimes(1)
+		Times(1)
 
 	ts := time.Now().UTC()
 	rb.EXPECT().
@@ -132,17 +132,17 @@ func TestManager_Rollback(t *testing.T) {
 				Time:      ts,
 			},
 		}, nil).
-		MaxTimes(1)
+		Times(1)
 
 	rb.EXPECT().
 		UpdateContractStats(gomock.Any(), int64(4), ts, int64(1)).
 		Return(nil).
-		MaxTimes(1)
+		Times(1)
 
 	rb.EXPECT().
 		UpdateContractStats(gomock.Any(), int64(1), ts, int64(2)).
 		Return(nil).
-		MaxTimes(1)
+		Times(1)
 
 	rb.EXPECT().
 		StatesChangedAtLevel(gomock.Any(), level).
@@ -171,7 +171,7 @@ func TestManager_Rollback(t *testing.T) {
 				Removed:         false,
 			},
 		}, nil).
-		MaxTimes(1)
+		Times(1)
 
 	ptr := int64(10)
 	rb.EXPECT().
@@ -188,12 +188,12 @@ func TestManager_Rollback(t *testing.T) {
 			ProtocolID:  2,
 			OperationID: 10,
 		}, nil).
-		MaxTimes(1)
+		Times(1)
 
 	rb.EXPECT().
 		LastDiff(gomock.Any(), ptr, "key_hash_2", false).
 		Return(bigmapdiff.BigMapDiff{}, sql.ErrNoRows).
-		MaxTimes(1)
+		Times(1)
 
 	rb.EXPECT().
 		DeleteBigMapState(gomock.Any(), bigmapdiff.BigMapState{
@@ -209,7 +209,7 @@ func TestManager_Rollback(t *testing.T) {
 			Removed:         false,
 		}).
 		Return(nil).
-		MaxTimes(1)
+		Times(1)
 
 	rb.EXPECT().
 		SaveBigMapState(gomock.Any(), bigmapdiff.BigMapState{
@@ -226,7 +226,7 @@ func TestManager_Rollback(t *testing.T) {
 			IsRollback:      true,
 		}).
 		Return(nil).
-		MaxTimes(1)
+		Times(1)
 
 	rb.EXPECT().
 		GlobalConstants(gomock.Any(), level).
@@ -255,6 +255,11 @@ func TestManager_Rollback(t *testing.T) {
 		DeleteAll(gomock.Any(), nil, level).
 		Return(nil).
 		Times(9)
+
+	rb.EXPECT().
+		Protocols(gomock.Any(), level).
+		Return(nil).
+		Times(1)
 
 	rb.EXPECT().
 		Commit().

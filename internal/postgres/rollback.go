@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/uptrace/bun"
 )
 
@@ -131,5 +132,26 @@ func (r Rollback) DeleteScriptsConstants(ctx context.Context, scriptIds []int64,
 		WhereOr("global_constant_id IN (?)", bun.In(constantsIds))
 
 	_, err := query.Exec(ctx)
+	return err
+}
+
+func (r Rollback) Protocols(ctx context.Context, level int64) error {
+	result, err := r.tx.NewDelete().Model((*protocol.Protocol)(nil)).Where("start_level >= ?", level).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return nil
+	}
+
+	_, err = r.tx.NewUpdate().
+		Model((*protocol.Protocol)(nil)).
+		Where("start_level < ?", level).
+		Set("end_level = 0").
+		Exec(ctx)
 	return err
 }
