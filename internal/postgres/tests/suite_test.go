@@ -78,19 +78,6 @@ func (s *StorageTestSuite) SetupSuite() {
 	err = pm.CreatePartitions(ctx, time.Date(2022, 1, 1, 1, 1, 1, 1, time.Local))
 	s.Require().NoError(err)
 
-	db, err := sql.Open("postgres", psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Directory("./fixtures"),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	s.accounts = account.NewStorage(strg)
 	s.bigMapActions = bigmapaction.NewStorage(strg)
 	s.bigMapDiffs = bigmapdiff.NewStorage(strg)
@@ -112,6 +99,21 @@ func (s *StorageTestSuite) TearDownSuite() {
 
 	s.Require().NoError(s.storage.Close())
 	s.Require().NoError(s.psqlContainer.Terminate(ctx))
+}
+
+func (s *StorageTestSuite) SetupTest() {
+	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
+	s.Require().NoError(err)
+
+	fixtures, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Directory("./fixtures"),
+		testfixtures.UseAlterConstraint(),
+	)
+	s.Require().NoError(err)
+	s.Require().NoError(fixtures.Load())
+	s.Require().NoError(db.Close())
 }
 
 func TestSuiteStorage_Run(t *testing.T) {

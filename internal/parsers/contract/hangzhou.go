@@ -90,6 +90,7 @@ func (p *Hangzhou) computeMetrics(ctx context.Context, operation *operation.Oper
 		contractScript.Hardcoded = script.HardcodedAddresses.Values()
 		contractScript.Entrypoints = params.GetEntrypoints()
 		contractScript.Constants = constants
+		contractScript.Level = operation.Level
 
 		c.Babylon = contractScript
 	} else {

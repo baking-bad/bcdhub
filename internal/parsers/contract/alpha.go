@@ -84,6 +84,7 @@ func (p *Alpha) computeMetrics(ctx context.Context, operation *operation.Operati
 		contractScript.Tags = types.NewTags(script.Tags.Values())
 		contractScript.Hardcoded = script.HardcodedAddresses.Values()
 		contractScript.Entrypoints = params.GetEntrypoints()
+		contractScript.Level = operation.Level
 
 		c.Alpha = contractScript
 	} else {

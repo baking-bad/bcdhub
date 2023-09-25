@@ -47,6 +47,7 @@ func (p *Alpha) Parse(ctx context.Context, script noderpc.Script, old *modelsCon
 	}
 
 	contractScript := modelsContract.Script{
+		Level:     next.StartLevel,
 		Hash:      newHash,
 		Code:      s.Code,
 		Storage:   s.Storage,

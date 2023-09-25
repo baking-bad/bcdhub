@@ -174,7 +174,7 @@ func (storage *Storage) ScriptPart(ctx context.Context, address string, symLink,
 func (storage *Storage) RecentlyCalled(ctx context.Context, offset, size int64) (contracts []contract.Contract, err error) {
 	query := storage.DB.NewSelect().Model(&contracts).
 		ColumnExpr("contract.id, contract.tx_count, contract.last_action, contract.account_id").
-		ColumnExpr("account.address as account__address, account.alias as account__alias").
+		ColumnExpr("account.address as account__address").
 		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`)
 
 	if offset > 0 {
@@ -201,7 +201,7 @@ func (storage *Storage) FindOne(ctx context.Context, tags types.Tags) (result co
 	err = storage.DB.NewSelect().Model(&result).
 		Where("tags&? > 0", tags).
 		ColumnExpr("contract.id, contract.tx_count, contract.last_action, contract.account_id, contract.timestamp, contract.level").
-		ColumnExpr("account.address as account__address, account.alias as account__alias").
+		ColumnExpr("account.address as account__address").
 		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
 		Limit(1).
 		Scan(ctx)

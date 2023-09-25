@@ -13,6 +13,7 @@ type Script struct {
 	bun.BaseModel `bun:"scripts"`
 
 	ID          int64          `bun:"id,pk,notnull,autoincrement"`
+	Level       int64          `bun:"level"`
 	Hash        string         `bun:"hash"`
 	Code        []byte         `bun:",type:bytea"`
 	Parameter   []byte         `bun:",type:bytea"`

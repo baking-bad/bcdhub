@@ -93,9 +93,9 @@ func (t Transaction) Accounts(ctx context.Context, accounts ...*account.Account)
 		return nil
 	}
 	_, err := t.tx.NewInsert().Model(&accounts).
-		Column("address", "alias", "type").
+		Column("address", "level", "type").
 		On("CONFLICT (address) DO UPDATE").
-		Set("alias = ''").
+		Set("type = EXCLUDED.type").
 		Returning("id").
 		Exec(ctx)
 	return err

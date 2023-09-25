@@ -33,6 +33,7 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 		tx.Destination = account.Account{
 			Address: result.Originated[0],
 			Type:    types.AccountTypeContract,
+			Level:   tx.Level,
 		}
 	}
 
@@ -40,6 +41,7 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 		tx.Destination = account.Account{
 			Address: result.OriginatedRollup,
 			Type:    types.AccountTypeRollup,
+			Level:   tx.Level,
 		}
 	}
 

@@ -25,6 +25,7 @@ func (p Event) Parse(ctx context.Context, data noderpc.Operation, store parsers.
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
+		Level:   p.head.Level,
 	}
 
 	event := operation.Operation{

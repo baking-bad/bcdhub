@@ -26,6 +26,7 @@ func (sr SmartRolupParser) Parse(data noderpc.Operation, operation operation.Ope
 		Address: account.Account{
 			Address: result.Address,
 			Type:    types.NewAccountType(result.Address),
+			Level:   operation.Level,
 		},
 		GenesisCommitmentHash: result.GenesisCommitmentHash,
 		PvmKind:               data.PvmKind,

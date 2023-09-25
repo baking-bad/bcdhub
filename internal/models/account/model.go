@@ -12,7 +12,7 @@ type Account struct {
 	ID      int64             `bun:"id,pk,notnull,autoincrement"`
 	Type    types.AccountType `bun:"type,type:SMALLINT"`
 	Address string            `bun:"address"`
-	Alias   string
+	Level   int64             `bun:"level"`
 }
 
 // GetID -

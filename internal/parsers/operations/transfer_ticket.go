@@ -25,6 +25,7 @@ func (p TransferTicket) Parse(ctx context.Context, data noderpc.Operation, store
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
+		Level:   p.head.Level,
 	}
 
 	transferTicket := operation.Operation{
@@ -49,6 +50,7 @@ func (p TransferTicket) Parse(ctx context.Context, data noderpc.Operation, store
 		transferTicket.Destination = account.Account{
 			Address: *data.Destination,
 			Type:    types.NewAccountType(*data.Destination),
+			Level:   p.head.Level,
 		}
 	}
 

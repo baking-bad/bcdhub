@@ -39,14 +39,17 @@ func (p *VestingParser) Parse(ctx context.Context, data noderpc.ContractData, he
 		Source: account.Account{
 			Address: data.Manager,
 			Type:    types.NewAccountType(data.Manager),
+			Level:   head.Level,
 		},
 		Destination: account.Account{
 			Address: address,
 			Type:    types.NewAccountType(address),
+			Level:   head.Level,
 		},
 		Delegate: account.Account{
 			Address: data.Delegate.Value,
 			Type:    types.NewAccountType(data.Delegate.Value),
+			Level:   head.Level,
 		},
 		Level:     head.Level,
 		Timestamp: head.Timestamp,

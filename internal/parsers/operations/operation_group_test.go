@@ -455,6 +455,7 @@ func TestGroup_Parse(t *testing.T) {
 						Source: account.Account{
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
+							Level:   1068669,
 						},
 						Fee:          37300,
 						Counter:      5791164,
@@ -465,6 +466,7 @@ func TestGroup_Parse(t *testing.T) {
 						Destination: account.Account{
 							Address: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 							Type:    types.AccountTypeContract,
+							Level:   1068669,
 						},
 						Delegate: account.Account{},
 						Status:   types.OperationStatusApplied,
@@ -479,6 +481,7 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
+							Level:   1068669,
 						},
 						ProtocolID:      1,
 						Parameters:      []byte("{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Right\",\"args\":[{\"prim\":\"Right\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq\"},{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV\"},{\"int\":\"8010000\"}]}]}]}]}]}]}}"),
@@ -510,10 +513,12 @@ func TestGroup_Parse(t *testing.T) {
 						Source: account.Account{
 							Address: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 							Type:    types.AccountTypeContract,
+							Level:   1068669,
 						},
 						Destination: account.Account{
 							Address: "KT19nHqEWZxFFbbDL1b7Y86escgEN7qUShGo",
 							Type:    types.AccountTypeContract,
+							Level:   1068669,
 						},
 						Delegate: account.Account{},
 						Status:   types.OperationStatusApplied,
@@ -533,6 +538,7 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
+							Level:   1068669,
 						},
 						Parameters:      []byte("{\"entrypoint\":\"validateAccounts\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"},{\"bytes\":\"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"14151000\"},{\"int\":\"0\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"True\"},{\"prim\":\"Pair\",\"args\":[{\"int\":\"8010000\"},{\"int\":\"18000000\"}]}]}]},{\"bytes\":\"01796ad78734892d5ae4186e84a30290040732ada70076616c696461746552756c6573\"}]}}"),
 						DeffatedStorage: []byte("{\"int\":\"61\"}"),
@@ -541,10 +547,12 @@ func TestGroup_Parse(t *testing.T) {
 						Source: account.Account{
 							Address: "KT19nHqEWZxFFbbDL1b7Y86escgEN7qUShGo",
 							Type:    types.AccountTypeContract,
+							Level:   1068669,
 						},
 						Destination: account.Account{
 							Address: "KT1KemKUx79keZgFW756jQrqKcZJ21y4SPdS",
 							Type:    types.AccountTypeContract,
+							Level:   1068669,
 						},
 						Delegate: account.Account{},
 						Status:   types.OperationStatusApplied,
@@ -564,6 +572,7 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 							Type:    types.AccountTypeTz,
+							Level:   1068669,
 						},
 						Parameters:      []byte("{\"entrypoint\":\"validateRules\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"None\"},{\"string\":\"US\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"}]}]},{\"int\":\"2\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"None\"},{\"string\":\"US\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"0000c644b537bdb0dac40fe742010106546effd69395\"}]}]},{\"int\":\"6\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"},{\"bytes\":\"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"int\":\"14151000\"},{\"int\":\"0\"}]},{\"prim\":\"True\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"01bff38c4e363eacef338f7b2e15f00ca42fafa1ce00\"},{\"prim\":\"Pair\",\"args\":[{\"int\":\"8010000\"},{\"int\":\"18000000\"}]}]}]}}"),
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"},{\"bytes\":\"010d25f77b84dc2164a5d1ce5e8a5d3ca2b1d0cbf900\"}]},[]]}"),
@@ -644,10 +653,12 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 							Type:    types.AccountTypeTz,
+							Level:   1151495,
 						},
 						Source: account.Account{
 							Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 							Type:    types.AccountTypeTz,
+							Level:   1151495,
 						},
 						Delegate:     account.Account{},
 						Fee:          43074,
@@ -659,6 +670,7 @@ func TestGroup_Parse(t *testing.T) {
 						Destination: account.Account{
 							Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 							Type:    types.AccountTypeContract,
+							Level:   1151495,
 						},
 						Parameters: []byte("{\"entrypoint\":\"redeem\",\"value\":{\"bytes\":\"a874aac22777351417c9bde0920cc7ed33e54453e1dd149a1f3a60521358d19a\"}}"),
 						Entrypoint: types.NullString{
@@ -690,15 +702,18 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 							Type:    types.AccountTypeTz,
+							Level:   1151495,
 						},
 						Source: account.Account{
 							Address: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 							Type:    types.AccountTypeContract,
+							Level:   1151495,
 						},
 						Counter: 6909186,
 						Destination: account.Account{
 							Address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 							Type:    types.AccountTypeContract,
+							Level:   1151495,
 						},
 						Delegate:   account.Account{},
 						Parameters: []byte("{\"entrypoint\":\"transfer\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"011871cfab6dafee00330602b4342b6500c874c93b00\"},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000c2473c617946ce7b9f6843f193401203851cb2ec\"},{\"int\":\"7874880\"}]}]}}"),
@@ -829,10 +844,12 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
 							Type:    types.AccountTypeTz,
+							Level:   86142,
 						},
 						Source: account.Account{
 							Address: "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
 							Type:    types.AccountTypeTz,
+							Level:   86142,
 						},
 						Fee:          510,
 						Counter:      654594,
@@ -842,6 +859,7 @@ func TestGroup_Parse(t *testing.T) {
 						Destination: account.Account{
 							Address: "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
 							Type:    types.AccountTypeContract,
+							Level:   86142,
 						},
 						Delegate:                           account.Account{},
 						Burned:                             87750,
@@ -856,10 +874,12 @@ func TestGroup_Parse(t *testing.T) {
 						Account: account.Account{
 							Address: "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
 							Type:    types.AccountTypeContract,
+							Level:   86142,
 						},
 						Manager: account.Account{
 							Address: "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
 							Type:    types.AccountTypeTz,
+							Level:   86142,
 						},
 						Delegate: account.Account{},
 						Babylon: modelContract.Script{
@@ -917,30 +937,29 @@ func TestGroup_Parse(t *testing.T) {
 					{
 						Kind: types.OperationKindOrigination,
 						Source: account.Account{
-
 							Address: "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
 							Type:    types.AccountTypeTz,
+							Level:   301436,
 						},
 						Fee:          1555,
 						Counter:      983250,
 						GasLimit:     12251,
 						StorageLimit: 351,
 						Destination: account.Account{
-
 							Address: "KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4",
 							Type:    types.AccountTypeContract,
+							Level:   301436,
 						},
-						Delegate: account.Account{},
-						Status:   types.OperationStatusApplied,
-						Level:    301436,
-
+						Delegate:  account.Account{},
+						Status:    types.OperationStatusApplied,
+						Level:     301436,
 						Hash:      encoding.MustDecodeBase58("onv6Q1dNejAGEJeQzwRannWsDSGw85FuFdhLnBrY18TBcC9p8kC"),
 						Timestamp: timestamp,
 						Burned:    331000,
 						Initiator: account.Account{
-
 							Address: "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
 							Type:    types.AccountTypeTz,
+							Level:   301436,
 						},
 						ProtocolID:                         2,
 						DeffatedStorage:                    []byte("[]"),
@@ -953,14 +972,14 @@ func TestGroup_Parse(t *testing.T) {
 						Level:     301436,
 						Timestamp: timestamp,
 						Account: account.Account{
-
 							Address: "KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4",
 							Type:    types.AccountTypeContract,
+							Level:   301436,
 						},
 						Manager: account.Account{
-
 							Address: "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
 							Type:    types.AccountTypeTz,
+							Level:   301436,
 						},
 						Delegate: account.Account{},
 						Alpha: modelContract.Script{
@@ -1022,6 +1041,7 @@ func TestGroup_Parse(t *testing.T) {
 						Source: account.Account{
 							Address: "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 							Type:    types.AccountTypeTz,
+							Level:   72207,
 						},
 						Fee:          4045,
 						Counter:      155670,
@@ -1030,6 +1050,7 @@ func TestGroup_Parse(t *testing.T) {
 						Destination: account.Account{
 							Address: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 							Type:    types.AccountTypeContract,
+							Level:   72207,
 						},
 						Status:    types.OperationStatusApplied,
 						Level:     72207,
@@ -1042,6 +1063,7 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 							Type:    types.AccountTypeTz,
+							Level:   72207,
 						},
 						Delegate:        account.Account{},
 						Parameters:      []byte("{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Unit\"}]}}"),
@@ -1079,11 +1101,13 @@ func TestGroup_Parse(t *testing.T) {
 						Source: account.Account{
 							Address: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 							Type:    types.AccountTypeContract,
+							Level:   72207,
 						},
 						Nonce: testsuite.Ptr[int64](0),
 						Destination: account.Account{
 							Address: "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 							Type:    types.AccountTypeContract,
+							Level:   72207,
 						},
 						Status:    types.OperationStatusApplied,
 						Level:     72207,
@@ -1095,6 +1119,7 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 							Type:    types.AccountTypeTz,
+							Level:   72207,
 						},
 						Delegate:                           account.Account{},
 						ProtocolID:                         3,
@@ -1141,10 +1166,12 @@ func TestGroup_Parse(t *testing.T) {
 						Account: account.Account{
 							Address: "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 							Type:    types.AccountTypeContract,
+							Level:   72207,
 						},
 						Manager: account.Account{
 							Address: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 							Type:    types.AccountTypeContract,
+							Level:   72207,
 						},
 						Delegate: account.Account{},
 						Babylon: modelContract.Script{
@@ -1204,9 +1231,9 @@ func TestGroup_Parse(t *testing.T) {
 					{
 						Kind: types.OperationKindTransaction,
 						Source: account.Account{
-
 							Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
 							Type:    types.AccountTypeTz,
+							Level:   1516349,
 						},
 						Fee:      2235,
 						Counter:  9432992,
@@ -1214,10 +1241,10 @@ func TestGroup_Parse(t *testing.T) {
 						Destination: account.Account{
 							Address: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
 							Type:    types.AccountTypeContract,
+							Level:   1516349,
 						},
-						Status: types.OperationStatusApplied,
-						Level:  1516349,
-
+						Status:    types.OperationStatusApplied,
+						Level:     1516349,
 						Hash:      encoding.MustDecodeBase58("ooz1bkCQeYsZYP7vb4Dx7pYPRpWN11Z3G3yP1v4HAfdNXuHRv9c"),
 						Timestamp: timestamp,
 						Entrypoint: types.NullString{
@@ -1228,6 +1255,7 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
 							Type:    types.AccountTypeTz,
+							Level:   1516349,
 						},
 						Delegate:        account.Account{},
 						Parameters:      []byte(`{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb"},[{"prim":"Pair","args":[{"string":"tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi"},{"prim":"Pair","args":[{"int":"12"},{"int":"1"}]}]}]]}]}`),
@@ -1302,7 +1330,6 @@ func TestGroup_Parse(t *testing.T) {
 			want: &parsers.TestStore{
 				BigMapState: []*bigmapdiff.BigMapState{
 					{
-
 						Ptr:             1264,
 						Contract:        "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
 						LastUpdateLevel: 1520888,
@@ -1317,14 +1344,14 @@ func TestGroup_Parse(t *testing.T) {
 						Kind: types.OperationKindTransaction,
 						Hash: encoding.MustDecodeBase58("oocFt4vkkgQGfoRH54328cJUbDdWvj3x6KEs5Arm4XhqwwJmnJ8"),
 						Source: account.Account{
-
 							Address: "tz1WKygtstVY96oyc6Rmk945dMf33LeihgWT",
 							Type:    types.AccountTypeTz,
+							Level:   1520888,
 						},
 						Initiator: account.Account{
-
 							Address: "tz1WKygtstVY96oyc6Rmk945dMf33LeihgWT",
 							Type:    types.AccountTypeTz,
+							Level:   1520888,
 						},
 						Delegate:     account.Account{},
 						Status:       types.OperationStatusApplied,
@@ -1342,9 +1369,9 @@ func TestGroup_Parse(t *testing.T) {
 						},
 						ProtocolID: 4,
 						Destination: account.Account{
-
 							Address: "KT1H1MqmUM4aK9i1833EBmYCCEfkbt6ZdSBc",
 							Type:    types.AccountTypeContract,
+							Level:   1520888,
 						},
 						Parameters:      []byte(`{"entrypoint":"update_record","value":{"prim":"Pair","args":[{"bytes":"62616c6c732e74657a"},{"prim":"Pair","args":[{"prim":"Some","args":[{"string":"tz1dDQc4KsTHEFe3USc66Wti2pBatZ3UDbD4"}]},{"prim":"Pair","args":[{"string":"tz1WKygtstVY96oyc6Rmk945dMf33LeihgWT"},[]]}]}]}}`),
 						DeffatedStorage: []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"bytes":"01535d971759846a1f2be8610e36f2db40fe8ce40800"},{"int":"1268"}]},{"bytes":"01ebb657570e494e8a7bd43ac3bf7cfd0267a32a9f00"}]}`),
@@ -1367,14 +1394,17 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1WKygtstVY96oyc6Rmk945dMf33LeihgWT",
 							Type:    types.AccountTypeTz,
+							Level:   1520888,
 						},
 						Source: account.Account{
 							Address: "KT1H1MqmUM4aK9i1833EBmYCCEfkbt6ZdSBc",
 							Type:    types.AccountTypeContract,
+							Level:   1520888,
 						},
 						Destination: account.Account{
 							Address: "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
 							Type:    types.AccountTypeContract,
+							Level:   1520888,
 						},
 						Delegate:        account.Account{},
 						Parameters:      []byte(`{"entrypoint":"execute","value":{"prim":"Pair","args":[{"string":"UpdateRecord"},{"prim":"Pair","args":[{"bytes":"0507070a0000000962616c6c732e74657a070705090a000000160000c0ca282a775946b5ecbe02e5cf73e25f6b62b70c07070a000000160000753f63893674b6d523f925f0d787bf9270b95c330200000000"},{"bytes":"0000753f63893674b6d523f925f0d787bf9270b95c33"}]}]}}`),
@@ -1437,10 +1467,12 @@ func TestGroup_Parse(t *testing.T) {
 						Source: account.Account{
 							Address: "tz1SMARcpWCydHsGgz4MRoK9NkbpBmmUAfNe",
 							Type:    types.AccountTypeTz,
+							Level:   15400,
 						},
 						Initiator: account.Account{
 							Address: "tz1SMARcpWCydHsGgz4MRoK9NkbpBmmUAfNe",
 							Type:    types.AccountTypeTz,
+							Level:   15400,
 						},
 						Status:       types.OperationStatusApplied,
 						Fee:          377,
@@ -1509,14 +1541,17 @@ func TestGroup_Parse(t *testing.T) {
 						Source: account.Account{
 							Address: "tz1RiUE3Ao53juAz4uDYx1J3tHJMye6jPfhp",
 							Type:    types.AccountTypeTz,
+							Level:   381735,
 						},
 						Destination: account.Account{
 							Address: "KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6",
 							Type:    types.AccountTypeContract,
+							Level:   381735,
 						},
 						Initiator: account.Account{
 							Address: "tz1RiUE3Ao53juAz4uDYx1J3tHJMye6jPfhp",
 							Type:    types.AccountTypeTz,
+							Level:   381735,
 						},
 						Status:              types.OperationStatusApplied,
 						Fee:                 4175,
@@ -1551,14 +1586,17 @@ func TestGroup_Parse(t *testing.T) {
 						Source: account.Account{
 							Address: "KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6",
 							Type:    types.AccountTypeContract,
+							Level:   381735,
 						},
 						Destination: account.Account{
 							Address: "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
 							Type:    types.AccountTypeContract,
+							Level:   381735,
 						},
 						Initiator: account.Account{
 							Address: "tz1RiUE3Ao53juAz4uDYx1J3tHJMye6jPfhp",
 							Type:    types.AccountTypeTz,
+							Level:   381735,
 						},
 						Status:          types.OperationStatusApplied,
 						Nonce:           testsuite.Ptr[int64](2),
@@ -1597,14 +1635,17 @@ func TestGroup_Parse(t *testing.T) {
 						Source: account.Account{
 							Address: "KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6",
 							Type:    types.AccountTypeContract,
+							Level:   381735,
 						},
 						Destination: account.Account{
 							Address: "KT19H9YbHqsxFTayap7aTEfbcnyPeALKYgt9",
 							Type:    types.AccountTypeContract,
+							Level:   381735,
 						},
 						Initiator: account.Account{
 							Address: "tz1RiUE3Ao53juAz4uDYx1J3tHJMye6jPfhp",
 							Type:    types.AccountTypeTz,
+							Level:   381735,
 						},
 						Status:              types.OperationStatusApplied,
 						Nonce:               testsuite.Ptr[int64](1),
@@ -1647,14 +1688,17 @@ func TestGroup_Parse(t *testing.T) {
 						Source: account.Account{
 							Address: "KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6",
 							Type:    types.AccountTypeContract,
+							Level:   381735,
 						},
 						Destination: account.Account{
 							Address: "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							Type:    types.AccountTypeContract,
+							Level:   381735,
 						},
 						Initiator: account.Account{
 							Address: "tz1RiUE3Ao53juAz4uDYx1J3tHJMye6jPfhp",
 							Type:    types.AccountTypeTz,
+							Level:   381735,
 						},
 						Status:                             types.OperationStatusApplied,
 						Nonce:                              testsuite.Ptr[int64](0),
@@ -1921,10 +1965,12 @@ func TestGroup_Parse(t *testing.T) {
 						Account: account.Account{
 							Address: "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 							Type:    types.AccountTypeContract,
+							Level:   381735,
 						},
 						Manager: account.Account{
 							Address: "KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6",
 							Type:    types.AccountTypeContract,
+							Level:   381735,
 						},
 						Tags:       16640,
 						LastAction: timestamp,
@@ -2112,6 +2158,7 @@ func TestGroup_Parse(t *testing.T) {
 
 							Address: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",
 							Type:    types.AccountTypeTz,
+							Level:   707452,
 						},
 						Fee:                                724,
 						Counter:                            12837,
@@ -2122,6 +2169,7 @@ func TestGroup_Parse(t *testing.T) {
 						Destination: account.Account{
 							Address: "KT1KRzp5hckBwLLswCreweLMdueL3jJhTN1S",
 							Type:    types.AccountTypeContract,
+							Level:   707452,
 						},
 						Status:    types.OperationStatusApplied,
 						Level:     707452,
@@ -2130,6 +2178,7 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator: account.Account{
 							Address: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",
 							Type:    types.AccountTypeTz,
+							Level:   707452,
 						},
 						Delegate:        account.Account{},
 						ProtocolID:      6,
@@ -2141,12 +2190,14 @@ func TestGroup_Parse(t *testing.T) {
 						Account: account.Account{
 							Address: "KT1KRzp5hckBwLLswCreweLMdueL3jJhTN1S",
 							Type:    types.AccountTypeContract,
+							Level:   707452,
 						},
 						Level:     707452,
 						Timestamp: timestamp,
 						Manager: account.Account{
 							Address: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",
 							Type:    types.AccountTypeTz,
+							Level:   707452,
 						},
 						Delegate: account.Account{},
 						Babylon: modelContract.Script{

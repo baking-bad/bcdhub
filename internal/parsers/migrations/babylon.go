@@ -56,6 +56,7 @@ func (p *Babylon) Parse(ctx context.Context, script noderpc.Script, old *modelsC
 	}
 
 	contractScript := modelsContract.Script{
+		Level:     next.StartLevel,
 		Hash:      newHash,
 		Code:      s.Code,
 		Storage:   s.Storage,

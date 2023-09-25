@@ -225,8 +225,8 @@ func (storage *Storage) GetByHash(ctx context.Context, hash []byte) (operations 
 	addOperationSorting(query)
 	err = storage.DB.NewSelect().TableExpr("(?) as operation", query).
 		ColumnExpr("operation.*").
-		ColumnExpr("source.address as source__address, source.alias as source__alias, source.type as source__type,source.id as source__id").
-		ColumnExpr("destination.address as destination__address, destination.alias as destination__alias, destination.type as destination__type, destination.id as destination__id").
+		ColumnExpr("source.address as source__address, source.type as source__type,source.id as source__id").
+		ColumnExpr("destination.address as destination__address, destination.type as destination__type, destination.id as destination__id").
 		Join("LEFT JOIN accounts as source ON source.id = operation.source_id").
 		Join("LEFT JOIN accounts as destination ON destination.id = operation.destination_id").
 		Scan(ctx, &operations)

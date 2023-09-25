@@ -48,6 +48,7 @@ func (p *Carthage) Parse(ctx context.Context, script noderpc.Script, old *models
 	}
 
 	contractScript := modelsContract.Script{
+		Level:     next.StartLevel,
 		Hash:      newHash,
 		Code:      s.Code,
 		Storage:   s.Storage,

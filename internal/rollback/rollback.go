@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -21,11 +22,11 @@ import (
 type Manager struct {
 	storage   models.GeneralRepository
 	blockRepo block.Repository
-	saver     Saver
+	saver     models.Rollback
 }
 
 // NewManager -
-func NewManager(storage models.GeneralRepository, blockRepo block.Repository, saver Saver) Manager {
+func NewManager(storage models.GeneralRepository, blockRepo block.Repository, saver models.Rollback) Manager {
 	return Manager{
 		storage, blockRepo, saver,
 	}
@@ -52,10 +53,11 @@ func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState
 			return rm.saver.Rollback()
 		}
 	}
-	return nil
+
+	return rm.saver.Commit()
 }
 
-// TODO: rollback protocol and m2m entities
+// TODO: rollback protocol
 func (rm Manager) rollback(ctx context.Context, level int64) error {
 	if err := rm.rollbackOperations(ctx, level); err != nil {
 		return err
@@ -63,10 +65,10 @@ func (rm Manager) rollback(ctx context.Context, level int64) error {
 	if err := rm.rollbackBigMapState(ctx, level); err != nil {
 		return err
 	}
-	if err := rm.rollbackAll(ctx, level); err != nil {
+	if err := rm.rollbackScripts(ctx, level); err != nil {
 		return err
 	}
-	if err := rm.saver.Commit(); err != nil {
+	if err := rm.rollbackAll(ctx, level); err != nil {
 		return err
 	}
 	return nil
@@ -74,17 +76,20 @@ func (rm Manager) rollback(ctx context.Context, level int64) error {
 
 func (rm Manager) rollbackAll(ctx context.Context, level int64) error {
 	for _, model := range []models.Model{
-		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
-		&bigmapaction.BigMapAction{}, &contract.GlobalConstant{},
-		&smartrollup.SmartRollup{}, &ticket.TicketUpdate{},
-		&migration.Migration{},
+		(*block.Block)(nil),
+		(*contract.Contract)(nil),
+		(*bigmapdiff.BigMapDiff)(nil),
+		(*bigmapaction.BigMapAction)(nil),
+		(*smartrollup.SmartRollup)(nil),
+		(*ticket.TicketUpdate)(nil),
+		(*migration.Migration)(nil),
+		(*account.Account)(nil),
 	} {
 		if err := rm.saver.DeleteAll(ctx, model, level); err != nil {
 			return err
 		}
 		logger.Info().
-			Str("model", model.GetIndex()).
-			Msg("rollback")
+			Msgf("rollback: %T", model)
 	}
 	return nil
 }
@@ -145,7 +150,7 @@ func (rm Manager) rollbackOperations(ctx context.Context, level int64) error {
 		return nil
 	}
 
-	if err := rm.saver.DeleteAll(ctx, new(operation.Operation), level); err != nil {
+	if err := rm.saver.DeleteAll(ctx, (*operation.Operation)(nil), level); err != nil {
 		return err
 	}
 
@@ -191,6 +196,44 @@ func (rm Manager) rollbackOperations(ctx context.Context, level int64) error {
 		}
 
 		if err := rm.saver.UpdateContractStats(ctx, actions[i].AccountId, actions[i].Time, count); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (rm Manager) rollbackScripts(ctx context.Context, level int64) error {
+	logger.Info().Msg("rollback scripts and global constants...")
+	constants, err := rm.saver.GlobalConstants(ctx, level)
+	if err != nil {
+		return err
+	}
+	scripts, err := rm.saver.Scripts(ctx, level)
+	if err != nil {
+		return err
+	}
+
+	constantIds := make([]int64, len(constants))
+	for i := range constants {
+		constantIds[i] = constants[i].ID
+	}
+	scriptIds := make([]int64, len(scripts))
+	for i := range scripts {
+		scriptIds[i] = scripts[i].ID
+	}
+
+	if err := rm.saver.DeleteScriptsConstants(ctx, scriptIds, constantIds); err != nil {
+		return err
+	}
+
+	if len(scripts) > 0 {
+		if err := rm.saver.DeleteAll(ctx, (*contract.Script)(nil), level); err != nil {
+			return err
+		}
+	}
+	if len(constants) > 0 {
+		if err := rm.saver.DeleteAll(ctx, (*contract.GlobalConstant)(nil), level); err != nil {
 			return err
 		}
 	}

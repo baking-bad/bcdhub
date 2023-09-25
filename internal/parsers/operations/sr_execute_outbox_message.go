@@ -28,6 +28,7 @@ func (p SrExecuteOutboxMessage) Parse(ctx context.Context, data noderpc.Operatio
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
+		Level:   p.head.Level,
 	}
 
 	operation := operation.Operation{
@@ -49,6 +50,7 @@ func (p SrExecuteOutboxMessage) Parse(ctx context.Context, data noderpc.Operatio
 		operation.Destination = account.Account{
 			Address: *data.Rollup,
 			Type:    types.NewAccountType(*data.Rollup),
+			Level:   p.head.Level,
 		}
 	}
 	p.fillInternal(&operation)

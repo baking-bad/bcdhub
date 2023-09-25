@@ -94,6 +94,7 @@ func (p *Jakarta) computeMetrics(ctx context.Context, operation *operation.Opera
 		contractScript.Hardcoded = script.HardcodedAddresses.Values()
 		contractScript.Entrypoints = params.GetEntrypoints()
 		contractScript.Constants = constants
+		contractScript.Level = operation.Level
 
 		c.Jakarta = contractScript
 	} else {

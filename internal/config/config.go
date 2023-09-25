@@ -142,17 +142,6 @@ type SeedConfig struct {
 		AvatarURL string `yaml:"avatar_url"`
 		Token     string `yaml:"token"`
 	} `yaml:"user"`
-	Subscriptions []struct {
-		Address   string `yaml:"address"`
-		Network   string `yaml:"network"`
-		Alias     string `yaml:"alias"`
-		WatchMask uint   `yaml:"watch_mask"`
-	} `yaml:"subscriptions"`
-	Aliases []struct {
-		Alias   string `yaml:"alias"`
-		Network string `yaml:"network"`
-		Address string `yaml:"address"`
-	} `yaml:"aliases"`
 	Accounts []struct {
 		PrivateKey    string `yaml:"private_key"`
 		PublicKeyHash string `yaml:"public_key_hash"`

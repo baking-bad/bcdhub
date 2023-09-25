@@ -39,12 +39,14 @@ func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *opera
 			Ticketer: account.Account{
 				Address: data.TicketToken.Ticketer,
 				Type:    types.NewAccountType(data.TicketToken.Ticketer),
+				Level:   operation.Level,
 			},
 			ContentType: data.TicketToken.ContentType,
 			Content:     data.TicketToken.Content,
 			Account: account.Account{
 				Address: data.Updates[i].Account,
 				Type:    types.NewAccountType(data.Updates[i].Account),
+				Level:   operation.Level,
 			},
 			Amount: decimal.RequireFromString(data.Updates[i].Amount),
 		})

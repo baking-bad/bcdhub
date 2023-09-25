@@ -25,6 +25,7 @@ func (p SrOriginate) Parse(ctx context.Context, data noderpc.Operation, store pa
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
+		Level:   p.head.Level,
 	}
 
 	operation := operation.Operation{

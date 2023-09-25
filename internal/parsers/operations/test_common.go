@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -142,6 +143,14 @@ func compareParserResponse(t *testing.T, got, want *parsers.TestStore) {
 	}
 }
 
+func compareAddress(t *testing.T, want, got account.Account) {
+	if want.Address == "" && got.Address == "" {
+		return
+	}
+
+	require.Equal(t, want, got)
+}
+
 func compareOperations(t *testing.T, want, got *operation.Operation) {
 	require.EqualValues(t, want.Internal, got.Internal)
 	compareInt64Ptr(t, want.Nonce, got.Nonce)
@@ -159,10 +168,10 @@ func compareOperations(t *testing.T, want, got *operation.Operation) {
 	require.Equal(t, want.Hash, got.Hash)
 	require.EqualValues(t, want.Status, got.Status)
 	require.EqualValues(t, want.Kind, got.Kind)
-	require.Equal(t, want.Initiator, got.Initiator)
-	require.Equal(t, want.Source, got.Source)
-	require.Equal(t, want.Destination, got.Destination)
-	require.Equal(t, want.Delegate, got.Delegate)
+	compareAddress(t, want.Initiator, got.Initiator)
+	compareAddress(t, want.Source, got.Source)
+	compareAddress(t, want.Destination, got.Destination)
+	compareAddress(t, want.Delegate, got.Delegate)
 	require.Equal(t, want.Entrypoint, got.Entrypoint)
 	compareBytesArray(t, want.Parameters, got.Parameters)
 	compareBytesArray(t, want.DeffatedStorage, got.DeffatedStorage)

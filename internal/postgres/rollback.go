@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/rollback"
 	"github.com/uptrace/bun"
 )
 
@@ -80,8 +80,8 @@ func (r Rollback) GetOperations(ctx context.Context, level int64) (ops []operati
 	return
 }
 
-func (r Rollback) GetContractsLastAction(ctx context.Context, addressIds ...int64) (actions []rollback.LastAction, err error) {
-	actions = make([]rollback.LastAction, len(addressIds))
+func (r Rollback) GetContractsLastAction(ctx context.Context, addressIds ...int64) (actions []models.LastAction, err error) {
+	actions = make([]models.LastAction, len(addressIds))
 	for i := range addressIds {
 		_, err = r.tx.NewRaw(`select max(foo.ts) as time, address from (
 				(select "timestamp" as ts, source_id as address from operations where source_id = ?0 order by id desc limit 1)
@@ -103,5 +103,33 @@ func (r Rollback) UpdateContractStats(ctx context.Context, addressId int64, last
 		Set("tx_count = tx_count - ?", txCount).
 		Set("last_action = ?", lastAction).
 		Exec(ctx)
+	return err
+}
+
+func (r Rollback) GlobalConstants(ctx context.Context, level int64) (constants []contract.GlobalConstant, err error) {
+	err = r.tx.NewSelect().Model(&constants).
+		Where("level = ?", level).
+		Scan(ctx)
+	return
+}
+
+func (r Rollback) Scripts(ctx context.Context, level int64) (scripts []contract.Script, err error) {
+	err = r.tx.NewSelect().Model(&scripts).
+		Where("level = ?", level).
+		Scan(ctx)
+	return
+}
+
+func (r Rollback) DeleteScriptsConstants(ctx context.Context, scriptIds []int64, constantsIds []int64) error {
+	if len(scriptIds) == 0 && len(constantsIds) == 0 {
+		return nil
+	}
+
+	query := r.tx.NewDelete().
+		Model((*contract.ScriptConstants)(nil)).
+		Where("script_id IN (?)", bun.In(scriptIds)).
+		WhereOr("global_constant_id IN (?)", bun.In(constantsIds))
+
+	_, err := query.Exec(ctx)
 	return err
 }

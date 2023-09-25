@@ -7,8 +7,7 @@
     "address": {
         "address": "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
         "network": "mainnet",
-        "type": 1,
-        "alias": "Minter"
+        "type": 1
     },
     "manager": {
         "address": "tz1codeYURj5z49HKX9zmLHms2vJN2qDjrtt",

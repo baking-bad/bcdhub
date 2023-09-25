@@ -6,8 +6,7 @@
     "account": {
         "address": "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
         "network": "mainnet",
-        "type": 1,
-        "alias": "Atomex FA1.2"
+        "type": 1
     },
     "manager": {
         "address": "tz1bcoETzoyoSUFPi1YZBudKQBf1JUsER6ye",

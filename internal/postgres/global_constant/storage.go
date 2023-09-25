@@ -168,7 +168,7 @@ func (storage *Storage) ContractList(ctx context.Context, address string, size, 
 	var contracts []contract.Contract
 	if err := storage.DB.NewSelect().Model(&contracts).
 		ColumnExpr("contract.*").
-		ColumnExpr("accounts.address as account__address, accounts.alias as account__alias").
+		ColumnExpr("accounts.address as account__address").
 		Where("contract.babylon_id IN (?)", bun.In(scriptIDs)).
 		WhereOr("contract.jakarta_id IN (?)", bun.In(scriptIDs)).
 		Join("LEFT JOIN accounts on contract.account_id = accounts.id").

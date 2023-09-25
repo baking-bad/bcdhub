@@ -34,6 +34,7 @@ func (p Transaction) Parse(ctx context.Context, data noderpc.Operation, store pa
 	source := account.Account{
 		Address: data.Source,
 		Type:    modelsTypes.NewAccountType(data.Source),
+		Level:   p.head.Level,
 	}
 
 	tx := operation.Operation{
@@ -52,10 +53,12 @@ func (p Transaction) Parse(ctx context.Context, data noderpc.Operation, store pa
 		Destination: account.Account{
 			Address: *data.Destination,
 			Type:    modelsTypes.NewAccountType(*data.Destination),
+			Level:   p.head.Level,
 		},
 		Delegate: account.Account{
 			Address: data.Delegate,
 			Type:    modelsTypes.NewAccountType(data.Delegate),
+			Level:   p.head.Level,
 		},
 		Nonce:        data.Nonce,
 		Parameters:   data.Parameters,

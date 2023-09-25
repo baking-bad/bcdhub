@@ -74,6 +74,7 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 		Destination: account.Account{
 			Address: implicit.OriginatedContracts[0],
 			Type:    types.AccountTypeContract,
+			Level:   head.Level,
 		},
 		ConsumedGas:         implicit.ConsumedGas,
 		PaidStorageSizeDiff: implicit.PaidStorageSizeDiff,
@@ -129,6 +130,7 @@ func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, 
 			tx.Destination = account.Account{
 				Type:    types.NewAccountType(implicit.BalanceUpdates[i].Contract),
 				Address: implicit.BalanceUpdates[i].Contract,
+				Level:   head.Level,
 			}
 			break
 		}

@@ -167,17 +167,13 @@ type Contract struct {
 	LastAction      time.Time `json:"last_action,omitempty" extensions:"x-nullable"`
 	TxCount         int64     `json:"tx_count,omitempty" extensions:"x-nullable"`
 	MigrationsCount int64     `json:"migrations_count,omitempty" extensions:"x-nullable"`
-	Alias           string    `json:"alias,omitempty" extensions:"x-nullable"`
-	DelegateAlias   string    `json:"delegate_alias,omitempty" extensions:"x-nullable"`
 	Slug            string    `json:"slug,omitempty" extensions:"x-nullable"`
 }
 
 // FromModel -
 func (c *Contract) FromModel(contract contract.Contract) {
 	c.Address = contract.Account.Address
-	c.Alias = contract.Account.Alias
 	c.Delegate = contract.Delegate.Address
-	c.DelegateAlias = contract.Delegate.Alias
 	c.TxCount = contract.TxCount
 	c.LastAction = contract.LastAction
 
@@ -215,7 +211,6 @@ type ContractWithStats struct {
 type RecentlyCalledContract struct {
 	ID         int64     `json:"id"`
 	Address    string    `json:"address"`
-	Alias      string    `json:"alias,omitempty" extensions:"x-nullable"`
 	LastAction time.Time `json:"last_action,omitempty" extensions:"x-nullable"`
 	TxCount    int64     `json:"tx_count,omitempty" extensions:"x-nullable"`
 }
@@ -223,7 +218,6 @@ type RecentlyCalledContract struct {
 // FromModel -
 func (c *RecentlyCalledContract) FromModel(contract contract.Contract) {
 	c.Address = contract.Account.Address
-	c.Alias = contract.Account.Alias
 	c.TxCount = contract.TxCount
 	c.LastAction = contract.LastAction
 	c.ID = contract.ID
@@ -253,13 +247,12 @@ type BigMapResponseItem struct {
 
 // GetBigMapResponse -
 type GetBigMapResponse struct {
-	Address       string        `json:"address"`
-	Network       string        `json:"network"`
-	Ptr           int64         `json:"ptr"`
-	ActiveKeys    uint          `json:"active_keys"`
-	TotalKeys     uint          `json:"total_keys"`
-	ContractAlias string        `json:"contract_alias,omitempty" extensions:"x-nullable"`
-	Typedef       []ast.Typedef `json:"typedef,omitempty" extensions:"x-nullable"`
+	Address    string        `json:"address"`
+	Network    string        `json:"network"`
+	Ptr        int64         `json:"ptr"`
+	ActiveKeys uint          `json:"active_keys"`
+	TotalKeys  uint          `json:"total_keys"`
+	Typedef    []ast.Typedef `json:"typedef,omitempty" extensions:"x-nullable"`
 }
 
 // Migration -
@@ -270,58 +263,6 @@ type Migration struct {
 	Protocol     string    `json:"protocol"`
 	PrevProtocol string    `json:"prev_protocol"`
 	Kind         string    `json:"kind"`
-}
-
-// TokenContract -
-type TokenContract struct {
-	Network       string                      `json:"network"`
-	Level         int64                       `json:"level"`
-	Timestamp     time.Time                   `json:"timestamp"`
-	LastAction    time.Time                   `json:"last_action"`
-	Address       string                      `json:"address"`
-	Manager       string                      `json:"manager,omitempty" extensions:"x-nullable"`
-	Delegate      string                      `json:"delegate,omitempty" extensions:"x-nullable"`
-	Alias         string                      `json:"alias,omitempty" extensions:"x-nullable"`
-	DelegateAlias string                      `json:"delegate_alias,omitempty" extensions:"x-nullable"`
-	Type          string                      `json:"type"`
-	Balance       int64                       `json:"balance"`
-	TxCount       int64                       `json:"tx_count"`
-	Methods       map[string]TokenMethodStats `json:"methods,omitempty" extensions:"x-nullable"`
-}
-
-// TokenMethodStats -
-type TokenMethodStats struct {
-	CallCount          int64 `json:"call_count"`
-	AverageConsumedGas int64 `json:"average_consumed_gas"`
-}
-
-// PageableTokenContracts -
-type PageableTokenContracts struct {
-	Total  int64           `json:"total"`
-	Tokens []TokenContract `json:"tokens"`
-}
-
-// TokenTransfer -
-type TokenTransfer struct {
-	Contract  string    `json:"contract"`
-	Network   string    `json:"network"`
-	Protocol  string    `json:"protocol"`
-	Hash      string    `json:"hash"`
-	Counter   int64     `json:"counter,omitempty" extensions:"x-nullable"`
-	Status    string    `json:"status"`
-	Timestamp time.Time `json:"timestamp"`
-	Level     int64     `json:"level"`
-	From      string    `json:"from,omitempty" extensions:"x-nullable"`
-	To        string    `json:"to"`
-	Amount    int64     `json:"amount"`
-	Source    string    `json:"source"`
-	Nonce     *int64    `json:"nonce,omitempty" extensions:"x-nullable"`
-}
-
-// PageableTokenTransfers -
-type PageableTokenTransfers struct {
-	Transfers []TokenTransfer `json:"transfers"`
-	LastID    string          `json:"last_id,omitempty" extensions:"x-nullable"`
 }
 
 // BigMapDiffItem -
@@ -395,14 +336,6 @@ type GetErrorLocationResponse struct {
 	FirstRow    int    `json:"first_row"`
 	StartColumn int    `json:"start_col"`
 	EndColumn   int    `json:"end_col"`
-}
-
-// Alias -
-type Alias struct {
-	Alias   string `json:"alias" example:"Contract alias"`
-	Network string `json:"network" example:"babylonnet"`
-	Address string `json:"address" example:"KT1CeekjGVRc5ASmgWDc658NBExetoKNuiqz"`
-	Slug    string `json:"slug" example:"contract_slug"`
 }
 
 // Protocol -
@@ -497,7 +430,6 @@ type Screenshot struct {
 // AccountInfo -
 type AccountInfo struct {
 	Address     string    `json:"address"`
-	Alias       string    `json:"alias,omitempty" extensions:"x-nullable"`
 	Balance     int64     `json:"balance"`
 	TxCount     int64     `json:"tx_count"`
 	LastAction  time.Time `json:"last_action"`

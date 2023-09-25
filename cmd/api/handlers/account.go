@@ -54,7 +54,6 @@ func GetInfo() gin.HandlerFunc {
 		}
 		c.SecureJSON(http.StatusOK, AccountInfo{
 			Address:     acc.Address,
-			Alias:       acc.Alias,
 			TxCount:     stats.Count,
 			Balance:     balance,
 			LastAction:  stats.LastAction.UTC(),

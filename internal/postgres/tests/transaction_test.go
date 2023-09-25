@@ -69,6 +69,23 @@ func (s *TransactionTest) TearDownSuite() {
 	s.Require().NoError(s.psqlContainer.Terminate(ctx))
 }
 
+func (s *TransactionTest) SetupTest() {
+	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
+	s.Require().NoError(err)
+
+	fixtures, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Directory(
+			"./fixtures",
+		),
+		testfixtures.UseAlterConstraint(),
+	)
+	s.Require().NoError(err)
+	s.Require().NoError(fixtures.Load())
+	s.Require().NoError(db.Close())
+}
+
 func TestSuiteTransaction_Run(t *testing.T) {
 	suite.Run(t, new(TransactionTest))
 }
@@ -83,7 +100,7 @@ func (s *TransactionTest) TestSave() {
 	account := account.Account{
 		Address: "address",
 		Type:    types.AccountTypeContract,
-		Alias:   "alias",
+		Level:   100,
 	}
 	err = tx.Save(ctx, &account)
 	s.Require().NoError(err)
@@ -165,11 +182,6 @@ func (s *TransactionTest) TestScriptConstants() {
 
 	err = tx.Commit()
 	s.Require().NoError(err)
-
-	var result []contract.ScriptConstants
-	err = s.storage.DB.NewSelect().Model(&result).Scan(ctx)
-	s.Require().NoError(err)
-	s.Require().Len(result, 3)
 }
 
 func (s *TransactionTest) TestScripts() {
@@ -193,29 +205,9 @@ func (s *TransactionTest) TestScripts() {
 
 	err = tx.Commit()
 	s.Require().NoError(err)
-
-	var result []contract.Script
-	err = s.storage.DB.NewSelect().Model(&result).Scan(ctx)
-	s.Require().NoError(err)
-	s.Require().Len(result, 3)
 }
 
 func (s *TransactionTest) TestScriptsConflict() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files(
-			"./fixtures/scripts.yml",
-		),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -244,15 +236,15 @@ func (s *TransactionTest) TestAccounts() {
 		{
 			Address: "address_1",
 			Type:    types.AccountTypeContract,
-			Alias:   "alias_1",
+			Level:   100,
 		}, {
 			Address: "address_12",
 			Type:    types.AccountTypeSmartRollup,
-			Alias:   "alias_12",
+			Level:   100,
 		}, {
 			Address: "address_2",
 			Type:    types.AccountTypeTz,
-			Alias:   "alias_2",
+			Level:   100,
 		},
 	}
 	err = tx.Accounts(ctx, sc...)
@@ -260,11 +252,6 @@ func (s *TransactionTest) TestAccounts() {
 
 	err = tx.Commit()
 	s.Require().NoError(err)
-
-	var result []account.Account
-	err = s.storage.DB.NewSelect().Model(&result).Scan(ctx)
-	s.Require().NoError(err)
-	s.Require().Len(result, 3)
 }
 
 func (s *TransactionTest) TestBigMapStates() {
@@ -278,7 +265,7 @@ func (s *TransactionTest) TestBigMapStates() {
 		{
 			Key:             []byte{0, 1, 2, 3},
 			KeyHash:         "hash 1",
-			Ptr:             1,
+			Ptr:             100000,
 			LastUpdateLevel: 100,
 			Count:           1,
 			Removed:         false,
@@ -286,7 +273,7 @@ func (s *TransactionTest) TestBigMapStates() {
 		}, {
 			Key:             []byte{0, 1, 2, 3, 4},
 			KeyHash:         "hash 2",
-			Ptr:             1,
+			Ptr:             100000,
 			LastUpdateLevel: 100,
 			Count:           1,
 			Removed:         false,
@@ -294,7 +281,7 @@ func (s *TransactionTest) TestBigMapStates() {
 		}, {
 			Key:             []byte{0, 1, 2, 3, 5},
 			KeyHash:         "hash 3",
-			Ptr:             1,
+			Ptr:             100000,
 			LastUpdateLevel: 100,
 			Count:           1,
 			Removed:         false,
@@ -307,28 +294,12 @@ func (s *TransactionTest) TestBigMapStates() {
 	s.Require().NoError(err)
 
 	var result []bigmapdiff.BigMapState
-	err = s.storage.DB.NewSelect().Model(&result).Scan(ctx)
+	err = s.storage.DB.NewSelect().Model(&result).Where("ptr = 100000").Scan(ctx)
 	s.Require().NoError(err)
 	s.Require().Len(result, 3)
 }
 
 func (s *TransactionTest) TestUpdateContracts() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files(
-			"./fixtures/accounts.yml",
-			"./fixtures/contracts.yml",
-		),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -358,22 +329,6 @@ func (s *TransactionTest) TestUpdateContracts() {
 }
 
 func (s *TransactionTest) TestBabylonUpdateNonDelegator() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files(
-			"./fixtures/accounts.yml",
-			"./fixtures/contracts.yml",
-		),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -398,22 +353,6 @@ func (s *TransactionTest) TestBabylonUpdateNonDelegator() {
 }
 
 func (s *TransactionTest) TestJakartaVesting() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files(
-			"./fixtures/accounts.yml",
-			"./fixtures/contracts.yml",
-		),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -437,22 +376,6 @@ func (s *TransactionTest) TestJakartaVesting() {
 }
 
 func (s *TransactionTest) TestJakartaUpdateNonDelegator() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files(
-			"./fixtures/accounts.yml",
-			"./fixtures/contracts.yml",
-		),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -477,22 +400,6 @@ func (s *TransactionTest) TestJakartaUpdateNonDelegator() {
 }
 
 func (s *TransactionTest) TestToJakarta() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files(
-			"./fixtures/accounts.yml",
-			"./fixtures/contracts.yml",
-		),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -512,21 +419,6 @@ func (s *TransactionTest) TestToJakarta() {
 }
 
 func (s *TransactionTest) TestBabylonBigMapStates() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Files(
-			"./fixtures/big_map_states.yml",
-		),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

@@ -27,6 +27,7 @@ func (p Origination) Parse(ctx context.Context, data noderpc.Operation, store pa
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
+		Level:   p.head.Level,
 	}
 
 	origination := operation.Operation{
@@ -45,6 +46,7 @@ func (p Origination) Parse(ctx context.Context, data noderpc.Operation, store pa
 		Delegate: account.Account{
 			Address: data.Delegate,
 			Type:    types.NewAccountType(data.Delegate),
+			Level:   p.head.Level,
 		},
 		Parameters:   data.Parameters,
 		Nonce:        data.Nonce,

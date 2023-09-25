@@ -25,6 +25,7 @@ func (p TxRollupOrigination) Parse(ctx context.Context, data noderpc.Operation, 
 	source := account.Account{
 		Address: data.Source,
 		Type:    types.NewAccountType(data.Source),
+		Level:   p.head.Level,
 	}
 
 	txRollupOrigination := operation.Operation{

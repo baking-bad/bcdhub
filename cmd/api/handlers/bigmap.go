@@ -65,7 +65,6 @@ func GetBigMap() gin.HandlerFunc {
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
-			res.ContractAlias = destination.Alias
 
 			operation, err := ctx.Operations.Last(
 				c.Request.Context(),

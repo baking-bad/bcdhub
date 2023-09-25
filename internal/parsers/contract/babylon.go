@@ -84,6 +84,7 @@ func (p *Babylon) computeMetrics(ctx context.Context, operation *operation.Opera
 		contractScript.Tags = types.NewTags(script.Tags.Values())
 		contractScript.Hardcoded = script.HardcodedAddresses.Values()
 		contractScript.Entrypoints = params.GetEntrypoints()
+		contractScript.Level = operation.Level
 
 		c.Babylon = contractScript
 	} else {

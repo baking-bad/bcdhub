@@ -35,6 +35,10 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		return nil
 	}
 
+	if err := ctx.Storage.InitDatabase(context.Background()); err != nil {
+		return err
+	}
+
 	saver, err := postgres.NewRollback(ctx.StorageDB.DB)
 	if err != nil {
 		return err
