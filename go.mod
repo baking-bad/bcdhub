@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/dipdup-io/workerpool v0.0.4
-	github.com/dipdup-net/go-lib v0.3.4
+	github.com/dipdup-net/go-lib v0.3.5
 	github.com/ebellocchia/go-base58 v0.1.0
 	github.com/fatih/color v1.13.0
 	github.com/getsentry/sentry-go v0.13.0

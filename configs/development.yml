@@ -76,14 +76,13 @@ indexer:
   sentry_enabled: false
   networks:
     mainnet:
-      receiver_threads: 15
+      receiver_threads: 5
     ghostnet:
-      receiver_threads: 15
+      receiver_threads: 5
     nairobinet:
       receiver_threads: 15
     # oxfordnet:
     #   receiver_threads: 10
-  
 
 scripts:
   networks:

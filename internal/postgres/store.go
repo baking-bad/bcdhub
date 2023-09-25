@@ -5,16 +5,20 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
+	"github.com/uptrace/bun"
 )
 
 // Store -
 type Store struct {
+	Block           *block.Block
 	BigMapState     []*bigmapdiff.BigMapState
 	Contracts       []*contract.Contract
 	Migrations      []*migration.Migration
@@ -23,10 +27,11 @@ type Store struct {
 	SmartRollups    []*smartrollup.SmartRollup
 
 	partitions *PartitionManager
+	db         *bun.DB
 }
 
 // NewStore -
-func NewStore(pm *PartitionManager) *Store {
+func NewStore(pm *PartitionManager, db *bun.DB) *Store {
 	return &Store{
 		BigMapState:     make([]*bigmapdiff.BigMapState, 0),
 		Contracts:       make([]*contract.Contract, 0),
@@ -35,7 +40,12 @@ func NewStore(pm *PartitionManager) *Store {
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
 		SmartRollups:    make([]*smartrollup.SmartRollup, 0),
 		partitions:      pm,
+		db:              db,
 	}
+}
+
+func (store *Store) SetBlock(block *block.Block) {
+	store.Block = block
 }
 
 // AddBigMapStates -
@@ -79,17 +89,26 @@ func (store *Store) ListOperations() []*operation.Operation {
 }
 
 // Save -
-func (store *Store) Save(ctx context.Context, tx models.Transaction) error {
-	if err := store.saveOperations(ctx, tx); err != nil {
+func (store *Store) Save(ctx context.Context) error {
+	tx, err := core.NewTransaction(ctx, store.db)
+	if err != nil {
 		return err
+	}
+
+	if err := tx.Block(ctx, store.Block); err != nil {
+		return errors.Wrap(err, "saving block")
+	}
+
+	if err := store.saveOperations(ctx, tx); err != nil {
+		return errors.Wrap(err, "saving operations")
 	}
 
 	if err := store.saveContracts(ctx, tx); err != nil {
-		return err
+		return errors.Wrap(err, "saving contracts")
 	}
 
 	if err := store.saveMigrations(ctx, tx); err != nil {
-		return err
+		return errors.Wrap(err, "saving migrations")
 	}
 
 	if err := tx.BigMapStates(ctx, store.BigMapState...); err != nil {
@@ -101,10 +120,10 @@ func (store *Store) Save(ctx context.Context, tx models.Transaction) error {
 	}
 
 	if err := store.saveSmartRollups(ctx, tx); err != nil {
-		return err
+		return errors.Wrap(err, "saving smart rollups")
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 func (store *Store) saveMigrations(ctx context.Context, tx models.Transaction) error {

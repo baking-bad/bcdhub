@@ -77,7 +77,7 @@ func (s *TransactionTest) TestSave() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	tx, err := postgres.NewTransaction(ctx, s.storage.DB)
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
 
 	account := account.Account{
@@ -97,7 +97,7 @@ func (s *TransactionTest) TestMigrations() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	tx, err := postgres.NewTransaction(ctx, s.storage.DB)
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
 
 	m := migration.Migration{
@@ -121,7 +121,7 @@ func (s *TransactionTest) TestProtocol() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	tx, err := postgres.NewTransaction(ctx, s.storage.DB)
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
 
 	p := protocol.Protocol{
@@ -145,7 +145,7 @@ func (s *TransactionTest) TestScriptConstants() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	tx, err := postgres.NewTransaction(ctx, s.storage.DB)
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
 
 	sc := []*contract.ScriptConstants{
@@ -176,7 +176,7 @@ func (s *TransactionTest) TestScripts() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	tx, err := postgres.NewTransaction(ctx, s.storage.DB)
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
 
 	sc := []*contract.Script{
@@ -200,11 +200,44 @@ func (s *TransactionTest) TestScripts() {
 	s.Require().Len(result, 3)
 }
 
+func (s *TransactionTest) TestScriptsConflict() {
+	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
+	s.Require().NoError(err)
+
+	fixtures, err := testfixtures.New(
+		testfixtures.Database(db),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Files(
+			"./fixtures/scripts.yml",
+		),
+		testfixtures.UseAlterConstraint(),
+	)
+	s.Require().NoError(err)
+	s.Require().NoError(fixtures.Load())
+	s.Require().NoError(db.Close())
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	update := contract.Script{
+		Hash: "8436dde35bd56644cd4f40c5f26839cb8f4b51052e415da2b9fadcd9bddcb03e",
+	}
+	err = tx.Scripts(ctx, &update)
+	s.Require().NoError(err)
+	s.Require().EqualValues(1, update.ID)
+
+	err = tx.Commit()
+	s.Require().NoError(err)
+}
+
 func (s *TransactionTest) TestAccounts() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	tx, err := postgres.NewTransaction(ctx, s.storage.DB)
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
 
 	sc := []*account.Account{
@@ -238,7 +271,7 @@ func (s *TransactionTest) TestBigMapStates() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	tx, err := postgres.NewTransaction(ctx, s.storage.DB)
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
 
 	sc := []*bigmapdiff.BigMapState{
@@ -299,7 +332,7 @@ func (s *TransactionTest) TestUpdateContracts() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	tx, err := postgres.NewTransaction(ctx, s.storage.DB)
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
 
 	sc := []*contract.Update{

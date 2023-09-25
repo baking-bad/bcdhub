@@ -1,4 +1,4 @@
-package indexer
+package protocols
 
 import (
 	"context"
@@ -8,19 +8,18 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
-func createProtocol(ctx context.Context, rpc noderpc.INode, chainID, hash string, level int64) (protocol protocol.Protocol, err error) {
-	protocol.SymLink, err = bcd.GetProtoSymLink(hash)
+func Create(ctx context.Context, rpc noderpc.INode, head noderpc.Header) (protocol protocol.Protocol, err error) {
+	protocol.SymLink, err = bcd.GetProtoSymLink(head.Protocol)
 	if err != nil {
 		return
 	}
 
-	protocol.Alias = hash[:8]
-	protocol.Hash = hash
-	protocol.StartLevel = level
-	protocol.ChainID = chainID
+	protocol.Alias = head.Protocol[:8]
+	protocol.Hash = head.Protocol
+	protocol.StartLevel = head.Level
+	protocol.ChainID = head.ChainID
 
 	err = setProtocolConstants(ctx, rpc, &protocol)
-
 	return
 }
 

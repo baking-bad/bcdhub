@@ -3,8 +3,8 @@ package parsers
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -21,11 +21,13 @@ type Store interface {
 	AddSmartRollups(rollups ...*smartrollup.SmartRollup)
 	ListContracts() []*contract.Contract
 	ListOperations() []*operation.Operation
-	Save(ctx context.Context, tx models.Transaction) error
+	Save(ctx context.Context) error
+	SetBlock(block *block.Block)
 }
 
 // TestStore -
 type TestStore struct {
+	Block           *block.Block
 	BigMapState     []*bigmapdiff.BigMapState
 	Contracts       []*contract.Contract
 	Migrations      []*migration.Migration
@@ -87,6 +89,10 @@ func (store *TestStore) ListOperations() []*operation.Operation {
 }
 
 // Save -
-func (store *TestStore) Save(ctx context.Context, tx models.Transaction) error {
+func (store *TestStore) Save(ctx context.Context) error {
 	return nil
+}
+
+func (store *TestStore) SetBlock(block *block.Block) {
+	store.Block = block
 }

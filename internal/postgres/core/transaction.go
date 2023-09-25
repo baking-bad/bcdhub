@@ -1,4 +1,4 @@
-package postgres
+package core
 
 import (
 	"context"
@@ -151,7 +151,8 @@ func (t Transaction) Scripts(ctx context.Context, scripts ...*contract.Script) e
 	}
 	_, err := t.tx.NewInsert().
 		Model(&scripts).
-		On("CONFLICT (hash) DO NOTHING").
+		On("CONFLICT (hash) DO UPDATE").
+		Set("tags = EXCLUDED.tags").
 		Returning("id").
 		Exec(ctx)
 	return err
