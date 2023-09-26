@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
@@ -22,12 +23,21 @@ type Manager struct {
 	storage   models.GeneralRepository
 	blockRepo block.Repository
 	rollback  models.Rollback
+	statsRepo stats.Repository
 }
 
 // NewManager -
-func NewManager(storage models.GeneralRepository, blockRepo block.Repository, saver models.Rollback) Manager {
+func NewManager(
+	storage models.GeneralRepository,
+	blockRepo block.Repository,
+	rollback models.Rollback,
+	statsRepo stats.Repository,
+) Manager {
 	return Manager{
-		storage, blockRepo, saver,
+		storage:   storage,
+		blockRepo: blockRepo,
+		rollback:  rollback,
+		statsRepo: statsRepo,
 	}
 }
 
@@ -57,7 +67,12 @@ func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState
 }
 
 func (rm Manager) rollbackBlock(ctx context.Context, level int64) error {
-	if err := rm.rollbackOperations(ctx, level); err != nil {
+	stats, err := rm.statsRepo.Get(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err := rm.rollbackOperations(ctx, level, &stats); err != nil {
 		return err
 	}
 	if err := rm.rollbackBigMapState(ctx, level); err != nil {
@@ -66,19 +81,21 @@ func (rm Manager) rollbackBlock(ctx context.Context, level int64) error {
 	if err := rm.rollbackScripts(ctx, level); err != nil {
 		return err
 	}
-	if err := rm.rollbackAll(ctx, level); err != nil {
+	if err := rm.rollbackAll(ctx, level, &stats); err != nil {
 		return err
 	}
 	if err := rm.rollback.Protocols(ctx, level); err != nil {
 		return err
 	}
+	if err := rm.rollback.UpdateStats(ctx, stats); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (rm Manager) rollbackAll(ctx context.Context, level int64) error {
+func (rm Manager) rollbackAll(ctx context.Context, level int64, stats *stats.Stats) error {
 	for _, model := range []models.Model{
 		(*block.Block)(nil),
-		(*contract.Contract)(nil),
 		(*bigmapdiff.BigMapDiff)(nil),
 		(*bigmapaction.BigMapAction)(nil),
 		(*smartrollup.SmartRollup)(nil),
@@ -86,11 +103,18 @@ func (rm Manager) rollbackAll(ctx context.Context, level int64) error {
 		(*migration.Migration)(nil),
 		(*account.Account)(nil),
 	} {
-		if err := rm.rollback.DeleteAll(ctx, model, level); err != nil {
+		if _, err := rm.rollback.DeleteAll(ctx, model, level); err != nil {
 			return err
 		}
-		logger.Info().
-			Msgf("rollback: %T", model)
+		logger.Info().Msgf("rollback: %T", model)
 	}
+
+	contractsCount, err := rm.rollback.DeleteAll(ctx, (*contract.Contract)(nil), level)
+	if err != nil {
+		return err
+	}
+	stats.ContractsCount -= contractsCount
+	logger.Info().Msgf("rollback contracts")
+
 	return nil
 }

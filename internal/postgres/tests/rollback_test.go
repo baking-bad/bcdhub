@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres"
 )
@@ -19,11 +20,13 @@ func (s *StorageTestSuite) TestDeleteAll() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	err = saver.DeleteAll(ctx, (*block.Block)(nil), 47)
+	count, err := saver.DeleteAll(ctx, (*block.Block)(nil), 47)
 	s.Require().NoError(err)
 
 	err = saver.Commit()
 	s.Require().NoError(err)
+
+	s.Require().EqualValues(1, count)
 
 	var block block.Block
 	err = s.storage.DB.NewSelect().Model(&block).Order("id desc").Limit(1).Scan(ctx)
@@ -195,4 +198,35 @@ func (s *StorageTestSuite) TestProtocols() {
 	s.Require().NoError(err)
 	s.Require().EqualValues(0, proto.EndLevel)
 	s.Require().EqualValues("Ps9mPmXaRzmzk35gbAYNCAw6UXdE2qoABTHbN2oEEc1qM7CwT9P", proto.Hash)
+}
+
+func (s *StorageTestSuite) TestRollbackUpdateStats() {
+	saver, err := postgres.NewRollback(s.storage.DB)
+	s.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	err = saver.UpdateStats(ctx, stats.Stats{
+		ID:                1,
+		ContractsCount:    1,
+		OperationsCount:   4,
+		OriginationsCount: 1,
+		TransactionsCount: 1,
+		EventsCount:       1,
+	})
+	s.Require().NoError(err)
+
+	err = saver.Commit()
+	s.Require().NoError(err)
+
+	var stats stats.Stats
+	err = s.storage.DB.NewSelect().Model(&stats).Limit(1).Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(119, stats.ContractsCount)
+	s.Require().EqualValues(188, stats.OperationsCount)
+	s.Require().EqualValues(71, stats.TransactionsCount)
+	s.Require().EqualValues(117, stats.OriginationsCount)
+	s.Require().EqualValues(1, stats.EventsCount)
+	s.Require().EqualValues(0, stats.SrOriginationsCount)
 }

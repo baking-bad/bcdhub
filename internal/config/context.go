@@ -14,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -47,6 +48,7 @@ type Context struct {
 	Domains         domains.Repository
 	Scripts         contract.ScriptRepository
 	SmartRollups    smartrollup.Repository
+	Stats           stats.Repository
 
 	Cache *cache.Cache
 }

@@ -43,7 +43,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 	if err != nil {
 		return err
 	}
-	manager := rollback.NewManager(ctx.Storage, ctx.Blocks, saver)
+	manager := rollback.NewManager(ctx.Storage, ctx.Blocks, saver, ctx.Stats)
 	if err = manager.Rollback(context.Background(), network, state, x.Level); err != nil {
 		return err
 	}

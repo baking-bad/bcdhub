@@ -18,6 +18,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/operation"
 	"github.com/baking-bad/bcdhub/internal/postgres/protocol"
 	smartrollup "github.com/baking-bad/bcdhub/internal/postgres/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/postgres/stats"
 	"github.com/baking-bad/bcdhub/internal/postgres/ticket"
 	"github.com/dipdup-net/go-lib/database"
 	"github.com/go-testfixtures/testfixtures/v3"
@@ -42,6 +43,7 @@ type StorageTestSuite struct {
 	protocols       *protocol.Storage
 	smartRollups    *smartrollup.Storage
 	ticketUpdates   *ticket.Storage
+	stats           *stats.Storage
 }
 
 // SetupSuite -
@@ -85,6 +87,7 @@ func (s *StorageTestSuite) SetupSuite() {
 	s.protocols = protocol.NewStorage(strg)
 	s.smartRollups = smartrollup.NewStorage(strg)
 	s.ticketUpdates = ticket.NewStorage(strg)
+	s.stats = stats.NewStorage(strg)
 }
 
 // TearDownSuite -

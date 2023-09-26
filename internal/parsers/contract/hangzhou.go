@@ -27,7 +27,7 @@ func NewHangzhou(ctx *config.Context) *Hangzhou {
 // Parse -
 func (p *Hangzhou) Parse(ctx context.Context, operation *operation.Operation, store parsers.Store) error {
 	if !operation.IsOrigination() {
-		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
+		return errors.Errorf("invalid operation kind in hangzhou.parse: %s", operation.Kind)
 	}
 
 	contract := contract.Contract{

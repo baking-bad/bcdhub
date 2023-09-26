@@ -117,10 +117,10 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 func ContractsCount() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
-		count, err := ctx.Contracts.Count(c.Request.Context())
+		stats, err := ctx.Stats.Get(c.Request.Context())
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		c.SecureJSON(http.StatusOK, count)
+		c.SecureJSON(http.StatusOK, stats.ContractsCount)
 	}
 }

@@ -21,11 +21,11 @@ type VestingParser struct {
 }
 
 // NewVestingParser -
-func NewVestingParser(ctx *config.Context, contractParser contract.Parser, proto protocol.Protocol) (*VestingParser, error) {
+func NewVestingParser(ctx *config.Context, contractParser contract.Parser, proto protocol.Protocol) *VestingParser {
 	return &VestingParser{
 		parser:   contractParser,
 		protocol: proto,
-	}, nil
+	}
 }
 
 // Parse -

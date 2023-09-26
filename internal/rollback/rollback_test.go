@@ -13,7 +13,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/mock"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
+	mock_stats "github.com/baking-bad/bcdhub/internal/models/mock/stats"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
 	"github.com/stretchr/testify/require"
@@ -28,6 +30,7 @@ func TestManager_Rollback(t *testing.T) {
 	storage := mock.NewMockGeneralRepository(ctrl)
 	rb := mock.NewMockRollback(ctrl)
 	blockRepo := mock_block.NewMockRepository(ctrl)
+	statsRepo := mock_stats.NewMockRepository(ctrl)
 
 	blockRepo.EXPECT().
 		Get(gomock.Any(), level).
@@ -37,6 +40,19 @@ func TestManager_Rollback(t *testing.T) {
 		Times(1)
 
 	storage.EXPECT().IsRecordNotFound(sql.ErrNoRows).Return(true).AnyTimes()
+
+	statsRepo.EXPECT().
+		Get(gomock.Any()).
+		Return(stats.Stats{
+			ID:                  1,
+			ContractsCount:      100,
+			OperationsCount:     100,
+			EventsCount:         10,
+			TransactionsCount:   70,
+			OriginationsCount:   10,
+			SrOriginationsCount: 10,
+		}, nil).
+		Times(1)
 
 	rb.EXPECT().
 		GetOperations(gomock.Any(), level).
@@ -117,7 +133,7 @@ func TestManager_Rollback(t *testing.T) {
 
 	rb.EXPECT().
 		DeleteAll(gomock.Any(), (*operation.Operation)(nil), level).
-		Return(nil).
+		Return(5, nil).
 		Times(1)
 
 	ts := time.Now().UTC()
@@ -253,11 +269,24 @@ func TestManager_Rollback(t *testing.T) {
 
 	rb.EXPECT().
 		DeleteAll(gomock.Any(), nil, level).
-		Return(nil).
+		Return(0, nil).
 		Times(9)
 
 	rb.EXPECT().
 		Protocols(gomock.Any(), level).
+		Return(nil).
+		Times(1)
+
+	rb.EXPECT().
+		UpdateStats(gomock.Any(), stats.Stats{
+			ID:                  1,
+			ContractsCount:      100,
+			OperationsCount:     95,
+			EventsCount:         10,
+			TransactionsCount:   66,
+			OriginationsCount:   9,
+			SrOriginationsCount: 10,
+		}).
 		Return(nil).
 		Times(1)
 
@@ -270,7 +299,7 @@ func TestManager_Rollback(t *testing.T) {
 		state := block.Block{
 			Level: 11,
 		}
-		err := NewManager(storage, blockRepo, rb).
+		err := NewManager(storage, blockRepo, rb, statsRepo).
 			Rollback(
 				context.Background(),
 				types.Mainnet,

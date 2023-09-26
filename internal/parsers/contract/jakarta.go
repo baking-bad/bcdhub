@@ -31,7 +31,7 @@ func NewJakarta(ctx *config.Context) *Jakarta {
 // Parse -
 func (p *Jakarta) Parse(ctx context.Context, operation *operation.Operation, store parsers.Store) error {
 	if !operation.IsOrigination() {
-		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
+		return errors.Errorf("invalid operation kind in jakarta.parse: %s", operation.Kind)
 	}
 
 	contract := contract.Contract{

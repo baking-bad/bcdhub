@@ -105,15 +105,6 @@ func (s *StorageTestSuite) TestContractRecentlyCalled() {
 	s.Require().Len(data, 3)
 }
 
-func (s *StorageTestSuite) TestContractCount() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	count, err := s.contracts.Count(ctx)
-	s.Require().NoError(err)
-	s.Require().EqualValues(121, count)
-}
-
 func (s *StorageTestSuite) TestContractFindOne() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

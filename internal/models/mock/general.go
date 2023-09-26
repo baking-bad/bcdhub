@@ -21,6 +21,7 @@ import (
 	operation "github.com/baking-bad/bcdhub/internal/models/operation"
 	protocol "github.com/baking-bad/bcdhub/internal/models/protocol"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	stats "github.com/baking-bad/bcdhub/internal/models/stats"
 	ticket "github.com/baking-bad/bcdhub/internal/models/ticket"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -1191,6 +1192,44 @@ func (c *TransactionToJakartaCall) Do(f func(context.Context) error) *Transactio
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *TransactionToJakartaCall) DoAndReturn(f func(context.Context) error) *TransactionToJakartaCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// UpdateStats mocks base method.
+func (m *MockTransaction) UpdateStats(ctx context.Context, stats stats.Stats) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateStats", ctx, stats)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateStats indicates an expected call of UpdateStats.
+func (mr *MockTransactionMockRecorder) UpdateStats(ctx, stats any) *TransactionUpdateStatsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStats", reflect.TypeOf((*MockTransaction)(nil).UpdateStats), ctx, stats)
+	return &TransactionUpdateStatsCall{Call: call}
+}
+
+// TransactionUpdateStatsCall wrap *gomock.Call
+type TransactionUpdateStatsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionUpdateStatsCall) Return(arg0 error) *TransactionUpdateStatsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionUpdateStatsCall) Do(f func(context.Context, stats.Stats) error) *TransactionUpdateStatsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionUpdateStatsCall) DoAndReturn(f func(context.Context, stats.Stats) error) *TransactionUpdateStatsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

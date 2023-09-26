@@ -27,7 +27,7 @@ func NewBabylon(ctx *config.Context) *Babylon {
 // Parse -
 func (p *Babylon) Parse(ctx context.Context, operation *operation.Operation, store parsers.Store) error {
 	if !operation.IsOrigination() {
-		return errors.Errorf("invalid operation kind in computeContractMetrics: %s", operation.Kind)
+		return errors.Errorf("invalid operation kind in babylon.parse: %s", operation.Kind)
 	}
 
 	contract := contract.Contract{

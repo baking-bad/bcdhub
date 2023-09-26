@@ -46,7 +46,7 @@ func (m Migration) Do(
 	}
 
 	if err := m.contractMigrations(ctx, tx, head, currentProtocol, newProto); err != nil {
-		return currentProtocol, errors.Wrapf(err, "contracts migration to new protocol: %s", head.Hash)
+		return currentProtocol, errors.Wrapf(err, "contracts migration to new protocol: %s", head.Protocol)
 	}
 
 	return newProto, nil
@@ -123,12 +123,8 @@ func (m Migration) vestingMigration(ctx context.Context, tx models.Transaction, 
 		return err
 	}
 
-	p, err := migrations.NewVestingParser(m.ctx, specific.ContractParser, currentProtocol)
-	if err != nil {
-		return err
-	}
-
-	store := postgres.NewStore(m.ctx.StorageDB.DB)
+	p := migrations.NewVestingParser(m.ctx, specific.ContractParser, currentProtocol)
+	store := postgres.NewStore(m.ctx.StorageDB.DB, m.ctx.Stats)
 
 	for _, address := range addresses {
 		if !bcd.IsContract(address) {

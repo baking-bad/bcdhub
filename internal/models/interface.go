@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 )
 
@@ -43,6 +44,7 @@ type Transaction interface {
 	ScriptConstant(ctx context.Context, data ...*contract.ScriptConstants) error
 	Block(ctx context.Context, block *block.Block) error
 	Protocol(ctx context.Context, proto *protocol.Protocol) error
+	UpdateStats(ctx context.Context, stats stats.Stats) error
 
 	ToBabylon(ctx context.Context) error
 	BabylonUpdateNonDelegator(ctx context.Context, contract *contract.Contract) error

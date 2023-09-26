@@ -11,6 +11,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
 	"github.com/uptrace/bun"
@@ -26,13 +28,15 @@ type Store struct {
 	GlobalConstants []*contract.GlobalConstant
 	SmartRollups    []*smartrollup.SmartRollup
 	Accounts        map[string]*account.Account
+	Stats           stats.Stats
 
+	stats  stats.Repository
 	db     *bun.DB
 	accIds map[string]int64
 }
 
 // NewStore -
-func NewStore(db *bun.DB) *Store {
+func NewStore(db *bun.DB, statsRepo stats.Repository) *Store {
 	return &Store{
 		BigMapState:     make([]*bigmapdiff.BigMapState, 0),
 		Contracts:       make([]*contract.Contract, 0),
@@ -41,6 +45,8 @@ func NewStore(db *bun.DB) *Store {
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
 		SmartRollups:    make([]*smartrollup.SmartRollup, 0),
 		Accounts:        make(map[string]*account.Account),
+		Stats:           stats.Stats{},
+		stats:           statsRepo,
 		db:              db,
 		accIds:          make(map[string]int64),
 	}
@@ -58,6 +64,8 @@ func (store *Store) AddBigMapStates(states ...*bigmapdiff.BigMapState) {
 // AddContracts -
 func (store *Store) AddContracts(contracts ...*contract.Contract) {
 	store.Contracts = append(store.Contracts, contracts...)
+
+	store.Stats.ContractsCount += len(contracts)
 }
 
 // AddMigrations -
@@ -68,6 +76,20 @@ func (store *Store) AddMigrations(migrations ...*migration.Migration) {
 // AddOperations -
 func (store *Store) AddOperations(operations ...*operation.Operation) {
 	store.Operations = append(store.Operations, operations...)
+
+	store.Stats.OperationsCount += len(operations)
+	for i := range operations {
+		switch operations[i].Kind {
+		case types.OperationKindEvent:
+			store.Stats.EventsCount += 1
+		case types.OperationKindOrigination:
+			store.Stats.OriginationsCount += 1
+		case types.OperationKindSrOrigination:
+			store.Stats.SrOriginationsCount += 1
+		case types.OperationKindTransaction:
+			store.Stats.TransactionsCount += 1
+		}
+	}
 }
 
 // AddGlobalConstants -
@@ -103,6 +125,12 @@ func (store *Store) ListOperations() []*operation.Operation {
 
 // Save -
 func (store *Store) Save(ctx context.Context) error {
+	stats, err := store.stats.Get(ctx)
+	if err != nil {
+		return err
+	}
+	store.Stats.ID = stats.ID
+
 	tx, err := core.NewTransaction(ctx, store.db)
 	if err != nil {
 		return err
@@ -138,6 +166,10 @@ func (store *Store) Save(ctx context.Context) error {
 
 	if err := store.saveSmartRollups(ctx, tx); err != nil {
 		return errors.Wrap(err, "saving smart rollups")
+	}
+
+	if err := tx.UpdateStats(ctx, store.Stats); err != nil {
+		return errors.Wrap(err, "saving stats")
 	}
 
 	return tx.Commit()

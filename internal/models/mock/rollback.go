@@ -17,6 +17,7 @@ import (
 	bigmapdiff "github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	contract "github.com/baking-bad/bcdhub/internal/models/contract"
 	operation "github.com/baking-bad/bcdhub/internal/models/operation"
+	stats "github.com/baking-bad/bcdhub/internal/models/stats"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -82,11 +83,12 @@ func (c *RollbackCommitCall) DoAndReturn(f func() error) *RollbackCommitCall {
 }
 
 // DeleteAll mocks base method.
-func (m *MockRollback) DeleteAll(ctx context.Context, model any, level int64) error {
+func (m *MockRollback) DeleteAll(ctx context.Context, model any, level int64) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAll", ctx, model, level)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // DeleteAll indicates an expected call of DeleteAll.
@@ -102,19 +104,19 @@ type RollbackDeleteAllCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RollbackDeleteAllCall) Return(arg0 error) *RollbackDeleteAllCall {
-	c.Call = c.Call.Return(arg0)
+func (c *RollbackDeleteAllCall) Return(arg0 int, arg1 error) *RollbackDeleteAllCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RollbackDeleteAllCall) Do(f func(context.Context, any, int64) error) *RollbackDeleteAllCall {
+func (c *RollbackDeleteAllCall) Do(f func(context.Context, any, int64) (int, error)) *RollbackDeleteAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RollbackDeleteAllCall) DoAndReturn(f func(context.Context, any, int64) error) *RollbackDeleteAllCall {
+func (c *RollbackDeleteAllCall) DoAndReturn(f func(context.Context, any, int64) (int, error)) *RollbackDeleteAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -582,6 +584,44 @@ func (c *RollbackUpdateAccountStatsCall) Do(f func(context.Context, int64, time.
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *RollbackUpdateAccountStatsCall) DoAndReturn(f func(context.Context, int64, time.Time, int64) error) *RollbackUpdateAccountStatsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// UpdateStats mocks base method.
+func (m *MockRollback) UpdateStats(ctx context.Context, stats stats.Stats) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateStats", ctx, stats)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateStats indicates an expected call of UpdateStats.
+func (mr *MockRollbackMockRecorder) UpdateStats(ctx, stats any) *RollbackUpdateStatsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStats", reflect.TypeOf((*MockRollback)(nil).UpdateStats), ctx, stats)
+	return &RollbackUpdateStatsCall{Call: call}
+}
+
+// RollbackUpdateStatsCall wrap *gomock.Call
+type RollbackUpdateStatsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *RollbackUpdateStatsCall) Return(arg0 error) *RollbackUpdateStatsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *RollbackUpdateStatsCall) Do(f func(context.Context, stats.Stats) error) *RollbackUpdateStatsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *RollbackUpdateStatsCall) DoAndReturn(f func(context.Context, stats.Stats) error) *RollbackUpdateStatsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

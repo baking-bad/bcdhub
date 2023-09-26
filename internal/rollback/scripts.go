@@ -32,12 +32,12 @@ func (rm Manager) rollbackScripts(ctx context.Context, level int64) error {
 	}
 
 	if len(scripts) > 0 {
-		if err := rm.rollback.DeleteAll(ctx, (*contract.Script)(nil), level); err != nil {
+		if _, err := rm.rollback.DeleteAll(ctx, (*contract.Script)(nil), level); err != nil {
 			return err
 		}
 	}
 	if len(constants) > 0 {
-		if err := rm.rollback.DeleteAll(ctx, (*contract.GlobalConstant)(nil), level); err != nil {
+		if _, err := rm.rollback.DeleteAll(ctx, (*contract.GlobalConstant)(nil), level); err != nil {
 			return err
 		}
 	}

@@ -191,11 +191,6 @@ func (storage *Storage) RecentlyCalled(ctx context.Context, offset, size int64) 
 	return
 }
 
-// Count -
-func (storage *Storage) Count(ctx context.Context) (int, error) {
-	return storage.DB.NewSelect().Model((*contract.Contract)(nil)).Count(ctx)
-}
-
 // FindOne -
 func (storage *Storage) FindOne(ctx context.Context, tags types.Tags) (result contract.Contract, err error) {
 	err = storage.DB.NewSelect().Model(&result).

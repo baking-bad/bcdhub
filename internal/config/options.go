@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/operation"
 	"github.com/baking-bad/bcdhub/internal/postgres/protocol"
 	smartrollup "github.com/baking-bad/bcdhub/internal/postgres/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/postgres/stats"
 	"github.com/baking-bad/bcdhub/internal/postgres/ticket"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
 
@@ -102,6 +103,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOp
 		ctx.TicketUpdates = ticket.NewStorage(conn)
 		ctx.Scripts = contractStorage
 		ctx.SmartRollups = smartrollup.NewStorage(conn)
+		ctx.Stats = stats.NewStorage(conn)
 	}
 }
 

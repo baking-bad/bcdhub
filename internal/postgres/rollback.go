@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/uptrace/bun"
 )
 
@@ -33,12 +34,19 @@ func (r Rollback) Rollback() error {
 	return r.tx.Rollback()
 }
 
-func (r Rollback) DeleteAll(ctx context.Context, model any, level int64) error {
-	_, err := r.tx.NewDelete().
+func (r Rollback) DeleteAll(ctx context.Context, model any, level int64) (int, error) {
+	result, err := r.tx.NewDelete().
 		Model(model).
 		Where("level = ?", level).
 		Exec(ctx)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
 }
 
 func (r Rollback) StatesChangedAtLevel(ctx context.Context, level int64) (states []bigmapdiff.BigMapState, err error) {
@@ -153,6 +161,20 @@ func (r Rollback) Protocols(ctx context.Context, level int64) error {
 		Model((*protocol.Protocol)(nil)).
 		Where("start_level < ?", level).
 		Set("end_level = 0").
+		Exec(ctx)
+	return err
+}
+
+func (r Rollback) UpdateStats(ctx context.Context, stats stats.Stats) error {
+	_, err := r.tx.NewUpdate().
+		Model(&stats).
+		Where("id = ?id").
+		Set("contracts_count = stats.contracts_count - ?contracts_count").
+		Set("operations_count = stats.operations_count - ?operations_count").
+		Set("events_count = stats.events_count - ?events_count").
+		Set("tx_count = stats.tx_count - ?tx_count").
+		Set("originations_count = stats.originations_count - ?originations_count").
+		Set("sr_originations_count = stats.sr_originations_count - ?sr_originations_count").
 		Exec(ctx)
 	return err
 }

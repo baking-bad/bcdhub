@@ -5,9 +5,11 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
-func (rm Manager) rollbackOperations(ctx context.Context, level int64) error {
+func (rm Manager) rollbackOperations(ctx context.Context, level int64, stats *stats.Stats) error {
 	logger.Info().Msg("rollback operations...")
 
 	ops, err := rm.rollback.GetOperations(ctx, level)
@@ -18,9 +20,11 @@ func (rm Manager) rollbackOperations(ctx context.Context, level int64) error {
 		return nil
 	}
 
-	if err := rm.rollback.DeleteAll(ctx, (*operation.Operation)(nil), level); err != nil {
+	count, err := rm.rollback.DeleteAll(ctx, (*operation.Operation)(nil), level)
+	if err != nil {
 		return err
 	}
+	stats.OperationsCount -= count
 
 	accounts := make(map[int64]int64)
 	for i := range ops {
@@ -38,6 +42,17 @@ func (rm Manager) rollbackOperations(ctx context.Context, level int64) error {
 			} else {
 				accounts[ops[i].SourceID] += 1
 			}
+		}
+
+		switch ops[i].Kind {
+		case types.OperationKindEvent:
+			stats.EventsCount -= 1
+		case types.OperationKindOrigination:
+			stats.OriginationsCount -= 1
+		case types.OperationKindSrOrigination:
+			stats.SrOriginationsCount -= 1
+		case types.OperationKindTransaction:
+			stats.TransactionsCount -= 1
 		}
 	}
 

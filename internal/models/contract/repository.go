@@ -11,7 +11,6 @@ import (
 type Repository interface {
 	Get(ctx context.Context, address string) (Contract, error)
 	RecentlyCalled(ctx context.Context, offset, size int64) ([]Contract, error)
-	Count(ctx context.Context) (int, error)
 	Script(ctx context.Context, address string, symLink string) (Script, error)
 
 	// ScriptPart - returns part of script type. Part can be `storage`, `parameter` or `code`.

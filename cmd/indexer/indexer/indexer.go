@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -127,6 +128,9 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 			return err
 		}
 		if err := tx.Protocol(ctx, &currentProtocol); err != nil {
+			return err
+		}
+		if err := tx.UpdateStats(ctx, stats.Stats{}); err != nil {
 			return err
 		}
 		if err := tx.Commit(); err != nil {
@@ -288,7 +292,7 @@ func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) erro
 }
 
 func (bi *BlockchainIndexer) parseAndSaveBlock(ctx context.Context, block *Block) error {
-	store := postgres.NewStore(bi.StorageDB.DB)
+	store := postgres.NewStore(bi.StorageDB.DB, bi.Stats)
 	if err := bi.parseImplicitOperations(ctx, block, bi.currentProtocol, store); err != nil {
 		return err
 	}
@@ -361,7 +365,7 @@ func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	manager := rollback.NewManager(bi.Storage, bi.Blocks, saver)
+	manager := rollback.NewManager(bi.Storage, bi.Blocks, saver, bi.Stats)
 	if err := manager.Rollback(ctx, bi.Network, bi.state, lastLevel); err != nil {
 		return err
 	}

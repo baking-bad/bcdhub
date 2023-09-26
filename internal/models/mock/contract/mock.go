@@ -79,45 +79,6 @@ func (c *RepositoryAllExceptDelegatorsCall) DoAndReturn(f func(context.Context) 
 	return c
 }
 
-// Count mocks base method.
-func (m *MockRepository) Count(ctx context.Context) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Count", ctx)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Count indicates an expected call of Count.
-func (mr *MockRepositoryMockRecorder) Count(ctx any) *RepositoryCountCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockRepository)(nil).Count), ctx)
-	return &RepositoryCountCall{Call: call}
-}
-
-// RepositoryCountCall wrap *gomock.Call
-type RepositoryCountCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryCountCall) Return(arg0 int, arg1 error) *RepositoryCountCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryCountCall) Do(f func(context.Context) (int, error)) *RepositoryCountCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryCountCall) DoAndReturn(f func(context.Context) (int, error)) *RepositoryCountCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // FindOne mocks base method.
 func (m *MockRepository) FindOne(ctx context.Context, tags types.Tags) (contract.Contract, error) {
 	m.ctrl.T.Helper()

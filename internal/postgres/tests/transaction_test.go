@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
@@ -334,4 +335,36 @@ func (s *StorageTestSuite) TestBabylonBigMapStates() {
 	err = s.storage.DB.NewSelect().Model(&state).Where("id = 3").Scan(ctx)
 	s.Require().NoError(err)
 	s.Require().EqualValues(1000, state.Ptr)
+}
+
+func (s *StorageTestSuite) TestUpdateStats() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	err = tx.UpdateStats(ctx, stats.Stats{
+		ID:                  1,
+		ContractsCount:      1,
+		OperationsCount:     4,
+		OriginationsCount:   1,
+		TransactionsCount:   1,
+		EventsCount:         1,
+		SrOriginationsCount: 1,
+	})
+	s.Require().NoError(err)
+
+	err = tx.Commit()
+	s.Require().NoError(err)
+
+	var stats stats.Stats
+	err = s.storage.DB.NewSelect().Model(&stats).Limit(1).Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(121, stats.ContractsCount)
+	s.Require().EqualValues(196, stats.OperationsCount)
+	s.Require().EqualValues(73, stats.TransactionsCount)
+	s.Require().EqualValues(119, stats.OriginationsCount)
+	s.Require().EqualValues(3, stats.EventsCount)
+	s.Require().EqualValues(1, stats.SrOriginationsCount)
 }

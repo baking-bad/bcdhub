@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/uptrace/bun"
 )
@@ -216,5 +217,20 @@ func (t Transaction) ToJakarta(ctx context.Context) error {
 
 func (t Transaction) BabylonBigMapStates(ctx context.Context, state *bigmapdiff.BigMapState) error {
 	_, err := t.tx.NewUpdate().Model(state).WherePK().Column("ptr").Exec(ctx)
+	return err
+}
+
+func (t Transaction) UpdateStats(ctx context.Context, stats stats.Stats) error {
+	_, err := t.tx.NewInsert().
+		Model(&stats).
+		On("CONFLICT (id) DO UPDATE").
+		Set("contracts_count = EXCLUDED.contracts_count + stats.contracts_count").
+		Set("operations_count = EXCLUDED.operations_count + stats.operations_count").
+		Set("events_count = EXCLUDED.events_count + stats.events_count").
+		Set("tx_count = EXCLUDED.tx_count + stats.tx_count").
+		Set("originations_count = EXCLUDED.originations_count + stats.originations_count").
+		Set("sr_originations_count = EXCLUDED.sr_originations_count + stats.sr_originations_count").
+		Returning("id").
+		Exec(ctx)
 	return err
 }
