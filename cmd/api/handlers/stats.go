@@ -43,11 +43,20 @@ func GetStats() gin.HandlerFunc {
 			var block Block
 			block.FromModel(last)
 			predecessor, err := ctxs[network].Blocks.Get(c.Request.Context(), last.Level)
-			if handleError(c, ctxs[network].Storage, err, 0) {
+			if err != nil && !ctxs[network].Storage.IsRecordNotFound(err) {
+				handleError(c, ctxs[network].Storage, err, 0)
 				return
 			}
 			block.Network = network.String()
 			block.Predecessor = predecessor.Hash
+
+			stats, err := ctxs[network].Stats.Get(c.Request.Context())
+			if err != nil && !ctxs[network].Storage.IsRecordNotFound(err) {
+				handleError(c, ctxs[network].Storage, err, 0)
+				return
+			}
+			block.Stats = NewStats(stats)
+
 			blocks = append(blocks, block)
 		}
 

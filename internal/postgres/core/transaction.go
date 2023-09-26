@@ -230,6 +230,11 @@ func (t Transaction) UpdateStats(ctx context.Context, stats stats.Stats) error {
 		Set("tx_count = EXCLUDED.tx_count + stats.tx_count").
 		Set("originations_count = EXCLUDED.originations_count + stats.originations_count").
 		Set("sr_originations_count = EXCLUDED.sr_originations_count + stats.sr_originations_count").
+		Set("register_global_constants_count = EXCLUDED.register_global_constants_count + stats.register_global_constants_count").
+		Set("sr_executes_count = EXCLUDED.sr_executes_count + stats.sr_executes_count").
+		Set("transfer_tickets_count = EXCLUDED.transfer_tickets_count + stats.transfer_tickets_count").
+		Set("global_constants_count = EXCLUDED.global_constants_count + stats.global_constants_count").
+		Set("smart_rollups_count = EXCLUDED.smart_rollups_count + stats.smart_rollups_count").
 		Returning("id").
 		Exec(ctx)
 	return err

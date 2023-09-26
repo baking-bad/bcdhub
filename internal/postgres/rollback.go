@@ -175,6 +175,11 @@ func (r Rollback) UpdateStats(ctx context.Context, stats stats.Stats) error {
 		Set("tx_count = stats.tx_count - ?tx_count").
 		Set("originations_count = stats.originations_count - ?originations_count").
 		Set("sr_originations_count = stats.sr_originations_count - ?sr_originations_count").
+		Set("register_global_constants_count = stats.register_global_constants_count - ?register_global_constants_count").
+		Set("sr_executes_count = stats.sr_executes_count - ?sr_executes_count").
+		Set("transfer_tickets_count = stats.transfer_tickets_count - ?transfer_tickets_count").
+		Set("global_constants_count = stats.global_constants_count - ?global_constants_count").
+		Set("smart_rollups_count = stats.smart_rollups_count - ?smart_rollups_count").
 		Exec(ctx)
 	return err
 }

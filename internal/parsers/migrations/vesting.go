@@ -30,7 +30,7 @@ func NewVestingParser(ctx *config.Context, contractParser contract.Parser, proto
 
 // Parse -
 func (p *VestingParser) Parse(ctx context.Context, data noderpc.ContractData, head noderpc.Header, address string, store parsers.Store) error {
-	if err := p.parser.Parse(ctx, &operation.Operation{
+	vestingOperation := &operation.Operation{
 		ProtocolID: p.protocol.ID,
 		Status:     types.OperationStatusApplied,
 		Kind:       types.OperationKindOrigination,
@@ -54,9 +54,16 @@ func (p *VestingParser) Parse(ctx context.Context, data noderpc.ContractData, he
 		Level:     head.Level,
 		Timestamp: head.Timestamp,
 		Script:    data.RawScript,
-	}, store); err != nil {
+	}
+	if err := p.parser.Parse(ctx, vestingOperation, store); err != nil {
 		return err
 	}
+
+	store.AddAccounts(
+		&vestingOperation.Source,
+		&vestingOperation.Destination,
+		&vestingOperation.Delegate,
+	)
 
 	contracts := store.ListContracts()
 	for i := range contracts {

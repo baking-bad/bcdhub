@@ -15,6 +15,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
@@ -362,6 +363,8 @@ type Block struct {
 	HardGasLimitPerOperation     int64     `json:"hard_gas_limit_per_operation" example:"1040000"`
 	HardStorageLimitPerOperation int64     `json:"hard_storage_limit_per_operation" example:"60000"`
 	TimeBetweenBlocks            int64     `json:"time_between_blocks" example:"30"`
+
+	Stats *Stats `json:"stats,omitempty"`
 }
 
 // FromModel -
@@ -371,10 +374,42 @@ func (b *Block) FromModel(block block.Block) {
 	b.Protocol = block.Protocol.Hash
 	b.ChainID = block.Protocol.ChainID
 	b.Timestamp = block.Timestamp
-	b.CostPerByte = block.Protocol.CostPerByte
-	b.HardGasLimitPerOperation = block.Protocol.HardGasLimitPerOperation
-	b.HardStorageLimitPerOperation = block.Protocol.HardStorageLimitPerOperation
-	b.TimeBetweenBlocks = block.Protocol.TimeBetweenBlocks
+	if block.Protocol.Constants != nil {
+		b.CostPerByte = block.Protocol.CostPerByte
+		b.HardGasLimitPerOperation = block.Protocol.HardGasLimitPerOperation
+		b.HardStorageLimitPerOperation = block.Protocol.HardStorageLimitPerOperation
+		b.TimeBetweenBlocks = block.Protocol.TimeBetweenBlocks
+	}
+}
+
+type Stats struct {
+	ContractsCount              int `json:"contracts_count"`
+	SmartRollupsCount           int `json:"smart_rollups_count"`
+	GlobalConstantsCount        int `json:"global_constants_count"`
+	OperationsCount             int `json:"operations_count"`
+	EventsCount                 int `json:"events_count"`
+	TransactionsCount           int `json:"tx_count"`
+	OriginationsCount           int `json:"originations_count"`
+	SrOriginationsCount         int `json:"sr_originations_count"`
+	SrExecutesCount             int `json:"sr_executes_count"`
+	RegisterGlobalConstantCount int `json:"register_global_constants_count"`
+	TransferTicketsCount        int `json:"transfer_tickets_count"`
+}
+
+func NewStats(s stats.Stats) *Stats {
+	return &Stats{
+		ContractsCount:              s.ContractsCount,
+		SmartRollupsCount:           s.SmartRollupsCount,
+		GlobalConstantsCount:        s.GlobalConstantsCount,
+		OperationsCount:             s.OperationsCount,
+		EventsCount:                 s.EventsCount,
+		TransactionsCount:           s.TransactionsCount,
+		OriginationsCount:           s.OriginationsCount,
+		SrOriginationsCount:         s.SrOriginationsCount,
+		SrExecutesCount:             s.SrExecutesCount,
+		RegisterGlobalConstantCount: s.RegisterGlobalConstantCount,
+		TransferTicketsCount:        s.TransferTicketsCount,
+	}
 }
 
 // SameContractsResponse -

@@ -82,12 +82,16 @@ func (store *Store) AddOperations(operations ...*operation.Operation) {
 		switch operations[i].Kind {
 		case types.OperationKindEvent:
 			store.Stats.EventsCount += 1
-		case types.OperationKindOrigination:
+		case types.OperationKindOrigination, types.OperationKindOriginationNew:
 			store.Stats.OriginationsCount += 1
 		case types.OperationKindSrOrigination:
 			store.Stats.SrOriginationsCount += 1
 		case types.OperationKindTransaction:
 			store.Stats.TransactionsCount += 1
+		case types.OperationKindRegisterGlobalConstant:
+			store.Stats.RegisterGlobalConstantCount += 1
+		case types.OperationKindSrExecuteOutboxMessage:
+			store.Stats.SrExecutesCount += 1
 		}
 	}
 }
@@ -95,11 +99,13 @@ func (store *Store) AddOperations(operations ...*operation.Operation) {
 // AddGlobalConstants -
 func (store *Store) AddGlobalConstants(constants ...*contract.GlobalConstant) {
 	store.GlobalConstants = append(store.GlobalConstants, constants...)
+	store.Stats.GlobalConstantsCount += len(constants)
 }
 
 // AddSmartRollups -
 func (store *Store) AddSmartRollups(rollups ...*smartrollup.SmartRollup) {
 	store.SmartRollups = append(store.SmartRollups, rollups...)
+	store.Stats.ContractsCount += len(rollups)
 }
 
 // AddAccounts -
