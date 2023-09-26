@@ -12,17 +12,17 @@ import (
 type TicketUpdate struct {
 	bun.BaseModel `bun:"ticket_updates"`
 
-	ID          int64 `bun:"id,pk,notnull,autoincrement"`
+	ID          int64     `bun:"id,pk,notnull,autoincrement"`
+	Timestamp   time.Time `bun:"timestamp,pk,notnull"`
 	OperationID int64
 	Level       int64
-	Timestamp   time.Time
 	TicketerID  int64
-	Ticketer    account.Account `bun:",rel:belongs-to"`
+	Ticketer    account.Account `bun:"rel:belongs-to"`
 	ContentType []byte
 	Content     []byte
 	AccountID   int64
-	Account     account.Account `bun:",rel:belongs-to"`
-	Amount      decimal.Decimal `bun:",type:numeric(200,0)"`
+	Account     account.Account `bun:"rel:belongs-to"`
+	Amount      decimal.Decimal `bun:"amount,type:numeric(200,0)"`
 }
 
 // GetID -
@@ -30,8 +30,7 @@ func (t *TicketUpdate) GetID() int64 {
 	return t.ID
 }
 
-// GetIndex -
-func (t *TicketUpdate) GetIndex() string {
+func (TicketUpdate) TableName() string {
 	return "ticket_updates"
 }
 
@@ -42,8 +41,4 @@ func (t *TicketUpdate) LogFields() map[string]interface{} {
 		"block":       t.Level,
 		"ticketer_id": t.TicketerID,
 	}
-}
-
-func (TicketUpdate) PartitionBy() string {
-	return ""
 }

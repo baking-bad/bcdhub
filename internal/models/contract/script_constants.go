@@ -21,16 +21,11 @@ func (ScriptConstants) GetID() int64 {
 	return 0
 }
 
-// GetIndex -
-func (ScriptConstants) GetIndex() string {
+func (ScriptConstants) TableName() string {
 	return "script_constants"
 }
 
 // Save -
 func (ScriptConstants) Save(ctx context.Context, tx bun.IDB) error {
 	return nil
-}
-
-func (ScriptConstants) PartitionBy() string {
-	return ""
 }

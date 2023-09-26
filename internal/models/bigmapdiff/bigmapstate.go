@@ -30,8 +30,7 @@ func (b *BigMapState) GetID() int64 {
 	return b.ID
 }
 
-// GetIndex -
-func (b *BigMapState) GetIndex() string {
+func (BigMapState) TableName() string {
 	return "big_map_states"
 }
 
@@ -61,8 +60,4 @@ func (b *BigMapState) ToDiff() BigMapDiff {
 	}
 
 	return bmd
-}
-
-func (BigMapState) PartitionBy() string {
-	return ""
 }

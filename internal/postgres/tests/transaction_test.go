@@ -2,8 +2,6 @@ package tests
 
 import (
 	"context"
-	"database/sql"
-	"testing"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -12,85 +10,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/dipdup-net/go-lib/database"
-	"github.com/go-testfixtures/testfixtures/v3"
-	"github.com/stretchr/testify/suite"
 )
 
-// TransactionTest -
-type TransactionTest struct {
-	suite.Suite
-	psqlContainer *database.PostgreSQLContainer
-	storage       *core.Postgres
-}
-
-// SetupSuite -
-func (s *TransactionTest) SetupSuite() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer ctxCancel()
-
-	psqlContainer, err := database.NewPostgreSQLContainer(ctx, database.PostgreSQLContainerConfig{
-		User:     "user",
-		Password: "password",
-		Database: "db_test",
-		Port:     5432,
-		Image:    "postgres:14",
-	})
-	s.Require().NoError(err)
-	s.psqlContainer = psqlContainer
-
-	strg, err := core.New(core.Config{
-		User:     s.psqlContainer.Config.User,
-		DBName:   s.psqlContainer.Config.Database,
-		Password: s.psqlContainer.Config.Password,
-		Host:     s.psqlContainer.Config.Host,
-		Port:     s.psqlContainer.MappedPort().Int(),
-		SslMode:  "disable",
-	}, "public", "bcd")
-	s.Require().NoError(err)
-	s.storage = strg
-
-	err = strg.InitDatabase(ctx)
-	s.Require().NoError(err)
-
-	pm := postgres.NewPartitionManager(strg)
-	err = pm.CreatePartitions(ctx, time.Date(2022, 1, 1, 1, 1, 1, 1, time.Local))
-	s.Require().NoError(err)
-}
-
-// TearDownSuite -
-func (s *TransactionTest) TearDownSuite() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-
-	s.Require().NoError(s.storage.Close())
-	s.Require().NoError(s.psqlContainer.Terminate(ctx))
-}
-
-func (s *TransactionTest) SetupTest() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Directory(
-			"./fixtures",
-		),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-}
-
-func TestSuiteTransaction_Run(t *testing.T) {
-	suite.Run(t, new(TransactionTest))
-}
-
-func (s *TransactionTest) TestSave() {
+func (s *StorageTestSuite) TestSave() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -110,7 +33,7 @@ func (s *TransactionTest) TestSave() {
 	s.Require().NoError(err)
 }
 
-func (s *TransactionTest) TestMigrations() {
+func (s *StorageTestSuite) TestMigrations() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -134,7 +57,7 @@ func (s *TransactionTest) TestMigrations() {
 	s.Require().NoError(err)
 }
 
-func (s *TransactionTest) TestProtocol() {
+func (s *StorageTestSuite) TestProtocol() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -158,7 +81,7 @@ func (s *TransactionTest) TestProtocol() {
 	s.Require().NoError(err)
 }
 
-func (s *TransactionTest) TestScriptConstants() {
+func (s *StorageTestSuite) TestScriptConstants() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -184,7 +107,7 @@ func (s *TransactionTest) TestScriptConstants() {
 	s.Require().NoError(err)
 }
 
-func (s *TransactionTest) TestScripts() {
+func (s *StorageTestSuite) TestScripts() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -207,7 +130,7 @@ func (s *TransactionTest) TestScripts() {
 	s.Require().NoError(err)
 }
 
-func (s *TransactionTest) TestScriptsConflict() {
+func (s *StorageTestSuite) TestScriptsConflict() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -225,7 +148,7 @@ func (s *TransactionTest) TestScriptsConflict() {
 	s.Require().NoError(err)
 }
 
-func (s *TransactionTest) TestAccounts() {
+func (s *StorageTestSuite) TestAccounts() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -254,7 +177,7 @@ func (s *TransactionTest) TestAccounts() {
 	s.Require().NoError(err)
 }
 
-func (s *TransactionTest) TestBigMapStates() {
+func (s *StorageTestSuite) TestBigMapStates() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -299,7 +222,7 @@ func (s *TransactionTest) TestBigMapStates() {
 	s.Require().Len(result, 3)
 }
 
-func (s *TransactionTest) TestBabylonUpdateNonDelegator() {
+func (s *StorageTestSuite) TestBabylonUpdateNonDelegator() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -323,7 +246,7 @@ func (s *TransactionTest) TestBabylonUpdateNonDelegator() {
 	s.Require().EqualValues(10, newContract.BabylonID)
 }
 
-func (s *TransactionTest) TestJakartaVesting() {
+func (s *StorageTestSuite) TestJakartaVesting() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -346,7 +269,7 @@ func (s *TransactionTest) TestJakartaVesting() {
 	s.Require().EqualValues(5, newContract.JakartaID)
 }
 
-func (s *TransactionTest) TestJakartaUpdateNonDelegator() {
+func (s *StorageTestSuite) TestJakartaUpdateNonDelegator() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -370,7 +293,7 @@ func (s *TransactionTest) TestJakartaUpdateNonDelegator() {
 	s.Require().EqualValues(100, newContract.JakartaID)
 }
 
-func (s *TransactionTest) TestToJakarta() {
+func (s *StorageTestSuite) TestToJakarta() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -389,7 +312,7 @@ func (s *TransactionTest) TestToJakarta() {
 	s.Require().EqualValues(14, newContract.JakartaID)
 }
 
-func (s *TransactionTest) TestBabylonBigMapStates() {
+func (s *StorageTestSuite) TestBabylonBigMapStates() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

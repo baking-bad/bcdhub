@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   db:
-    image: postgres:14
+    image: timescale/timescaledb:latest-pg15
     shm_size: 1g
     user: postgres
     restart: always

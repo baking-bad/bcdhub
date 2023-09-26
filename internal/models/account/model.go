@@ -24,16 +24,11 @@ func (a *Account) GetID() int64 {
 	return a.ID
 }
 
-// GetIndex -
-func (a *Account) GetIndex() string {
+func (Account) TableName() string {
 	return "accounts"
 }
 
 // IsEmpty -
 func (a *Account) IsEmpty() bool {
 	return a.Address == "" || a.Type == types.AccountTypeUnknown
-}
-
-func (Account) PartitionBy() string {
-	return ""
 }

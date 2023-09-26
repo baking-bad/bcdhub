@@ -30,8 +30,7 @@ func (sr *SmartRollup) GetID() int64 {
 	return sr.ID
 }
 
-// GetIndex -
-func (SmartRollup) GetIndex() string {
+func (SmartRollup) TableName() string {
 	return "smart_rollup"
 }
 
@@ -41,8 +40,4 @@ func (sr *SmartRollup) LogFields() map[string]interface{} {
 		"address": sr.Address.Address,
 		"block":   sr.Level,
 	}
-}
-
-func (SmartRollup) PartitionBy() string {
-	return ""
 }

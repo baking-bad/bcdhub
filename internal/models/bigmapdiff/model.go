@@ -13,18 +13,14 @@ type BigMapDiff struct {
 
 	ID          int64       `bun:"id,pk,notnull,autoincrement"`
 	Ptr         int64       `bun:"ptr"`
-	Key         types.Bytes `bun:",notnull,type:bytea"`
+	Key         types.Bytes `bun:"key,notnull,type:bytea"`
 	KeyHash     string
-	Value       types.Bytes `bun:",type:bytea"`
+	Value       types.Bytes `bun:"value,type:bytea"`
 	Level       int64
 	Contract    string
-	Timestamp   time.Time `bun:",pk"`
-	ProtocolID  int64     `bun:",type:SMALLINT"`
+	Timestamp   time.Time `bun:"timestamp,pk,notnull"`
+	ProtocolID  int64     `bun:"protocol_id,type:SMALLINT"`
 	OperationID int64
-}
-
-func (BigMapDiff) PartitionBy() string {
-	return "RANGE(timestamp)"
 }
 
 // GetID -
@@ -32,8 +28,7 @@ func (b *BigMapDiff) GetID() int64 {
 	return b.ID
 }
 
-// GetIndex -
-func (b *BigMapDiff) GetIndex() string {
+func (BigMapDiff) TableName() string {
 	return "big_map_diffs"
 }
 

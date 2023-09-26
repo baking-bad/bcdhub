@@ -75,78 +75,40 @@ func (c *ModelGetIDCall) DoAndReturn(f func() int64) *ModelGetIDCall {
 	return c
 }
 
-// GetIndex mocks base method.
-func (m *MockModel) GetIndex() string {
+// TableName mocks base method.
+func (m *MockModel) TableName() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIndex")
+	ret := m.ctrl.Call(m, "TableName")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GetIndex indicates an expected call of GetIndex.
-func (mr *MockModelMockRecorder) GetIndex() *ModelGetIndexCall {
+// TableName indicates an expected call of TableName.
+func (mr *MockModelMockRecorder) TableName() *ModelTableNameCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIndex", reflect.TypeOf((*MockModel)(nil).GetIndex))
-	return &ModelGetIndexCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TableName", reflect.TypeOf((*MockModel)(nil).TableName))
+	return &ModelTableNameCall{Call: call}
 }
 
-// ModelGetIndexCall wrap *gomock.Call
-type ModelGetIndexCall struct {
+// ModelTableNameCall wrap *gomock.Call
+type ModelTableNameCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *ModelGetIndexCall) Return(arg0 string) *ModelGetIndexCall {
+func (c *ModelTableNameCall) Return(arg0 string) *ModelTableNameCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ModelGetIndexCall) Do(f func() string) *ModelGetIndexCall {
+func (c *ModelTableNameCall) Do(f func() string) *ModelTableNameCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ModelGetIndexCall) DoAndReturn(f func() string) *ModelGetIndexCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// PartitionBy mocks base method.
-func (m *MockModel) PartitionBy() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PartitionBy")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// PartitionBy indicates an expected call of PartitionBy.
-func (mr *MockModelMockRecorder) PartitionBy() *ModelPartitionByCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PartitionBy", reflect.TypeOf((*MockModel)(nil).PartitionBy))
-	return &ModelPartitionByCall{Call: call}
-}
-
-// ModelPartitionByCall wrap *gomock.Call
-type ModelPartitionByCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *ModelPartitionByCall) Return(arg0 string) *ModelPartitionByCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *ModelPartitionByCall) Do(f func() string) *ModelPartitionByCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ModelPartitionByCall) DoAndReturn(f func() string) *ModelPartitionByCall {
+func (c *ModelTableNameCall) DoAndReturn(f func() string) *ModelTableNameCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -28,17 +28,12 @@ type Script struct {
 	Constants []GlobalConstant `bun:"m2m:script_constants,join:Script=GlobalConstant"`
 }
 
-func (Script) PartitionBy() string {
-	return ""
-}
-
 // GetID -
 func (s *Script) GetID() int64 {
 	return s.ID
 }
 
-// GetIndex -
-func (s *Script) GetIndex() string {
+func (Script) TableName() string {
 	return "scripts"
 }
 

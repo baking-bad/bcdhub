@@ -14,9 +14,9 @@ import (
 type Contract struct {
 	bun.BaseModel `bun:"contracts"`
 
-	ID        int64 `bun:"id,pk,notnull,autoincrement"`
-	Level     int64
-	Timestamp time.Time
+	ID        int64     `bun:"id,pk,notnull,autoincrement"`
+	Level     int64     `bun:"level"`
+	Timestamp time.Time `bun:"timestamp,pk,notnull"`
 
 	AccountID  int64
 	Account    account.Account `bun:"rel:belongs-to"`
@@ -41,8 +41,7 @@ func (c *Contract) GetID() int64 {
 	return c.ID
 }
 
-// GetIndex -
-func (c *Contract) GetIndex() string {
+func (Contract) TableName() string {
 	return "contracts"
 }
 
@@ -52,10 +51,6 @@ func (c *Contract) LogFields() map[string]interface{} {
 		"address": c.Account,
 		"block":   c.Level,
 	}
-}
-
-func (Contract) PartitionBy() string {
-	return ""
 }
 
 // CurrentScript -

@@ -288,7 +288,7 @@ func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) erro
 }
 
 func (bi *BlockchainIndexer) parseAndSaveBlock(ctx context.Context, block *Block) error {
-	store := postgres.NewStore(bi.Partitions, bi.StorageDB.DB)
+	store := postgres.NewStore(bi.StorageDB.DB)
 	if err := bi.parseImplicitOperations(ctx, block, bi.currentProtocol, store); err != nil {
 		return err
 	}

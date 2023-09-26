@@ -2,8 +2,6 @@ package tests
 
 import (
 	"context"
-	"database/sql"
-	"testing"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -12,82 +10,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres"
-	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/dipdup-net/go-lib/database"
-	"github.com/go-testfixtures/testfixtures/v3"
-	"github.com/stretchr/testify/suite"
 )
 
-// RollbackTestSuite -
-type RollbackTestSuite struct {
-	suite.Suite
-	psqlContainer *database.PostgreSQLContainer
-	storage       *core.Postgres
-}
-
-// SetupSuite -
-func (s *RollbackTestSuite) SetupSuite() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer ctxCancel()
-
-	psqlContainer, err := database.NewPostgreSQLContainer(ctx, database.PostgreSQLContainerConfig{
-		User:     "user",
-		Password: "password",
-		Database: "db_test",
-		Port:     5432,
-		Image:    "postgres:14",
-	})
-	s.Require().NoError(err)
-	s.psqlContainer = psqlContainer
-
-	strg, err := core.New(core.Config{
-		User:     s.psqlContainer.Config.User,
-		DBName:   s.psqlContainer.Config.Database,
-		Password: s.psqlContainer.Config.Password,
-		Host:     s.psqlContainer.Config.Host,
-		Port:     s.psqlContainer.MappedPort().Int(),
-		SslMode:  "disable",
-	}, "public", "bcd")
-	s.Require().NoError(err)
-	s.storage = strg
-
-	err = strg.InitDatabase(ctx)
-	s.Require().NoError(err)
-
-	pm := postgres.NewPartitionManager(strg)
-	err = pm.CreatePartitions(ctx, time.Date(2022, 1, 1, 1, 1, 1, 1, time.Local))
-	s.Require().NoError(err)
-}
-
-// TearDownSuite -
-func (s *RollbackTestSuite) TearDownSuite() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-
-	s.Require().NoError(s.storage.Close())
-	s.Require().NoError(s.psqlContainer.Terminate(ctx))
-}
-
-func (s *RollbackTestSuite) SetupTest() {
-	db, err := sql.Open("postgres", s.psqlContainer.GetDSN())
-	s.Require().NoError(err)
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Directory("./fixtures"),
-		testfixtures.UseAlterConstraint(),
-	)
-	s.Require().NoError(err)
-	s.Require().NoError(fixtures.Load())
-	s.Require().NoError(db.Close())
-}
-
-func TestSuiteRollback_Run(t *testing.T) {
-	suite.Run(t, new(RollbackTestSuite))
-}
-
-func (s *RollbackTestSuite) TestDeleteAll() {
+func (s *StorageTestSuite) TestDeleteAll() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -107,7 +32,7 @@ func (s *RollbackTestSuite) TestDeleteAll() {
 	s.Require().EqualValues(46, block.Level)
 }
 
-func (s *RollbackTestSuite) TestStatesChangedAtLevel() {
+func (s *StorageTestSuite) TestStatesChangedAtLevel() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -122,7 +47,7 @@ func (s *RollbackTestSuite) TestStatesChangedAtLevel() {
 	s.Require().NoError(err)
 }
 
-func (s *RollbackTestSuite) TestLastDiff() {
+func (s *StorageTestSuite) TestLastDiff() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -144,7 +69,7 @@ func (s *RollbackTestSuite) TestLastDiff() {
 	s.Require().NoError(err)
 }
 
-func (s *RollbackTestSuite) TestDeleteBigMapState() {
+func (s *StorageTestSuite) TestDeleteBigMapState() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -162,7 +87,7 @@ func (s *RollbackTestSuite) TestDeleteBigMapState() {
 	s.Require().Error(err)
 }
 
-func (s *RollbackTestSuite) TestSaveBigMapState() {
+func (s *StorageTestSuite) TestSaveBigMapState() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -193,7 +118,7 @@ func (s *RollbackTestSuite) TestSaveBigMapState() {
 	s.Require().Equal(ts.Format(time.RFC3339), state.LastUpdateTime.Format(time.RFC3339))
 }
 
-func (s *RollbackTestSuite) TestGetOperations() {
+func (s *StorageTestSuite) TestGetOperations() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -209,7 +134,7 @@ func (s *RollbackTestSuite) TestGetOperations() {
 	s.Require().Len(ops, 13)
 }
 
-func (s *RollbackTestSuite) TestGetLastAction() {
+func (s *StorageTestSuite) TestGetLastAction() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -230,7 +155,7 @@ func (s *RollbackTestSuite) TestGetLastAction() {
 	s.Require().EqualValues("2022-01-25T16:45:09Z", actions[1].Time.Format(time.RFC3339))
 }
 
-func (s *RollbackTestSuite) TestUpdateAccountStats() {
+func (s *StorageTestSuite) TestUpdateAccountStats() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -252,7 +177,7 @@ func (s *RollbackTestSuite) TestUpdateAccountStats() {
 	s.Require().EqualValues(ts.Format(time.RFC3339), acc.LastAction.Format(time.RFC3339))
 }
 
-func (s *RollbackTestSuite) TestProtocols() {
+func (s *StorageTestSuite) TestProtocols() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 

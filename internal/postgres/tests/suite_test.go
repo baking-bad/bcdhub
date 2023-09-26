@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/account"
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
@@ -55,7 +54,7 @@ func (s *StorageTestSuite) SetupSuite() {
 		Password: "password",
 		Database: "db_test",
 		Port:     5432,
-		Image:    "postgres:14",
+		Image:    "timescale/timescaledb:latest-pg15",
 	})
 	s.Require().NoError(err)
 	s.psqlContainer = psqlContainer
@@ -72,10 +71,6 @@ func (s *StorageTestSuite) SetupSuite() {
 	s.storage = strg
 
 	err = strg.InitDatabase(ctx)
-	s.Require().NoError(err)
-
-	pm := postgres.NewPartitionManager(strg)
-	err = pm.CreatePartitions(ctx, time.Date(2022, 1, 1, 1, 1, 1, 1, time.Local))
 	s.Require().NoError(err)
 
 	s.accounts = account.NewStorage(strg)
@@ -107,7 +102,7 @@ func (s *StorageTestSuite) SetupTest() {
 
 	fixtures, err := testfixtures.New(
 		testfixtures.Database(db),
-		testfixtures.Dialect("postgres"),
+		testfixtures.Dialect("timescaledb"),
 		testfixtures.Directory("./fixtures"),
 		testfixtures.UseAlterConstraint(),
 	)

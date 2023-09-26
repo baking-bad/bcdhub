@@ -32,8 +32,7 @@ func (p *Protocol) GetID() int64 {
 	return p.ID
 }
 
-// GetIndex -
-func (p *Protocol) GetIndex() string {
+func (Protocol) TableName() string {
 	return "protocols"
 }
 
@@ -43,8 +42,4 @@ func (p *Protocol) ValidateChainID(chainID string) bool {
 		return p.StartLevel == 0
 	}
 	return p.ChainID == chainID
-}
-
-func (Protocol) PartitionBy() string {
-	return ""
 }

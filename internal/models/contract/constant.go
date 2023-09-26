@@ -24,8 +24,7 @@ func (m *GlobalConstant) GetID() int64 {
 	return m.ID
 }
 
-// GetIndex -
-func (m *GlobalConstant) GetIndex() string {
+func (GlobalConstant) TableName() string {
 	return "global_constants"
 }
 

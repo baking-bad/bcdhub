@@ -27,13 +27,12 @@ type Store struct {
 	SmartRollups    []*smartrollup.SmartRollup
 	Accounts        map[string]*account.Account
 
-	partitions *PartitionManager
-	db         *bun.DB
-	accIds     map[string]int64
+	db     *bun.DB
+	accIds map[string]int64
 }
 
 // NewStore -
-func NewStore(pm *PartitionManager, db *bun.DB) *Store {
+func NewStore(db *bun.DB) *Store {
 	return &Store{
 		BigMapState:     make([]*bigmapdiff.BigMapState, 0),
 		Contracts:       make([]*contract.Contract, 0),
@@ -42,7 +41,6 @@ func NewStore(pm *PartitionManager, db *bun.DB) *Store {
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
 		SmartRollups:    make([]*smartrollup.SmartRollup, 0),
 		Accounts:        make(map[string]*account.Account),
-		partitions:      pm,
 		db:              db,
 		accIds:          make(map[string]int64),
 	}
@@ -204,10 +202,6 @@ func (store *Store) saveSmartRollups(ctx context.Context, tx models.Transaction)
 func (store *Store) saveOperations(ctx context.Context, tx models.Transaction) error {
 	if len(store.Operations) == 0 {
 		return nil
-	}
-
-	if err := store.partitions.CreatePartitions(ctx, store.Operations[0].Timestamp); err != nil {
-		return err
 	}
 
 	for i, operation := range store.Operations {

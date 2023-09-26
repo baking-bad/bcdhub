@@ -122,7 +122,6 @@ func (storage *Storage) GetByPtrAndKeyHash(ctx context.Context, ptr int64, keyHa
 	return response, int64(count), err
 }
 
-// TODO: think about remove it
 // GetByPtr -
 func (storage *Storage) GetByPtr(ctx context.Context, contract string, ptr int64) (response []bigmapdiff.BigMapState, err error) {
 	query := storage.DB.NewSelect().

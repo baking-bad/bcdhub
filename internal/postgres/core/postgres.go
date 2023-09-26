@@ -128,7 +128,7 @@ func WaitNew(cfg Config, schemaName, appName string, timeout int, opts ...Postgr
 }
 
 func (p *Postgres) InitDatabase(ctx context.Context) error {
-	if err := createSchema(p.DB, p.schema); err != nil {
+	if err := createSchema(ctx, p.DB, p.schema); err != nil {
 		return err
 	}
 

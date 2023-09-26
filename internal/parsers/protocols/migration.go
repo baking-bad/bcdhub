@@ -128,7 +128,7 @@ func (m Migration) vestingMigration(ctx context.Context, tx models.Transaction, 
 		return err
 	}
 
-	store := postgres.NewStore(m.ctx.Partitions, m.ctx.StorageDB.DB)
+	store := postgres.NewStore(m.ctx.StorageDB.DB)
 
 	for _, address := range addresses {
 		if !bcd.IsContract(address) {

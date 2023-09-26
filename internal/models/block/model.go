@@ -11,11 +11,11 @@ import (
 type Block struct {
 	bun.BaseModel `bun:"blocks"`
 
-	ID         int64 `bun:"id,pk,notnull,autoincrement"`
-	Hash       string
-	Timestamp  time.Time
-	Level      int64
-	ProtocolID int64 `bun:",type:SMALLINT"`
+	ID         int64     `bun:"id,pk,notnull,autoincrement"`
+	Hash       string    `bun:"hash"`
+	Timestamp  time.Time `bun:"timestamp,pk,notnull"`
+	Level      int64     `bun:"level"`
+	ProtocolID int64     `bun:",type:SMALLINT"`
 
 	Protocol protocol.Protocol `bun:",rel:belongs-to"`
 }
@@ -25,11 +25,6 @@ func (b *Block) GetID() int64 {
 	return b.ID
 }
 
-// GetIndex -
-func (b *Block) GetIndex() string {
+func (Block) TableName() string {
 	return "blocks"
-}
-
-func (Block) PartitionBy() string {
-	return ""
 }

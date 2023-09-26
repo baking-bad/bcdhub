@@ -175,7 +175,7 @@ func (t Transaction) BabylonUpdateNonDelegator(ctx context.Context, contract *co
 	_, err := t.tx.NewUpdate().
 		Model(contract).
 		Set("babylon_id = ?babylon_id").
-		WherePK().
+		Where("id = ?id").
 		Exec(ctx)
 	return err
 }
@@ -184,7 +184,7 @@ func (t Transaction) JakartaVesting(ctx context.Context, contract *contract.Cont
 	_, err := t.tx.NewUpdate().
 		Model(contract).
 		Set("jakarta_id = babylon_id").
-		WherePK().
+		Where("id = ?id").
 		Exec(ctx)
 	return err
 }
@@ -193,7 +193,7 @@ func (t Transaction) JakartaUpdateNonDelegator(ctx context.Context, contract *co
 	_, err := t.tx.NewUpdate().
 		Model(contract).
 		Set("jakarta_id = ?jakarta_id").
-		WherePK().
+		Where("id = ?id").
 		Exec(ctx)
 	return err
 }

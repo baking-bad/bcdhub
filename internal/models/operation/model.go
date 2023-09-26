@@ -48,7 +48,7 @@ type Operation struct {
 	DelegateID    int64
 	Delegate      account.Account `bun:",rel:belongs-to"`
 
-	Timestamp time.Time             `bun:",pk,notnull"`
+	Timestamp time.Time             `bun:"timestamp,pk,notnull"`
 	Status    types.OperationStatus `bun:",type:SMALLINT"`
 	Kind      types.OperationKind   `bun:",type:SMALLINT"`
 
@@ -73,17 +73,12 @@ type Operation struct {
 	Internal                     bool
 }
 
-func (Operation) PartitionBy() string {
-	return "RANGE(timestamp)"
-}
-
 // GetID -
 func (o *Operation) GetID() int64 {
 	return o.ID
 }
 
-// GetIndex -
-func (o *Operation) GetIndex() string {
+func (o *Operation) TableName() string {
 	return "operations"
 }
 

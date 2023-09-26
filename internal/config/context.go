@@ -17,7 +17,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
 	"github.com/pkg/errors"
@@ -48,7 +47,6 @@ type Context struct {
 	Domains         domains.Repository
 	Scripts         contract.ScriptRepository
 	SmartRollups    smartrollup.Repository
-	Partitions      *postgres.PartitionManager
 
 	Cache *cache.Cache
 }

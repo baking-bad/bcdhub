@@ -4,6 +4,13 @@ import (
 	"context"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/uptrace/bun"
 )
 
@@ -16,10 +23,6 @@ func createTable(ctx context.Context, db bun.IDB, model models.Model) error {
 		NewCreateTable().
 		Model(model).
 		IfNotExists()
-
-	if by := model.PartitionBy(); by != "" {
-		query = query.PartitionBy(by)
-	}
 
 	_, err := query.Exec(ctx)
 	return err
@@ -34,16 +37,42 @@ func createTables(ctx context.Context, db *bun.DB) error {
 			return err
 		}
 	}
+	return createHypertables(ctx, db)
+}
+
+func createHypertables(ctx context.Context, db *bun.DB) error {
+	for _, model := range []models.Model{
+		&block.Block{},
+		&bigmapdiff.BigMapDiff{},
+		&bigmapaction.BigMapAction{},
+		&contract.Contract{},
+		&migration.Migration{},
+		&operation.Operation{},
+		&ticket.TicketUpdate{},
+	} {
+		if _, err := db.ExecContext(ctx,
+			`SELECT public.create_hypertable(?, 'timestamp', chunk_time_interval => INTERVAL '1 month', if_not_exists => TRUE);`,
+			model.TableName(),
+		); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func createSchema(db *bun.DB, schemaName string) error {
+func createSchema(ctx context.Context, db *bun.DB, schemaName string) error {
 	schema := bun.Ident(schemaName)
-	if _, err := db.Exec("create schema if not exists ?", schema); err != nil {
+	if _, err := db.NewRaw("create schema if not exists ?", schema).Exec(ctx); err != nil {
 		return err
 	}
-	_, err := db.Exec("set search_path = ?", schema)
-	return err
+	if _, err := db.NewRaw("set search_path = ?", schema).Exec(ctx); err != nil {
+		return err
+	}
+	if _, err := db.NewRaw("CREATE EXTENSION IF NOT EXISTS timescaledb;").Exec(ctx); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Drop - drops full database
