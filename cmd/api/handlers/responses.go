@@ -174,9 +174,6 @@ type Contract struct {
 func (c *Contract) FromModel(contract contract.Contract) {
 	c.Address = contract.Account.Address
 	c.Delegate = contract.Delegate.Address
-	c.TxCount = contract.TxCount
-	c.LastAction = contract.LastAction
-
 	c.Level = contract.Level
 	c.Manager = contract.Manager.Address
 	c.MigrationsCount = contract.MigrationsCount
@@ -218,8 +215,6 @@ type RecentlyCalledContract struct {
 // FromModel -
 func (c *RecentlyCalledContract) FromModel(contract contract.Contract) {
 	c.Address = contract.Account.Address
-	c.TxCount = contract.TxCount
-	c.LastAction = contract.LastAction
 	c.ID = contract.ID
 }
 
@@ -429,11 +424,11 @@ type Screenshot struct {
 
 // AccountInfo -
 type AccountInfo struct {
-	Address     string    `json:"address"`
-	Balance     int64     `json:"balance"`
-	TxCount     int64     `json:"tx_count"`
-	LastAction  time.Time `json:"last_action"`
-	AccountType string    `json:"account_type"`
+	Address         string    `json:"address"`
+	Balance         int64     `json:"balance"`
+	OperationsCount int64     `json:"operations_count"`
+	LastAction      time.Time `json:"last_action"`
+	AccountType     string    `json:"account_type"`
 }
 
 // CountResponse -

@@ -72,9 +72,11 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 		Timestamp:  head.Timestamp,
 		Kind:       types.OperationKindOrigination,
 		Destination: account.Account{
-			Address: implicit.OriginatedContracts[0],
-			Type:    types.AccountTypeContract,
-			Level:   head.Level,
+			Address:         implicit.OriginatedContracts[0],
+			Type:            types.AccountTypeContract,
+			Level:           head.Level,
+			OperationsCount: 1,
+			LastAction:      head.Timestamp,
 		},
 		ConsumedGas:         implicit.ConsumedGas,
 		PaidStorageSizeDiff: implicit.PaidStorageSizeDiff,
@@ -107,7 +109,6 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 	}
 
 	logger.Info().Msg("Implicit bootstrap migration found")
-
 	return nil
 }
 
@@ -128,9 +129,11 @@ func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, 
 	for i := range implicit.BalanceUpdates {
 		if implicit.BalanceUpdates[i].Kind == "contract" && implicit.BalanceUpdates[i].Origin == "subsidy" {
 			tx.Destination = account.Account{
-				Type:    types.NewAccountType(implicit.BalanceUpdates[i].Contract),
-				Address: implicit.BalanceUpdates[i].Contract,
-				Level:   head.Level,
+				Type:            types.NewAccountType(implicit.BalanceUpdates[i].Contract),
+				Address:         implicit.BalanceUpdates[i].Contract,
+				Level:           head.Level,
+				OperationsCount: 1,
+				LastAction:      head.Timestamp,
 			}
 			store.AddAccounts(&tx.Destination)
 			break

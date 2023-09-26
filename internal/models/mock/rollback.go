@@ -195,46 +195,46 @@ func (c *RollbackDeleteScriptsConstantsCall) DoAndReturn(f func(context.Context,
 	return c
 }
 
-// GetContractsLastAction mocks base method.
-func (m *MockRollback) GetContractsLastAction(ctx context.Context, addressIds ...int64) ([]models.LastAction, error) {
+// GetLastAction mocks base method.
+func (m *MockRollback) GetLastAction(ctx context.Context, addressIds ...int64) ([]models.LastAction, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx}
 	for _, a := range addressIds {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "GetContractsLastAction", varargs...)
+	ret := m.ctrl.Call(m, "GetLastAction", varargs...)
 	ret0, _ := ret[0].([]models.LastAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetContractsLastAction indicates an expected call of GetContractsLastAction.
-func (mr *MockRollbackMockRecorder) GetContractsLastAction(ctx any, addressIds ...any) *RollbackGetContractsLastActionCall {
+// GetLastAction indicates an expected call of GetLastAction.
+func (mr *MockRollbackMockRecorder) GetLastAction(ctx any, addressIds ...any) *RollbackGetLastActionCall {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx}, addressIds...)
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractsLastAction", reflect.TypeOf((*MockRollback)(nil).GetContractsLastAction), varargs...)
-	return &RollbackGetContractsLastActionCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastAction", reflect.TypeOf((*MockRollback)(nil).GetLastAction), varargs...)
+	return &RollbackGetLastActionCall{Call: call}
 }
 
-// RollbackGetContractsLastActionCall wrap *gomock.Call
-type RollbackGetContractsLastActionCall struct {
+// RollbackGetLastActionCall wrap *gomock.Call
+type RollbackGetLastActionCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RollbackGetContractsLastActionCall) Return(arg0 []models.LastAction, arg1 error) *RollbackGetContractsLastActionCall {
+func (c *RollbackGetLastActionCall) Return(arg0 []models.LastAction, arg1 error) *RollbackGetLastActionCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RollbackGetContractsLastActionCall) Do(f func(context.Context, ...int64) ([]models.LastAction, error)) *RollbackGetContractsLastActionCall {
+func (c *RollbackGetLastActionCall) Do(f func(context.Context, ...int64) ([]models.LastAction, error)) *RollbackGetLastActionCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RollbackGetContractsLastActionCall) DoAndReturn(f func(context.Context, ...int64) ([]models.LastAction, error)) *RollbackGetContractsLastActionCall {
+func (c *RollbackGetLastActionCall) DoAndReturn(f func(context.Context, ...int64) ([]models.LastAction, error)) *RollbackGetLastActionCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -548,40 +548,40 @@ func (c *RollbackStatesChangedAtLevelCall) DoAndReturn(f func(context.Context, i
 	return c
 }
 
-// UpdateContractStats mocks base method.
-func (m *MockRollback) UpdateContractStats(ctx context.Context, accountId int64, lastAction time.Time, txCount int64) error {
+// UpdateAccountStats mocks base method.
+func (m *MockRollback) UpdateAccountStats(ctx context.Context, accountId int64, lastAction time.Time, txCount int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateContractStats", ctx, accountId, lastAction, txCount)
+	ret := m.ctrl.Call(m, "UpdateAccountStats", ctx, accountId, lastAction, txCount)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateContractStats indicates an expected call of UpdateContractStats.
-func (mr *MockRollbackMockRecorder) UpdateContractStats(ctx, accountId, lastAction, txCount any) *RollbackUpdateContractStatsCall {
+// UpdateAccountStats indicates an expected call of UpdateAccountStats.
+func (mr *MockRollbackMockRecorder) UpdateAccountStats(ctx, accountId, lastAction, txCount any) *RollbackUpdateAccountStatsCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateContractStats", reflect.TypeOf((*MockRollback)(nil).UpdateContractStats), ctx, accountId, lastAction, txCount)
-	return &RollbackUpdateContractStatsCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccountStats", reflect.TypeOf((*MockRollback)(nil).UpdateAccountStats), ctx, accountId, lastAction, txCount)
+	return &RollbackUpdateAccountStatsCall{Call: call}
 }
 
-// RollbackUpdateContractStatsCall wrap *gomock.Call
-type RollbackUpdateContractStatsCall struct {
+// RollbackUpdateAccountStatsCall wrap *gomock.Call
+type RollbackUpdateAccountStatsCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RollbackUpdateContractStatsCall) Return(arg0 error) *RollbackUpdateContractStatsCall {
+func (c *RollbackUpdateAccountStatsCall) Return(arg0 error) *RollbackUpdateAccountStatsCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RollbackUpdateContractStatsCall) Do(f func(context.Context, int64, time.Time, int64) error) *RollbackUpdateContractStatsCall {
+func (c *RollbackUpdateAccountStatsCall) Do(f func(context.Context, int64, time.Time, int64) error) *RollbackUpdateAccountStatsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RollbackUpdateContractStatsCall) DoAndReturn(f func(context.Context, int64, time.Time, int64) error) *RollbackUpdateContractStatsCall {
+func (c *RollbackUpdateAccountStatsCall) DoAndReturn(f func(context.Context, int64, time.Time, int64) error) *RollbackUpdateAccountStatsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

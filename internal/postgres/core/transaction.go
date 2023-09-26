@@ -93,9 +93,10 @@ func (t Transaction) Accounts(ctx context.Context, accounts ...*account.Account)
 		return nil
 	}
 	_, err := t.tx.NewInsert().Model(&accounts).
-		Column("address", "level", "type").
-		On("CONFLICT (address) DO UPDATE").
-		Set("type = EXCLUDED.type").
+		Column("address", "level", "type", "operations_count", "last_action").
+		On("CONFLICT ON CONSTRAINT address_hash DO UPDATE").
+		Set("operations_count = EXCLUDED.operations_count + account.operations_count").
+		Set("last_action = EXCLUDED.last_action").
 		Returning("id").
 		Exec(ctx)
 	return err
@@ -127,22 +128,6 @@ func (t Transaction) Contracts(ctx context.Context, contracts ...*contract.Contr
 		return nil
 	}
 	return t.Save(ctx, &contracts)
-}
-
-func (t Transaction) UpdateContracts(ctx context.Context, updates ...*contract.Update) error {
-	if len(updates) == 0 {
-		return nil
-	}
-	values := t.tx.NewValues(&updates)
-	_, err := t.tx.NewUpdate().
-		With("_data", values).
-		Model((*contract.Contract)(nil)).
-		TableExpr("_data").
-		Set("last_action = _data.last_action").
-		Set("tx_count = contract.tx_count + _data.tx_count").
-		Where("contract.account_id = _data.account_id").
-		Exec(ctx)
-	return err
 }
 
 func (t Transaction) Scripts(ctx context.Context, scripts ...*contract.Script) error {

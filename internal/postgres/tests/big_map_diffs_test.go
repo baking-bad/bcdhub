@@ -54,7 +54,7 @@ func (s *StorageTestSuite) TestBigMapDiffsGetByAddress() {
 	s.Require().EqualValues(1, diff.ID)
 	s.Require().EqualValues(4, diff.Ptr)
 	s.Require().EqualValues(33, diff.Level)
-	s.Require().EqualValues(2, diff.ProtocolID)
+	s.Require().EqualValues(3, diff.ProtocolID)
 	s.Require().EqualValues(34, diff.OperationID)
 	s.Require().EqualValues("KT1W3fGSo8XfRSESPAg3Jngzt3D8xpPqW64i", diff.Contract)
 	s.Require().Equal("expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo", diff.KeyHash)
@@ -89,11 +89,11 @@ func (s *StorageTestSuite) TestBigMapDiffsPrevious() {
 	s.Require().EqualValues(54, diff.ID)
 	s.Require().EqualValues(41, diff.Ptr)
 	s.Require().EqualValues(40, diff.Level)
-	s.Require().EqualValues(2, diff.ProtocolID)
+	s.Require().EqualValues(3, diff.ProtocolID)
 	s.Require().EqualValues(109, diff.OperationID)
 	s.Require().EqualValues("KT1NSpRTVR4MUwx64XCADXDUmpMGQw5yVNK1", diff.Contract)
 	s.Require().Equal("exprurUjYU5axnk1qjE6F2t7uDtqR64bnsxGu3AHfWiVREftRDcRPX", diff.KeyHash)
-	s.Require().Equal(testsuite.MustHexDecode("11223344556677889900"), []byte(diff.Value))
+	s.Require().Equal([]byte(`{"prim":"Pair","args":[[{"bytes":"0000eadc0855adb415fa69a76fc10397dc2fb37039a0"}],{"int":"50"}]}`), []byte(diff.Value))
 }
 
 func (s *StorageTestSuite) TestBigMapDiffsGetForOperation() {
@@ -102,7 +102,7 @@ func (s *StorageTestSuite) TestBigMapDiffsGetForOperation() {
 
 	diffs, err := s.bigMapDiffs.GetForOperation(ctx, 109)
 	s.Require().NoError(err)
-	s.Require().Len(diffs, 5)
+	s.Require().Len(diffs, 4)
 }
 
 func (s *StorageTestSuite) TestBigMapDiffsGetByPtrAndKeyHash() {
@@ -111,8 +111,8 @@ func (s *StorageTestSuite) TestBigMapDiffsGetByPtrAndKeyHash() {
 
 	diffs, count, err := s.bigMapDiffs.GetByPtrAndKeyHash(ctx, 41, "exprurUjYU5axnk1qjE6F2t7uDtqR64bnsxGu3AHfWiVREftRDcRPX", 10, 0)
 	s.Require().NoError(err)
-	s.Require().Len(diffs, 2)
-	s.Require().EqualValues(2, count)
+	s.Require().Len(diffs, 1)
+	s.Require().EqualValues(1, count)
 }
 
 func (s *StorageTestSuite) TestBigMapDiffsGetByPtr() {

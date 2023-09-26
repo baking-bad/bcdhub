@@ -40,45 +40,6 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// ContractStats mocks base method.
-func (m *MockRepository) ContractStats(ctx context.Context, address string) (operation.ContractStats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ContractStats", ctx, address)
-	ret0, _ := ret[0].(operation.ContractStats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ContractStats indicates an expected call of ContractStats.
-func (mr *MockRepositoryMockRecorder) ContractStats(ctx, address any) *RepositoryContractStatsCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractStats", reflect.TypeOf((*MockRepository)(nil).ContractStats), ctx, address)
-	return &RepositoryContractStatsCall{Call: call}
-}
-
-// RepositoryContractStatsCall wrap *gomock.Call
-type RepositoryContractStatsCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryContractStatsCall) Return(arg0 operation.ContractStats, arg1 error) *RepositoryContractStatsCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryContractStatsCall) Do(f func(context.Context, string) (operation.ContractStats, error)) *RepositoryContractStatsCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryContractStatsCall) DoAndReturn(f func(context.Context, string) (operation.ContractStats, error)) *RepositoryContractStatsCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // EventsCount mocks base method.
 func (m *MockRepository) EventsCount(ctx context.Context, accountID int64) (int, error) {
 	m.ctrl.T.Helper()

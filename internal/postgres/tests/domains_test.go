@@ -13,7 +13,7 @@ func (s *StorageTestSuite) TestSame() {
 
 	contracts, err := s.domains.Same(ctx, "public", contract.Contract{
 		ID:        25,
-		BabylonID: 5,
+		BabylonID: 8,
 		AccountID: 132,
 		Babylon: contract.Script{
 			ID:   5,
@@ -38,5 +38,5 @@ func (s *StorageTestSuite) TestSameCount() {
 		},
 	}, "public")
 	s.Require().NoError(err)
-	s.Require().EqualValues(11, count)
+	s.Require().EqualValues(31, count)
 }

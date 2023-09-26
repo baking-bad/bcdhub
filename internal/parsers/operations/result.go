@@ -32,17 +32,21 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation, store
 	}
 	if len(result.Originated) > 0 {
 		tx.Destination = account.Account{
-			Address: result.Originated[0],
-			Type:    types.AccountTypeContract,
-			Level:   tx.Level,
+			Address:         result.Originated[0],
+			Type:            types.AccountTypeContract,
+			Level:           tx.Level,
+			OperationsCount: 1,
+			LastAction:      tx.Timestamp,
 		}
 	}
 
 	if len(result.OriginatedRollup) > 0 {
 		tx.Destination = account.Account{
-			Address: result.OriginatedRollup,
-			Type:    types.AccountTypeRollup,
-			Level:   tx.Level,
+			Address:         result.OriginatedRollup,
+			Type:            types.AccountTypeRollup,
+			Level:           tx.Level,
+			OperationsCount: 1,
+			LastAction:      tx.Timestamp,
 		}
 	}
 

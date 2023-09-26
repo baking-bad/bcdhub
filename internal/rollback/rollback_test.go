@@ -122,7 +122,7 @@ func TestManager_Rollback(t *testing.T) {
 
 	ts := time.Now().UTC()
 	rb.EXPECT().
-		GetContractsLastAction(gomock.Any(), gomock.Any()).
+		GetLastAction(gomock.Any(), gomock.Any()).
 		Return([]models.LastAction{
 			{
 				AccountId: 4,
@@ -135,12 +135,12 @@ func TestManager_Rollback(t *testing.T) {
 		Times(1)
 
 	rb.EXPECT().
-		UpdateContractStats(gomock.Any(), int64(4), ts, int64(1)).
+		UpdateAccountStats(gomock.Any(), int64(4), ts, int64(1)).
 		Return(nil).
 		Times(1)
 
 	rb.EXPECT().
-		UpdateContractStats(gomock.Any(), int64(1), ts, int64(2)).
+		UpdateAccountStats(gomock.Any(), int64(1), ts, int64(3)).
 		Return(nil).
 		Times(1)
 

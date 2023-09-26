@@ -43,8 +43,9 @@ func Test_parseOperationResult(t *testing.T) {
 				StorageSize:         232,
 				PaidStorageSizeDiff: 232,
 				Destination: account.Account{
-					Address: "KT1FVhijNC7ZBL5EjcetiKddDQ2n98t8w4jo",
-					Type:    types.AccountTypeContract,
+					Address:         "KT1FVhijNC7ZBL5EjcetiKddDQ2n98t8w4jo",
+					Type:            types.AccountTypeContract,
+					OperationsCount: 1,
 				},
 				TickerUpdates: make([]*ticket.TicketUpdate, 0),
 			},

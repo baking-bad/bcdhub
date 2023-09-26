@@ -17,7 +17,7 @@ func (s *StorageTestSuite) TestTicketGet() {
 	s.Require().EqualValues(2, update.ID)
 	s.Require().EqualValues(104, update.OperationID)
 	s.Require().EqualValues(40, update.Level)
-	s.Require().EqualValues(260, update.TicketerID)
+	s.Require().EqualValues(133, update.TicketerID)
 	s.Require().EqualValues(131, update.AccountID)
 	s.Require().EqualValues("43", update.Amount.String())
 	s.Require().NotEmpty(update.Content)
@@ -28,7 +28,7 @@ func (s *StorageTestSuite) TestTicketHas() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	ok, err := s.ticketUpdates.Has(ctx, 260)
+	ok, err := s.ticketUpdates.Has(ctx, 133)
 	s.Require().NoError(err)
 	s.Require().True(ok)
 
@@ -49,7 +49,7 @@ func (s *StorageTestSuite) TestTicketForOperation() {
 	s.Require().EqualValues(2, update.ID)
 	s.Require().EqualValues(104, update.OperationID)
 	s.Require().EqualValues(40, update.Level)
-	s.Require().EqualValues(260, update.TicketerID)
+	s.Require().EqualValues(133, update.TicketerID)
 	s.Require().EqualValues(131, update.AccountID)
 	s.Require().EqualValues("43", update.Amount.String())
 	s.Require().NotEmpty(update.Content)

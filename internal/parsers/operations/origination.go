@@ -25,9 +25,11 @@ var delegatorContract = []byte(`{"code":[{"prim":"parameter","args":[{"prim":"or
 // Parse -
 func (p Origination) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
-		Address: data.Source,
-		Type:    types.NewAccountType(data.Source),
-		Level:   p.head.Level,
+		Address:         data.Source,
+		Type:            types.NewAccountType(data.Source),
+		Level:           p.head.Level,
+		OperationsCount: 1,
+		LastAction:      p.head.Timestamp,
 	}
 
 	origination := operation.Operation{
@@ -44,9 +46,10 @@ func (p Origination) Parse(ctx context.Context, data noderpc.Operation, store pa
 		StorageLimit: data.StorageLimit,
 		Amount:       *data.Balance,
 		Delegate: account.Account{
-			Address: data.Delegate,
-			Type:    types.NewAccountType(data.Delegate),
-			Level:   p.head.Level,
+			Address:    data.Delegate,
+			Type:       types.NewAccountType(data.Delegate),
+			Level:      p.head.Level,
+			LastAction: p.head.Timestamp,
 		},
 		Parameters:   data.Parameters,
 		Nonce:        data.Nonce,

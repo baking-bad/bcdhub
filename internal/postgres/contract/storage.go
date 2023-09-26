@@ -173,8 +173,8 @@ func (storage *Storage) ScriptPart(ctx context.Context, address string, symLink,
 // RecentlyCalled -
 func (storage *Storage) RecentlyCalled(ctx context.Context, offset, size int64) (contracts []contract.Contract, err error) {
 	query := storage.DB.NewSelect().Model(&contracts).
-		ColumnExpr("contract.id, contract.tx_count, contract.last_action, contract.account_id").
-		ColumnExpr("account.address as account__address").
+		ColumnExpr("contract.id, contract.account_id").
+		ColumnExpr("account.address as account__address, account.operations_count as account__operations_count, account.last_action as account__last_action").
 		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`)
 
 	if offset > 0 {
@@ -186,7 +186,7 @@ func (storage *Storage) RecentlyCalled(ctx context.Context, offset, size int64) 
 		query.Limit(10)
 	}
 	err = query.
-		OrderExpr("contract.last_action desc, contract.tx_count desc").
+		OrderExpr("account.last_action desc, account.operations_count desc").
 		Scan(ctx)
 	return
 }
@@ -200,8 +200,8 @@ func (storage *Storage) Count(ctx context.Context) (int, error) {
 func (storage *Storage) FindOne(ctx context.Context, tags types.Tags) (result contract.Contract, err error) {
 	err = storage.DB.NewSelect().Model(&result).
 		Where("tags&? > 0", tags).
-		ColumnExpr("contract.id, contract.tx_count, contract.last_action, contract.account_id, contract.timestamp, contract.level").
-		ColumnExpr("account.address as account__address").
+		ColumnExpr("contract.id, contract.account_id, contract.timestamp, contract.level").
+		ColumnExpr("account.address as account__address, account.operations_count as account__operations_count, account.last_action as account__last_action").
 		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`).
 		Limit(1).
 		Scan(ctx)

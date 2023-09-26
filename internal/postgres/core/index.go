@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -24,17 +23,6 @@ func (p *Postgres) CreateIndex(ctx context.Context, name, columns string, model 
 
 func createBaseIndices(ctx context.Context, db bun.IDB) error {
 	return db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		// Accounts
-		if _, err := db.NewCreateIndex().
-			Model((*account.Account)(nil)).
-			IfNotExists().
-			Unique().
-			Index("accounts_address_idx").
-			Column("address").
-			Exec(ctx); err != nil {
-			return err
-		}
-
 		// Blocks
 		if _, err := db.NewCreateIndex().
 			Model((*block.Block)(nil)).

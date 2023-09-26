@@ -219,7 +219,7 @@ func (s *TransactionTest) TestScriptsConflict() {
 	}
 	err = tx.Scripts(ctx, &update)
 	s.Require().NoError(err)
-	s.Require().EqualValues(1, update.ID)
+	s.Require().EqualValues(5, update.ID)
 
 	err = tx.Commit()
 	s.Require().NoError(err)
@@ -299,35 +299,6 @@ func (s *TransactionTest) TestBigMapStates() {
 	s.Require().Len(result, 3)
 }
 
-func (s *TransactionTest) TestUpdateContracts() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	tx, err := core.NewTransaction(ctx, s.storage.DB)
-	s.Require().NoError(err)
-
-	sc := []*contract.Update{
-		{
-			AccountID:  1,
-			LastAction: time.Now(),
-			TxCount:    10,
-		}, {
-			AccountID:  2,
-			LastAction: time.Now(),
-			TxCount:    10,
-		}, {
-			AccountID:  3,
-			LastAction: time.Now(),
-			TxCount:    10,
-		},
-	}
-	err = tx.UpdateContracts(ctx, sc...)
-	s.Require().NoError(err)
-
-	err = tx.Commit()
-	s.Require().NoError(err)
-}
-
 func (s *TransactionTest) TestBabylonUpdateNonDelegator() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -372,7 +343,7 @@ func (s *TransactionTest) TestJakartaVesting() {
 	var newContract contract.Contract
 	err = s.storage.DB.NewSelect().Model(&newContract).Where("id = 2").Scan(ctx)
 	s.Require().NoError(err)
-	s.Require().EqualValues(2, newContract.JakartaID)
+	s.Require().EqualValues(5, newContract.JakartaID)
 }
 
 func (s *TransactionTest) TestJakartaUpdateNonDelegator() {
@@ -415,7 +386,7 @@ func (s *TransactionTest) TestToJakarta() {
 	var newContract contract.Contract
 	err = s.storage.DB.NewSelect().Model(&newContract).Where("id = 16").Scan(ctx)
 	s.Require().NoError(err)
-	s.Require().EqualValues(11, newContract.JakartaID)
+	s.Require().EqualValues(14, newContract.JakartaID)
 }
 
 func (s *TransactionTest) TestBabylonBigMapStates() {

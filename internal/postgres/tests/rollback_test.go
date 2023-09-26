@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres"
@@ -94,7 +94,7 @@ func (s *RollbackTestSuite) TestDeleteAll() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	err = saver.DeleteAll(ctx, (*block.Block)(nil), 40)
+	err = saver.DeleteAll(ctx, (*block.Block)(nil), 47)
 	s.Require().NoError(err)
 
 	err = saver.Commit()
@@ -104,7 +104,7 @@ func (s *RollbackTestSuite) TestDeleteAll() {
 	err = s.storage.DB.NewSelect().Model(&block).Order("id desc").Limit(1).Scan(ctx)
 	s.Require().NoError(err)
 
-	s.Require().EqualValues(39, block.Level)
+	s.Require().EqualValues(46, block.Level)
 }
 
 func (s *RollbackTestSuite) TestStatesChangedAtLevel() {
@@ -132,10 +132,10 @@ func (s *RollbackTestSuite) TestLastDiff() {
 	diff, err := saver.LastDiff(ctx, 41, "exprurUjYU5axnk1qjE6F2t7uDtqR64bnsxGu3AHfWiVREftRDcRPX", true)
 	s.Require().NoError(err)
 
-	s.Require().EqualValues(55, diff.ID)
+	s.Require().EqualValues(54, diff.ID)
 	s.Require().EqualValues(41, diff.Ptr)
 	s.Require().EqualValues(40, diff.Level)
-	s.Require().EqualValues(2, diff.ProtocolID)
+	s.Require().EqualValues(3, diff.ProtocolID)
 	s.Require().EqualValues(109, diff.OperationID)
 	s.Require().EqualValues("KT1NSpRTVR4MUwx64XCADXDUmpMGQw5yVNK1", diff.Contract)
 	s.Require().Equal("exprurUjYU5axnk1qjE6F2t7uDtqR64bnsxGu3AHfWiVREftRDcRPX", diff.KeyHash)
@@ -209,14 +209,14 @@ func (s *RollbackTestSuite) TestGetOperations() {
 	s.Require().Len(ops, 13)
 }
 
-func (s *RollbackTestSuite) TestGetContractLastActions() {
+func (s *RollbackTestSuite) TestGetLastAction() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	actions, err := saver.GetContractsLastAction(ctx, 43, 46)
+	actions, err := saver.GetLastAction(ctx, 43, 46)
 	s.Require().NoError(err)
 
 	err = saver.Commit()
@@ -230,7 +230,7 @@ func (s *RollbackTestSuite) TestGetContractLastActions() {
 	s.Require().EqualValues("2022-01-25T16:45:09Z", actions[1].Time.Format(time.RFC3339))
 }
 
-func (s *RollbackTestSuite) TestUpdateContractStats() {
+func (s *RollbackTestSuite) TestUpdateAccountStats() {
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
 
@@ -239,17 +239,17 @@ func (s *RollbackTestSuite) TestUpdateContractStats() {
 
 	ts := time.Now().UTC()
 
-	err = saver.UpdateContractStats(ctx, 43, ts, 1)
+	err = saver.UpdateAccountStats(ctx, 43, ts, 1)
 	s.Require().NoError(err)
 
 	err = saver.Commit()
 	s.Require().NoError(err)
 
-	var cntrct contract.Contract
-	err = s.storage.DB.NewSelect().Model(&cntrct).Where("account_id = 43").Scan(ctx)
+	var acc account.Account
+	err = s.storage.DB.NewSelect().Model(&acc).Where("id = 43").Scan(ctx)
 	s.Require().NoError(err)
-	s.Require().EqualValues(0, cntrct.TxCount)
-	s.Require().EqualValues(ts.Format(time.RFC3339), cntrct.LastAction.Format(time.RFC3339))
+	s.Require().EqualValues(1, acc.OperationsCount)
+	s.Require().EqualValues(ts.Format(time.RFC3339), acc.LastAction.Format(time.RFC3339))
 }
 
 func (s *RollbackTestSuite) TestProtocols() {

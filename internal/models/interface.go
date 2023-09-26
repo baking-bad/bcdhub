@@ -39,7 +39,6 @@ type Transaction interface {
 	Operations(ctx context.Context, operations ...*operation.Operation) error
 	TickerUpdates(ctx context.Context, updates ...*ticket.TicketUpdate) error
 	Contracts(ctx context.Context, contracts ...*contract.Contract) error
-	UpdateContracts(ctx context.Context, updates ...*contract.Update) error
 	Scripts(ctx context.Context, scripts ...*contract.Script) error
 	ScriptConstant(ctx context.Context, data ...*contract.ScriptConstants) error
 	Block(ctx context.Context, block *block.Block) error

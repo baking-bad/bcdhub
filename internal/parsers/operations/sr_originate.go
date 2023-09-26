@@ -23,9 +23,11 @@ func NewSrOriginate(params *ParseParams) SrOriginate {
 // Parse -
 func (p SrOriginate) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
-		Address: data.Source,
-		Type:    types.NewAccountType(data.Source),
-		Level:   p.head.Level,
+		Address:         data.Source,
+		Type:            types.NewAccountType(data.Source),
+		Level:           p.head.Level,
+		OperationsCount: 1,
+		LastAction:      p.head.Timestamp,
 	}
 
 	operation := operation.Operation{

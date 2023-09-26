@@ -12,7 +12,7 @@ func (s *StorageTestSuite) TestAccountsGet() {
 	account, err := s.accounts.Get(ctx, "KT1CMJQmuwwJopNnLhSDHXT3zQVUrNPLA8br")
 	s.Require().NoError(err)
 
-	s.Require().EqualValues(37, account.ID)
+	s.Require().EqualValues(45, account.ID)
 	s.Require().EqualValues(1, account.Type)
 	s.Require().EqualValues("KT1CMJQmuwwJopNnLhSDHXT3zQVUrNPLA8br", account.Address)
 }

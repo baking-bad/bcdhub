@@ -15,7 +15,7 @@ func (s *StorageTestSuite) TestOperationsGetByAccount() {
 
 	operations, err := s.operations.GetByAccount(ctx, account.Account{
 		Address: "KT18sWFGnjvobw9BiHrm9bjpWr3AFAAVas9w",
-		ID:      150,
+		ID:      88,
 		Type:    types.AccountTypeContract,
 	}, 10, nil)
 	s.Require().NoError(err)
@@ -33,9 +33,9 @@ func (s *StorageTestSuite) TestOperationsGetByAccount() {
 	s.Require().EqualValues(0, operation.Amount)
 	s.Require().EqualValues(2054659, operation.ConsumedGas)
 	s.Require().EqualValues(87, operation.StorageSize)
-	s.Require().EqualValues(149, operation.InitiatorID)
-	s.Require().EqualValues(149, operation.SourceID)
-	s.Require().EqualValues(150, operation.DestinationID)
+	s.Require().EqualValues(92, operation.InitiatorID)
+	s.Require().EqualValues(92, operation.SourceID)
+	s.Require().EqualValues(88, operation.DestinationID)
 	s.Require().EqualValues(types.OperationStatusApplied, operation.Status)
 	s.Require().EqualValues(types.OperationKindTransaction, operation.Kind)
 	s.Require().EqualValues("@entrypoint_0", operation.Entrypoint.String())
@@ -49,7 +49,7 @@ func (s *StorageTestSuite) TestOperationsLast() {
 	defer cancel()
 
 	operation, err := s.operations.Last(ctx, map[string]interface{}{
-		"destination_id": 150,
+		"destination_id": 88,
 	}, -1)
 	s.Require().NoError(err)
 
@@ -63,9 +63,9 @@ func (s *StorageTestSuite) TestOperationsLast() {
 	s.Require().EqualValues(0, operation.Amount)
 	s.Require().EqualValues(2054659, operation.ConsumedGas)
 	s.Require().EqualValues(87, operation.StorageSize)
-	s.Require().EqualValues(149, operation.InitiatorID)
-	s.Require().EqualValues(149, operation.SourceID)
-	s.Require().EqualValues(150, operation.DestinationID)
+	s.Require().EqualValues(92, operation.InitiatorID)
+	s.Require().EqualValues(92, operation.SourceID)
+	s.Require().EqualValues(88, operation.DestinationID)
 	s.Require().EqualValues(types.OperationStatusApplied, operation.Status)
 	s.Require().EqualValues(types.OperationKindTransaction, operation.Kind)
 	s.Require().EqualValues("@entrypoint_0", operation.Entrypoint.String())
@@ -79,7 +79,7 @@ func (s *StorageTestSuite) TestOperationsGet() {
 	defer cancel()
 
 	operations, err := s.operations.Get(ctx, map[string]interface{}{
-		"destination_id": 150,
+		"destination_id": 88,
 	}, 10, true)
 	s.Require().NoError(err)
 	s.Require().Len(operations, 2)
@@ -96,9 +96,9 @@ func (s *StorageTestSuite) TestOperationsGet() {
 	s.Require().EqualValues(0, operation.Amount)
 	s.Require().EqualValues(2054659, operation.ConsumedGas)
 	s.Require().EqualValues(87, operation.StorageSize)
-	s.Require().EqualValues(149, operation.InitiatorID)
-	s.Require().EqualValues(149, operation.SourceID)
-	s.Require().EqualValues(150, operation.DestinationID)
+	s.Require().EqualValues(92, operation.InitiatorID)
+	s.Require().EqualValues(92, operation.SourceID)
+	s.Require().EqualValues(88, operation.DestinationID)
 	s.Require().EqualValues(types.OperationStatusApplied, operation.Status)
 	s.Require().EqualValues(types.OperationKindTransaction, operation.Kind)
 	s.Require().EqualValues("@entrypoint_0", operation.Entrypoint.String())
@@ -129,9 +129,9 @@ func (s *StorageTestSuite) TestOperationsGetByHash() {
 	s.Require().EqualValues(0, operation.Amount)
 	s.Require().EqualValues(2054659, operation.ConsumedGas)
 	s.Require().EqualValues(87, operation.StorageSize)
-	s.Require().EqualValues(149, operation.InitiatorID)
-	s.Require().EqualValues(149, operation.SourceID)
-	s.Require().EqualValues(150, operation.DestinationID)
+	s.Require().EqualValues(92, operation.InitiatorID)
+	s.Require().EqualValues(92, operation.SourceID)
+	s.Require().EqualValues(88, operation.DestinationID)
 	s.Require().EqualValues(types.OperationStatusApplied, operation.Status)
 	s.Require().EqualValues(types.OperationKindTransaction, operation.Kind)
 	s.Require().EqualValues("@entrypoint_0", operation.Entrypoint.String())
@@ -157,9 +157,9 @@ func (s *StorageTestSuite) TestOperationsGetById() {
 	s.Require().EqualValues(0, operation.Amount)
 	s.Require().EqualValues(2054659, operation.ConsumedGas)
 	s.Require().EqualValues(87, operation.StorageSize)
-	s.Require().EqualValues(149, operation.InitiatorID)
-	s.Require().EqualValues(149, operation.SourceID)
-	s.Require().EqualValues(150, operation.DestinationID)
+	s.Require().EqualValues(92, operation.InitiatorID)
+	s.Require().EqualValues(92, operation.SourceID)
+	s.Require().EqualValues(88, operation.DestinationID)
 	s.Require().EqualValues(types.OperationStatusApplied, operation.Status)
 	s.Require().EqualValues(types.OperationKindTransaction, operation.Kind)
 	s.Require().EqualValues("@entrypoint_0", operation.Entrypoint.String())
@@ -209,9 +209,9 @@ func (s *StorageTestSuite) TestOperationGetByHashAndCounter() {
 	s.Require().EqualValues(0, operation.Amount)
 	s.Require().EqualValues(2054659, operation.ConsumedGas)
 	s.Require().EqualValues(87, operation.StorageSize)
-	s.Require().EqualValues(149, operation.InitiatorID)
-	s.Require().EqualValues(149, operation.SourceID)
-	s.Require().EqualValues(150, operation.DestinationID)
+	s.Require().EqualValues(92, operation.InitiatorID)
+	s.Require().EqualValues(92, operation.SourceID)
+	s.Require().EqualValues(88, operation.DestinationID)
 	s.Require().EqualValues(types.OperationStatusApplied, operation.Status)
 	s.Require().EqualValues(types.OperationKindTransaction, operation.Kind)
 	s.Require().EqualValues("@entrypoint_0", operation.Entrypoint.String())
@@ -239,23 +239,12 @@ func (s *StorageTestSuite) TestOperationGetImplicitOperation() {
 	s.Require().EqualValues(4630, operation.StorageSize)
 	s.Require().EqualValues(0, operation.InitiatorID)
 	s.Require().EqualValues(0, operation.SourceID)
-	s.Require().EqualValues(1, operation.DestinationID)
+	s.Require().EqualValues(2, operation.DestinationID)
 	s.Require().EqualValues(types.OperationStatusApplied, operation.Status)
 	s.Require().EqualValues(types.OperationKindTransaction, operation.Kind)
 	s.Require().Empty(operation.Parameters)
 	s.Require().NotEmpty(operation.DeffatedStorage)
 	s.Require().Empty(operation.Hash)
-}
-
-func (s *StorageTestSuite) TestOperationsContractStats() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	stats, err := s.operations.ContractStats(ctx, "KT18sWFGnjvobw9BiHrm9bjpWr3AFAAVas9w")
-	s.Require().NoError(err)
-
-	s.Require().EqualValues(2, stats.Count)
-	s.Require().EqualValues("2022-01-25T16:54:35Z", stats.LastAction.Format(time.RFC3339))
 }
 
 func (s *StorageTestSuite) TestOperationListEvents() {
@@ -267,7 +256,7 @@ func (s *StorageTestSuite) TestOperationListEvents() {
 	s.Require().Len(operations, 2)
 
 	operation := operations[0]
-	s.Require().EqualValues(111, operation.ID)
+	s.Require().EqualValues(192, operation.ID)
 	s.Require().EqualValues(0, operation.ContentIndex)
 	s.Require().EqualValues(41, operation.Level)
 	s.Require().EqualValues(136723, operation.Counter)

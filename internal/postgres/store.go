@@ -11,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
 	"github.com/uptrace/bun"
@@ -86,8 +85,10 @@ func (store *Store) AddSmartRollups(rollups ...*smartrollup.SmartRollup) {
 // AddAccounts -
 func (store *Store) AddAccounts(accounts ...*account.Account) {
 	for i := range accounts {
-		if _, ok := store.Accounts[accounts[i].Address]; !ok {
+		if account, ok := store.Accounts[accounts[i].Address]; !ok {
 			store.Accounts[accounts[i].Address] = accounts[i]
+		} else {
+			account.OperationsCount += accounts[i].OperationsCount
 		}
 	}
 }
@@ -279,7 +280,7 @@ func (store *Store) saveOperations(ctx context.Context, tx models.Transaction) e
 			return errors.Wrap(err, "saving ticket updates")
 		}
 	}
-	return store.updateContracts(ctx, tx)
+	return nil
 }
 
 func (store *Store) saveContracts(ctx context.Context, tx models.Transaction) error {
@@ -367,49 +368,5 @@ func (store *Store) saveContracts(ctx context.Context, tx models.Transaction) er
 		return err
 	}
 
-	return store.updateContracts(ctx, tx)
-}
-
-func (store *Store) updateContracts(ctx context.Context, tx models.Transaction) error {
-	if len(store.Operations) == 0 {
-		return nil
-	}
-	count := make(map[int64]uint64)
-	for i := range store.Operations {
-		destination := store.Operations[i].Destination
-		if destination.Type != types.AccountTypeContract {
-			continue
-		}
-
-		if value, ok := count[destination.ID]; ok {
-			count[destination.ID] = value + 1
-		} else {
-			count[destination.ID] = 1
-		}
-
-		source := store.Operations[i].Source
-		if source.Type != types.AccountTypeContract {
-			continue
-		}
-
-		if value, ok := count[source.ID]; ok {
-			count[source.ID] = value + 1
-		} else {
-			count[source.ID] = 1
-		}
-	}
-
-	if len(count) == 0 {
-		return nil
-	}
-
-	contracts := make([]*contract.Update, 0, len(count))
-	for accountID, txCount := range count {
-		contracts = append(contracts, &contract.Update{
-			LastAction: store.Operations[0].Timestamp,
-			AccountID:  accountID,
-			TxCount:    txCount,
-		})
-	}
-	return tx.UpdateContracts(ctx, contracts...)
+	return nil
 }

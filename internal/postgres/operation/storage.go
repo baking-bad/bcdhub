@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/account"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -274,11 +272,11 @@ func (storage *Storage) OPG(ctx context.Context, address string, size, lastID in
 			lastActionSet = true
 		}
 	}
-	if !lastActionSet && bcd.IsContractLazy(address) {
+	if !lastActionSet {
 		if err := storage.DB.NewSelect().
-			Model((*contract.Contract)(nil)).
+			Model((*account.Account)(nil)).
 			Column("last_action").
-			Where("account_id = ?", accountID).
+			Where("id = ?", accountID).
 			Scan(ctx, &lastAction); err != nil {
 			return nil, err
 		}
@@ -419,71 +417,6 @@ func (storage *Storage) EventsCount(ctx context.Context, accountID int64) (int, 
 	return storage.DB.NewSelect().Model((*operation.Operation)(nil)).
 		Where("source_id = ?", accountID).
 		Where("kind = 7").Count(ctx)
-}
-
-// ContractStats -
-func (storage *Storage) ContractStats(ctx context.Context, address string) (stats operation.ContractStats, err error) {
-	var accountID int64
-	if err = storage.DB.
-		NewSelect().
-		Model((*account.Account)(nil)).
-		Column("id").
-		Where("address = ?", address).
-		Scan(ctx, &accountID); err != nil {
-		return
-	}
-
-	if bcd.IsContractLazy(address) {
-		if err := storage.DB.NewSelect().
-			Model((*contract.Contract)(nil)).
-			Column("last_action").
-			Where("account_id = ?", accountID).
-			Scan(ctx, &stats.LastAction); err != nil {
-			return stats, err
-		}
-	} else {
-		if err := storage.DB.NewSelect().
-			Model((*operation.Operation)(nil)).
-			Column("timestamp").
-			Where("destination_id = ?", accountID).
-			Order("timestamp desc").
-			Limit(1).
-			Scan(ctx, &stats.LastAction); err != nil {
-			if !storage.IsRecordNotFound(err) {
-				return stats, err
-			}
-		}
-
-		var sourceLastAction time.Time
-		if err := storage.DB.NewSelect().
-			Model((*operation.Operation)(nil)).
-			Column("timestamp").
-			Where("source_id = ?", accountID).
-			Order("timestamp desc").
-			Limit(1).
-			Scan(ctx, &sourceLastAction); err != nil {
-			if !storage.IsRecordNotFound(err) {
-				return stats, err
-			}
-		}
-
-		if sourceLastAction.After(stats.LastAction) {
-			stats.LastAction = sourceLastAction
-		}
-	}
-
-	count, err := storage.DB.NewSelect().Model((*operation.Operation)(nil)).WhereGroup(
-		" AND ", func(q *bun.SelectQuery) *bun.SelectQuery {
-			return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID)
-		},
-	).Count(ctx)
-	if err != nil {
-		return
-	}
-
-	stats.Count = int64(count)
-
-	return
 }
 
 // Origination -

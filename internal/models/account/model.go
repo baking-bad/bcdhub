@@ -1,6 +1,8 @@
 package account
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/uptrace/bun"
 )
@@ -9,10 +11,12 @@ import (
 type Account struct {
 	bun.BaseModel `bun:"accounts"`
 
-	ID      int64             `bun:"id,pk,notnull,autoincrement"`
-	Type    types.AccountType `bun:"type,type:SMALLINT"`
-	Address string            `bun:"address"`
-	Level   int64             `bun:"level"`
+	ID              int64             `bun:"id,pk,notnull,autoincrement"`
+	Type            types.AccountType `bun:"type,type:SMALLINT"`
+	Address         string            `bun:"address,unique:address_hash"`
+	Level           int64             `bun:"level"`
+	OperationsCount int64             `bun:"operations_count"`
+	LastAction      time.Time         `bun:"last_action"`
 }
 
 // GetID -

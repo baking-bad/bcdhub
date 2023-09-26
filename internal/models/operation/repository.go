@@ -24,5 +24,4 @@ type Repository interface {
 
 	ListEvents(ctx context.Context, accountID int64, size, offset int64) ([]Operation, error)
 	EventsCount(ctx context.Context, accountID int64) (int, error)
-	ContractStats(ctx context.Context, address string) (ContractStats, error)
 }

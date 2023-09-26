@@ -32,9 +32,11 @@ func NewTransaction(params *ParseParams) Transaction {
 // Parse -
 func (p Transaction) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
-		Address: data.Source,
-		Type:    modelsTypes.NewAccountType(data.Source),
-		Level:   p.head.Level,
+		Address:         data.Source,
+		Type:            modelsTypes.NewAccountType(data.Source),
+		Level:           p.head.Level,
+		OperationsCount: 1,
+		LastAction:      p.head.Timestamp,
 	}
 
 	tx := operation.Operation{
@@ -51,14 +53,17 @@ func (p Transaction) Parse(ctx context.Context, data noderpc.Operation, store pa
 		StorageLimit: data.StorageLimit,
 		Amount:       *data.Amount,
 		Destination: account.Account{
-			Address: *data.Destination,
-			Type:    modelsTypes.NewAccountType(*data.Destination),
-			Level:   p.head.Level,
+			Address:         *data.Destination,
+			Type:            modelsTypes.NewAccountType(*data.Destination),
+			Level:           p.head.Level,
+			OperationsCount: 1,
+			LastAction:      p.head.Timestamp,
 		},
 		Delegate: account.Account{
-			Address: data.Delegate,
-			Type:    modelsTypes.NewAccountType(data.Delegate),
-			Level:   p.head.Level,
+			Address:    data.Delegate,
+			Type:       modelsTypes.NewAccountType(data.Delegate),
+			Level:      p.head.Level,
+			LastAction: p.head.Timestamp,
 		},
 		Nonce:        data.Nonce,
 		Parameters:   data.Parameters,

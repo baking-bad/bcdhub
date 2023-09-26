@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -81,7 +82,7 @@ func (r Rollback) GetOperations(ctx context.Context, level int64) (ops []operati
 	return
 }
 
-func (r Rollback) GetContractsLastAction(ctx context.Context, addressIds ...int64) (actions []models.LastAction, err error) {
+func (r Rollback) GetLastAction(ctx context.Context, addressIds ...int64) (actions []models.LastAction, err error) {
 	actions = make([]models.LastAction, len(addressIds))
 	for i := range addressIds {
 		_, err = r.tx.NewRaw(`select max(foo.ts) as time, address from (
@@ -98,10 +99,10 @@ func (r Rollback) GetContractsLastAction(ctx context.Context, addressIds ...int6
 	return
 }
 
-func (r Rollback) UpdateContractStats(ctx context.Context, addressId int64, lastAction time.Time, txCount int64) error {
-	_, err := r.tx.NewUpdate().Model((*contract.Contract)(nil)).
-		Where("account_id = ?", addressId).
-		Set("tx_count = tx_count - ?", txCount).
+func (r Rollback) UpdateAccountStats(ctx context.Context, addressId int64, lastAction time.Time, operationsCount int64) error {
+	_, err := r.tx.NewUpdate().Model((*account.Account)(nil)).
+		Where("id = ?", addressId).
+		Set("operations_count = operations_count - ?", operationsCount).
 		Set("last_action = ?", lastAction).
 		Exec(ctx)
 	return err

@@ -22,8 +22,8 @@ type Rollback interface {
 	LastDiff(ctx context.Context, ptr int64, keyHash string, skipRemoved bool) (bigmapdiff.BigMapDiff, error)
 	SaveBigMapState(ctx context.Context, state bigmapdiff.BigMapState) error
 	GetOperations(ctx context.Context, level int64) ([]operation.Operation, error)
-	GetContractsLastAction(ctx context.Context, addressIds ...int64) ([]LastAction, error)
-	UpdateContractStats(ctx context.Context, accountId int64, lastAction time.Time, txCount int64) error
+	GetLastAction(ctx context.Context, addressIds ...int64) ([]LastAction, error)
+	UpdateAccountStats(ctx context.Context, accountId int64, lastAction time.Time, txCount int64) error
 	GlobalConstants(ctx context.Context, level int64) ([]contract.GlobalConstant, error)
 	Scripts(ctx context.Context, level int64) ([]contract.Script, error)
 	DeleteScriptsConstants(ctx context.Context, scriptIds []int64, constantsIds []int64) error

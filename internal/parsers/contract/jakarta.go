@@ -35,12 +35,11 @@ func (p *Jakarta) Parse(ctx context.Context, operation *operation.Operation, sto
 	}
 
 	contract := contract.Contract{
-		Level:      operation.Level,
-		Timestamp:  operation.Timestamp,
-		Manager:    operation.Source,
-		Account:    operation.Destination,
-		Delegate:   operation.Delegate,
-		LastAction: operation.Timestamp,
+		Level:     operation.Level,
+		Timestamp: operation.Timestamp,
+		Manager:   operation.Source,
+		Account:   operation.Destination,
+		Delegate:  operation.Delegate,
 	}
 
 	if err := p.computeMetrics(ctx, operation, &contract); err != nil {
@@ -48,7 +47,7 @@ func (p *Jakarta) Parse(ctx context.Context, operation *operation.Operation, sto
 	}
 
 	store.AddContracts(&contract)
-	store.AddAccounts(&contract.Account, &contract.Delegate, &contract.Manager)
+	store.AddAccounts(&contract.Account)
 	return nil
 }
 

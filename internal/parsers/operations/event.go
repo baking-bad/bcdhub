@@ -23,9 +23,11 @@ func NewEvent(params *ParseParams) Event {
 // Parse -
 func (p Event) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
-		Address: data.Source,
-		Type:    types.NewAccountType(data.Source),
-		Level:   p.head.Level,
+		Address:         data.Source,
+		Type:            types.NewAccountType(data.Source),
+		Level:           p.head.Level,
+		OperationsCount: 1,
+		LastAction:      p.head.Timestamp,
 	}
 
 	event := operation.Operation{
@@ -55,10 +57,7 @@ func (p Event) Parse(ctx context.Context, data noderpc.Operation, store parsers.
 	p.stackTrace.Add(event)
 
 	store.AddOperations(&event)
-	store.AddAccounts(
-		&event.Source,
-		&event.Initiator,
-	)
+	store.AddAccounts(&event.Source)
 
 	return nil
 }

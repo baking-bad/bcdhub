@@ -37,10 +37,7 @@ func GetInfo() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		stats, err := ctx.Operations.ContractStats(c.Request.Context(), acc.Address)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
+
 		var balance int64
 		if !(bcd.IsRollupAddressLazy(acc.Address) || bcd.IsSmartRollupAddressLazy(acc.Address)) {
 			block, err := ctx.Blocks.Last(c.Request.Context())
@@ -53,11 +50,11 @@ func GetInfo() gin.HandlerFunc {
 			}
 		}
 		c.SecureJSON(http.StatusOK, AccountInfo{
-			Address:     acc.Address,
-			TxCount:     stats.Count,
-			Balance:     balance,
-			LastAction:  stats.LastAction.UTC(),
-			AccountType: acc.Type.String(),
+			Address:         acc.Address,
+			OperationsCount: acc.OperationsCount,
+			Balance:         balance,
+			LastAction:      acc.LastAction.UTC(),
+			AccountType:     acc.Type.String(),
 		})
 	}
 
