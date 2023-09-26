@@ -92,16 +92,6 @@ type OauthParams struct {
 	Provider string `uri:"provider"`
 }
 
-type operationsRequest struct {
-	LastID          string `form:"last_id" binding:"omitempty,numeric"`
-	From            uint   `form:"from" binding:"omitempty"`
-	To              uint   `form:"to" binding:"omitempty,gtfield=From"`
-	Size            uint64 `form:"size" binding:"min=0"`
-	Status          string `form:"status" binding:"omitempty,status"`
-	Entrypoints     string `form:"entrypoints" binding:"omitempty,excludesall=\"'"`
-	WithStorageDiff bool   `form:"with_storage_diff"`
-}
-
 type opgForAddressRequest struct {
 	LastID int64  `form:"last_id" binding:"omitempty"`
 	Size   uint64 `form:"size" binding:"min=0"`

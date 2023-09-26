@@ -26,63 +26,6 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetContractOperations godoc
-// @Summary Get contract operations
-// @Description Get contract operations
-// @Tags contract
-// @ID get-contract-operations
-// @Param network path string true "Network"
-// @Param address path string true "KT address" minlength(36) maxlength(36)
-// @Param last_id query string false "Last operation ID"
-// @Param from query integer false "Timestamp"
-// @Param to query integer false "Timestamp"
-// @Param size query integer false "Expected OPG count" mininum(1)
-// @Param status query string false "Comma-separated operations statuses"
-// @Param entrypoints query string false "Comma-separated called entrypoints list"
-// @Param with_storage_diff query bool false "Include storage diff to operations or not"
-// @Accept  json
-// @Produce  json
-// @Success 200 {object} OperationResponse
-// @Failure 400 {object} Error
-// @Failure 404 {object} Error
-// @Failure 500 {object} Error
-// @Router /v1/contract/{network}/{address}/operations [get]
-func GetContractOperations() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := c.MustGet("context").(*config.Context)
-
-		var req getAccountRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
-			return
-		}
-
-		var filtersReq operationsRequest
-		if err := c.BindQuery(&filtersReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
-			return
-		}
-
-		account, err := ctx.Accounts.Get(c.Request.Context(), req.Address)
-		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
-			return
-		}
-
-		filters := prepareFilters(filtersReq)
-		ops, err := ctx.Operations.GetByAccount(c.Request.Context(), account, filtersReq.Size, filters)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
-
-		resp, err := PrepareOperations(c.Request.Context(), ctx, ops.Operations, filtersReq.WithStorageDiff)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
-		c.SecureJSON(http.StatusOK, OperationResponse{
-			Operations: resp,
-			LastID:     ops.LastID,
-		})
-	}
-}
-
 // GetOperation godoc
 // @Summary Get operation group
 // @Description Get operation group by hash
@@ -207,12 +150,12 @@ func GetImplicitOperation() gin.HandlerFunc {
 			return
 		}
 
-		op, err := ctx.Operations.GetImplicitOperation(c.Request.Context(), req.Counter)
+		operations, err := ctx.Operations.GetByHashAndCounter(c.Request.Context(), nil, req.Counter)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		resp, err := PrepareOperations(c.Request.Context(), ctx, []operation.Operation{op}, false)
+		resp, err := PrepareOperations(c.Request.Context(), ctx, operations, false)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -402,8 +345,8 @@ func GetByHashAndCounter() gin.HandlerFunc {
 		var opg []operation.Operation
 		var foundContext *config.Context
 
-		ctx, err := ctxs.Get(modelTypes.NewNetwork(args.Network))
-		if err == nil {
+		network := modelTypes.NewNetwork(args.Network)
+		if ctx, ok := ctxs[network]; ok {
 			opg, err = ctx.Operations.GetByHashAndCounter(c.Request.Context(), hash, req.Counter)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
@@ -445,36 +388,6 @@ func getOperationFromMempool(c context.Context, ctx *config.Context, hash string
 	default:
 		return nil, nil
 	}
-}
-
-func prepareFilters(req operationsRequest) map[string]interface{} {
-	filters := map[string]interface{}{}
-
-	if req.LastID != "" {
-		filters["last_id"] = req.LastID
-	}
-
-	if req.From > 0 {
-		filters["from"] = req.From / 1000
-	}
-
-	if req.To > 0 {
-		filters["to"] = req.To / 1000
-	}
-
-	if req.Status != "" {
-		statusList := make([]modelTypes.OperationStatus, 0)
-		for _, item := range strings.Split(req.Status, ",") {
-			status := modelTypes.NewOperationStatus(item)
-			statusList = append(statusList, status)
-		}
-		filters["status"] = statusList
-	}
-
-	if req.Entrypoints != "" {
-		filters["entrypoints"] = strings.Split(req.Entrypoints, ",")
-	}
-	return filters
 }
 
 func formatErrors(errs []*tezerrors.Error, op *Operation) error {

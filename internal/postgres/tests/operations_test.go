@@ -4,45 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
 )
-
-func (s *StorageTestSuite) TestOperationsGetByAccount() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	operations, err := s.operations.GetByAccount(ctx, account.Account{
-		Address: "KT18sWFGnjvobw9BiHrm9bjpWr3AFAAVas9w",
-		ID:      88,
-		Type:    types.AccountTypeContract,
-	}, 10, nil)
-	s.Require().NoError(err)
-	s.Require().Len(operations.Operations, 2)
-	s.Require().EqualValues(operations.LastID, "58")
-
-	operation := operations.Operations[0]
-	s.Require().EqualValues(67, operation.ID)
-	s.Require().EqualValues(0, operation.ContentIndex)
-	s.Require().EqualValues(37, operation.Level)
-	s.Require().EqualValues(540, operation.Counter)
-	s.Require().EqualValues(518, operation.Fee)
-	s.Require().EqualValues(2155, operation.GasLimit)
-	s.Require().EqualValues(0, operation.StorageLimit)
-	s.Require().EqualValues(0, operation.Amount)
-	s.Require().EqualValues(2054659, operation.ConsumedGas)
-	s.Require().EqualValues(87, operation.StorageSize)
-	s.Require().EqualValues(92, operation.InitiatorID)
-	s.Require().EqualValues(92, operation.SourceID)
-	s.Require().EqualValues(88, operation.DestinationID)
-	s.Require().EqualValues(types.OperationStatusApplied, operation.Status)
-	s.Require().EqualValues(types.OperationKindTransaction, operation.Kind)
-	s.Require().EqualValues("@entrypoint_0", operation.Entrypoint.String())
-	s.Require().NotEmpty(operation.Parameters)
-	s.Require().NotEmpty(operation.DeffatedStorage)
-	s.Require().Equal(testsuite.MustHexDecode("a47ce950e17c7f06af8e9e992ae10ad2b7aca0cf8a72c0ce451684f673f20324"), operation.Hash)
-}
 
 func (s *StorageTestSuite) TestOperationsLast() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -52,39 +16,6 @@ func (s *StorageTestSuite) TestOperationsLast() {
 		"destination_id": 88,
 	}, -1)
 	s.Require().NoError(err)
-
-	s.Require().EqualValues(67, operation.ID)
-	s.Require().EqualValues(0, operation.ContentIndex)
-	s.Require().EqualValues(37, operation.Level)
-	s.Require().EqualValues(540, operation.Counter)
-	s.Require().EqualValues(518, operation.Fee)
-	s.Require().EqualValues(2155, operation.GasLimit)
-	s.Require().EqualValues(0, operation.StorageLimit)
-	s.Require().EqualValues(0, operation.Amount)
-	s.Require().EqualValues(2054659, operation.ConsumedGas)
-	s.Require().EqualValues(87, operation.StorageSize)
-	s.Require().EqualValues(92, operation.InitiatorID)
-	s.Require().EqualValues(92, operation.SourceID)
-	s.Require().EqualValues(88, operation.DestinationID)
-	s.Require().EqualValues(types.OperationStatusApplied, operation.Status)
-	s.Require().EqualValues(types.OperationKindTransaction, operation.Kind)
-	s.Require().EqualValues("@entrypoint_0", operation.Entrypoint.String())
-	s.Require().NotEmpty(operation.Parameters)
-	s.Require().NotEmpty(operation.DeffatedStorage)
-	s.Require().Equal(testsuite.MustHexDecode("a47ce950e17c7f06af8e9e992ae10ad2b7aca0cf8a72c0ce451684f673f20324"), operation.Hash)
-}
-
-func (s *StorageTestSuite) TestOperationsGet() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	operations, err := s.operations.Get(ctx, map[string]interface{}{
-		"destination_id": 88,
-	}, 10, true)
-	s.Require().NoError(err)
-	s.Require().Len(operations, 2)
-
-	operation := operations[0]
 
 	s.Require().EqualValues(67, operation.ID)
 	s.Require().EqualValues(0, operation.ContentIndex)
@@ -224,8 +155,11 @@ func (s *StorageTestSuite) TestOperationGetImplicitOperation() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	operation, err := s.operations.GetImplicitOperation(ctx, 2)
+	operations, err := s.operations.GetByHashAndCounter(ctx, nil, 2)
 	s.Require().NoError(err)
+	s.Require().Len(operations, 1)
+
+	operation := operations[0]
 
 	s.Require().EqualValues(1, operation.ID)
 	s.Require().EqualValues(0, operation.ContentIndex)

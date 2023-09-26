@@ -12,7 +12,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	account "github.com/baking-bad/bcdhub/internal/models/account"
 	operation "github.com/baking-bad/bcdhub/internal/models/operation"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -75,84 +74,6 @@ func (c *RepositoryEventsCountCall) Do(f func(context.Context, int64) (int, erro
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *RepositoryEventsCountCall) DoAndReturn(f func(context.Context, int64) (int, error)) *RepositoryEventsCountCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// Get mocks base method.
-func (m *MockRepository) Get(ctx context.Context, filter map[string]any, size int64, sort bool) ([]operation.Operation, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, filter, size, sort)
-	ret0, _ := ret[0].([]operation.Operation)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(ctx, filter, size, sort any) *RepositoryGetCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, filter, size, sort)
-	return &RepositoryGetCall{Call: call}
-}
-
-// RepositoryGetCall wrap *gomock.Call
-type RepositoryGetCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetCall) Return(arg0 []operation.Operation, arg1 error) *RepositoryGetCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(context.Context, map[string]any, int64, bool) ([]operation.Operation, error)) *RepositoryGetCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, map[string]any, int64, bool) ([]operation.Operation, error)) *RepositoryGetCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetByAccount mocks base method.
-func (m *MockRepository) GetByAccount(ctx context.Context, acc account.Account, size uint64, filters map[string]any) (operation.Pageable, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByAccount", ctx, acc, size, filters)
-	ret0, _ := ret[0].(operation.Pageable)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByAccount indicates an expected call of GetByAccount.
-func (mr *MockRepositoryMockRecorder) GetByAccount(ctx, acc, size, filters any) *RepositoryGetByAccountCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAccount", reflect.TypeOf((*MockRepository)(nil).GetByAccount), ctx, acc, size, filters)
-	return &RepositoryGetByAccountCall{Call: call}
-}
-
-// RepositoryGetByAccountCall wrap *gomock.Call
-type RepositoryGetByAccountCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetByAccountCall) Return(arg0 operation.Pageable, arg1 error) *RepositoryGetByAccountCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetByAccountCall) Do(f func(context.Context, account.Account, uint64, map[string]any) (operation.Pageable, error)) *RepositoryGetByAccountCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetByAccountCall) DoAndReturn(f func(context.Context, account.Account, uint64, map[string]any) (operation.Pageable, error)) *RepositoryGetByAccountCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -270,45 +191,6 @@ func (c *RepositoryGetByIDCall) Do(f func(context.Context, int64) (operation.Ope
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *RepositoryGetByIDCall) DoAndReturn(f func(context.Context, int64) (operation.Operation, error)) *RepositoryGetByIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetImplicitOperation mocks base method.
-func (m *MockRepository) GetImplicitOperation(ctx context.Context, counter int64) (operation.Operation, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetImplicitOperation", ctx, counter)
-	ret0, _ := ret[0].(operation.Operation)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetImplicitOperation indicates an expected call of GetImplicitOperation.
-func (mr *MockRepositoryMockRecorder) GetImplicitOperation(ctx, counter any) *RepositoryGetImplicitOperationCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetImplicitOperation", reflect.TypeOf((*MockRepository)(nil).GetImplicitOperation), ctx, counter)
-	return &RepositoryGetImplicitOperationCall{Call: call}
-}
-
-// RepositoryGetImplicitOperationCall wrap *gomock.Call
-type RepositoryGetImplicitOperationCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetImplicitOperationCall) Return(arg0 operation.Operation, arg1 error) *RepositoryGetImplicitOperationCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetImplicitOperationCall) Do(f func(context.Context, int64) (operation.Operation, error)) *RepositoryGetImplicitOperationCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetImplicitOperationCall) DoAndReturn(f func(context.Context, int64) (operation.Operation, error)) *RepositoryGetImplicitOperationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -178,7 +178,6 @@ func (api *app) makeRouter() {
 		{
 			contract.GET("", handlers.ContextsMiddleware(api.Contexts), handlers.GetContract())
 			contract.GET("code", handlers.GetContractCode())
-			contract.GET("operations", handlers.GetContractOperations())
 			contract.GET("opg", handlers.GetOperationGroups())
 			contract.GET("migrations", handlers.GetContractMigrations())
 			contract.GET("global_constants", handlers.GetContractGlobalConstants())

@@ -1,7 +1,6 @@
 package stacktrace
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -170,20 +169,6 @@ func (st *StackTrace) print(arr []int64, depth int, builder io.StringWriter) err
 			}
 			st.print(item.children, depth+1, builder)
 		}
-	}
-	return nil
-}
-
-// Fill -
-func (st *StackTrace) Fill(ctx context.Context, repo operation.Repository, op operation.Operation) error {
-	ops, err := repo.Get(ctx, map[string]interface{}{
-		"hash": op.Hash,
-	}, 0, true)
-	if err != nil {
-		return err
-	}
-	for i := range ops {
-		st.Add(ops[i])
 	}
 	return nil
 }
