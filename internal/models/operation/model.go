@@ -144,6 +144,12 @@ func (o *Operation) IsCall() bool {
 	return (bcd.IsContract(o.Destination.Address) || bcd.IsSmartRollupHash(o.Destination.Address)) && len(o.Parameters) > 0
 }
 
+func (o *Operation) CanHasStorageDiff() bool {
+	return o.IsApplied() &&
+		len(o.DeffatedStorage) > 0 &&
+		(o.IsCall() || o.IsOrigination() || o.IsImplicit())
+}
+
 // Result -
 type Result struct {
 	Status                       string

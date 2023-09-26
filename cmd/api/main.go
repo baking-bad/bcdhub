@@ -84,6 +84,10 @@ func newApp() *app {
 		config.WithLoadErrorDescriptions(),
 		config.WithConfigCopy(cfg))
 
+	if err := app.Contexts.Any().Storage.InitDatabase(context.Background()); err != nil {
+		panic(err)
+	}
+
 	app.makeRouter()
 
 	return app
@@ -124,7 +128,7 @@ func (api *app) makeRouter() {
 
 		v1.GET("head", handlers.ContextsMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHead()))
 		v1.GET("head/:network", handlers.NetworkMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHeadByNetwork()))
-		opg := v1.Group("opg/:hash")
+		opg := v1.Group("/opg/:network/:hash")
 		{
 			opg.GET("", handlers.ContextsMiddleware(api.Contexts), handlers.GetOperation())
 			opg.GET(":counter", handlers.ContextsMiddleware(api.Contexts), handlers.GetByHashAndCounter())

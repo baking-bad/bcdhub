@@ -104,11 +104,7 @@ func RunOperation() gin.HandlerFunc {
 
 		resp := make([]Operation, len(operations))
 		for i := range operations {
-			bmd := make([]bigmapdiff.BigMapDiff, 0)
-			for j := range operations[i].BigMapDiffs {
-				bmd = append(bmd, *operations[i].BigMapDiffs[j])
-			}
-			op, err := prepareOperation(c.Request.Context(), ctx, *operations[i], bmd, true)
+			op, err := prepareOperation(c.Request.Context(), ctx, *operations[i], true)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}

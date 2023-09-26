@@ -42,15 +42,6 @@ func (req withStatsRequest) HasStats() bool {
 	return req.Stats == nil || *req.Stats
 }
 
-type networkQueryRequest struct {
-	Network string `form:"network,omitempty" binding:"omitempty,network"`
-}
-
-// NetworkID -
-func (req networkQueryRequest) NetworkID() types.Network {
-	return types.NewNetwork(req.Network)
-}
-
 // CodeDiffLeg -
 type CodeDiffLeg struct {
 	Address  string        `json:"address" binding:"required,address"`
@@ -104,6 +95,7 @@ type pageableRequest struct {
 
 // OPGRequest -
 type OPGRequest struct {
+	getByNetwork
 	Hash string `uri:"hash" binding:"required,opg" example:"ooy4c6G2BZzybYEY3vRQ7WXGL63tFmamTeGTHdjUxhd6ckbSNnb"`
 }
 
@@ -144,9 +136,8 @@ type bigMapSearchRequest struct {
 }
 
 type opgRequest struct {
-	WithMempool     bool   `form:"with_mempool" binding:"omitempty"`
-	WithStorageDiff bool   `form:"with_storage_diff" binding:"omitempty"`
-	Network         string `form:"network" binding:"omitempty,network" example:"mainnet"`
+	WithMempool     bool `form:"with_mempool" binding:"omitempty"`
+	WithStorageDiff bool `form:"with_storage_diff" binding:"omitempty"`
 }
 
 type getEntrypointDataRequest struct {

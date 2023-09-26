@@ -2,28 +2,14 @@ package handlers
 
 import (
 	"context"
-	"encoding/hex"
 	"net/http"
-	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
-	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
-	formattererror "github.com/baking-bad/bcdhub/internal/bcd/formatter/error"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
-	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/parsers/storage"
-	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 // GetOperation godoc
@@ -31,17 +17,17 @@ import (
 // @Description Get operation group by hash
 // @Tags operations
 // @ID get-opg
+// @Param network path string true "Network"
 // @Param hash path string true "Operation group hash"  minlength(51) maxlength(51)
 // @Param with_mempool query bool false "Search operation in mempool or not"
 // @Param with_storage_diff query bool false "Include storage diff to operations or not"
-// @Param network query string false "Network"
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Operation
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /v1/opg/{hash} [get]
+// @Router /v1/opg/{network}/{hash} [get]
 func GetOperation() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
@@ -57,73 +43,60 @@ func GetOperation() gin.HandlerFunc {
 			return
 		}
 
-		operations := make([]operation.Operation, 0)
-		var foundContext *config.Context
-
 		hash, err := encoding.DecodeBase58(req.Hash)
 		if handleError(c, any.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
-		network := modelTypes.NewNetwork(queryReq.Network)
+		network := req.NetworkID()
 		if ctx, ok := ctxs[network]; ok {
-			op, err := ctx.Operations.GetByHash(c.Request.Context(), hash)
+			operations, err := ctx.Operations.GetByHash(c.Request.Context(), hash)
 			if err != nil {
-				if !ctx.Storage.IsRecordNotFound(err) {
-					handleError(c, ctx.Storage, err, 0)
-					return
-				}
-			} else {
-				foundContext = ctx
-				operations = append(operations, op...)
-			}
-		} else {
-			for _, ctx := range ctxs {
-				op, err := ctx.Operations.GetByHash(c.Request.Context(), hash)
-				if err != nil {
-					if !ctx.Storage.IsRecordNotFound(err) {
-						handleError(c, ctx.Storage, err, 0)
-						return
-					}
-					continue
-				}
-				operations = append(operations, op...)
-				if len(operations) > 0 {
-					foundContext = ctx
-					break
-				}
-			}
-		}
-
-		if foundContext == nil {
-			opg := make([]Operation, 0)
-
-			if queryReq.WithMempool {
-				ctx := ctxs.Any()
-				operation, err := getOperationFromMempool(c, ctx, req.Hash)
-				if handleError(c, ctx.Storage, err, 0) {
-					return
-				}
-				if operation != nil {
-					opg = append(opg, *operation)
-				}
-			}
-
-			if len(opg) == 0 {
-				c.SecureJSON(http.StatusNoContent, []gin.H{})
+				handleError(c, ctx.Storage, err, 0)
 				return
 			}
 
-			c.SecureJSON(http.StatusOK, opg)
+			resp, err := PrepareOperations(c.Request.Context(), ctx, operations, queryReq.WithStorageDiff)
+			if handleError(c, ctx.Storage, err, 0) {
+				return
+			}
+
+			c.SecureJSON(http.StatusOK, resp)
 			return
 		}
 
-		resp, err := PrepareOperations(c.Request.Context(), foundContext, operations, queryReq.WithStorageDiff)
-		if handleError(c, foundContext.Storage, err, 0) {
+		for _, ctx := range ctxs {
+			operations, err := ctx.Operations.GetByHash(c.Request.Context(), hash)
+			if err != nil {
+				handleError(c, ctx.Storage, err, 0)
+				return
+			}
+
+			if len(operations) > 0 {
+				resp, err := PrepareOperations(c.Request.Context(), ctx, operations, queryReq.WithStorageDiff)
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
+
+				c.SecureJSON(http.StatusOK, resp)
+				return
+			}
+		}
+
+		if !queryReq.WithMempool {
+			c.SecureJSON(http.StatusNoContent, []gin.H{})
 			return
 		}
 
-		c.SecureJSON(http.StatusOK, resp)
+		operation, err := getOperationFromMempool(c, ctxs.Any(), req.Hash)
+		if handleError(c, ctxs.Any().Storage, err, 0) {
+			return
+		}
+		if operation != nil {
+			c.SecureJSON(http.StatusOK, []Operation{*operation})
+		} else {
+			c.SecureJSON(http.StatusNoContent, []gin.H{})
+		}
 	}
 }
 
@@ -233,31 +206,13 @@ func GetOperationDiff() gin.HandlerFunc {
 		var result Operation
 		result.FromModel(operation)
 
-		if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination() || operation.IsImplicit()) && operation.IsApplied() {
+		if operation.CanHasStorageDiff() {
 			proto, err := ctx.Cache.ProtocolByID(c.Request.Context(), operation.ProtocolID)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
-			result.Protocol = proto.Hash
 
-			storageBytes, err := ctx.Contracts.ScriptPart(c.Request.Context(), operation.Destination.Address, proto.SymLink, consts.STORAGE)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-
-			storageType, err := ast.NewTypedAstFromBytes(storageBytes)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-
-			var bmd []bigmapdiff.BigMapDiff
-			if operation.BigMapDiffsCount > 0 {
-				bmd, err = ctx.BigMapDiffs.GetForOperation(c.Request.Context(), operation.ID)
-				if handleError(c, ctx.Storage, err, 0) {
-					return
-				}
-			}
-			if err := setStorageDiff(c.Request.Context(), ctx, operation.DestinationID, operation.DeffatedStorage, &result, bmd, storageType); handleError(c, ctx.Storage, err, 0) {
+			if err := setFullStorage(c.Request.Context(), ctx, proto.SymLink, operation, &result); handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 		}
@@ -313,27 +268,22 @@ func GetOperationGroups() gin.HandlerFunc {
 // @Description Get operations by hash and counter
 // @Tags operations
 // @ID get-operations-by-hash-and-counter
+// @Param network path string true "You can set network field for better performance"
 // @Param hash path string true "Operation group hash"  minlength(51) maxlength(51)
 // @Param counter path integer true "Counter of main operation"
-// @Param network query string false "You can set network field for better performance"
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Operation
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
-// @Router /v1/opg/{hash}/{counter} [get]
+// @Router /v1/opg/{network}/{hash}/{counter} [get]
 func GetByHashAndCounter() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
 
 		var req OperationGroupContentRequest
 		if err := c.BindUri(&req); handleError(c, ctxs.Any().Storage, err, http.StatusNotFound) {
-			return
-		}
-
-		var args networkQueryRequest
-		if err := c.BindQuery(&args); handleError(c, ctxs.Any().Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -345,7 +295,7 @@ func GetByHashAndCounter() gin.HandlerFunc {
 		var opg []operation.Operation
 		var foundContext *config.Context
 
-		network := modelTypes.NewNetwork(args.Network)
+		network := req.NetworkID()
 		if ctx, ok := ctxs[network]; ok {
 			opg, err = ctx.Operations.GetByHashAndCounter(c.Request.Context(), hash, req.Counter)
 			if handleError(c, ctx.Storage, err, 0) {
@@ -388,288 +338,4 @@ func getOperationFromMempool(c context.Context, ctx *config.Context, hash string
 	default:
 		return nil, nil
 	}
-}
-
-func formatErrors(errs []*tezerrors.Error, op *Operation) error {
-	for i := range errs {
-		if err := errs[i].Format(); err != nil {
-			return err
-		}
-	}
-	op.Errors = errs
-	return nil
-}
-
-func prepareOperation(c context.Context, ctx *config.Context, operation operation.Operation, bmd []bigmapdiff.BigMapDiff, withStorageDiff bool) (Operation, error) {
-	var op Operation
-	op.FromModel(operation)
-
-	proto, err := ctx.Cache.ProtocolByID(c, operation.ProtocolID)
-	if err != nil {
-		return op, err
-	}
-	op.Protocol = proto.Hash
-
-	if err := formatErrors(operation.Errors, &op); err != nil {
-		return op, err
-	}
-
-	switch operation.Kind {
-	case modelTypes.OperationKindEvent, modelTypes.OperationKindTransferTicket:
-		payloadType, err := ast.NewTypedAstFromBytes(operation.PayloadType)
-		if err != nil {
-			return op, err
-		}
-		if err := payloadType.SettleFromBytes(operation.Payload); err != nil {
-			return op, err
-		}
-		payloadMiguel, err := payloadType.ToMiguel()
-		if err != nil {
-			return op, err
-		}
-		op.Payload = payloadMiguel
-		return op, err
-	case modelTypes.OperationKindSrExecuteOutboxMessage:
-		if len(operation.Payload) >= 32 {
-			commitment, err := encoding.EncodeBase58(operation.Payload[:32], []byte(encoding.PrefixSmartRollupCommitment))
-			if err != nil {
-				return op, err
-			}
-			op.Payload = []*ast.MiguelNode{
-				{
-					Prim: "pair",
-					Type: "namedtuple",
-					Children: []*ast.MiguelNode{
-						{
-							Prim:  "string",
-							Type:  "string",
-							Name:  getStringPointer("cemented_commitment"),
-							Value: commitment,
-						}, {
-							Prim:  "bytes",
-							Type:  "bytes",
-							Name:  getStringPointer("output_proof"),
-							Value: hex.EncodeToString(operation.Payload[32:]),
-						},
-					},
-				},
-			}
-		}
-
-	}
-
-	if bcd.IsContract(op.Destination) {
-		if withStorageDiff {
-			storageType, err := getStorageType(c, ctx.Contracts, op.Destination, proto.SymLink)
-			if err != nil {
-				return op, err
-			}
-			if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination() || operation.IsImplicit()) && operation.IsApplied() {
-				if err := setStorageDiff(c, ctx, operation.DestinationID, operation.DeffatedStorage, &op, bmd, storageType); err != nil {
-					return op, err
-				}
-			}
-		}
-
-		if !operation.IsTransaction() {
-			return op, nil
-		}
-
-		if operation.IsCall() && !tezerrors.HasParametersError(op.Errors) {
-			parameterType, err := getParameterType(c, ctx.Contracts, op.Destination, proto.SymLink)
-			if err != nil {
-				return op, err
-			}
-			if err := setParameters(operation.Parameters, parameterType, &op); err != nil {
-				return op, err
-			}
-		}
-	}
-
-	if bcd.IsSmartRollupHash(op.Destination) && operation.IsTransaction() && operation.IsCall() && !tezerrors.HasParametersError(op.Errors) {
-		rollup, err := ctx.SmartRollups.Get(c, op.Destination)
-		if err != nil {
-			return op, err
-		}
-		tree, err := ast.NewTypedAstFromBytes(rollup.Type)
-		if err != nil {
-			return op, err
-		}
-		if err := setParameters(operation.Parameters, tree, &op); err != nil {
-			return op, err
-		}
-	}
-
-	return op, nil
-}
-
-// PrepareOperations -
-func PrepareOperations(c context.Context, ctx *config.Context, ops []operation.Operation, withStorageDiff bool) ([]Operation, error) {
-	resp := make([]Operation, len(ops))
-	for i := 0; i < len(ops); i++ {
-		var diffs []bigmapdiff.BigMapDiff
-		var err error
-
-		if withStorageDiff && ops[i].BigMapDiffsCount > 0 {
-			diffs, err = ctx.BigMapDiffs.GetForOperation(c, ops[i].ID)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		op, err := prepareOperation(c, ctx, ops[i], diffs, withStorageDiff)
-		if err != nil {
-			return nil, err
-		}
-		op.Network = ctx.Network.String()
-		resp[i] = op
-	}
-	return resp, nil
-}
-
-func setParameters(data []byte, parameter *ast.TypedAst, op *Operation) error {
-	if len(data) == 0 {
-		return nil
-	}
-	params := types.NewParameters(data)
-	return setParatemetersWithType(params, parameter, op)
-}
-
-func setParatemetersWithType(params *types.Parameters, parameter *ast.TypedAst, op *Operation) error {
-	if params == nil {
-		return errors.New("Empty parameters")
-	}
-	tree, err := parameter.FromParameters(params)
-	if err != nil {
-		if tezerrors.HasGasExhaustedError(op.Errors) {
-			return nil
-		}
-		return err
-	}
-
-	op.Parameters, err = tree.ToMiguel()
-	if err != nil {
-		if !tezerrors.HasGasExhaustedError(op.Errors) {
-			helpers.CatchErrorSentry(err)
-			return err
-		}
-	}
-	return nil
-}
-
-func setStorageDiff(c context.Context, ctx *config.Context, destinationID int64, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, storageType *ast.TypedAst) error {
-	storageDiff, err := getStorageDiff(c, ctx, destinationID, bmd, storage, storageType, op)
-	if err != nil {
-		return err
-	}
-	op.StorageDiff = storageDiff
-	return nil
-}
-
-func getStorageDiff(c context.Context, ctx *config.Context, destinationID int64, bmd []bigmapdiff.BigMapDiff, storage []byte, storageType *ast.TypedAst, op *Operation) (*ast.MiguelNode, error) {
-	currentStorage := &ast.TypedAst{
-		Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
-	}
-	var prevStorage *ast.TypedAst
-
-	prev, err := ctx.Operations.Last(
-		c,
-		map[string]interface{}{
-			"destination_id": destinationID,
-			"status":         modelTypes.OperationStatusApplied,
-			"timestamp": core.TimestampFilter{
-				Lt: op.Timestamp,
-			},
-		}, op.ID)
-	if err == nil {
-		prevStorage = &ast.TypedAst{
-			Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
-		}
-
-		prevBmd, err := ctx.BigMapDiffs.Previous(c, bmd)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(prev.DeffatedStorage) > 0 {
-			if len(prevBmd) > 0 {
-				if err := prepareStorage(prevStorage, prev.DeffatedStorage, prevBmd); err != nil {
-					return nil, err
-				}
-			} else {
-				if err := prepareStorage(prevStorage, prev.DeffatedStorage, nil); err != nil {
-					return nil, err
-				}
-			}
-		}
-	} else if !ctx.Storage.IsRecordNotFound(err) {
-		return nil, err
-	}
-
-	if err := prepareStorage(currentStorage, storage, bmd); err != nil {
-		return nil, err
-	}
-	if !currentStorage.IsSettled() {
-		return nil, nil
-	}
-	return currentStorage.Diff(prevStorage)
-}
-
-func prepareStorage(storageType *ast.TypedAst, deffatedStorage []byte, bmd []bigmapdiff.BigMapDiff) error {
-	if err := storageType.SettleFromBytes(deffatedStorage); err != nil {
-		return err
-	}
-
-	return getEnrichStorage(storageType, bmd)
-}
-
-func getEnrichStorage(storageType *ast.TypedAst, bmd []bigmapdiff.BigMapDiff) error {
-	if len(bmd) == 0 {
-		return nil
-	}
-
-	return storage.Enrich(storageType, bmd, false, true)
-}
-
-func getErrorLocation(c context.Context, ctx *config.Context, operation operation.Operation, window int) (GetErrorLocationResponse, error) {
-	proto, err := ctx.Cache.ProtocolByID(c, operation.ProtocolID)
-	if err != nil {
-		return GetErrorLocationResponse{}, err
-	}
-	code, err := getScriptBytes(c, ctx.Contracts, operation.Destination.Address, proto.SymLink)
-	if err != nil {
-		return GetErrorLocationResponse{}, err
-	}
-	opErr := tezerrors.First(operation.Errors, consts.ScriptRejectedError)
-	if opErr == nil {
-		return GetErrorLocationResponse{}, errors.Errorf("Can't find script rejected error")
-	}
-	defaultError, ok := opErr.IError.(*tezerrors.DefaultError)
-	if !ok {
-		return GetErrorLocationResponse{}, errors.Errorf("Invalid error type: %T", opErr)
-	}
-
-	location := int(defaultError.Location)
-	sections := gjson.ParseBytes(code)
-	row, sCol, eCol, err := formattererror.LocateContractError(sections, location)
-	if err != nil {
-		return GetErrorLocationResponse{}, err
-	}
-
-	michelson, err := formatter.MichelineToMichelson(sections, false, formatter.DefLineSize)
-	if err != nil {
-		return GetErrorLocationResponse{}, err
-	}
-	rows := strings.Split(michelson, "\n")
-	start := helpers.Max(0, row-window)
-	end := helpers.Min(len(rows), row+window+1)
-
-	rows = rows[start:end]
-	return GetErrorLocationResponse{
-		Text:        strings.Join(rows, "\n"),
-		FailedRow:   row + 1,
-		StartColumn: sCol,
-		EndColumn:   eCol,
-		FirstRow:    start + 1,
-	}, nil
 }
