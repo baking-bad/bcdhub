@@ -3,8 +3,10 @@ package ticket
 import (
 	"context"
 
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/uptrace/bun"
 )
 
 // Storage -
@@ -18,13 +20,25 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(ctx context.Context, ticketer string, limit, offset int64) (response []ticket.TicketUpdate, err error) {
+func (storage *Storage) Updates(ctx context.Context, ticketer string, limit, offset int64) (response []ticket.TicketUpdate, err error) {
+	var ticketerId uint64
+	if err := storage.DB.NewSelect().
+		Model((*account.Account)(nil)).
+		Column("id").
+		Where("address = ?", ticketer).
+		Limit(1).
+		Scan(ctx, &ticketerId); err != nil {
+		return nil, err
+	}
 	query := storage.DB.
 		NewSelect().
 		Model(&response).
-		Relation("Ticketer").
-		Relation("Account").
-		Where("ticketer.address = ?", ticketer)
+		Relation("Ticket").
+		Relation("Ticket.Ticketer").
+		Relation("Account", func(sq *bun.SelectQuery) *bun.SelectQuery {
+			return sq.Column("address")
+		}).
+		Where("ticket.ticketer_id = ?", ticketerId)
 
 	if offset > 0 {
 		query.Offset(int(offset))
@@ -38,11 +52,12 @@ func (storage *Storage) Get(ctx context.Context, ticketer string, limit, offset 
 }
 
 // ForOperation -
-func (storage *Storage) ForOperation(ctx context.Context, operationId int64) (response []ticket.TicketUpdate, err error) {
+func (storage *Storage) UpdatesForOperation(ctx context.Context, operationId int64) (response []ticket.TicketUpdate, err error) {
 	err = storage.DB.
 		NewSelect().
 		Model(&response).
-		Relation("Ticketer").
+		Relation("Ticket").
+		Relation("Ticket.Ticketer").
 		Relation("Account").
 		Where("operation_id = ?", operationId).
 		Scan(ctx)

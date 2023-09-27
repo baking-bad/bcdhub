@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/uptrace/bun"
 )
 
@@ -21,12 +22,14 @@ type Store struct {
 	Operations      []*operation.Operation
 	GlobalConstants []*contract.GlobalConstant
 	SmartRollups    []*smartrollup.SmartRollup
+	Tickets         map[string]*ticket.Ticket
 	Accounts        map[string]*account.Account
 	Stats           stats.Stats
 
-	stats  stats.Repository
-	db     *bun.DB
-	accIds map[string]int64
+	stats     stats.Repository
+	db        *bun.DB
+	accIds    map[string]int64
+	ticketIds map[string]int64
 }
 
 // NewStore -
@@ -38,11 +41,13 @@ func NewStore(db *bun.DB, statsRepo stats.Repository) *Store {
 		Operations:      make([]*operation.Operation, 0),
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
 		SmartRollups:    make([]*smartrollup.SmartRollup, 0),
+		Tickets:         make(map[string]*ticket.Ticket, 0),
 		Accounts:        make(map[string]*account.Account),
 		Stats:           stats.Stats{},
 		stats:           statsRepo,
 		db:              db,
 		accIds:          make(map[string]int64),
+		ticketIds:       make(map[string]int64),
 	}
 }
 
@@ -101,6 +106,18 @@ func (store *Store) AddAccounts(accounts ...*account.Account) {
 			account.EventsCount += accounts[i].EventsCount
 			account.MigrationsCount += accounts[i].MigrationsCount
 			account.TicketUpdatesCount += accounts[i].TicketUpdatesCount
+		}
+	}
+}
+
+// AddTickets -
+func (store *Store) AddTickets(tickets ...*ticket.Ticket) {
+	for i := range tickets {
+		hash := tickets[i].Hash()
+		if t, ok := store.Tickets[hash]; !ok {
+			store.Tickets[hash] = tickets[i]
+		} else {
+			t.UpdatesCount += tickets[i].UpdatesCount
 		}
 	}
 }

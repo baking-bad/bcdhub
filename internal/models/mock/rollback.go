@@ -19,6 +19,7 @@ import (
 	migration "github.com/baking-bad/bcdhub/internal/models/migration"
 	operation "github.com/baking-bad/bcdhub/internal/models/operation"
 	stats "github.com/baking-bad/bcdhub/internal/models/stats"
+	ticket "github.com/baking-bad/bcdhub/internal/models/ticket"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -316,6 +317,45 @@ func (c *RollbackGetOperationsCall) Do(f func(context.Context, int64) ([]operati
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *RollbackGetOperationsCall) DoAndReturn(f func(context.Context, int64) ([]operation.Operation, error)) *RollbackGetOperationsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetTicketUpdates mocks base method.
+func (m *MockRollback) GetTicketUpdates(ctx context.Context, level int64) ([]ticket.TicketUpdate, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTicketUpdates", ctx, level)
+	ret0, _ := ret[0].([]ticket.TicketUpdate)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTicketUpdates indicates an expected call of GetTicketUpdates.
+func (mr *MockRollbackMockRecorder) GetTicketUpdates(ctx, level any) *RollbackGetTicketUpdatesCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTicketUpdates", reflect.TypeOf((*MockRollback)(nil).GetTicketUpdates), ctx, level)
+	return &RollbackGetTicketUpdatesCall{Call: call}
+}
+
+// RollbackGetTicketUpdatesCall wrap *gomock.Call
+type RollbackGetTicketUpdatesCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *RollbackGetTicketUpdatesCall) Return(arg0 []ticket.TicketUpdate, arg1 error) *RollbackGetTicketUpdatesCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *RollbackGetTicketUpdatesCall) Do(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *RollbackGetTicketUpdatesCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *RollbackGetTicketUpdatesCall) DoAndReturn(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *RollbackGetTicketUpdatesCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -662,6 +702,44 @@ func (c *RollbackUpdateStatsCall) Do(f func(context.Context, stats.Stats) error)
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *RollbackUpdateStatsCall) DoAndReturn(f func(context.Context, stats.Stats) error) *RollbackUpdateStatsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// UpdateTicket mocks base method.
+func (m *MockRollback) UpdateTicket(ctx context.Context, ticket ticket.Ticket) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTicket", ctx, ticket)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateTicket indicates an expected call of UpdateTicket.
+func (mr *MockRollbackMockRecorder) UpdateTicket(ctx, ticket any) *RollbackUpdateTicketCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTicket", reflect.TypeOf((*MockRollback)(nil).UpdateTicket), ctx, ticket)
+	return &RollbackUpdateTicketCall{Call: call}
+}
+
+// RollbackUpdateTicketCall wrap *gomock.Call
+type RollbackUpdateTicketCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *RollbackUpdateTicketCall) Return(arg0 error) *RollbackUpdateTicketCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *RollbackUpdateTicketCall) Do(f func(context.Context, ticket.Ticket) error) *RollbackUpdateTicketCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *RollbackUpdateTicketCall) DoAndReturn(f func(context.Context, ticket.Ticket) error) *RollbackUpdateTicketCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

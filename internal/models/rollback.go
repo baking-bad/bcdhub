@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 )
 
 type LastAction struct {
@@ -26,8 +27,10 @@ type Rollback interface {
 	SaveBigMapState(ctx context.Context, state bigmapdiff.BigMapState) error
 	GetOperations(ctx context.Context, level int64) ([]operation.Operation, error)
 	GetMigrations(ctx context.Context, level int64) ([]migration.Migration, error)
+	GetTicketUpdates(ctx context.Context, level int64) ([]ticket.TicketUpdate, error)
 	GetLastAction(ctx context.Context, addressIds ...int64) ([]LastAction, error)
 	UpdateAccountStats(ctx context.Context, account account.Account) error
+	UpdateTicket(ctx context.Context, ticket ticket.Ticket) error
 	GlobalConstants(ctx context.Context, level int64) ([]contract.GlobalConstant, error)
 	Scripts(ctx context.Context, level int64) ([]contract.Script, error)
 	DeleteScriptsConstants(ctx context.Context, scriptIds []int64, constantsIds []int64) error

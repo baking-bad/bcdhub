@@ -2,26 +2,20 @@
   operation_id: 104
   level: 40
   timestamp: '2022-01-23 17:06:04+00'
-  ticketer_id: 133
-  content_type: \x7b227072696d223a22737472696e67227d
-  content: \x7b22737472696e67223a22616263227d
+  ticket_id: 1
   account_id: 105
   amount: 42
 - id: 2
   operation_id: 104
   level: 40
   timestamp: '2022-01-23 17:06:04+00'
-  ticketer_id: 133
-  content_type: \x7b227072696d223a22696e74227d
-  content: \x7b22696e74223a2231227d
+  ticket_id: 1
   account_id: 131
   amount: 43
 - id: 3
   operation_id: 102
   level: 40
   timestamp: '2022-01-23 17:08:31+00'
-  ticketer_id: 251
-  content_type: 0x7b227072696d223a22696e74227d
-  content: 0x7b22696e74223a2231227d
+  ticket_id: 2
   account_id: 131
   amount: 43

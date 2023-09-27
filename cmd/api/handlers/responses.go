@@ -660,7 +660,7 @@ func NewTicketUpdateFromModel(update ticket.TicketUpdate) TicketUpdate {
 		ID:        update.ID,
 		Timestamp: update.Timestamp.UTC(),
 		Level:     update.Level,
-		Ticketer:  update.Ticketer.Address,
+		Ticketer:  update.Ticket.Ticketer.Address,
 		Address:   update.Account.Address,
 		Amount:    update.Amount.String(),
 	}

@@ -24,7 +24,7 @@ func Test_parseOperationResult(t *testing.T) {
 			want: operation.Operation{
 				Status:        types.OperationStatusApplied,
 				ConsumedGas:   1020700,
-				TickerUpdates: make([]*ticket.TicketUpdate, 0),
+				TicketUpdates: make([]*ticket.TicketUpdate, 0),
 			},
 		}, {
 			name:     "test 2",
@@ -32,7 +32,7 @@ func Test_parseOperationResult(t *testing.T) {
 			want: operation.Operation{
 				Status:        types.OperationStatusApplied,
 				ConsumedGas:   1020700,
-				TickerUpdates: make([]*ticket.TicketUpdate, 0),
+				TicketUpdates: make([]*ticket.TicketUpdate, 0),
 			},
 		}, {
 			name:     "test 3",
@@ -47,7 +47,7 @@ func Test_parseOperationResult(t *testing.T) {
 					Type:            types.AccountTypeContract,
 					OperationsCount: 1,
 				},
-				TickerUpdates: make([]*ticket.TicketUpdate, 0),
+				TicketUpdates: make([]*ticket.TicketUpdate, 0),
 			},
 		},
 	}

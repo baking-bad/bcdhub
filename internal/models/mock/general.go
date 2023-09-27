@@ -1120,6 +1120,49 @@ func (c *TransactionTickerUpdatesCall) DoAndReturn(f func(context.Context, ...*t
 	return c
 }
 
+// Tickets mocks base method.
+func (m *MockTransaction) Tickets(ctx context.Context, tickets ...*ticket.Ticket) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range tickets {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Tickets", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Tickets indicates an expected call of Tickets.
+func (mr *MockTransactionMockRecorder) Tickets(ctx any, tickets ...any) *TransactionTicketsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, tickets...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tickets", reflect.TypeOf((*MockTransaction)(nil).Tickets), varargs...)
+	return &TransactionTicketsCall{Call: call}
+}
+
+// TransactionTicketsCall wrap *gomock.Call
+type TransactionTicketsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionTicketsCall) Return(arg0 error) *TransactionTicketsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionTicketsCall) Do(f func(context.Context, ...*ticket.Ticket) error) *TransactionTicketsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionTicketsCall) DoAndReturn(f func(context.Context, ...*ticket.Ticket) error) *TransactionTicketsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // ToBabylon mocks base method.
 func (m *MockTransaction) ToBabylon(ctx context.Context) error {
 	m.ctrl.T.Helper()

@@ -10,8 +10,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/baking-bad/bcdhub/internal/testsuite"
 )
 
 func (s *StorageTestSuite) TestSave() {
@@ -370,4 +372,33 @@ func (s *StorageTestSuite) TestUpdateStats() {
 	s.Require().EqualValues(119, stats.OriginationsCount)
 	s.Require().EqualValues(3, stats.EventsCount)
 	s.Require().EqualValues(1, stats.SrOriginationsCount)
+}
+
+func (s *StorageTestSuite) TestTickets() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	err = tx.Tickets(ctx, &ticket.Ticket{
+		ContentType:  testsuite.MustHexDecode("7b227072696d223a22737472696e67227d"),
+		Content:      testsuite.MustHexDecode("7b22737472696e67223a22616263227d"),
+		TicketerID:   133,
+		UpdatesCount: 1,
+	}, &ticket.Ticket{
+		ContentType:  testsuite.MustHexDecode("7b227072696d223a22737472696e67227d"),
+		Content:      testsuite.MustHexDecode("7b22737472696e67223a22616263227d"),
+		TicketerID:   132,
+		UpdatesCount: 2,
+	})
+	s.Require().NoError(err)
+
+	err = tx.Commit()
+	s.Require().NoError(err)
+
+	var tickets []ticket.Ticket
+	err = s.storage.DB.NewSelect().Model(&tickets).Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().Len(tickets, 3)
 }

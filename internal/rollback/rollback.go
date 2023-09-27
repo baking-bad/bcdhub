@@ -122,6 +122,7 @@ func (rm Manager) rollbackAll(ctx context.Context, level int64, rCtx *rollbackCo
 		(*bigmapdiff.BigMapDiff)(nil),
 		(*bigmapaction.BigMapAction)(nil),
 		(*smartrollup.SmartRollup)(nil),
+		(*ticket.Ticket)(nil),
 		(*ticket.TicketUpdate)(nil),
 		(*account.Account)(nil),
 	} {

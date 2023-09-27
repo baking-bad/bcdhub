@@ -39,80 +39,80 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// ForOperation mocks base method.
-func (m *MockRepository) ForOperation(ctx context.Context, operationId int64) ([]ticket.TicketUpdate, error) {
+// Updates mocks base method.
+func (m *MockRepository) Updates(ctx context.Context, ticketer string, limit, offset int64) ([]ticket.TicketUpdate, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ForOperation", ctx, operationId)
+	ret := m.ctrl.Call(m, "Updates", ctx, ticketer, limit, offset)
 	ret0, _ := ret[0].([]ticket.TicketUpdate)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ForOperation indicates an expected call of ForOperation.
-func (mr *MockRepositoryMockRecorder) ForOperation(ctx, operationId any) *RepositoryForOperationCall {
+// Updates indicates an expected call of Updates.
+func (mr *MockRepositoryMockRecorder) Updates(ctx, ticketer, limit, offset any) *RepositoryUpdatesCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForOperation", reflect.TypeOf((*MockRepository)(nil).ForOperation), ctx, operationId)
-	return &RepositoryForOperationCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockRepository)(nil).Updates), ctx, ticketer, limit, offset)
+	return &RepositoryUpdatesCall{Call: call}
 }
 
-// RepositoryForOperationCall wrap *gomock.Call
-type RepositoryForOperationCall struct {
+// RepositoryUpdatesCall wrap *gomock.Call
+type RepositoryUpdatesCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryForOperationCall) Return(arg0 []ticket.TicketUpdate, arg1 error) *RepositoryForOperationCall {
+func (c *RepositoryUpdatesCall) Return(arg0 []ticket.TicketUpdate, arg1 error) *RepositoryUpdatesCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryForOperationCall) Do(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *RepositoryForOperationCall {
+func (c *RepositoryUpdatesCall) Do(f func(context.Context, string, int64, int64) ([]ticket.TicketUpdate, error)) *RepositoryUpdatesCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryForOperationCall) DoAndReturn(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *RepositoryForOperationCall {
+func (c *RepositoryUpdatesCall) DoAndReturn(f func(context.Context, string, int64, int64) ([]ticket.TicketUpdate, error)) *RepositoryUpdatesCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
-// Get mocks base method.
-func (m *MockRepository) Get(ctx context.Context, ticketer string, limit, offset int64) ([]ticket.TicketUpdate, error) {
+// UpdatesForOperation mocks base method.
+func (m *MockRepository) UpdatesForOperation(ctx context.Context, operationId int64) ([]ticket.TicketUpdate, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, ticketer, limit, offset)
+	ret := m.ctrl.Call(m, "UpdatesForOperation", ctx, operationId)
 	ret0, _ := ret[0].([]ticket.TicketUpdate)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(ctx, ticketer, limit, offset any) *RepositoryGetCall {
+// UpdatesForOperation indicates an expected call of UpdatesForOperation.
+func (mr *MockRepositoryMockRecorder) UpdatesForOperation(ctx, operationId any) *RepositoryUpdatesForOperationCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, ticketer, limit, offset)
-	return &RepositoryGetCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesForOperation", reflect.TypeOf((*MockRepository)(nil).UpdatesForOperation), ctx, operationId)
+	return &RepositoryUpdatesForOperationCall{Call: call}
 }
 
-// RepositoryGetCall wrap *gomock.Call
-type RepositoryGetCall struct {
+// RepositoryUpdatesForOperationCall wrap *gomock.Call
+type RepositoryUpdatesForOperationCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetCall) Return(arg0 []ticket.TicketUpdate, arg1 error) *RepositoryGetCall {
+func (c *RepositoryUpdatesForOperationCall) Return(arg0 []ticket.TicketUpdate, arg1 error) *RepositoryUpdatesForOperationCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(context.Context, string, int64, int64) ([]ticket.TicketUpdate, error)) *RepositoryGetCall {
+func (c *RepositoryUpdatesForOperationCall) Do(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *RepositoryUpdatesForOperationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, string, int64, int64) ([]ticket.TicketUpdate, error)) *RepositoryGetCall {
+func (c *RepositoryUpdatesForOperationCall) DoAndReturn(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *RepositoryUpdatesForOperationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

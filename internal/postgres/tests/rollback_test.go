@@ -9,8 +9,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres"
+	"github.com/baking-bad/bcdhub/internal/testsuite"
 )
 
 func (s *StorageTestSuite) TestDeleteAll() {
@@ -251,4 +253,65 @@ func (s *StorageTestSuite) TestGetMigrations() {
 
 	migration := migrations[0]
 	s.Require().EqualValues(1, migration.Contract.AccountID)
+}
+
+func (s *StorageTestSuite) TestGetTicketUpdates() {
+	saver, err := postgres.NewRollback(s.storage.DB)
+	s.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	updates, err := saver.GetTicketUpdates(ctx, 40)
+	s.Require().NoError(err)
+
+	err = saver.Commit()
+	s.Require().NoError(err)
+	s.Require().Len(updates, 3)
+
+	update := updates[0]
+	s.Require().EqualValues(105, update.AccountID)
+	s.Require().EqualValues(133, update.Ticket.TicketerID)
+}
+
+func (s *StorageTestSuite) TestUpdateTicket() {
+	saver, err := postgres.NewRollback(s.storage.DB)
+	s.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	err = saver.UpdateTicket(ctx, ticket.Ticket{
+		ID:           1,
+		ContentType:  testsuite.MustHexDecode("7b227072696d223a22737472696e67227d"),
+		Content:      testsuite.MustHexDecode("7b22737472696e67223a22616263227d"),
+		TicketerID:   133,
+		UpdatesCount: 1,
+	})
+	s.Require().NoError(err)
+
+	err = saver.Commit()
+	s.Require().NoError(err)
+
+	var t ticket.Ticket
+	err = s.storage.DB.NewSelect().Model(&t).Where("id = 1").Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(133, t.TicketerID)
+	s.Require().EqualValues(1, t.UpdatesCount)
+}
+
+func (s *StorageTestSuite) TestGetLastActionNoRows() {
+	saver, err := postgres.NewRollback(s.storage.DB)
+	s.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	actions, err := saver.GetLastAction(ctx, 1000000)
+	s.Require().NoError(err)
+
+	err = saver.Commit()
+	s.Require().NoError(err)
+
+	s.Require().Len(actions, 0)
 }

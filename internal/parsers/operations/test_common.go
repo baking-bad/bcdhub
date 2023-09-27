@@ -16,6 +16,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -125,6 +126,7 @@ func compareParserResponse(t *testing.T, got, want *parsers.TestStore) {
 	require.Len(t, got.Migrations, len(want.Migrations))
 	require.Len(t, got.Operations, len(want.Operations))
 	require.Len(t, got.GlobalConstants, len(want.GlobalConstants))
+	require.Len(t, got.Tickets, len(want.Tickets))
 
 	for i := range got.Contracts {
 		compareContract(t, want.Contracts[i], got.Contracts[i])
@@ -140,6 +142,9 @@ func compareParserResponse(t *testing.T, got, want *parsers.TestStore) {
 	}
 	for i := range got.GlobalConstants {
 		require.Equal(t, want.GlobalConstants[i], got.GlobalConstants[i])
+	}
+	for hash := range got.Tickets {
+		require.Equal(t, want.Tickets[hash], got.Tickets[hash])
 	}
 }
 
@@ -178,6 +183,7 @@ func compareOperations(t *testing.T, want, got *operation.Operation) {
 	require.EqualValues(t, want.Tags, got.Tags)
 	require.Len(t, got.BigMapDiffs, len(want.BigMapDiffs))
 	require.Len(t, got.BigMapActions, len(want.BigMapActions))
+	require.Len(t, got.TicketUpdates, len(want.TicketUpdates))
 
 	for i := range want.BigMapDiffs {
 		compareBigMapDiff(t, want.BigMapDiffs[i], got.BigMapDiffs[i])
@@ -186,6 +192,17 @@ func compareOperations(t *testing.T, want, got *operation.Operation) {
 	for i := range want.BigMapActions {
 		compareBigMapAction(t, want.BigMapActions[i], got.BigMapActions[i])
 	}
+
+	for i := range want.TicketUpdates {
+		compareTicketUpdates(t, want.TicketUpdates[i], got.TicketUpdates[i])
+	}
+}
+
+func compareTicketUpdates(t *testing.T, want, got *ticket.TicketUpdate) {
+	require.EqualValues(t, want.Account, got.Account)
+	require.EqualValues(t, want.Ticket, got.Ticket)
+	require.EqualValues(t, want.Level, got.Level)
+	require.EqualValues(t, want.Timestamp, got.Timestamp)
 }
 
 func compareBigMapDiff(t *testing.T, want, got *bigmapdiff.BigMapDiff) {

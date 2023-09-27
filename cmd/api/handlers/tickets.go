@@ -41,7 +41,7 @@ func GetContractTicketUpdates() gin.HandlerFunc {
 			return
 		}
 
-		updates, err := ctx.TicketUpdates.Get(c.Request.Context(), req.Address, args.Size, args.Offset)
+		updates, err := ctx.TicketUpdates.Updates(c.Request.Context(), req.Address, args.Size, args.Offset)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -67,7 +67,7 @@ func GetTicketUpdatesForOperation() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		updates, err := ctx.TicketUpdates.ForOperation(c.Request.Context(), req.ID)
+		updates, err := ctx.TicketUpdates.UpdatesForOperation(c.Request.Context(), req.ID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -84,7 +84,7 @@ func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []tick
 	for i := range updates {
 		update := NewTicketUpdateFromModel(updates[i])
 
-		content, err := ast.NewTypedAstFromBytes(updates[i].ContentType)
+		content, err := ast.NewTypedAstFromBytes(updates[i].Ticket.ContentType)
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +94,7 @@ func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []tick
 		}
 		update.ContentType = docs
 
-		if err := content.SettleFromBytes(updates[i].Content); err != nil {
+		if err := content.SettleFromBytes(updates[i].Ticket.Content); err != nil {
 			return nil, err
 		}
 		contentMiguel, err := content.ToMiguel()

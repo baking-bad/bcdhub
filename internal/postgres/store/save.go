@@ -35,6 +35,10 @@ func (store *Store) Save(ctx context.Context) error {
 		return errors.Wrap(err, "saving accounts")
 	}
 
+	if err := store.saveTickets(ctx, tx); err != nil {
+		return errors.Wrap(err, "saving tickets")
+	}
+
 	if err := store.saveOperations(ctx, tx); err != nil {
 		return errors.Wrap(err, "saving operations")
 	}
@@ -85,6 +89,32 @@ func (store *Store) saveAccounts(ctx context.Context, tx models.Transaction) err
 
 	for i := range arr {
 		store.accIds[arr[i].Address] = arr[i].ID
+	}
+
+	return nil
+}
+
+func (store *Store) saveTickets(ctx context.Context, tx models.Transaction) error {
+	if len(store.Tickets) == 0 {
+		return nil
+	}
+
+	arr := make([]*ticket.Ticket, 0, len(store.Tickets))
+	for _, t := range store.Tickets {
+		if id, ok := store.getAccountId(t.Ticketer); ok {
+			t.TicketerID = id
+		} else {
+			return errors.Errorf("unknown ticketer account: %s", t.Ticketer.Address)
+		}
+		arr = append(arr, t)
+	}
+
+	if err := tx.Tickets(ctx, arr...); err != nil {
+		return err
+	}
+
+	for i := range arr {
+		store.ticketIds[arr[i].Hash()] = arr[i].ID
 	}
 
 	return nil
@@ -152,23 +182,34 @@ func (store *Store) saveOperations(ctx context.Context, tx models.Transaction) e
 		}
 		bigMapActions = append(bigMapActions, operation.BigMapActions...)
 
-		for j, update := range operation.TickerUpdates {
+		for j, update := range operation.TicketUpdates {
 			if id, ok := store.getAccountId(update.Account); ok {
-				operation.TickerUpdates[j].AccountID = id
+				operation.TicketUpdates[j].AccountID = id
 			} else {
 				return errors.Errorf("unknown ticket update account: %s", update.Account.Address)
 			}
 
-			if id, ok := store.getAccountId(update.Ticketer); ok {
-				operation.TickerUpdates[j].TicketerID = id
+			if id, ok := store.getAccountId(update.Ticket.Ticketer); ok {
+				operation.TicketUpdates[j].Ticket.TicketerID = id
 			} else {
-				return errors.Errorf("unknown ticket update ticketer account: %s", update.Ticketer.Address)
+				return errors.Errorf("unknown ticket update ticketer account: %s", update.Ticket.Ticketer.Address)
 			}
 
-			operation.TickerUpdates[j].OperationID = operation.ID
+			operation.TicketUpdates[j].OperationID = operation.ID
+
+			hash := operation.TicketUpdates[j].Ticket.Hash()
+			if id, ok := store.ticketIds[hash]; ok {
+				operation.TicketUpdates[j].TicketId = id
+			} else {
+				return errors.Errorf("unknown ticket: ticketer_id=%d content_type=%s content=%s",
+					operation.TicketUpdates[j].Ticket.TicketerID,
+					operation.TicketUpdates[j].Ticket.ContentType,
+					operation.TicketUpdates[j].Ticket.Content,
+				)
+			}
 		}
 
-		ticketUpdates = append(ticketUpdates, operation.TickerUpdates...)
+		ticketUpdates = append(ticketUpdates, operation.TicketUpdates...)
 	}
 
 	if err := tx.BigMapDiffs(ctx, bigMapDiffs...); err != nil {

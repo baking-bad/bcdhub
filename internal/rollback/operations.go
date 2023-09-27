@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/pkg/errors"
 )
 
 func (rm Manager) rollbackOperations(ctx context.Context, level int64, rCtx *rollbackContext) error {
@@ -19,19 +20,13 @@ func (rm Manager) rollbackOperations(ctx context.Context, level int64, rCtx *rol
 		return nil
 	}
 
-	count, err := rm.rollback.DeleteAll(ctx, (*operation.Operation)(nil), level)
-	if err != nil {
-		return err
-	}
-	rCtx.generalStats.OperationsCount -= count
-
 	for i := range ops {
-		if !ops[i].Destination.IsEmpty() {
+		if ops[i].DestinationID > 0 {
 			rCtx.applyOperationsCount(ops[i].DestinationID, 1)
 			rCtx.applyTicketUpdates(ops[i].DestinationID, int64(ops[i].TicketUpdatesCount))
 		}
 
-		if !ops[i].Source.IsEmpty() {
+		if ops[i].SourceID > 0 {
 			rCtx.applyOperationsCount(ops[i].SourceID, 1)
 		}
 
@@ -60,8 +55,14 @@ func (rm Manager) rollbackOperations(ctx context.Context, level int64, rCtx *rol
 		}
 	}
 
+	count, err := rm.rollback.DeleteAll(ctx, (*operation.Operation)(nil), level)
+	if err != nil {
+		return errors.Wrap(err, "deleting operations")
+	}
+	rCtx.generalStats.OperationsCount -= count
+
 	if err := rCtx.getLastActions(ctx, rm.rollback); err != nil {
-		return err
+		return errors.Wrap(err, "receiving last actions")
 	}
 
 	return nil

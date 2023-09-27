@@ -28,6 +28,7 @@ const (
 	DocProtocol        = "protocols"
 	DocScripts         = "scripts"
 	DocTicketUpdates   = "ticket_updates"
+	DocTickets         = "tickets"
 	DocSmartRollups    = "smart_rollup"
 	DocStats           = "stats"
 )
@@ -47,6 +48,7 @@ func AllDocuments() []string {
 		DocProtocol,
 		DocScripts,
 		DocTicketUpdates,
+		DocTickets,
 		DocSmartRollups,
 		DocStats,
 	}
@@ -61,6 +63,7 @@ func AllModels() []Model {
 		&bigmapaction.BigMapAction{},
 		&bigmapdiff.BigMapDiff{},
 		&bigmapdiff.BigMapState{},
+		&ticket.Ticket{},
 		&ticket.TicketUpdate{},
 		&operation.Operation{},
 		&contract.GlobalConstant{},

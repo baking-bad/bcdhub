@@ -1,0 +1,12 @@
+- id: 1
+  ticketer_id: 133
+  content_type: '{"prim":"string"}'
+  content: '{"string":"abc"}'
+  updates_count: 2
+  level: 40
+- id: 2
+  updates_count: 1
+  level: 40
+  ticketer_id: 251
+  content_type: '{"prim":"int"}'
+  content: '{"int":"1"}'

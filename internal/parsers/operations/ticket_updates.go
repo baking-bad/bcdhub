@@ -18,42 +18,50 @@ func (p *TicketUpdateParser) Parse(data *noderpc.OperationResult, operation *ope
 	if data == nil {
 		return
 	}
-	operation.TickerUpdates = make([]*ticket.TicketUpdate, 0)
+	operation.TicketUpdates = make([]*ticket.TicketUpdate, 0)
 	for i := range data.TicketUpdates {
 		tckt := p.toModel(data.TicketUpdates[i], operation, store)
-		operation.TickerUpdates = append(operation.TickerUpdates, tckt...)
+		operation.TicketUpdates = append(operation.TicketUpdates, tckt...)
 	}
 	for i := range data.TicketReceipt {
 		tckt := p.toModel(data.TicketReceipt[i], operation, store)
-		operation.TickerUpdates = append(operation.TickerUpdates, tckt...)
+		operation.TicketUpdates = append(operation.TicketUpdates, tckt...)
 	}
 
-	operation.TicketUpdatesCount = len(operation.TickerUpdates)
+	operation.TicketUpdatesCount = len(operation.TicketUpdates)
 }
 
 func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *operation.Operation, store parsers.Store) []*ticket.TicketUpdate {
 	updates := make([]*ticket.TicketUpdate, 0)
 	for i := range data.Updates {
-		update := ticket.TicketUpdate{
-			Level:     operation.Level,
-			Timestamp: operation.Timestamp,
+		tckt := ticket.Ticket{
+			ContentType: data.TicketToken.ContentType,
+			Content:     data.TicketToken.Content,
 			Ticketer: account.Account{
 				Address:            data.TicketToken.Ticketer,
 				Type:               types.NewAccountType(data.TicketToken.Ticketer),
 				Level:              operation.Level,
+				LastAction:         operation.Timestamp,
 				TicketUpdatesCount: 1,
 			},
-			ContentType: data.TicketToken.ContentType,
-			Content:     data.TicketToken.Content,
+			UpdatesCount: 1,
+			Level:        operation.Level,
+		}
+		update := ticket.TicketUpdate{
+			Level:     operation.Level,
+			Timestamp: operation.Timestamp,
+			Ticket:    tckt,
 			Account: account.Account{
-				Address: data.Updates[i].Account,
-				Type:    types.NewAccountType(data.Updates[i].Account),
-				Level:   operation.Level,
+				Address:    data.Updates[i].Account,
+				Type:       types.NewAccountType(data.Updates[i].Account),
+				LastAction: operation.Timestamp,
+				Level:      operation.Level,
 			},
 			Amount: decimal.RequireFromString(data.Updates[i].Amount),
 		}
 		updates = append(updates, &update)
-		store.AddAccounts(&update.Account, &update.Ticketer)
+		store.AddTickets(&tckt)
+		store.AddAccounts(&update.Account, &tckt.Ticketer)
 	}
 	return updates
 }

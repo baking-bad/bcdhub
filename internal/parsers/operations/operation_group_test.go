@@ -27,10 +27,12 @@ import (
 	mock_proto "github.com/baking-bad/bcdhub/internal/models/mock/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -273,6 +275,16 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
+		Get(gomock.Any(), "PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf", int64(-1)).
+		Return(protocol.Protocol{
+			Hash:    "PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf",
+			SymLink: bcd.SymLinkJakarta,
+			ID:      7,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
 		GetByID(gomock.Any(), int64(0)).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
@@ -337,6 +349,16 @@ func TestGroup_Parse(t *testing.T) {
 			Hash:    "Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A",
 			SymLink: bcd.SymLinkBabylon,
 			ID:      6,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
+		GetByID(gomock.Any(), int64(7)).
+		Return(protocol.Protocol{
+			Hash:    "PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf",
+			SymLink: bcd.SymLinkJakarta,
+			ID:      7,
 		}, nil).
 		AnyTimes()
 
@@ -2347,6 +2369,192 @@ func TestGroup_Parse(t *testing.T) {
 					},
 				},
 			},
+		}, {
+			name: "oozKKBjBK44uGCrMcT6wwPbUD62mF7ddenwXSyJKJAAiSRxq4JQ",
+			ctx: &config.Context{
+				RPC:             rpc,
+				Storage:         generalRepo,
+				Contracts:       contractRepo,
+				BigMapDiffs:     bmdRepo,
+				Blocks:          blockRepo,
+				Protocols:       protoRepo,
+				Operations:      operaitonsRepo,
+				Scripts:         scriptRepo,
+				GlobalConstants: globalConstantRepo,
+				Cache: cache.NewCache(
+					rpc, accountsRepo, contractRepo, protoRepo,
+				),
+			},
+			paramsOpts: []ParseParamsOption{
+				WithHead(noderpc.Header{
+					Timestamp: timestamp,
+					Protocol:  "PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf",
+					Level:     1616868,
+					ChainID:   "NetXyuzvDo2Ugzb",
+				}),
+				WithProtocol(&protocol.Protocol{
+					Constants: &protocol.Constants{
+						CostPerByte:                  1000,
+						HardGasLimitPerOperation:     400000,
+						HardStorageLimitPerOperation: 60000,
+						TimeBetweenBlocks:            60,
+					},
+					Hash:    "PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf",
+					ID:      7,
+					SymLink: bcd.SymLinkJakarta,
+				}),
+			},
+			storage:  map[string]int64{},
+			filename: "./data/rpc/opg/oozKKBjBK44uGCrMcT6wwPbUD62mF7ddenwXSyJKJAAiSRxq4JQ.json",
+			want: &parsers.TestStore{
+				Operations: []*operation.Operation{
+					{
+						Kind: types.OperationKindTransferTicket,
+						Source: account.Account{
+							Address:         "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+							Type:            types.AccountTypeTz,
+							Level:           1616868,
+							OperationsCount: 1,
+							LastAction:      timestamp,
+						},
+						Fee:          668,
+						Counter:      666002,
+						GasLimit:     3295,
+						StorageLimit: 110,
+						Burned:       0,
+						Entrypoint:   types.NewNullString(testsuite.Ptr("save")),
+						Destination: account.Account{
+							Address:         "KT1MYutYhGoyCRf9y2JqfWoLKPJ3zMiDmMhE",
+							Type:            types.AccountTypeContract,
+							Level:           1616868,
+							OperationsCount: 1,
+							LastAction:      timestamp,
+						},
+						Status:    types.OperationStatusApplied,
+						Level:     1616868,
+						Hash:      encoding.MustDecodeBase58("oozKKBjBK44uGCrMcT6wwPbUD62mF7ddenwXSyJKJAAiSRxq4JQ"),
+						Timestamp: timestamp,
+						Initiator: account.Account{
+							Address:         "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+							Type:            types.AccountTypeTz,
+							Level:           1616868,
+							OperationsCount: 1,
+							LastAction:      timestamp,
+						},
+						Delegate:           account.Account{},
+						ProtocolID:         7,
+						TicketUpdatesCount: 1,
+						TicketUpdates: []*ticket.TicketUpdate{
+							{
+								Account: account.Account{
+									Address:    "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+									Type:       types.AccountTypeTz,
+									Level:      1616868,
+									LastAction: timestamp,
+								},
+								Amount:    decimal.RequireFromString("-1"),
+								Level:     1616868,
+								Timestamp: timestamp,
+								Ticket: ticket.Ticket{
+									Level: 1616868,
+									Ticketer: account.Account{
+										Address:            "KT1Nux298EEiVoTzF7jQS3iBV3K4ShN8ucSP",
+										Type:               types.AccountTypeContract,
+										Level:              1616868,
+										TicketUpdatesCount: 1,
+										LastAction:         timestamp,
+									},
+									ContentType:  []byte(`{"prim":"string"}`),
+									Content:      []byte(`{"string":"Ticket"}`),
+									UpdatesCount: 1,
+								},
+							},
+						},
+					}, {
+						Kind: types.OperationKindTransaction,
+						Source: account.Account{
+							Address:         "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+							Type:            types.AccountTypeTz,
+							Level:           1616868,
+							OperationsCount: 1,
+							LastAction:      timestamp,
+						},
+						Counter:             666002,
+						Nonce:               testsuite.Ptr(int64(0)),
+						Amount:              0,
+						ConsumedGas:         1912189,
+						StorageSize:         238,
+						PaidStorageSizeDiff: 44,
+						Internal:            true,
+						Entrypoint:          types.NewNullString(testsuite.Ptr("save")),
+						Destination: account.Account{
+							Address:         "KT1MYutYhGoyCRf9y2JqfWoLKPJ3zMiDmMhE",
+							Type:            types.AccountTypeContract,
+							Level:           1616868,
+							OperationsCount: 1,
+							LastAction:      timestamp,
+						},
+						Status:    types.OperationStatusApplied,
+						Level:     1616868,
+						Hash:      encoding.MustDecodeBase58("oozKKBjBK44uGCrMcT6wwPbUD62mF7ddenwXSyJKJAAiSRxq4JQ"),
+						Timestamp: timestamp,
+						Initiator: account.Account{
+							Address:         "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+							Type:            types.AccountTypeTz,
+							Level:           1616868,
+							OperationsCount: 1,
+							LastAction:      timestamp,
+						},
+						Delegate:           account.Account{},
+						ProtocolID:         7,
+						TicketUpdatesCount: 1,
+						Burned:             44000,
+						Parameters:         []byte(`{"entrypoint":"save","value":{"prim":"Pair","args":[{"bytes":"019d326434ec72a63f89180ef9cd739b59706efb3e00"},{"prim":"Pair","args":[{"string":"Ticket"},{"int":"1"}]}]}}`),
+						DeffatedStorage:    []byte(`[{"prim":"Pair","args":[{"bytes":"019d326434ec72a63f89180ef9cd739b59706efb3e00"},{"prim":"Pair","args":[{"string":"Ticket"},{"int":"1"}]}]}]`),
+						TicketUpdates: []*ticket.TicketUpdate{
+							{
+								Account: account.Account{
+									Address:    "KT1MYutYhGoyCRf9y2JqfWoLKPJ3zMiDmMhE",
+									Type:       types.AccountTypeContract,
+									Level:      1616868,
+									LastAction: timestamp,
+								},
+								Amount:    decimal.RequireFromString("1"),
+								Level:     1616868,
+								Timestamp: timestamp,
+								Ticket: ticket.Ticket{
+									Level: 1616868,
+									Ticketer: account.Account{
+										Address:            "KT1Nux298EEiVoTzF7jQS3iBV3K4ShN8ucSP",
+										Type:               types.AccountTypeContract,
+										Level:              1616868,
+										LastAction:         timestamp,
+										TicketUpdatesCount: 1,
+									},
+									ContentType:  []byte(`{"prim":"string"}`),
+									Content:      []byte(`{"string":"Ticket"}`),
+									UpdatesCount: 1,
+								},
+							},
+						},
+					},
+				},
+				Tickets: map[string]*ticket.Ticket{
+					"c4a3e1aa42bafd749abb7b7c6732a344b4794cf626c3a9d260e1fadef5e2438e": {
+						Level: 1616868,
+						Ticketer: account.Account{
+							Address:            "KT1Nux298EEiVoTzF7jQS3iBV3K4ShN8ucSP",
+							Type:               types.AccountTypeContract,
+							Level:              1616868,
+							TicketUpdatesCount: 1,
+							LastAction:         timestamp,
+						},
+						ContentType:  []byte(`{"prim":"string"}`),
+						Content:      []byte(`{"string":"Ticket"}`),
+						UpdatesCount: 2,
+					},
+				},
+			},
 		},
 	}
 
@@ -2374,7 +2582,7 @@ func TestGroup_Parse(t *testing.T) {
 
 			store := parsers.NewTestStore()
 			err = NewGroup(parseParams).Parse(context.Background(), op, store)
-			require.Equal(t, tt.wantErr, err != nil)
+			require.Equal(t, tt.wantErr, err != nil, err)
 			if err == nil {
 				compareParserResponse(t, store, tt.want)
 			}

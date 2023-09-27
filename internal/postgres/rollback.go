@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -11,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/uptrace/bun"
 )
 
@@ -91,18 +94,24 @@ func (r Rollback) GetOperations(ctx context.Context, level int64) (ops []operati
 }
 
 func (r Rollback) GetLastAction(ctx context.Context, addressIds ...int64) (actions []models.LastAction, err error) {
-	actions = make([]models.LastAction, len(addressIds))
+	actions = make([]models.LastAction, 0)
 	for i := range addressIds {
+		var action models.LastAction
 		_, err = r.tx.NewRaw(`select max(foo.ts) as time, address from (
 				(select "timestamp" as ts, source_id as address from operations where source_id = ?0 order by id desc limit 1)
 				union all
 				(select "timestamp" as ts, destination_id as address from operations where destination_id = ?0 order by id desc limit 1)
 			) as foo
 			group by address`, addressIds[i]).
-			Exec(ctx, &actions[i])
+			Exec(ctx, &action)
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				err = nil
+				continue
+			}
 			return nil, err
 		}
+		actions = append(actions, action)
 	}
 	return
 }
@@ -194,4 +203,21 @@ func (r Rollback) GetMigrations(ctx context.Context, level int64) (migrations []
 		Join("LEFT JOIN contracts ON contracts.id = contract_id").
 		Scan(ctx)
 	return
+}
+
+func (r Rollback) GetTicketUpdates(ctx context.Context, level int64) (updates []ticket.TicketUpdate, err error) {
+	err = r.tx.NewSelect().Model(&updates).
+		Where("ticket_update.level = ?", level).
+		Relation("Ticket").
+		Scan(ctx)
+	return
+}
+
+func (r Rollback) UpdateTicket(ctx context.Context, ticket ticket.Ticket) error {
+	_, err := r.tx.NewUpdate().
+		Model(&ticket).
+		Where("id = ?id").
+		Set("updates_count = updates_count - ?updates_count").
+		Exec(ctx)
+	return err
 }

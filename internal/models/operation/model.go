@@ -67,7 +67,7 @@ type Operation struct {
 
 	BigMapDiffs   []*bigmapdiff.BigMapDiff     `bun:"rel:has-many"`
 	BigMapActions []*bigmapaction.BigMapAction `bun:"rel:has-many"`
-	TickerUpdates []*ticket.TicketUpdate       `bun:"rel:has-many"`
+	TicketUpdates []*ticket.TicketUpdate       `bun:"rel:has-many"`
 
 	AllocatedDestinationContract bool
 	Internal                     bool

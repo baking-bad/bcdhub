@@ -341,7 +341,7 @@ func TestManager_Rollback(t *testing.T) {
 	rb.EXPECT().
 		DeleteAll(gomock.Any(), nil, level).
 		Return(0, nil).
-		Times(9)
+		Times(10)
 
 	rb.EXPECT().
 		Protocols(gomock.Any(), level).

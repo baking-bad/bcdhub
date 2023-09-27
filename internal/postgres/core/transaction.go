@@ -242,3 +242,17 @@ func (t Transaction) UpdateStats(ctx context.Context, stats stats.Stats) error {
 		Exec(ctx)
 	return err
 }
+
+func (t Transaction) Tickets(ctx context.Context, tickets ...*ticket.Ticket) error {
+	if len(tickets) == 0 {
+		return nil
+	}
+
+	_, err := t.tx.NewInsert().Model(&tickets).
+		Column("ticketer_id", "content", "content_type", "updates_count", "level").
+		On("CONFLICT ON CONSTRAINT ticket_key DO UPDATE").
+		Set("updates_count = ticket.updates_count + EXCLUDED.updates_count").
+		Returning("id").
+		Exec(ctx)
+	return err
+}
