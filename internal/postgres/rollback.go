@@ -2,12 +2,12 @@ package postgres
 
 import (
 	"context"
-	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
@@ -107,11 +107,14 @@ func (r Rollback) GetLastAction(ctx context.Context, addressIds ...int64) (actio
 	return
 }
 
-func (r Rollback) UpdateAccountStats(ctx context.Context, addressId int64, lastAction time.Time, operationsCount int64) error {
-	_, err := r.tx.NewUpdate().Model((*account.Account)(nil)).
-		Where("id = ?", addressId).
-		Set("operations_count = operations_count - ?", operationsCount).
-		Set("last_action = ?", lastAction).
+func (r Rollback) UpdateAccountStats(ctx context.Context, account account.Account) error {
+	_, err := r.tx.NewUpdate().Model(&account).
+		Where("id = ?id").
+		Set("operations_count = operations_count - ?operations_count").
+		Set("migrations_count = migrations_count - ?migrations_count").
+		Set("events_count = events_count - ?events_count").
+		Set("ticket_updates_count = ticket_updates_count - ?ticket_updates_count").
+		Set("last_action = ?last_action").
 		Exec(ctx)
 	return err
 }
@@ -169,17 +172,26 @@ func (r Rollback) UpdateStats(ctx context.Context, stats stats.Stats) error {
 	_, err := r.tx.NewUpdate().
 		Model(&stats).
 		Where("id = ?id").
-		Set("contracts_count = stats.contracts_count - ?contracts_count").
-		Set("operations_count = stats.operations_count - ?operations_count").
-		Set("events_count = stats.events_count - ?events_count").
-		Set("tx_count = stats.tx_count - ?tx_count").
-		Set("originations_count = stats.originations_count - ?originations_count").
-		Set("sr_originations_count = stats.sr_originations_count - ?sr_originations_count").
-		Set("register_global_constants_count = stats.register_global_constants_count - ?register_global_constants_count").
-		Set("sr_executes_count = stats.sr_executes_count - ?sr_executes_count").
-		Set("transfer_tickets_count = stats.transfer_tickets_count - ?transfer_tickets_count").
-		Set("global_constants_count = stats.global_constants_count - ?global_constants_count").
-		Set("smart_rollups_count = stats.smart_rollups_count - ?smart_rollups_count").
+		Set("contracts_count = ?contracts_count").
+		Set("operations_count = ?operations_count").
+		Set("events_count = ?events_count").
+		Set("tx_count = ?tx_count").
+		Set("originations_count = ?originations_count").
+		Set("sr_originations_count = ?sr_originations_count").
+		Set("register_global_constants_count = ?register_global_constants_count").
+		Set("sr_executes_count = ?sr_executes_count").
+		Set("transfer_tickets_count = ?transfer_tickets_count").
+		Set("global_constants_count = ?global_constants_count").
+		Set("smart_rollups_count = ?smart_rollups_count").
 		Exec(ctx)
 	return err
+}
+
+func (r Rollback) GetMigrations(ctx context.Context, level int64) (migrations []migration.Migration, err error) {
+	err = r.tx.NewSelect().Model(&migrations).
+		ColumnExpr("account_id AS contract__account_id, migration.*").
+		Where("migration.level = ?", level).
+		Join("LEFT JOIN contracts ON contracts.id = contract_id").
+		Scan(ctx)
+	return
 }

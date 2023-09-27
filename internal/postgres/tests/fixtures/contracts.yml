@@ -6,7 +6,6 @@
   jakarta_id: 0
   level: 1
   manager_id: 0
-  migrations_count: 0
   tags: 192
   timestamp: 2022-01-25T15:03:39Z
 - account_id: 2
@@ -17,7 +16,6 @@
   jakarta_id: 0
   level: 1
   manager_id: 0
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T15:03:39Z
 - account_id: 3
@@ -28,7 +26,6 @@
   jakarta_id: 0
   level: 1
   manager_id: 0
-  migrations_count: 0
   tags: 192
   timestamp: 2022-01-25T15:03:39Z
 - account_id: 45
@@ -39,7 +36,6 @@
   jakarta_id: 0
   level: 33
   manager_id: 38
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:45:09Z
 - account_id: 41
@@ -50,7 +46,6 @@
   jakarta_id: 0
   level: 33
   manager_id: 39
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:45:09Z
 - account_id: 40
@@ -61,7 +56,6 @@
   jakarta_id: 0
   level: 33
   manager_id: 46
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:45:09Z
 - account_id: 47
@@ -72,7 +66,6 @@
   jakarta_id: 0
   level: 33
   manager_id: 42
-  migrations_count: 0
   tags: 16640
   timestamp: 2022-01-25T16:45:09Z
 - account_id: 49
@@ -83,7 +76,6 @@
   jakarta_id: 0
   level: 33
   manager_id: 35
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:45:09Z
 - account_id: 48
@@ -94,7 +86,6 @@
   jakarta_id: 0
   level: 33
   manager_id: 36
-  migrations_count: 0
   tags: 16664
   timestamp: 2022-01-25T16:45:09Z
 - account_id: 43
@@ -105,7 +96,6 @@
   jakarta_id: 0
   level: 33
   manager_id: 44
-  migrations_count: 0
   tags: 16664
   timestamp: 2022-01-25T16:45:09Z
 - account_id: 58
@@ -116,7 +106,6 @@
   jakarta_id: 0
   level: 34
   manager_id: 53
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:47:37Z
 - account_id: 64
@@ -127,7 +116,6 @@
   jakarta_id: 0
   level: 34
   manager_id: 65
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:47:37Z
 - account_id: 54
@@ -138,7 +126,6 @@
   jakarta_id: 0
   level: 34
   manager_id: 63
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:47:37Z
 - account_id: 59
@@ -149,7 +136,6 @@
   jakarta_id: 0
   level: 34
   manager_id: 50
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:47:37Z
 - account_id: 55
@@ -160,7 +146,6 @@
   jakarta_id: 0
   level: 34
   manager_id: 56
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:47:37Z
 - account_id: 57
@@ -171,7 +156,6 @@
   jakarta_id: 0
   level: 34
   manager_id: 60
-  migrations_count: 0
   tags: 4
   timestamp: 2022-01-25T16:47:37Z
 - account_id: 66
@@ -182,7 +166,6 @@
   jakarta_id: 0
   level: 34
   manager_id: 61
-  migrations_count: 0
   tags: 16640
   timestamp: 2022-01-25T16:47:37Z
 - account_id: 51
@@ -193,7 +176,6 @@
   jakarta_id: 0
   level: 34
   manager_id: 62
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:47:37Z
 - account_id: 71
@@ -204,7 +186,6 @@
   jakarta_id: 0
   level: 35
   manager_id: 67
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:49:57Z
 - account_id: 72
@@ -215,7 +196,6 @@
   jakarta_id: 0
   level: 35
   manager_id: 75
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:49:57Z
 - account_id: 77
@@ -226,7 +206,6 @@
   jakarta_id: 0
   level: 35
   manager_id: 76
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:49:57Z
 - account_id: 68
@@ -237,7 +216,6 @@
   jakarta_id: 0
   level: 35
   manager_id: 78
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:49:57Z
 - account_id: 79
@@ -248,7 +226,6 @@
   jakarta_id: 0
   level: 35
   manager_id: 80
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:49:57Z
 - account_id: 81
@@ -259,7 +236,6 @@
   jakarta_id: 0
   level: 35
   manager_id: 73
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:49:57Z
 - account_id: 69
@@ -270,7 +246,6 @@
   jakarta_id: 0
   level: 35
   manager_id: 74
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:49:57Z
 - account_id: 88
@@ -281,7 +256,6 @@
   jakarta_id: 0
   level: 36
   manager_id: 92
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:52:19Z
 - account_id: 89
@@ -292,7 +266,6 @@
   jakarta_id: 0
   level: 36
   manager_id: 84
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:52:19Z
 - account_id: 82
@@ -303,7 +276,6 @@
   jakarta_id: 0
   level: 36
   manager_id: 90
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:52:19Z
 - account_id: 85
@@ -314,7 +286,6 @@
   jakarta_id: 0
   level: 36
   manager_id: 83
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:52:19Z
 - account_id: 93
@@ -325,7 +296,6 @@
   jakarta_id: 0
   level: 36
   manager_id: 86
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:52:19Z
 - account_id: 87
@@ -336,7 +306,6 @@
   jakarta_id: 0
   level: 36
   manager_id: 94
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:52:19Z
 - account_id: 99
@@ -347,7 +316,6 @@
   jakarta_id: 0
   level: 37
   manager_id: 96
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:54:35Z
 - account_id: 101
@@ -358,7 +326,6 @@
   jakarta_id: 0
   level: 37
   manager_id: 100
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:54:35Z
 - account_id: 98
@@ -369,7 +336,6 @@
   jakarta_id: 0
   level: 37
   manager_id: 104
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:54:35Z
 - account_id: 97
@@ -380,7 +346,6 @@
   jakarta_id: 0
   level: 37
   manager_id: 105
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:54:35Z
 - account_id: 95
@@ -391,7 +356,6 @@
   jakarta_id: 0
   level: 37
   manager_id: 108
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:54:35Z
 - account_id: 109
@@ -402,7 +366,6 @@
   jakarta_id: 0
   level: 37
   manager_id: 94
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:54:35Z
 - account_id: 116
@@ -413,7 +376,6 @@
   jakarta_id: 0
   level: 38
   manager_id: 117
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:56:47Z
 - account_id: 122
@@ -424,7 +386,6 @@
   jakarta_id: 0
   level: 38
   manager_id: 123
-  migrations_count: 0
   tags: 4
   timestamp: 2022-01-25T16:56:47Z
 - account_id: 110
@@ -435,7 +396,6 @@
   jakarta_id: 0
   level: 38
   manager_id: 124
-  migrations_count: 0
   tags: 4
   timestamp: 2022-01-25T16:56:47Z
 - account_id: 113
@@ -446,7 +406,6 @@
   jakarta_id: 0
   level: 38
   manager_id: 114
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:56:47Z
 - account_id: 111
@@ -457,7 +416,6 @@
   jakarta_id: 0
   level: 38
   manager_id: 112
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:56:47Z
 - account_id: 118
@@ -468,7 +426,6 @@
   jakarta_id: 0
   level: 38
   manager_id: 119
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T16:56:47Z
 - account_id: 120
@@ -479,7 +436,6 @@
   jakarta_id: 0
   level: 38
   manager_id: 115
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:56:47Z
 - account_id: 137
@@ -490,7 +446,6 @@
   jakarta_id: 0
   level: 39
   manager_id: 130
-  migrations_count: 0
   tags: 4
   timestamp: 2022-01-25T16:59:07Z
 - account_id: 132
@@ -501,7 +456,6 @@
   jakarta_id: 0
   level: 39
   manager_id: 126
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:59:07Z
 - account_id: 133
@@ -512,7 +466,6 @@
   jakarta_id: 0
   level: 39
   manager_id: 139
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:59:07Z
 - account_id: 129
@@ -523,7 +476,6 @@
   jakarta_id: 0
   level: 39
   manager_id: 135
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:59:07Z
 - account_id: 141
@@ -534,7 +486,6 @@
   jakarta_id: 0
   level: 39
   manager_id: 115
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T16:59:07Z
 - account_id: 156
@@ -545,7 +496,6 @@
   jakarta_id: 0
   level: 40
   manager_id: 158
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:01:51Z
 - account_id: 145
@@ -556,7 +506,6 @@
   jakarta_id: 0
   level: 40
   manager_id: 159
-  migrations_count: 0
   tags: 4
   timestamp: 2022-01-25T17:01:51Z
 - account_id: 146
@@ -567,7 +516,6 @@
   jakarta_id: 0
   level: 40
   manager_id: 157
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:01:51Z
 - account_id: 148
@@ -578,7 +526,6 @@
   jakarta_id: 0
   level: 40
   manager_id: 151
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:01:51Z
 - account_id: 160
@@ -589,7 +536,6 @@
   jakarta_id: 0
   level: 40
   manager_id: 149
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:01:51Z
 - account_id: 154
@@ -600,7 +546,6 @@
   jakarta_id: 0
   level: 40
   manager_id: 144
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:01:51Z
 - account_id: 150
@@ -611,7 +556,6 @@
   jakarta_id: 0
   level: 40
   manager_id: 147
-  migrations_count: 0
   tags: 256
   timestamp: 2022-01-25T17:01:51Z
 - account_id: 182
@@ -622,7 +566,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 167
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 188
@@ -633,7 +576,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 176
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 172
@@ -644,7 +586,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 190
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 168
@@ -655,7 +596,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 191
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 184
@@ -666,7 +606,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 185
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 162
@@ -677,7 +616,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 163
-  migrations_count: 0
   tags: 16
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 179
@@ -688,7 +626,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 180
-  migrations_count: 0
   tags: 16
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 164
@@ -699,7 +636,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 147
-  migrations_count: 0
   tags: 256
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 186
@@ -710,7 +646,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 169
-  migrations_count: 0
   tags: 192
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 187
@@ -721,7 +656,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 165
-  migrations_count: 0
   tags: 16640
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 166
@@ -732,7 +666,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 181
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 171
@@ -743,7 +676,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 174
-  migrations_count: 0
   tags: 16664
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 173
@@ -754,7 +686,6 @@
   jakarta_id: 0
   level: 41
   manager_id: 170
-  migrations_count: 0
   tags: 16664
   timestamp: 2022-01-25T17:04:35Z
 - account_id: 195
@@ -765,7 +696,6 @@
   jakarta_id: 0
   level: 42
   manager_id: 210
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:07:03Z
 - account_id: 211
@@ -776,7 +706,6 @@
   jakarta_id: 0
   level: 42
   manager_id: 212
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:07:03Z
 - account_id: 201
@@ -787,7 +716,6 @@
   jakarta_id: 0
   level: 42
   manager_id: 193
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:07:03Z
 - account_id: 196
@@ -798,7 +726,6 @@
   jakarta_id: 0
   level: 42
   manager_id: 213
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:07:03Z
 - account_id: 198
@@ -809,7 +736,6 @@
   jakarta_id: 0
   level: 42
   manager_id: 214
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:07:03Z
 - account_id: 199
@@ -820,7 +746,6 @@
   jakarta_id: 0
   level: 42
   manager_id: 207
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:07:03Z
 - account_id: 208
@@ -831,7 +756,6 @@
   jakarta_id: 0
   level: 42
   manager_id: 200
-  migrations_count: 0
   tags: 4
   timestamp: 2022-01-25T17:07:03Z
 - account_id: 197
@@ -842,7 +766,6 @@
   jakarta_id: 0
   level: 42
   manager_id: 209
-  migrations_count: 0
   tags: 16640
   timestamp: 2022-01-25T17:07:03Z
 - account_id: 205
@@ -853,7 +776,6 @@
   jakarta_id: 0
   level: 42
   manager_id: 206
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:07:03Z
 - account_id: 225
@@ -864,7 +786,6 @@
   jakarta_id: 0
   level: 43
   manager_id: 226
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:09:21Z
 - account_id: 218
@@ -875,7 +796,6 @@
   jakarta_id: 0
   level: 43
   manager_id: 221
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:09:21Z
 - account_id: 222
@@ -886,7 +806,6 @@
   jakarta_id: 0
   level: 43
   manager_id: 223
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:09:21Z
 - account_id: 227
@@ -897,7 +816,6 @@
   jakarta_id: 0
   level: 43
   manager_id: 219
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:09:21Z
 - account_id: 220
@@ -908,7 +826,6 @@
   jakarta_id: 0
   level: 43
   manager_id: 217
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:09:21Z
 - account_id: 228
@@ -919,7 +836,6 @@
   jakarta_id: 0
   level: 43
   manager_id: 215
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:09:21Z
 - account_id: 216
@@ -930,7 +846,6 @@
   jakarta_id: 0
   level: 43
   manager_id: 229
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:09:21Z
 - account_id: 232
@@ -941,7 +856,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 243
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 251
@@ -952,7 +866,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 244
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 245
@@ -963,7 +876,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 252
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 253
@@ -974,7 +886,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 246
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 254
@@ -985,7 +896,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 247
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 239
@@ -996,7 +906,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 233
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 248
@@ -1007,7 +916,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 234
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 249
@@ -1018,7 +926,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 240
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 250
@@ -1029,7 +936,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 236
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 241
@@ -1040,7 +946,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 237
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 238
@@ -1051,7 +956,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 230
-  migrations_count: 0
   tags: 16664
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 242
@@ -1062,7 +966,6 @@
   jakarta_id: 0
   level: 44
   manager_id: 235
-  migrations_count: 0
   tags: 16664
   timestamp: 2022-01-25T17:11:23Z
 - account_id: 283
@@ -1073,7 +976,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 270
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 272
@@ -1084,7 +986,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 280
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 279
@@ -1095,7 +996,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 267
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 261
@@ -1106,7 +1006,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 255
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 271
@@ -1117,7 +1016,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 268
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 278
@@ -1128,7 +1026,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 277
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 256
@@ -1139,7 +1036,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 262
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 257
@@ -1150,7 +1046,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 260
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 281
@@ -1161,7 +1056,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 263
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 273
@@ -1172,7 +1066,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 274
-  migrations_count: 0
   tags: 4
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 275
@@ -1183,7 +1076,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 236
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 269
@@ -1194,7 +1086,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 264
-  migrations_count: 0
   tags: 16640
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 265
@@ -1205,7 +1096,6 @@
   jakarta_id: 0
   level: 45
   manager_id: 276
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:13:29Z
 - account_id: 307
@@ -1216,7 +1106,6 @@
   jakarta_id: 0
   level: 47
   manager_id: 287
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:17:47Z
 - account_id: 303
@@ -1227,7 +1116,6 @@
   jakarta_id: 0
   level: 47
   manager_id: 295
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:17:47Z
 - account_id: 289
@@ -1238,7 +1126,6 @@
   jakarta_id: 0
   level: 47
   manager_id: 290
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:17:47Z
 - account_id: 291
@@ -1249,7 +1136,6 @@
   jakarta_id: 0
   level: 47
   manager_id: 288
-  migrations_count: 0
   tags: 4
   timestamp: 2022-01-25T17:17:47Z
 - account_id: 285
@@ -1260,7 +1146,6 @@
   jakarta_id: 0
   level: 47
   manager_id: 292
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:17:47Z
 - account_id: 286
@@ -1271,7 +1156,6 @@
   jakarta_id: 0
   level: 47
   manager_id: 301
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:17:47Z
 - account_id: 304
@@ -1282,7 +1166,6 @@
   jakarta_id: 0
   level: 47
   manager_id: 293
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:17:47Z
 - account_id: 302
@@ -1293,7 +1176,6 @@
   jakarta_id: 0
   level: 47
   manager_id: 294
-  migrations_count: 0
   tags: 8192
   timestamp: 2022-01-25T17:17:47Z
 - account_id: 297
@@ -1304,7 +1186,6 @@
   jakarta_id: 0
   level: 47
   manager_id: 268
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:17:47Z
 - account_id: 298
@@ -1315,7 +1196,6 @@
   jakarta_id: 0
   level: 47
   manager_id: 305
-  migrations_count: 0
   tags: 16640
   timestamp: 2022-01-25T17:17:47Z
 - account_id: 300
@@ -1326,6 +1206,5 @@
   jakarta_id: 0
   level: 47
   manager_id: 296
-  migrations_count: 0
   tags: 0
   timestamp: 2022-01-25T17:17:47Z

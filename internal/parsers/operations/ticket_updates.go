@@ -38,9 +38,10 @@ func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *opera
 			Level:     operation.Level,
 			Timestamp: operation.Timestamp,
 			Ticketer: account.Account{
-				Address: data.TicketToken.Ticketer,
-				Type:    types.NewAccountType(data.TicketToken.Ticketer),
-				Level:   operation.Level,
+				Address:            data.TicketToken.Ticketer,
+				Type:               types.NewAccountType(data.TicketToken.Ticketer),
+				Level:              operation.Level,
+				TicketUpdatesCount: 1,
 			},
 			ContentType: data.TicketToken.ContentType,
 			Content:     data.TicketToken.Content,

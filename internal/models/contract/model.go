@@ -25,8 +25,7 @@ type Contract struct {
 	DelegateID int64
 	Delegate   account.Account `bun:"rel:belongs-to"`
 
-	MigrationsCount int64
-	Tags            types.Tags
+	Tags types.Tags
 
 	AlphaID   int64
 	Alpha     Script `bun:"rel:belongs-to"`

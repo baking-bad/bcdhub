@@ -167,7 +167,11 @@ func (s *StorageTestSuite) TestUpdateAccountStats() {
 
 	ts := time.Now().UTC()
 
-	err = saver.UpdateAccountStats(ctx, 43, ts, 1)
+	err = saver.UpdateAccountStats(ctx, account.Account{
+		ID:              43,
+		LastAction:      ts,
+		OperationsCount: 1,
+	})
 	s.Require().NoError(err)
 
 	err = saver.Commit()
@@ -210,9 +214,9 @@ func (s *StorageTestSuite) TestRollbackUpdateStats() {
 	err = saver.UpdateStats(ctx, stats.Stats{
 		ID:                1,
 		ContractsCount:    1,
-		OperationsCount:   4,
-		OriginationsCount: 1,
-		TransactionsCount: 1,
+		OperationsCount:   188,
+		OriginationsCount: 119,
+		TransactionsCount: 71,
 		EventsCount:       1,
 	})
 	s.Require().NoError(err)
@@ -223,10 +227,28 @@ func (s *StorageTestSuite) TestRollbackUpdateStats() {
 	var stats stats.Stats
 	err = s.storage.DB.NewSelect().Model(&stats).Limit(1).Scan(ctx)
 	s.Require().NoError(err)
-	s.Require().EqualValues(119, stats.ContractsCount)
+	s.Require().EqualValues(1, stats.ContractsCount)
 	s.Require().EqualValues(188, stats.OperationsCount)
 	s.Require().EqualValues(71, stats.TransactionsCount)
-	s.Require().EqualValues(117, stats.OriginationsCount)
+	s.Require().EqualValues(119, stats.OriginationsCount)
 	s.Require().EqualValues(1, stats.EventsCount)
 	s.Require().EqualValues(0, stats.SrOriginationsCount)
+}
+
+func (s *StorageTestSuite) TestGetMigrations() {
+	saver, err := postgres.NewRollback(s.storage.DB)
+	s.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	migrations, err := saver.GetMigrations(ctx, 2)
+	s.Require().NoError(err)
+
+	err = saver.Commit()
+	s.Require().NoError(err)
+	s.Require().Len(migrations, 3)
+
+	migration := migrations[0]
+	s.Require().EqualValues(1, migration.Contract.AccountID)
 }

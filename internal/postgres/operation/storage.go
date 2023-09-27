@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/uptrace/bun"
 )
@@ -286,20 +285,12 @@ func (storage *Storage) ListEvents(ctx context.Context, accountID int64, size, o
 	return
 }
 
-// EventsCount -
-func (storage *Storage) EventsCount(ctx context.Context, accountID int64) (int, error) {
-	return storage.DB.NewSelect().Model((*operation.Operation)(nil)).
-		Where("source_id = ?", accountID).
-		Where("kind = 7").
-		Count(ctx)
-}
-
 // Origination -
 func (storage *Storage) Origination(ctx context.Context, accountID int64) (result operation.Operation, err error) {
 	err = storage.DB.NewSelect().
 		Model(&result).
 		Where("destination_id = ?", accountID).
-		Where("kind = ?", types.OperationKindOrigination).
+		Where("kind = 2").
 		Limit(1).
 		Scan(ctx)
 	return result, err

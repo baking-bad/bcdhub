@@ -63,6 +63,7 @@ func (p *Alpha) Parse(ctx context.Context, script noderpc.Script, old *modelsCon
 
 	m := &migration.Migration{
 		ContractID:     old.ID,
+		Contract:       *old,
 		Level:          next.StartLevel,
 		ProtocolID:     next.ID,
 		PrevProtocolID: previous.ID,

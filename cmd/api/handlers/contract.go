@@ -143,25 +143,13 @@ func contractWithStatsPostprocessing(c context.Context, ctx *config.Context, con
 	if err != nil {
 		return ContractWithStats{}, err
 	}
-	res := ContractWithStats{contract, 0, 0, false}
-
-	eventsCount, err := ctx.Operations.EventsCount(c, contractModel.AccountID)
-	if err != nil {
-		return res, err
-	}
-	res.EventsCount = eventsCount
+	res := ContractWithStats{contract, 0}
 
 	stats, err := ctx.Domains.SameCount(c, contractModel, ctx.Config.API.Networks...)
 	if err != nil {
 		return res, err
 	}
 	res.SameCount += int64(stats)
-
-	hasTicketUpdates, err := ctx.TicketUpdates.Has(c, contractModel.AccountID)
-	if err != nil {
-		return res, err
-	}
-	res.HasTicketUpdates = hasTicketUpdates
 
 	return res, nil
 }

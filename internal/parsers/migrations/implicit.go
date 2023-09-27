@@ -63,6 +63,9 @@ func (p *ImplicitParser) IsMigratable(address string) bool {
 }
 
 func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.ImplicitOperationsResult, head noderpc.Header, store parsers.Store) error {
+	if len(implicit.OriginatedContracts) == 0 {
+		return nil
+	}
 	if _, err := p.contractsRepo.Get(ctx, implicit.OriginatedContracts[0]); err == nil {
 		return nil
 	}
@@ -77,6 +80,7 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 			Level:           head.Level,
 			OperationsCount: 1,
 			LastAction:      head.Timestamp,
+			MigrationsCount: 1,
 		},
 		ConsumedGas:         implicit.ConsumedGas,
 		PaidStorageSizeDiff: implicit.PaidStorageSizeDiff,
@@ -102,7 +106,7 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 				Level:      head.Level,
 				Timestamp:  head.Timestamp,
 				Kind:       types.MigrationKindBootstrap,
-				Contract:   contracts[i],
+				Contract:   *contracts[i],
 			})
 			break
 		}

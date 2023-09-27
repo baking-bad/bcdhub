@@ -39,45 +39,6 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// EventsCount mocks base method.
-func (m *MockRepository) EventsCount(ctx context.Context, accountID int64) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EventsCount", ctx, accountID)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EventsCount indicates an expected call of EventsCount.
-func (mr *MockRepositoryMockRecorder) EventsCount(ctx, accountID any) *RepositoryEventsCountCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventsCount", reflect.TypeOf((*MockRepository)(nil).EventsCount), ctx, accountID)
-	return &RepositoryEventsCountCall{Call: call}
-}
-
-// RepositoryEventsCountCall wrap *gomock.Call
-type RepositoryEventsCountCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryEventsCountCall) Return(arg0 int, arg1 error) *RepositoryEventsCountCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryEventsCountCall) Do(f func(context.Context, int64) (int, error)) *RepositoryEventsCountCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryEventsCountCall) DoAndReturn(f func(context.Context, int64) (int, error)) *RepositoryEventsCountCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // GetByHash mocks base method.
 func (m *MockRepository) GetByHash(ctx context.Context, hash []byte) ([]operation.Operation, error) {
 	m.ctrl.T.Helper()

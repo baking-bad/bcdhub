@@ -64,6 +64,7 @@ func (p *Carthage) Parse(ctx context.Context, script noderpc.Script, old *models
 
 	m := &migration.Migration{
 		ContractID:     old.ID,
+		Contract:       *old,
 		Level:          next.StartLevel,
 		ProtocolID:     next.ID,
 		PrevProtocolID: previous.ID,

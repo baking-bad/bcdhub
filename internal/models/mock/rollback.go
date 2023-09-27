@@ -11,11 +11,12 @@ package mock
 import (
 	context "context"
 	reflect "reflect"
-	time "time"
 
 	models "github.com/baking-bad/bcdhub/internal/models"
+	account "github.com/baking-bad/bcdhub/internal/models/account"
 	bigmapdiff "github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	contract "github.com/baking-bad/bcdhub/internal/models/contract"
+	migration "github.com/baking-bad/bcdhub/internal/models/migration"
 	operation "github.com/baking-bad/bcdhub/internal/models/operation"
 	stats "github.com/baking-bad/bcdhub/internal/models/stats"
 	gomock "go.uber.org/mock/gomock"
@@ -237,6 +238,45 @@ func (c *RollbackGetLastActionCall) Do(f func(context.Context, ...int64) ([]mode
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *RollbackGetLastActionCall) DoAndReturn(f func(context.Context, ...int64) ([]models.LastAction, error)) *RollbackGetLastActionCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetMigrations mocks base method.
+func (m *MockRollback) GetMigrations(ctx context.Context, level int64) ([]migration.Migration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMigrations", ctx, level)
+	ret0, _ := ret[0].([]migration.Migration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMigrations indicates an expected call of GetMigrations.
+func (mr *MockRollbackMockRecorder) GetMigrations(ctx, level any) *RollbackGetMigrationsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMigrations", reflect.TypeOf((*MockRollback)(nil).GetMigrations), ctx, level)
+	return &RollbackGetMigrationsCall{Call: call}
+}
+
+// RollbackGetMigrationsCall wrap *gomock.Call
+type RollbackGetMigrationsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *RollbackGetMigrationsCall) Return(arg0 []migration.Migration, arg1 error) *RollbackGetMigrationsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *RollbackGetMigrationsCall) Do(f func(context.Context, int64) ([]migration.Migration, error)) *RollbackGetMigrationsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *RollbackGetMigrationsCall) DoAndReturn(f func(context.Context, int64) ([]migration.Migration, error)) *RollbackGetMigrationsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -551,17 +591,17 @@ func (c *RollbackStatesChangedAtLevelCall) DoAndReturn(f func(context.Context, i
 }
 
 // UpdateAccountStats mocks base method.
-func (m *MockRollback) UpdateAccountStats(ctx context.Context, accountId int64, lastAction time.Time, txCount int64) error {
+func (m *MockRollback) UpdateAccountStats(ctx context.Context, account account.Account) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateAccountStats", ctx, accountId, lastAction, txCount)
+	ret := m.ctrl.Call(m, "UpdateAccountStats", ctx, account)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateAccountStats indicates an expected call of UpdateAccountStats.
-func (mr *MockRollbackMockRecorder) UpdateAccountStats(ctx, accountId, lastAction, txCount any) *RollbackUpdateAccountStatsCall {
+func (mr *MockRollbackMockRecorder) UpdateAccountStats(ctx, account any) *RollbackUpdateAccountStatsCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccountStats", reflect.TypeOf((*MockRollback)(nil).UpdateAccountStats), ctx, accountId, lastAction, txCount)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccountStats", reflect.TypeOf((*MockRollback)(nil).UpdateAccountStats), ctx, account)
 	return &RollbackUpdateAccountStatsCall{Call: call}
 }
 
@@ -577,13 +617,13 @@ func (c *RollbackUpdateAccountStatsCall) Return(arg0 error) *RollbackUpdateAccou
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RollbackUpdateAccountStatsCall) Do(f func(context.Context, int64, time.Time, int64) error) *RollbackUpdateAccountStatsCall {
+func (c *RollbackUpdateAccountStatsCall) Do(f func(context.Context, account.Account) error) *RollbackUpdateAccountStatsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RollbackUpdateAccountStatsCall) DoAndReturn(f func(context.Context, int64, time.Time, int64) error) *RollbackUpdateAccountStatsCall {
+func (c *RollbackUpdateAccountStatsCall) DoAndReturn(f func(context.Context, account.Account) error) *RollbackUpdateAccountStatsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

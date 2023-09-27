@@ -24,19 +24,6 @@ func (s *StorageTestSuite) TestTicketGet() {
 	s.Require().NotEmpty(update.ContentType)
 }
 
-func (s *StorageTestSuite) TestTicketHas() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	ok, err := s.ticketUpdates.Has(ctx, 133)
-	s.Require().NoError(err)
-	s.Require().True(ok)
-
-	ok, err = s.ticketUpdates.Has(ctx, 1)
-	s.Require().NoError(err)
-	s.Require().False(ok)
-}
-
 func (s *StorageTestSuite) TestTicketForOperation() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

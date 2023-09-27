@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/mock"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
 	mock_stats "github.com/baking-bad/bcdhub/internal/models/mock/stats"
@@ -44,13 +45,14 @@ func TestManager_Rollback(t *testing.T) {
 	statsRepo.EXPECT().
 		Get(gomock.Any()).
 		Return(stats.Stats{
-			ID:                  1,
-			ContractsCount:      100,
-			OperationsCount:     100,
-			EventsCount:         10,
-			TransactionsCount:   70,
-			OriginationsCount:   10,
-			SrOriginationsCount: 10,
+			ID:                   1,
+			ContractsCount:       100,
+			OperationsCount:      100,
+			EventsCount:          10,
+			TransactionsCount:    70,
+			OriginationsCount:    10,
+			SrOriginationsCount:  10,
+			TransferTicketsCount: 11,
 		}, nil).
 		Times(1)
 
@@ -127,6 +129,29 @@ func TestManager_Rollback(t *testing.T) {
 				},
 				SourceID: 3,
 				Kind:     types.OperationKindTransaction,
+			}, {
+				Source: account.Account{
+					ID:      1,
+					Address: "address_1",
+					Type:    types.AccountTypeContract,
+				},
+				SourceID: 1,
+				Kind:     types.OperationKindEvent,
+			}, {
+				Destination: account.Account{
+					ID:      1,
+					Address: "address_1",
+					Type:    types.AccountTypeContract,
+				},
+				DestinationID: 1,
+				Source: account.Account{
+					ID:      3,
+					Address: "address_3",
+					Type:    types.AccountTypeTz,
+				},
+				SourceID:           3,
+				Kind:               types.OperationKindTransferTicket,
+				TicketUpdatesCount: 2,
 			},
 		}, nil).
 		Times(1)
@@ -134,6 +159,18 @@ func TestManager_Rollback(t *testing.T) {
 	rb.EXPECT().
 		DeleteAll(gomock.Any(), (*operation.Operation)(nil), level).
 		Return(5, nil).
+		Times(1)
+
+	rb.EXPECT().
+		GetMigrations(gomock.Any(), level).
+		Return([]migration.Migration{
+			{
+				ContractID: 1,
+				Contract: contract.Contract{
+					AccountID: 1,
+				},
+			},
+		}, nil).
 		Times(1)
 
 	ts := time.Now().UTC()
@@ -144,6 +181,12 @@ func TestManager_Rollback(t *testing.T) {
 				AccountId: 4,
 				Time:      ts,
 			}, {
+				AccountId: 3,
+				Time:      ts,
+			}, {
+				AccountId: 2,
+				Time:      ts,
+			}, {
 				AccountId: 1,
 				Time:      ts,
 			},
@@ -151,13 +194,41 @@ func TestManager_Rollback(t *testing.T) {
 		Times(1)
 
 	rb.EXPECT().
-		UpdateAccountStats(gomock.Any(), int64(4), ts, int64(1)).
+		UpdateAccountStats(gomock.Any(), account.Account{
+			ID:              4,
+			LastAction:      ts,
+			OperationsCount: 1,
+		}).
 		Return(nil).
 		Times(1)
 
 	rb.EXPECT().
-		UpdateAccountStats(gomock.Any(), int64(1), ts, int64(3)).
+		UpdateAccountStats(gomock.Any(), account.Account{
+			ID:              3,
+			LastAction:      ts,
+			OperationsCount: 4,
+		}).
 		Return(nil).
+		Times(1)
+
+	rb.EXPECT().
+		UpdateAccountStats(gomock.Any(), account.Account{
+			ID:              2,
+			LastAction:      ts,
+			OperationsCount: 3,
+		}).
+		Return(nil).
+		Times(1)
+
+	rb.EXPECT().
+		UpdateAccountStats(gomock.Any(), account.Account{
+			ID:                 1,
+			LastAction:         ts,
+			OperationsCount:    5,
+			MigrationsCount:    1,
+			EventsCount:        1,
+			TicketUpdatesCount: 2,
+		}).
 		Times(1)
 
 	rb.EXPECT().
@@ -279,13 +350,14 @@ func TestManager_Rollback(t *testing.T) {
 
 	rb.EXPECT().
 		UpdateStats(gomock.Any(), stats.Stats{
-			ID:                  1,
-			ContractsCount:      100,
-			OperationsCount:     95,
-			EventsCount:         10,
-			TransactionsCount:   66,
-			OriginationsCount:   9,
-			SrOriginationsCount: 10,
+			ID:                   1,
+			ContractsCount:       100,
+			OperationsCount:      95,
+			EventsCount:          9,
+			TransactionsCount:    66,
+			OriginationsCount:    9,
+			SrOriginationsCount:  10,
+			TransferTicketsCount: 10,
 		}).
 		Return(nil).
 		Times(1)

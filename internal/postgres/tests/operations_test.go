@@ -209,12 +209,3 @@ func (s *StorageTestSuite) TestOperationListEvents() {
 	s.Require().NotEmpty(operation.PayloadType)
 	s.Require().Equal(testsuite.MustHexDecode("3006fe3748e23bee8499ddd4ef69c3f910b1de0aa04080cc5be242b5123c1207"), operation.Hash)
 }
-
-func (s *StorageTestSuite) TestOperationEventsCount() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	count, err := s.operations.EventsCount(ctx, 37)
-	s.Require().NoError(err)
-	s.Require().EqualValues(count, 2)
-}

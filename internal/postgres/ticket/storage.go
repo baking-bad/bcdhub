@@ -37,27 +37,6 @@ func (storage *Storage) Get(ctx context.Context, ticketer string, limit, offset 
 	return
 }
 
-// Has -
-func (storage *Storage) Has(ctx context.Context, contractID int64) (bool, error) {
-	var id int64
-	err := storage.DB.
-		NewSelect().
-		Model((*ticket.TicketUpdate)(nil)).
-		Column("id").
-		Where("ticketer_id = ?", contractID).
-		OrderExpr("id ASC").
-		Limit(1).
-		Scan(ctx, &id)
-
-	if err != nil {
-		if storage.IsRecordNotFound(err) {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
-}
-
 // ForOperation -
 func (storage *Storage) ForOperation(ctx context.Context, operationId int64) (response []ticket.TicketUpdate, err error) {
 	err = storage.DB.

@@ -158,17 +158,20 @@ func (s *StorageTestSuite) TestAccounts() {
 
 	sc := []*account.Account{
 		{
-			Address: "address_1",
-			Type:    types.AccountTypeContract,
-			Level:   100,
+			Address:            "address_1",
+			Type:               types.AccountTypeContract,
+			Level:              100,
+			TicketUpdatesCount: 2,
 		}, {
-			Address: "address_12",
-			Type:    types.AccountTypeSmartRollup,
-			Level:   100,
+			Address:         "address_12",
+			Type:            types.AccountTypeSmartRollup,
+			Level:           100,
+			MigrationsCount: 2,
 		}, {
-			Address: "address_2",
-			Type:    types.AccountTypeTz,
-			Level:   100,
+			Address:     "address_2",
+			Type:        types.AccountTypeTz,
+			Level:       100,
+			EventsCount: 2,
 		},
 	}
 	err = tx.Accounts(ctx, sc...)

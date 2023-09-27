@@ -20,7 +20,7 @@ type Migration struct {
 	Level          int64
 	Kind           types.MigrationKind `bun:"kind,type:SMALLINT"`
 	ContractID     int64
-	Contract       *contract.Contract `bun:"rel:belongs-to"`
+	Contract       contract.Contract `bun:"rel:belongs-to"`
 }
 
 // GetID -

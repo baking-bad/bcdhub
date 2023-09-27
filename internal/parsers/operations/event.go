@@ -28,6 +28,7 @@ func (p Event) Parse(ctx context.Context, data noderpc.Operation, store parsers.
 		Level:           p.head.Level,
 		OperationsCount: 1,
 		LastAction:      p.head.Timestamp,
+		EventsCount:     1,
 	}
 
 	event := operation.Operation{

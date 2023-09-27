@@ -61,6 +61,7 @@ func TestMigration_Parse(t *testing.T) {
 				Timestamp:  timestamp,
 				Hash:       []byte("hash"),
 				Kind:       types.MigrationKindLambda,
+				Contract:   contract.Contract{},
 			},
 		},
 	}
@@ -72,7 +73,7 @@ func TestMigration_Parse(t *testing.T) {
 
 			contractRepo.
 				EXPECT().
-				Get(gomock.Any(), gomock.Eq(tt.operation.Destination.Address)).
+				Get(gomock.Any(), tt.operation.Destination.Address).
 				Return(contract.Contract{}, nil).
 				AnyTimes()
 

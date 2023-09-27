@@ -33,27 +33,27 @@ type Operation struct {
 	PaidStorageSizeDiff                int64
 	Burned                             int64
 	AllocatedDestinationContractBurned int64
-	ProtocolID                         int64 `bun:",type:SMALLINT"`
+	ProtocolID                         int64 `bun:"protocol_id,type:SMALLINT"`
 	TicketUpdatesCount                 int
 	BigMapDiffsCount                   int
 	Tags                               types.Tags
-	Nonce                              *int64
+	Nonce                              *int64 `bun:"nonce,nullzero"`
 
 	InitiatorID   int64
-	Initiator     account.Account `bun:",rel:belongs-to"`
+	Initiator     account.Account `bun:"rel:belongs-to"`
 	SourceID      int64
-	Source        account.Account `bun:",rel:belongs-to"`
+	Source        account.Account `bun:"rel:belongs-to"`
 	DestinationID int64
-	Destination   account.Account `bun:",rel:belongs-to"`
+	Destination   account.Account `bun:"rel:belongs-to"`
 	DelegateID    int64
-	Delegate      account.Account `bun:",rel:belongs-to"`
+	Delegate      account.Account `bun:"rel:belongs-to"`
 
 	Timestamp time.Time             `bun:"timestamp,pk,notnull"`
-	Status    types.OperationStatus `bun:",type:SMALLINT"`
-	Kind      types.OperationKind   `bun:",type:SMALLINT"`
+	Status    types.OperationStatus `bun:"status,type:SMALLINT"`
+	Kind      types.OperationKind   `bun:"kind,type:SMALLINT"`
 
-	Entrypoint      types.NullString `bun:",type:text"`
-	Tag             types.NullString `bun:",type:text"`
+	Entrypoint      types.NullString `bun:"entrypoint,type:text"`
+	Tag             types.NullString `bun:"tag,type:text"`
 	Hash            []byte
 	Parameters      []byte
 	DeffatedStorage []byte
@@ -61,7 +61,7 @@ type Operation struct {
 	PayloadType     []byte
 	Script          []byte `bun:"-"`
 
-	Errors tezerrors.Errors `bun:",type:bytea"`
+	Errors tezerrors.Errors `bun:"errors,type:bytea"`
 
 	AST *ast.Script `bun:"-"`
 

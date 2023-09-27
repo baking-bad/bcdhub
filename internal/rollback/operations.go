@@ -5,11 +5,10 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
-func (rm Manager) rollbackOperations(ctx context.Context, level int64, stats *stats.Stats) error {
+func (rm Manager) rollbackOperations(ctx context.Context, level int64, rCtx *rollbackContext) error {
 	logger.Info().Msg("rollback operations...")
 
 	ops, err := rm.rollback.GetOperations(ctx, level)
@@ -24,61 +23,45 @@ func (rm Manager) rollbackOperations(ctx context.Context, level int64, stats *st
 	if err != nil {
 		return err
 	}
-	stats.OperationsCount -= count
+	rCtx.generalStats.OperationsCount -= count
 
-	accounts := make(map[int64]int64)
 	for i := range ops {
 		if !ops[i].Destination.IsEmpty() {
-			if _, ok := accounts[ops[i].DestinationID]; !ok {
-				accounts[ops[i].DestinationID] = 1
-			} else {
-				accounts[ops[i].DestinationID] += 1
-			}
+			rCtx.applyOperationsCount(ops[i].DestinationID, 1)
+			rCtx.applyTicketUpdates(ops[i].DestinationID, int64(ops[i].TicketUpdatesCount))
 		}
 
 		if !ops[i].Source.IsEmpty() {
-			if _, ok := accounts[ops[i].SourceID]; !ok {
-				accounts[ops[i].SourceID] = 1
-			} else {
-				accounts[ops[i].SourceID] += 1
-			}
+			rCtx.applyOperationsCount(ops[i].SourceID, 1)
 		}
 
 		switch ops[i].Kind {
 		case types.OperationKindEvent:
-			stats.EventsCount -= 1
+			rCtx.generalStats.EventsCount -= 1
+			rCtx.applyEvent(ops[i].SourceID)
+
 		case types.OperationKindOrigination:
-			stats.OriginationsCount -= 1
+			rCtx.generalStats.OriginationsCount -= 1
+
 		case types.OperationKindSrOrigination:
-			stats.SrOriginationsCount -= 1
+			rCtx.generalStats.SrOriginationsCount -= 1
+
 		case types.OperationKindTransaction:
-			stats.TransactionsCount -= 1
+			rCtx.generalStats.TransactionsCount -= 1
+
+		case types.OperationKindRegisterGlobalConstant:
+			rCtx.generalStats.RegisterGlobalConstantCount -= 1
+
+		case types.OperationKindSrExecuteOutboxMessage:
+			rCtx.generalStats.SrExecutesCount -= 1
+
+		case types.OperationKindTransferTicket:
+			rCtx.generalStats.TransferTicketsCount -= 1
 		}
 	}
 
-	if len(accounts) == 0 {
-		return nil
-	}
-
-	addresses := make([]int64, 0, len(accounts))
-	for address := range accounts {
-		addresses = append(addresses, address)
-	}
-
-	actions, err := rm.rollback.GetLastAction(ctx, addresses...)
-	if err != nil {
+	if err := rCtx.getLastActions(ctx, rm.rollback); err != nil {
 		return err
-	}
-
-	for i := range actions {
-		count, ok := accounts[actions[i].AccountId]
-		if !ok {
-			count = 1
-		}
-
-		if err := rm.rollback.UpdateAccountStats(ctx, actions[i].AccountId, actions[i].Time, count); err != nil {
-			return err
-		}
 	}
 
 	return nil

@@ -13,5 +13,4 @@ type Repository interface {
 	Origination(ctx context.Context, accountID int64) (Operation, error)
 	GetByID(ctx context.Context, id int64) (Operation, error)
 	ListEvents(ctx context.Context, accountID int64, size, offset int64) ([]Operation, error)
-	EventsCount(ctx context.Context, accountID int64) (int, error)
 }

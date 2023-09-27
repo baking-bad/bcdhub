@@ -96,6 +96,7 @@ func (m Migration) fromLazyStorageDiff(ctx context.Context, data noderpc.Operati
 				return err
 			}
 			if migration != nil {
+				operation.Destination.MigrationsCount += 1
 				store.AddMigrations(migration)
 				logger.Info().Fields(migration.LogFields()).Msg("Migration detected")
 			}
@@ -125,6 +126,7 @@ func (m Migration) fromBigMapDiffs(ctx context.Context, data noderpc.Operation, 
 			return err
 		}
 		if migration != nil {
+			operation.Destination.MigrationsCount += 1
 			store.AddMigrations(migration)
 			logger.Info().Fields(migration.LogFields()).Msg("Migration detected")
 		}
@@ -155,6 +157,7 @@ func (m Migration) createMigration(ctx context.Context, value []byte, operation 
 	}
 	return &migration.Migration{
 		ContractID: c.ID,
+		Contract:   c,
 		Level:      operation.Level,
 		ProtocolID: operation.ProtocolID,
 		Timestamp:  operation.Timestamp,

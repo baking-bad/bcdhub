@@ -115,6 +115,7 @@ func (p *Jakarta) Parse(ctx context.Context, script noderpc.Script, old *modelsC
 
 	m := &migration.Migration{
 		ContractID:     old.ID,
+		Contract:       *old,
 		Level:          next.StartLevel,
 		ProtocolID:     next.ID,
 		PrevProtocolID: previous.ID,

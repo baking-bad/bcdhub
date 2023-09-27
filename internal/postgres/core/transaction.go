@@ -94,9 +94,12 @@ func (t Transaction) Accounts(ctx context.Context, accounts ...*account.Account)
 		return nil
 	}
 	_, err := t.tx.NewInsert().Model(&accounts).
-		Column("address", "level", "type", "operations_count", "last_action").
+		Column("address", "level", "type", "operations_count", "last_action", "events_count", "migrations_count", "ticket_updates_count").
 		On("CONFLICT ON CONSTRAINT address_hash DO UPDATE").
 		Set("operations_count = EXCLUDED.operations_count + account.operations_count").
+		Set("events_count = EXCLUDED.events_count + account.events_count").
+		Set("migrations_count = EXCLUDED.migrations_count + account.migrations_count").
+		Set("ticket_updates_count = EXCLUDED.ticket_updates_count + account.ticket_updates_count").
 		Set("last_action = EXCLUDED.last_action").
 		Returning("id").
 		Exec(ctx)

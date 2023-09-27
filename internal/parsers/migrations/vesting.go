@@ -42,9 +42,10 @@ func (p *VestingParser) Parse(ctx context.Context, data noderpc.ContractData, he
 			Level:   head.Level,
 		},
 		Destination: account.Account{
-			Address: address,
-			Type:    types.NewAccountType(address),
-			Level:   head.Level,
+			Address:         address,
+			Type:            types.NewAccountType(address),
+			Level:           head.Level,
+			MigrationsCount: 1,
 		},
 		Delegate: account.Account{
 			Address: data.Delegate.Value,
@@ -73,7 +74,7 @@ func (p *VestingParser) Parse(ctx context.Context, data noderpc.ContractData, he
 				ProtocolID: p.protocol.ID,
 				Timestamp:  head.Timestamp,
 				Kind:       types.MigrationKindBootstrap,
-				Contract:   contracts[i],
+				Contract:   *contracts[i],
 			})
 			break
 		}

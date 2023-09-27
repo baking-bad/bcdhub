@@ -177,7 +177,6 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Delegate = contract.Delegate.Address
 	c.Level = contract.Level
 	c.Manager = contract.Manager.Address
-	c.MigrationsCount = contract.MigrationsCount
 	c.Tags = contract.Tags.ToArray()
 	c.Timestamp = contract.Timestamp
 
@@ -200,9 +199,7 @@ func (c *Contract) FromModel(contract contract.Contract) {
 type ContractWithStats struct {
 	Contract
 
-	SameCount        int64 `json:"same_count"`
-	EventsCount      int   `json:"events_count"`
-	HasTicketUpdates bool  `json:"has_ticket_updates"`
+	SameCount int64 `json:"same_count"`
 }
 
 // RecentlyCalledContract -
@@ -459,11 +456,14 @@ type Screenshot struct {
 
 // AccountInfo -
 type AccountInfo struct {
-	Address         string    `json:"address"`
-	Balance         int64     `json:"balance"`
-	OperationsCount int64     `json:"operations_count"`
-	LastAction      time.Time `json:"last_action"`
-	AccountType     string    `json:"account_type"`
+	Address            string    `json:"address"`
+	Balance            int64     `json:"balance"`
+	OperationsCount    int64     `json:"operations_count"`
+	MigrationsCount    int64     `json:"migrations_count"`
+	EventsCount        int64     `json:"events_count"`
+	TicketUpdatesCount int64     `json:"ticket_updates_count"`
+	LastAction         time.Time `json:"last_action"`
+	AccountType        string    `json:"account_type"`
 }
 
 // CountResponse -

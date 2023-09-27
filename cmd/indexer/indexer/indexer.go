@@ -20,6 +20,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/protocols"
 	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/baking-bad/bcdhub/internal/postgres/store"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 	"github.com/dipdup-io/workerpool"
 	"github.com/pkg/errors"
@@ -292,7 +293,7 @@ func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) erro
 }
 
 func (bi *BlockchainIndexer) parseAndSaveBlock(ctx context.Context, block *Block) error {
-	store := postgres.NewStore(bi.StorageDB.DB, bi.Stats)
+	store := store.NewStore(bi.StorageDB.DB, bi.Stats)
 	if err := bi.parseImplicitOperations(ctx, block, bi.currentProtocol, store); err != nil {
 		return err
 	}

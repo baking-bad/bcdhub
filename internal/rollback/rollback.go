@@ -67,12 +67,12 @@ func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState
 }
 
 func (rm Manager) rollbackBlock(ctx context.Context, level int64) error {
-	stats, err := rm.statsRepo.Get(ctx)
+	rollbackCtx, err := newRollbackContext(ctx, rm.statsRepo)
 	if err != nil {
 		return err
 	}
 
-	if err := rm.rollbackOperations(ctx, level, &stats); err != nil {
+	if err := rm.rollbackOperations(ctx, level, &rollbackCtx); err != nil {
 		return err
 	}
 	if err := rm.rollbackBigMapState(ctx, level); err != nil {
@@ -81,26 +81,48 @@ func (rm Manager) rollbackBlock(ctx context.Context, level int64) error {
 	if err := rm.rollbackScripts(ctx, level); err != nil {
 		return err
 	}
-	if err := rm.rollbackAll(ctx, level, &stats); err != nil {
+	if err := rm.rollbackMigrations(ctx, level, &rollbackCtx); err != nil {
+		return err
+	}
+	if err := rm.rollbackAll(ctx, level, &rollbackCtx); err != nil {
 		return err
 	}
 	if err := rm.rollback.Protocols(ctx, level); err != nil {
 		return err
 	}
-	if err := rm.rollback.UpdateStats(ctx, stats); err != nil {
+	if err := rollbackCtx.update(ctx, rm.rollback); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (rm Manager) rollbackAll(ctx context.Context, level int64, stats *stats.Stats) error {
+func (rm Manager) rollbackMigrations(ctx context.Context, level int64, rCtx *rollbackContext) error {
+	migrations, err := rm.rollback.GetMigrations(ctx, level)
+	if err != nil {
+		return nil
+	}
+	if len(migrations) == 0 {
+		return nil
+	}
+
+	for i := range migrations {
+		rCtx.applyMigration(migrations[i].Contract.AccountID)
+	}
+
+	if _, err := rm.rollback.DeleteAll(ctx, (*migration.Migration)(nil), level); err != nil {
+		return err
+	}
+	logger.Info().Msg("rollback migrations")
+	return nil
+}
+
+func (rm Manager) rollbackAll(ctx context.Context, level int64, rCtx *rollbackContext) error {
 	for _, model := range []models.Model{
 		(*block.Block)(nil),
 		(*bigmapdiff.BigMapDiff)(nil),
 		(*bigmapaction.BigMapAction)(nil),
 		(*smartrollup.SmartRollup)(nil),
 		(*ticket.TicketUpdate)(nil),
-		(*migration.Migration)(nil),
 		(*account.Account)(nil),
 	} {
 		if _, err := rm.rollback.DeleteAll(ctx, model, level); err != nil {
@@ -113,7 +135,7 @@ func (rm Manager) rollbackAll(ctx context.Context, level int64, stats *stats.Sta
 	if err != nil {
 		return err
 	}
-	stats.ContractsCount -= contractsCount
+	rCtx.generalStats.ContractsCount -= contractsCount
 	logger.Info().Msgf("rollback contracts")
 
 	return nil

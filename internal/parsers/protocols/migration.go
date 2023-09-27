@@ -11,7 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/migrations"
-	"github.com/baking-bad/bcdhub/internal/postgres"
+	"github.com/baking-bad/bcdhub/internal/postgres/store"
 	"github.com/pkg/errors"
 )
 
@@ -124,7 +124,7 @@ func (m Migration) vestingMigration(ctx context.Context, tx models.Transaction, 
 	}
 
 	p := migrations.NewVestingParser(m.ctx, specific.ContractParser, currentProtocol)
-	store := postgres.NewStore(m.ctx.StorageDB.DB, m.ctx.Stats)
+	store := store.NewStore(m.ctx.StorageDB.DB, m.ctx.Stats)
 
 	for _, address := range addresses {
 		if !bcd.IsContract(address) {
