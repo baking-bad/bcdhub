@@ -695,17 +695,15 @@ func NewSmartRollup(rollup smartrollup.SmartRollup) SmartRollup {
 }
 
 type TicketBalance struct {
-	Ticketer    string             `json:"ticketer"`
-	Amount      string             `json:"amount"`
-	ContentType stdJSON.RawMessage `json:"content_type"`
-	Content     stdJSON.RawMessage `json:"content"`
+	Ticketer    string          `json:"ticketer"`
+	Amount      string          `json:"amount"`
+	ContentType []ast.Typedef   `json:"content_type"`
+	Content     *ast.MiguelNode `json:"content,omitempty"`
 }
 
 func NewTicketBalance(balance ticket.Balance) TicketBalance {
 	return TicketBalance{
-		Ticketer:    balance.Ticket.Ticketer.Address,
-		ContentType: balance.Ticket.ContentType,
-		Content:     balance.Ticket.Content,
-		Amount:      balance.Amount.String(),
+		Ticketer: balance.Ticket.Ticketer.Address,
+		Amount:   balance.Amount.String(),
 	}
 }

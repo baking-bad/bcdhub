@@ -100,9 +100,9 @@ func GetTicketBalancesForAccount() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		response := make([]TicketBalance, len(balances))
-		for i := range balances {
-			response[i] = NewTicketBalance(balances[i])
+		response, err := prepareTicketBalances(balances)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
 		}
 		c.SecureJSON(http.StatusOK, response)
 	}
@@ -148,5 +148,35 @@ func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []tick
 		response = append(response, update)
 	}
 
+	return response, nil
+}
+
+func prepareTicketBalances(balances []ticket.Balance) ([]TicketBalance, error) {
+	response := make([]TicketBalance, len(balances))
+	for i := range balances {
+		balance := NewTicketBalance(balances[i])
+
+		content, err := ast.NewTypedAstFromBytes(balances[i].Ticket.ContentType)
+		if err != nil {
+			return nil, err
+		}
+		docs, err := content.Docs("")
+		if err != nil {
+			return nil, err
+		}
+		balance.ContentType = docs
+
+		if err := content.SettleFromBytes(balances[i].Ticket.Content); err != nil {
+			return nil, err
+		}
+		contentMiguel, err := content.ToMiguel()
+		if err != nil {
+			return nil, err
+		}
+		if len(contentMiguel) > 0 {
+			balance.Content = contentMiguel[0]
+		}
+		response = append(response, balance)
+	}
 	return response, nil
 }
