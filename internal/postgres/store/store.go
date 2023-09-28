@@ -1,6 +1,8 @@
 package store
 
 import (
+	"fmt"
+
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -23,6 +25,7 @@ type Store struct {
 	GlobalConstants []*contract.GlobalConstant
 	SmartRollups    []*smartrollup.SmartRollup
 	Tickets         map[string]*ticket.Ticket
+	TicketBalances  map[string]*ticket.Balance
 	Accounts        map[string]*account.Account
 	Stats           stats.Stats
 
@@ -41,7 +44,8 @@ func NewStore(db *bun.DB, statsRepo stats.Repository) *Store {
 		Operations:      make([]*operation.Operation, 0),
 		GlobalConstants: make([]*contract.GlobalConstant, 0),
 		SmartRollups:    make([]*smartrollup.SmartRollup, 0),
-		Tickets:         make(map[string]*ticket.Ticket, 0),
+		Tickets:         make(map[string]*ticket.Ticket),
+		TicketBalances:  make(map[string]*ticket.Balance),
 		Accounts:        make(map[string]*account.Account),
 		Stats:           stats.Stats{},
 		stats:           statsRepo,
@@ -118,6 +122,18 @@ func (store *Store) AddTickets(tickets ...*ticket.Ticket) {
 			store.Tickets[hash] = tickets[i]
 		} else {
 			t.UpdatesCount += tickets[i].UpdatesCount
+		}
+	}
+}
+
+// AddTicketBalances -
+func (store *Store) AddTicketBalances(balance ...*ticket.Balance) {
+	for i := range balance {
+		key := fmt.Sprintf("%s_%s", balance[i].Ticket.Hash(), balance[i].Account.Address)
+		if t, ok := store.TicketBalances[key]; !ok {
+			store.TicketBalances[key] = balance[i]
+		} else {
+			t.Amount = t.Amount.Add(balance[i].Amount)
 		}
 	}
 }

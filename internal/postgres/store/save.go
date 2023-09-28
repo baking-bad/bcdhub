@@ -39,6 +39,10 @@ func (store *Store) Save(ctx context.Context) error {
 		return errors.Wrap(err, "saving tickets")
 	}
 
+	if err := store.saveTicketBalances(ctx, tx); err != nil {
+		return errors.Wrap(err, "saving ticket balances")
+	}
+
 	if err := store.saveOperations(ctx, tx); err != nil {
 		return errors.Wrap(err, "saving operations")
 	}
@@ -120,6 +124,35 @@ func (store *Store) saveTickets(ctx context.Context, tx models.Transaction) erro
 	return nil
 }
 
+func (store *Store) saveTicketBalances(ctx context.Context, tx models.Transaction) error {
+	if len(store.TicketBalances) == 0 {
+		return nil
+	}
+
+	balances := make([]*ticket.Balance, 0, len(store.TicketBalances))
+	for _, balance := range store.TicketBalances {
+		if id, ok := store.getAccountId(balance.Account); ok {
+			balance.AccountId = id
+		} else {
+			return errors.Errorf("unknown ticket balance account: %s", balance.Account.Address)
+		}
+		if id, ok := store.getAccountId(balance.Ticket.Ticketer); ok {
+			balance.Ticket.TicketerID = id
+		} else {
+			return errors.Errorf("unknown ticket balance ticketer: %s", balance.Ticket.Ticketer.Address)
+		}
+
+		if id, ok := store.ticketIds[balance.Ticket.Hash()]; ok {
+			balance.TicketId = id
+		} else {
+			return errors.Errorf("unknown ticket of balance: %s", balance.Ticket.Ticketer.Address)
+		}
+		balances = append(balances, balance)
+	}
+
+	return tx.TicketBalances(ctx, balances...)
+}
+
 func (store *Store) saveMigrations(ctx context.Context, tx models.Transaction) error {
 	if len(store.Migrations) == 0 {
 		return nil
@@ -184,7 +217,7 @@ func (store *Store) saveOperations(ctx context.Context, tx models.Transaction) e
 
 		for j, update := range operation.TicketUpdates {
 			if id, ok := store.getAccountId(update.Account); ok {
-				operation.TicketUpdates[j].AccountID = id
+				operation.TicketUpdates[j].AccountId = id
 			} else {
 				return errors.Errorf("unknown ticket update account: %s", update.Account.Address)
 			}
@@ -195,7 +228,7 @@ func (store *Store) saveOperations(ctx context.Context, tx models.Transaction) e
 				return errors.Errorf("unknown ticket update ticketer account: %s", update.Ticket.Ticketer.Address)
 			}
 
-			operation.TicketUpdates[j].OperationID = operation.ID
+			operation.TicketUpdates[j].OperationId = operation.ID
 
 			hash := operation.TicketUpdates[j].Ticket.Hash()
 			if id, ok := store.ticketIds[hash]; ok {

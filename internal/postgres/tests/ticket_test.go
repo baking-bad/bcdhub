@@ -15,10 +15,10 @@ func (s *StorageTestSuite) TestTicketGet() {
 
 	update := updates[0]
 	s.Require().EqualValues(2, update.ID)
-	s.Require().EqualValues(104, update.OperationID)
+	s.Require().EqualValues(104, update.OperationId)
 	s.Require().EqualValues(40, update.Level)
 	s.Require().EqualValues(1, update.TicketId)
-	s.Require().EqualValues(131, update.AccountID)
+	s.Require().EqualValues(131, update.AccountId)
 	s.Require().EqualValues("43", update.Amount.String())
 	s.Require().EqualValues("KT1SM849krq9FFxGWCZyc7X5GvAz8XnRmXnf", update.Ticket.Ticketer.Address)
 }
@@ -33,10 +33,10 @@ func (s *StorageTestSuite) TestTicketForOperation() {
 
 	update := updates[1]
 	s.Require().EqualValues(2, update.ID)
-	s.Require().EqualValues(104, update.OperationID)
+	s.Require().EqualValues(104, update.OperationId)
 	s.Require().EqualValues(40, update.Level)
 	s.Require().EqualValues(1, update.TicketId)
-	s.Require().EqualValues(131, update.AccountID)
+	s.Require().EqualValues(131, update.AccountId)
 	s.Require().EqualValues("43", update.Amount.String())
 	s.Require().EqualValues("KT1SM849krq9FFxGWCZyc7X5GvAz8XnRmXnf", update.Ticket.Ticketer.Address)
 }

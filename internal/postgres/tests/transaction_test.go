@@ -14,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
+	"github.com/shopspring/decimal"
 )
 
 func (s *StorageTestSuite) TestSave() {
@@ -401,4 +402,31 @@ func (s *StorageTestSuite) TestTickets() {
 	err = s.storage.DB.NewSelect().Model(&tickets).Scan(ctx)
 	s.Require().NoError(err)
 	s.Require().Len(tickets, 3)
+}
+
+func (s *StorageTestSuite) TestTicketBalances() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	err = tx.TicketBalances(ctx, &ticket.Balance{
+		TicketId:  1,
+		AccountId: 131,
+		Amount:    decimal.RequireFromString("17"),
+	}, &ticket.Balance{
+		TicketId:  1,
+		AccountId: 10,
+		Amount:    decimal.RequireFromString("1"),
+	})
+	s.Require().NoError(err)
+
+	err = tx.Commit()
+	s.Require().NoError(err)
+
+	var balances []ticket.Balance
+	err = s.storage.DB.NewSelect().Model(&balances).Where("ticket_id = 1").Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().Len(balances, 3)
 }

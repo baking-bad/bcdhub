@@ -36,6 +36,9 @@ type Rollback interface {
 	DeleteScriptsConstants(ctx context.Context, scriptIds []int64, constantsIds []int64) error
 	Protocols(ctx context.Context, level int64) error
 	UpdateStats(ctx context.Context, stats stats.Stats) error
+	TicketBalances(ctx context.Context, balances ...*ticket.Balance) error
+	DeleteTickets(ctx context.Context, level int64) (ids []int64, err error)
+	DeleteTicketBalances(ctx context.Context, ticketIds []int64) (err error)
 
 	Commit() error
 	Rollback() error

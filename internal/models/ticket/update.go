@@ -14,10 +14,10 @@ type TicketUpdate struct {
 
 	ID          int64           `bun:"id,pk,notnull,autoincrement"`
 	Timestamp   time.Time       `bun:"timestamp,pk,notnull"`
-	OperationID int64           `bun:"operation_id"`
+	OperationId int64           `bun:"operation_id"`
 	Level       int64           `bun:"level"`
 	TicketId    int64           `bun:"ticket_id"`
-	AccountID   int64           `bun:"account_id"`
+	AccountId   int64           `bun:"account_id"`
 	Amount      decimal.Decimal `bun:"amount,type:numeric(200,0)"`
 
 	Account account.Account `bun:"rel:belongs-to"`

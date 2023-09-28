@@ -46,6 +46,7 @@ type Transaction interface {
 	Protocol(ctx context.Context, proto *protocol.Protocol) error
 	UpdateStats(ctx context.Context, stats stats.Stats) error
 	Tickets(ctx context.Context, tickets ...*ticket.Ticket) error
+	TicketBalances(ctx context.Context, balances ...*ticket.Balance) error
 
 	ToBabylon(ctx context.Context) error
 	BabylonUpdateNonDelegator(ctx context.Context, contract *contract.Contract) error

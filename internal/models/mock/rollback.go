@@ -199,6 +199,83 @@ func (c *RollbackDeleteScriptsConstantsCall) DoAndReturn(f func(context.Context,
 	return c
 }
 
+// DeleteTicketBalances mocks base method.
+func (m *MockRollback) DeleteTicketBalances(ctx context.Context, ticketIds []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteTicketBalances", ctx, ticketIds)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTicketBalances indicates an expected call of DeleteTicketBalances.
+func (mr *MockRollbackMockRecorder) DeleteTicketBalances(ctx, ticketIds any) *RollbackDeleteTicketBalancesCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTicketBalances", reflect.TypeOf((*MockRollback)(nil).DeleteTicketBalances), ctx, ticketIds)
+	return &RollbackDeleteTicketBalancesCall{Call: call}
+}
+
+// RollbackDeleteTicketBalancesCall wrap *gomock.Call
+type RollbackDeleteTicketBalancesCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *RollbackDeleteTicketBalancesCall) Return(err error) *RollbackDeleteTicketBalancesCall {
+	c.Call = c.Call.Return(err)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *RollbackDeleteTicketBalancesCall) Do(f func(context.Context, []int64) error) *RollbackDeleteTicketBalancesCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *RollbackDeleteTicketBalancesCall) DoAndReturn(f func(context.Context, []int64) error) *RollbackDeleteTicketBalancesCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// DeleteTickets mocks base method.
+func (m *MockRollback) DeleteTickets(ctx context.Context, level int64) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteTickets", ctx, level)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteTickets indicates an expected call of DeleteTickets.
+func (mr *MockRollbackMockRecorder) DeleteTickets(ctx, level any) *RollbackDeleteTicketsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTickets", reflect.TypeOf((*MockRollback)(nil).DeleteTickets), ctx, level)
+	return &RollbackDeleteTicketsCall{Call: call}
+}
+
+// RollbackDeleteTicketsCall wrap *gomock.Call
+type RollbackDeleteTicketsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *RollbackDeleteTicketsCall) Return(ids []int64, err error) *RollbackDeleteTicketsCall {
+	c.Call = c.Call.Return(ids, err)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *RollbackDeleteTicketsCall) Do(f func(context.Context, int64) ([]int64, error)) *RollbackDeleteTicketsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *RollbackDeleteTicketsCall) DoAndReturn(f func(context.Context, int64) ([]int64, error)) *RollbackDeleteTicketsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetLastAction mocks base method.
 func (m *MockRollback) GetLastAction(ctx context.Context, addressIds ...int64) ([]models.LastAction, error) {
 	m.ctrl.T.Helper()
@@ -626,6 +703,49 @@ func (c *RollbackStatesChangedAtLevelCall) Do(f func(context.Context, int64) ([]
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *RollbackStatesChangedAtLevelCall) DoAndReturn(f func(context.Context, int64) ([]bigmapdiff.BigMapState, error)) *RollbackStatesChangedAtLevelCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// TicketBalances mocks base method.
+func (m *MockRollback) TicketBalances(ctx context.Context, balances ...*ticket.Balance) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range balances {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "TicketBalances", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// TicketBalances indicates an expected call of TicketBalances.
+func (mr *MockRollbackMockRecorder) TicketBalances(ctx any, balances ...any) *RollbackTicketBalancesCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, balances...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TicketBalances", reflect.TypeOf((*MockRollback)(nil).TicketBalances), varargs...)
+	return &RollbackTicketBalancesCall{Call: call}
+}
+
+// RollbackTicketBalancesCall wrap *gomock.Call
+type RollbackTicketBalancesCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *RollbackTicketBalancesCall) Return(arg0 error) *RollbackTicketBalancesCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *RollbackTicketBalancesCall) Do(f func(context.Context, ...*ticket.Balance) error) *RollbackTicketBalancesCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *RollbackTicketBalancesCall) DoAndReturn(f func(context.Context, ...*ticket.Balance) error) *RollbackTicketBalancesCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

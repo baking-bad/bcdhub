@@ -256,3 +256,16 @@ func (t Transaction) Tickets(ctx context.Context, tickets ...*ticket.Ticket) err
 		Exec(ctx)
 	return err
 }
+
+func (t Transaction) TicketBalances(ctx context.Context, balances ...*ticket.Balance) error {
+	if len(balances) == 0 {
+		return nil
+	}
+
+	_, err := t.tx.NewInsert().Model(&balances).
+		Column("ticket_id", "account_id", "amount").
+		On("CONFLICT (ticket_id, account_id) DO UPDATE").
+		Set("amount = balance.amount + EXCLUDED.amount").
+		Exec(ctx)
+	return err
+}

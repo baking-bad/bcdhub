@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
+	"github.com/shopspring/decimal"
 )
 
 func (s *StorageTestSuite) TestDeleteAll() {
@@ -270,7 +271,7 @@ func (s *StorageTestSuite) TestGetTicketUpdates() {
 	s.Require().Len(updates, 3)
 
 	update := updates[0]
-	s.Require().EqualValues(105, update.AccountID)
+	s.Require().EqualValues(105, update.AccountId)
 	s.Require().EqualValues(133, update.Ticket.TicketerID)
 }
 
@@ -314,4 +315,63 @@ func (s *StorageTestSuite) TestGetLastActionNoRows() {
 	s.Require().NoError(err)
 
 	s.Require().Len(actions, 0)
+}
+
+func (s *StorageTestSuite) TestTicketBalancesRollback() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	saver, err := postgres.NewRollback(s.storage.DB)
+	s.Require().NoError(err)
+
+	err = saver.TicketBalances(ctx, &ticket.Balance{
+		TicketId:  1,
+		AccountId: 131,
+		Amount:    decimal.RequireFromString("43"),
+	})
+	s.Require().NoError(err)
+
+	err = saver.Commit()
+	s.Require().NoError(err)
+
+	var balances []ticket.Balance
+	err = s.storage.DB.NewSelect().Model(&balances).Where("amount > 0").Where("ticket_id = 1").Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().Len(balances, 1)
+}
+
+func (s *StorageTestSuite) TestDeleteTickets() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	saver, err := postgres.NewRollback(s.storage.DB)
+	s.Require().NoError(err)
+
+	ids, err := saver.DeleteTickets(ctx, 40)
+	s.Require().NoError(err)
+
+	err = saver.Commit()
+	s.Require().NoError(err)
+
+	s.Require().Len(ids, 2)
+	s.Require().ElementsMatch([]int64{1, 2}, ids)
+}
+
+func (s *StorageTestSuite) TestDeleteTicketBalances() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	saver, err := postgres.NewRollback(s.storage.DB)
+	s.Require().NoError(err)
+
+	err = saver.DeleteTicketBalances(ctx, []int64{1})
+	s.Require().NoError(err)
+
+	err = saver.Commit()
+	s.Require().NoError(err)
+
+	var balances []ticket.Balance
+	err = s.storage.DB.NewSelect().Model(&balances).Where("ticket_id = 1").Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().Len(balances, 0)
 }

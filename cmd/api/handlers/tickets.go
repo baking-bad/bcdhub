@@ -106,7 +106,7 @@ func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []tick
 		}
 
 		if len(hash) == 0 {
-			operation, err := ctx.Operations.GetByID(c, updates[i].OperationID)
+			operation, err := ctx.Operations.GetByID(c, updates[i].OperationId)
 			if err != nil {
 				return nil, err
 			}

@@ -221,3 +221,33 @@ func (r Rollback) UpdateTicket(ctx context.Context, ticket ticket.Ticket) error 
 		Exec(ctx)
 	return err
 }
+
+func (r Rollback) TicketBalances(ctx context.Context, balances ...*ticket.Balance) error {
+	if len(balances) == 0 {
+		return nil
+	}
+
+	_, err := r.tx.NewInsert().Model(&balances).
+		Column("ticket_id", "account_id", "amount").
+		On("CONFLICT (ticket_id, account_id) DO UPDATE").
+		Set("amount = balance.amount - EXCLUDED.amount").
+		Exec(ctx)
+	return err
+}
+
+func (r Rollback) DeleteTickets(ctx context.Context, level int64) (ids []int64, err error) {
+	_, err = r.tx.NewDelete().
+		Model((*ticket.Ticket)(nil)).
+		Where("level = ?", level).
+		Returning("id").
+		Exec(ctx, &ids)
+	return
+}
+
+func (r Rollback) DeleteTicketBalances(ctx context.Context, ticketIds []int64) (err error) {
+	_, err = r.tx.NewDelete().
+		Model((*ticket.Balance)(nil)).
+		Where("ticket_id IN (?)", bun.In(ticketIds)).
+		Exec(ctx)
+	return
+}

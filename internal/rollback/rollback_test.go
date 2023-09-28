@@ -17,8 +17,10 @@ import (
 	mock_stats "github.com/baking-bad/bcdhub/internal/models/mock/stats"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -162,6 +164,11 @@ func TestManager_Rollback(t *testing.T) {
 		Times(1)
 
 	rb.EXPECT().
+		DeleteAll(gomock.Any(), (*ticket.TicketUpdate)(nil), level).
+		Return(0, nil).
+		Times(1)
+
+	rb.EXPECT().
 		GetMigrations(gomock.Any(), level).
 		Return([]migration.Migration{
 			{
@@ -191,6 +198,46 @@ func TestManager_Rollback(t *testing.T) {
 				Time:      ts,
 			},
 		}, nil).
+		Times(1)
+
+	rb.EXPECT().
+		GetTicketUpdates(gomock.Any(), gomock.Any()).
+		Return([]ticket.TicketUpdate{
+			{
+				AccountId: 4,
+				TicketId:  1,
+				Amount:    decimal.RequireFromString("100"),
+			}, {
+				AccountId: 1,
+				TicketId:  1,
+				Amount:    decimal.RequireFromString("-100"),
+			},
+		}, nil).
+		Times(1)
+
+	rb.EXPECT().
+		TicketBalances(gomock.Any(), []*ticket.Balance{
+			{
+				AccountId: 4,
+				TicketId:  1,
+				Amount:    decimal.RequireFromString("100"),
+			}, {
+				AccountId: 1,
+				TicketId:  1,
+				Amount:    decimal.RequireFromString("-100"),
+			},
+		}).
+		Return(nil).
+		Times(1)
+
+	rb.EXPECT().
+		DeleteTickets(gomock.Any(), level).
+		Return([]int64{1}, nil).
+		Times(1)
+
+	rb.EXPECT().
+		DeleteTicketBalances(gomock.Any(), []int64{1}).
+		Return(nil).
 		Times(1)
 
 	rb.EXPECT().
@@ -341,7 +388,7 @@ func TestManager_Rollback(t *testing.T) {
 	rb.EXPECT().
 		DeleteAll(gomock.Any(), nil, level).
 		Return(0, nil).
-		Times(10)
+		Times(8)
 
 	rb.EXPECT().
 		Protocols(gomock.Any(), level).

@@ -62,6 +62,11 @@ func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *opera
 		updates = append(updates, &update)
 		store.AddTickets(&tckt)
 		store.AddAccounts(&update.Account, &tckt.Ticketer)
+		store.AddTicketBalances(&ticket.Balance{
+			Account: update.Account,
+			Ticket:  tckt,
+			Amount:  update.Amount.Copy(),
+		})
 	}
 	return updates
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
-	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 )
@@ -48,7 +47,7 @@ func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState
 	}
 
 	for level := fromState.Level; level > toLevel; level-- {
-		logger.Info().Str("network", network.String()).Msgf("Rollback to %d block", level)
+		logger.Info().Str("network", network.String()).Msgf("start rollback to %d", level)
 
 		if _, err := rm.blockRepo.Get(ctx, level); err != nil {
 			if rm.storage.IsRecordNotFound(err) {
@@ -61,6 +60,8 @@ func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState
 			logger.Error().Err(err).Str("network", network.String()).Msg("rollback error")
 			return rm.rollback.Rollback()
 		}
+
+		logger.Info().Str("network", network.String()).Msgf("rolled back to %d", level)
 	}
 
 	return rm.rollback.Commit()
@@ -84,6 +85,9 @@ func (rm Manager) rollbackBlock(ctx context.Context, level int64) error {
 	if err := rm.rollbackMigrations(ctx, level, &rollbackCtx); err != nil {
 		return err
 	}
+	if err := rm.rollbackTickets(ctx, level); err != nil {
+		return err
+	}
 	if err := rm.rollbackAll(ctx, level, &rollbackCtx); err != nil {
 		return err
 	}
@@ -93,6 +97,7 @@ func (rm Manager) rollbackBlock(ctx context.Context, level int64) error {
 	if err := rollbackCtx.update(ctx, rm.rollback); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -122,8 +127,6 @@ func (rm Manager) rollbackAll(ctx context.Context, level int64, rCtx *rollbackCo
 		(*bigmapdiff.BigMapDiff)(nil),
 		(*bigmapaction.BigMapAction)(nil),
 		(*smartrollup.SmartRollup)(nil),
-		(*ticket.Ticket)(nil),
-		(*ticket.TicketUpdate)(nil),
 		(*account.Account)(nil),
 	} {
 		if _, err := rm.rollback.DeleteAll(ctx, model, level); err != nil {
