@@ -39,6 +39,45 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
+// BalancesForAccount mocks base method.
+func (m *MockRepository) BalancesForAccount(ctx context.Context, accountId, limit, offset int64) ([]ticket.Balance, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BalancesForAccount", ctx, accountId, limit, offset)
+	ret0, _ := ret[0].([]ticket.Balance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BalancesForAccount indicates an expected call of BalancesForAccount.
+func (mr *MockRepositoryMockRecorder) BalancesForAccount(ctx, accountId, limit, offset any) *RepositoryBalancesForAccountCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BalancesForAccount", reflect.TypeOf((*MockRepository)(nil).BalancesForAccount), ctx, accountId, limit, offset)
+	return &RepositoryBalancesForAccountCall{Call: call}
+}
+
+// RepositoryBalancesForAccountCall wrap *gomock.Call
+type RepositoryBalancesForAccountCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *RepositoryBalancesForAccountCall) Return(arg0 []ticket.Balance, arg1 error) *RepositoryBalancesForAccountCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *RepositoryBalancesForAccountCall) Do(f func(context.Context, int64, int64, int64) ([]ticket.Balance, error)) *RepositoryBalancesForAccountCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *RepositoryBalancesForAccountCall) DoAndReturn(f func(context.Context, int64, int64, int64) ([]ticket.Balance, error)) *RepositoryBalancesForAccountCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // Updates mocks base method.
 func (m *MockRepository) Updates(ctx context.Context, ticketer string, limit, offset int64) ([]ticket.TicketUpdate, error) {
 	m.ctrl.T.Helper()

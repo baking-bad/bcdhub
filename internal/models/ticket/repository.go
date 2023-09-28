@@ -6,4 +6,5 @@ import "context"
 type Repository interface {
 	Updates(ctx context.Context, ticketer string, limit, offset int64) ([]TicketUpdate, error)
 	UpdatesForOperation(ctx context.Context, operationId int64) ([]TicketUpdate, error)
+	BalancesForAccount(ctx context.Context, accountId int64, limit, offset int64) ([]Balance, error)
 }

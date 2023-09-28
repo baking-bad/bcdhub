@@ -40,3 +40,29 @@ func (s *StorageTestSuite) TestTicketForOperation() {
 	s.Require().EqualValues("43", update.Amount.String())
 	s.Require().EqualValues("KT1SM849krq9FFxGWCZyc7X5GvAz8XnRmXnf", update.Ticket.Ticketer.Address)
 }
+
+func (s *StorageTestSuite) TestBalancesForAccount() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	balances, err := s.ticketUpdates.BalancesForAccount(ctx, 131, 10, 0)
+	s.Require().NoError(err)
+	s.Require().Len(balances, 2)
+
+	balance := balances[0]
+	s.Require().EqualValues(131, balance.AccountId)
+	s.Require().EqualValues(1, balance.TicketId)
+	s.Require().EqualValues("43", balance.Amount.String())
+	s.Require().NotEmpty(balance.Ticket.Content)
+	s.Require().NotEmpty(balance.Ticket.ContentType)
+	s.Require().EqualValues("KT1SM849krq9FFxGWCZyc7X5GvAz8XnRmXnf", balance.Ticket.Ticketer.Address)
+}
+
+func (s *StorageTestSuite) TestBalancesForAccountEmpty() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	balances, err := s.ticketUpdates.BalancesForAccount(ctx, 12, 10, 0)
+	s.Require().NoError(err)
+	s.Require().Len(balances, 0)
+}

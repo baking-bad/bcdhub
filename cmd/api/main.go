@@ -215,6 +215,7 @@ func (api *app) makeRouter() {
 			acc := account.Group(":address")
 			{
 				acc.GET("", handlers.GetInfo())
+				acc.GET("ticket_balances", handlers.GetTicketBalancesForAccount())
 			}
 		}
 

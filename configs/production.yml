@@ -65,12 +65,12 @@ api:
       mainnet: https://rpc.tzkt.io/mainnet
       ghostnet: https://rpc.tzkt.io/ghostnet
       nairobinet: https://rpc.tzkt.io/nairobinet
-      # oxfordnet: https://rpc.tzkt.io/oxfordnet
+      oxfordnet: https://rpc.tzkt.io/oxfordnet
   networks:
     - mainnet
     - ghostnet
     - nairobinet
-    # - oxfordnet
+    - oxfordnet
 
 indexer:
   project_name: indexer

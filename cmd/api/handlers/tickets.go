@@ -79,6 +79,35 @@ func GetTicketUpdatesForOperation() gin.HandlerFunc {
 	}
 }
 
+// GetTicketBalancesForAccount -
+// @Router /v1/account/{network}/{address}/ticket_balances [get]
+func GetTicketBalancesForAccount() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getAccountRequest
+		if err := c.BindUri(&req); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, Error{Message: err.Error()})
+			return
+		}
+
+		acc, err := ctx.Accounts.Get(c.Request.Context(), req.Address)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+
+		balances, err := ctx.TicketUpdates.BalancesForAccount(c.Request.Context(), acc.ID, 10, 0)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		response := make([]TicketBalance, len(balances))
+		for i := range balances {
+			response[i] = NewTicketBalance(balances[i])
+		}
+		c.SecureJSON(http.StatusOK, response)
+	}
+}
+
 func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []ticket.TicketUpdate, hash []byte) ([]TicketUpdate, error) {
 	response := make([]TicketUpdate, 0, len(updates))
 	for i := range updates {

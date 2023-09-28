@@ -693,3 +693,19 @@ func NewSmartRollup(rollup smartrollup.SmartRollup) SmartRollup {
 		Kernel:                kernel,
 	}
 }
+
+type TicketBalance struct {
+	Ticketer    string             `json:"ticketer"`
+	Amount      string             `json:"amount"`
+	ContentType stdJSON.RawMessage `json:"content_type"`
+	Content     stdJSON.RawMessage `json:"content"`
+}
+
+func NewTicketBalance(balance ticket.Balance) TicketBalance {
+	return TicketBalance{
+		Ticketer:    balance.Ticket.Ticketer.Address,
+		ContentType: balance.Ticket.ContentType,
+		Content:     balance.Ticket.Content,
+		Amount:      balance.Amount.String(),
+	}
+}
