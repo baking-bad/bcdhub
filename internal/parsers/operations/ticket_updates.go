@@ -32,21 +32,23 @@ func (p *TicketUpdateParser) Parse(data *noderpc.OperationResult, operation *ope
 }
 
 func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *operation.Operation, store parsers.Store) []*ticket.TicketUpdate {
+	tckt := ticket.Ticket{
+		ContentType: data.TicketToken.ContentType,
+		Content:     data.TicketToken.Content,
+		Ticketer: account.Account{
+			Address:            data.TicketToken.Ticketer,
+			Type:               types.NewAccountType(data.TicketToken.Ticketer),
+			Level:              operation.Level,
+			LastAction:         operation.Timestamp,
+			TicketUpdatesCount: 1,
+		},
+		UpdatesCount: 1,
+		Level:        operation.Level,
+	}
+	store.AddTickets(&tckt)
+
 	updates := make([]*ticket.TicketUpdate, 0)
 	for i := range data.Updates {
-		tckt := ticket.Ticket{
-			ContentType: data.TicketToken.ContentType,
-			Content:     data.TicketToken.Content,
-			Ticketer: account.Account{
-				Address:            data.TicketToken.Ticketer,
-				Type:               types.NewAccountType(data.TicketToken.Ticketer),
-				Level:              operation.Level,
-				LastAction:         operation.Timestamp,
-				TicketUpdatesCount: 1,
-			},
-			UpdatesCount: 1,
-			Level:        operation.Level,
-		}
 		update := ticket.TicketUpdate{
 			Level:     operation.Level,
 			Timestamp: operation.Timestamp,
@@ -60,7 +62,6 @@ func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *opera
 			Amount: decimal.RequireFromString(data.Updates[i].Amount),
 		}
 		updates = append(updates, &update)
-		store.AddTickets(&tckt)
 		store.AddAccounts(&update.Account, &tckt.Ticketer)
 		store.AddTicketBalances(&ticket.Balance{
 			Account: update.Account,
