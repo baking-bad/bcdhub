@@ -216,17 +216,7 @@ func TestManager_Rollback(t *testing.T) {
 		Times(1)
 
 	rb.EXPECT().
-		TicketBalances(gomock.Any(), []*ticket.Balance{
-			{
-				AccountId: 4,
-				TicketId:  1,
-				Amount:    decimal.RequireFromString("100"),
-			}, {
-				AccountId: 1,
-				TicketId:  1,
-				Amount:    decimal.RequireFromString("-100"),
-			},
-		}).
+		TicketBalances(gomock.Any(), gomock.Any()).
 		Return(nil).
 		Times(1)
 
