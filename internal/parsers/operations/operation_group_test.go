@@ -2540,7 +2540,7 @@ func TestGroup_Parse(t *testing.T) {
 					},
 				},
 				Tickets: map[string]*ticket.Ticket{
-					"c4a3e1aa42bafd749abb7b7c6732a344b4794cf626c3a9d260e1fadef5e2438e": {
+					"44f09c8c9d1135c11c71f31ab4126d464cad6067010e1d440e4749331450d860": {
 						Level: 1616868,
 						Ticketer: account.Account{
 							Address:            "KT1Nux298EEiVoTzF7jQS3iBV3K4ShN8ucSP",
