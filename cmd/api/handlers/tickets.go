@@ -176,7 +176,7 @@ func prepareTicketBalances(balances []ticket.Balance) ([]TicketBalance, error) {
 		if len(contentMiguel) > 0 {
 			balance.Content = contentMiguel[0]
 		}
-		response = append(response, balance)
+		response[i] = balance
 	}
 	return response, nil
 }
