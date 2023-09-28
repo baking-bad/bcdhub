@@ -8,6 +8,7 @@ import (
 	"time"
 
 	bcdLogger "github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
@@ -123,6 +124,9 @@ func WaitNew(cfg Config, schemaName, appName string, timeout int, opts ...Postgr
 		bcdLogger.Warning().Msgf("Waiting postgres up %d seconds...", timeout)
 		time.Sleep(time.Second * time.Duration(timeout))
 	}
+
+	// register many-to-many relationships
+	db.DB.RegisterModel(models.ManyToMany()...)
 
 	return db
 }

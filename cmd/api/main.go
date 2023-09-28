@@ -84,10 +84,6 @@ func newApp() *app {
 		config.WithLoadErrorDescriptions(),
 		config.WithConfigCopy(cfg))
 
-	if err := app.Contexts.Any().Storage.InitDatabase(context.Background()); err != nil {
-		panic(err)
-	}
-
 	app.makeRouter()
 
 	return app

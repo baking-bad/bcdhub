@@ -31,9 +31,6 @@ func createTable(ctx context.Context, db bun.IDB, model models.Model) error {
 }
 
 func createTables(ctx context.Context, db *bun.DB) error {
-	// register many-to-many relationships
-	db.RegisterModel(models.ManyToMany()...)
-
 	for _, model := range models.AllModels() {
 		if err := createTable(ctx, db, model); err != nil {
 			return err
