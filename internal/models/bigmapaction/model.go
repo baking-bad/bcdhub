@@ -17,7 +17,7 @@ type BigMapAction struct {
 	DestinationPtr *int64
 	OperationID    int64
 	Level          int64
-	Address        string
+	Address        string    `bun:"address,type:text"`
 	Timestamp      time.Time `bun:"timestamp,pk,notnull"`
 }
 

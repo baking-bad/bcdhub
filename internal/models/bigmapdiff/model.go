@@ -14,10 +14,10 @@ type BigMapDiff struct {
 	ID          int64       `bun:"id,pk,notnull,autoincrement"`
 	Ptr         int64       `bun:"ptr"`
 	Key         types.Bytes `bun:"key,notnull,type:bytea"`
-	KeyHash     string
+	KeyHash     string      `bun:"key_hash,type:text"`
 	Value       types.Bytes `bun:"value,type:bytea"`
 	Level       int64
-	Contract    string
+	Contract    string    `bun:"contract,type:text"`
 	Timestamp   time.Time `bun:"timestamp,pk,notnull"`
 	ProtocolID  int64     `bun:"protocol_id,type:SMALLINT"`
 	OperationID int64

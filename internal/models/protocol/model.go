@@ -10,12 +10,12 @@ type Protocol struct {
 
 	ID int64 `bun:"id,pk,notnull,autoincrement"`
 
-	Hash       string `bun:"hash,unique:protocol_hash_idx"`
+	Hash       string `bun:"hash,type:text,unique:protocol_hash_idx"`
 	StartLevel int64
 	EndLevel   int64
-	SymLink    string
-	Alias      string
-	ChainID    string
+	SymLink    string `bun:"sym_link,type:text"`
+	Alias      string `bun:"alias,type:text"`
+	ChainID    string `bun:"chain_id,type:text"`
 	*Constants
 }
 

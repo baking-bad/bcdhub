@@ -16,8 +16,8 @@ type BigMapState struct {
 	LastUpdateLevel int64       `bun:"last_update_level"`
 	Count           int64       `bun:"count"`
 	LastUpdateTime  time.Time   `bun:"last_update_time"`
-	KeyHash         string      `bun:"key_hash,notnull,unique:big_map_state_unique"`
-	Contract        string      `bun:"contract,notnull,unique:big_map_state_unique"`
+	KeyHash         string      `bun:"key_hash,type:text,notnull,unique:big_map_state_unique"`
+	Contract        string      `bun:"contract,type:text,notnull,unique:big_map_state_unique"`
 	Key             types.Bytes `bun:"key,type:bytea,notnull"`
 	Value           types.Bytes `bun:"value,type:bytea"`
 	Removed         bool        `bun:"removed"`

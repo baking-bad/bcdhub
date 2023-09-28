@@ -12,10 +12,10 @@ type Block struct {
 	bun.BaseModel `bun:"blocks"`
 
 	ID         int64     `bun:"id,pk,notnull,autoincrement"`
-	Hash       string    `bun:"hash"`
+	Hash       string    `bun:"hash,type:text"`
 	Timestamp  time.Time `bun:"timestamp,pk,notnull"`
 	Level      int64     `bun:"level"`
-	ProtocolID int64     `bun:",type:SMALLINT"`
+	ProtocolID int64     `bun:"protocol_id,type:SMALLINT"`
 
 	Protocol protocol.Protocol `bun:",rel:belongs-to"`
 }

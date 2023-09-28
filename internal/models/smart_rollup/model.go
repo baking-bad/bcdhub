@@ -19,8 +19,8 @@ type SmartRollup struct {
 	AddressId int64
 	Address   account.Account `bun:",rel:belongs-to"`
 
-	GenesisCommitmentHash string
-	PvmKind               string
+	GenesisCommitmentHash string `bun:"genesis_commitment_hash,type:text"`
+	PvmKind               string `bun:"pvm_kind,type:text"`
 	Kernel                []byte `bun:",type:bytea"`
 	Type                  []byte `bun:",type:bytea"`
 }

@@ -13,7 +13,7 @@ type GlobalConstant struct {
 	ID        int64     `bun:"id,pk,notnull,autoincrement" json:"-"`
 	Timestamp time.Time `json:"timestamp"`
 	Level     int64     `json:"level"`
-	Address   string    `json:"address"`
+	Address   string    `bun:"address,type:text" json:"address"`
 	Value     []byte    `json:"value,omitempty"`
 
 	Scripts []Script `bun:"m2m:script_constants,join:GlobalConstant=Script"`

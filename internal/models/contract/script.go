@@ -14,7 +14,7 @@ type Script struct {
 
 	ID          int64          `bun:"id,pk,notnull,autoincrement"`
 	Level       int64          `bun:"level"`
-	Hash        string         `bun:"hash"`
+	Hash        string         `bun:"hash,type:text"`
 	Code        []byte         `bun:",type:bytea"`
 	Parameter   []byte         `bun:",type:bytea"`
 	Storage     []byte         `bun:",type:bytea"`

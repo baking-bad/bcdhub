@@ -13,7 +13,7 @@ type Account struct {
 
 	ID                 int64             `bun:"id,pk,notnull,autoincrement"`
 	Type               types.AccountType `bun:"type,type:SMALLINT"`
-	Address            string            `bun:"address,unique:address_hash"`
+	Address            string            `bun:"address,type:text,unique:address_hash"`
 	Level              int64             `bun:"level"`
 	LastAction         time.Time         `bun:"last_action"`
 	OperationsCount    int64             `bun:"operations_count"`
