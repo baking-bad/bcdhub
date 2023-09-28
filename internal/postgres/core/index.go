@@ -14,7 +14,6 @@ func (p *Postgres) CreateIndex(ctx context.Context, name, columns string, model 
 	_, err := p.DB.NewCreateIndex().
 		Model(model).
 		IfNotExists().
-		Concurrently().
 		Index(name).
 		ColumnExpr(columns).
 		Exec(ctx)
