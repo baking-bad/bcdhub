@@ -1,6 +1,7 @@
 package bigmapdiff
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -41,6 +42,10 @@ func (b *BigMapState) LogFields() map[string]interface{} {
 		"key_hash": b.KeyHash,
 		"removed":  b.Removed,
 	}
+}
+
+func (b BigMapState) String() string {
+	return fmt.Sprintf("%s_%s_%d", b.Contract, b.KeyHash, b.Ptr)
 }
 
 // ToDiff -

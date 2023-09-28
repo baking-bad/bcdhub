@@ -55,7 +55,7 @@ func (store *Store) Save(ctx context.Context) error {
 		return errors.Wrap(err, "saving migrations")
 	}
 
-	if err := tx.BigMapStates(ctx, store.BigMapState...); err != nil {
+	if err := tx.BigMapStates(ctx, store.bigMapStates()...); err != nil {
 		return errors.Wrap(err, "saving bigmap states")
 	}
 

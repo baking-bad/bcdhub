@@ -18,7 +18,7 @@ import (
 // Store -
 type Store struct {
 	Block           *block.Block
-	BigMapState     []*bigmapdiff.BigMapState
+	BigMapState     map[string]*bigmapdiff.BigMapState
 	Contracts       []*contract.Contract
 	Migrations      []*migration.Migration
 	Operations      []*operation.Operation
@@ -38,7 +38,7 @@ type Store struct {
 // NewStore -
 func NewStore(db *bun.DB, statsRepo stats.Repository) *Store {
 	return &Store{
-		BigMapState:     make([]*bigmapdiff.BigMapState, 0),
+		BigMapState:     make(map[string]*bigmapdiff.BigMapState),
 		Contracts:       make([]*contract.Contract, 0),
 		Migrations:      make([]*migration.Migration, 0),
 		Operations:      make([]*operation.Operation, 0),
@@ -61,7 +61,24 @@ func (store *Store) SetBlock(block *block.Block) {
 
 // AddBigMapStates -
 func (store *Store) AddBigMapStates(states ...*bigmapdiff.BigMapState) {
-	store.BigMapState = append(store.BigMapState, states...)
+	for i := range states {
+		key := states[i].String()
+		if state, ok := store.BigMapState[key]; ok {
+			state.Count += 1
+			state.Value = states[i].Value
+			state.Removed = states[i].Removed
+		} else {
+			store.BigMapState[key] = states[i]
+		}
+	}
+}
+
+func (store *Store) bigMapStates() []*bigmapdiff.BigMapState {
+	arr := make([]*bigmapdiff.BigMapState, 0, len(store.BigMapState))
+	for _, state := range store.BigMapState {
+		arr = append(arr, state)
+	}
+	return arr
 }
 
 // AddContracts -
