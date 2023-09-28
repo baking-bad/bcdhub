@@ -97,7 +97,7 @@ func (store *Store) AddGlobalConstants(constants ...*contract.GlobalConstant) {
 // AddSmartRollups -
 func (store *Store) AddSmartRollups(rollups ...*smartrollup.SmartRollup) {
 	store.SmartRollups = append(store.SmartRollups, rollups...)
-	store.Stats.ContractsCount += len(rollups)
+	store.Stats.SmartRollupsCount += len(rollups)
 }
 
 // AddAccounts -
