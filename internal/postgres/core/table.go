@@ -2,7 +2,9 @@ package core
 
 import (
 	"context"
+	"sync"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -61,15 +63,29 @@ func createHypertables(ctx context.Context, db *bun.DB) error {
 	return nil
 }
 
+var createExtensionOnce sync.Once
+var wg sync.WaitGroup
+
 func createSchema(ctx context.Context, db *bun.DB, schemaName string) error {
+	createExtensionOnce.Do(func() {
+		defer wg.Done()
+		wg.Add(1)
+		if _, err := db.NewRaw("set search_path = 'public'").Exec(ctx); err != nil {
+			logger.Err(err)
+			return
+		}
+		if _, err := db.NewRaw("CREATE EXTENSION IF NOT EXISTS timescaledb;").Exec(ctx); err != nil {
+			logger.Err(err)
+		}
+	})
+
+	wg.Wait()
+
 	schema := bun.Ident(schemaName)
 	if _, err := db.NewRaw("create schema if not exists ?", schema).Exec(ctx); err != nil {
 		return err
 	}
 	if _, err := db.NewRaw("set search_path = ?", schema).Exec(ctx); err != nil {
-		return err
-	}
-	if _, err := db.NewRaw("CREATE EXTENSION IF NOT EXISTS timescaledb;").Exec(ctx); err != nil {
 		return err
 	}
 	return nil
