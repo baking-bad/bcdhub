@@ -96,6 +96,9 @@ func New(cfg Config, schemaName, appName string, opts ...PostgresOption) (*Postg
 		opt(&postgres)
 	}
 
+	// register many-to-many relationships
+	postgres.DB.RegisterModel(models.ManyToMany()...)
+
 	return &postgres, nil
 }
 
@@ -124,9 +127,6 @@ func WaitNew(cfg Config, schemaName, appName string, timeout int, opts ...Postgr
 		bcdLogger.Warning().Msgf("Waiting postgres up %d seconds...", timeout)
 		time.Sleep(time.Second * time.Duration(timeout))
 	}
-
-	// register many-to-many relationships
-	db.DB.RegisterModel(models.ManyToMany()...)
 
 	return db
 }
