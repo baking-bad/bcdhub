@@ -2,7 +2,6 @@ package ticket
 
 import (
 	"crypto/sha256"
-	"encoding/binary"
 	"encoding/hex"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -34,7 +33,7 @@ func (t Ticket) Hash() string {
 	data := make([]byte, len(t.ContentType))
 	copy(data, t.ContentType)
 	data = append(data, t.Content...)
-	data = binary.AppendVarint(data, t.TicketerID)
+	data = append(data, []byte(t.Ticketer.Address)...)
 	h := sha256.New()
 	_, _ = h.Write(data)
 	return hex.EncodeToString(h.Sum(nil))
