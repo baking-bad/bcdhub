@@ -116,10 +116,19 @@ func (bi *BlockchainIndexer) createIndices(ctx context.Context) error {
 
 	// Ticket updates
 	ticketUpdate := (*ticket.TicketUpdate)(nil)
+	if err := bi.Storage.CreateIndex(ctx, "ticket_updates_level_idx", "level", ticketUpdate); err != nil {
+		return err
+	}
 	if err := bi.Storage.CreateIndex(ctx, "ticket_updates_operation_id_idx", "operation_id", ticketUpdate); err != nil {
 		return err
 	}
-	if err := bi.Storage.CreateIndex(ctx, "ticket_updates_ticketer_id_idx", "ticketer_id", ticketUpdate); err != nil {
+	if err := bi.Storage.CreateIndex(ctx, "ticket_updates_ticket_id_idx", "ticket_id", ticketUpdate); err != nil {
+		return err
+	}
+
+	// Tickets
+	tickets := (*ticket.Ticket)(nil)
+	if err := bi.Storage.CreateIndex(ctx, "ticket_level_idx", "level", tickets); err != nil {
 		return err
 	}
 
