@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -18,15 +17,11 @@ import (
 )
 
 // Babylon -
-type Babylon struct {
-	bmdRepo bigmapdiff.Repository
-}
+type Babylon struct{}
 
 // NewBabylon -
-func NewBabylon(bmdRepo bigmapdiff.Repository) *Babylon {
-	return &Babylon{
-		bmdRepo: bmdRepo,
-	}
+func NewBabylon() *Babylon {
+	return &Babylon{}
 }
 
 // Parse -

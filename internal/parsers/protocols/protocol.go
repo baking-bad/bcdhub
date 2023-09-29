@@ -40,7 +40,7 @@ func Get(ctx *config.Context, protocol string) (*Specific, error) {
 		return &Specific{
 			StorageParser:         storage.NewBabylon(ctx.BigMapDiffs, ctx.Operations, ctx.Accounts),
 			ContractParser:        contract.NewBabylon(ctx),
-			MigrationParser:       migrations.NewBabylon(ctx.BigMapDiffs),
+			MigrationParser:       migrations.NewBabylon(),
 			NeedReceiveRawStorage: true,
 		}, nil
 	case "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
