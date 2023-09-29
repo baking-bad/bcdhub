@@ -615,7 +615,7 @@
   level: 41
   operation_id: 125
   protocol_id: 3
-  ptr: null
+  ptr: -1
   timestamp: 2022-01-25T17:04:35Z
   value: '{"prim":"Pair","args":[{"int":"2"},[]]}'
 - contract: KT1R9BdHMfGTwKnbCHii8akcB7DqzfdnD9AD
@@ -625,7 +625,7 @@
   level: 41
   operation_id: 125
   protocol_id: 3
-  ptr: null
+  ptr: -1
   timestamp: 2022-01-25T17:04:35Z
   value: '{"prim":"Pair","args":[{"int":"3"},[]]}'
 - contract: KT1R9BdHMfGTwKnbCHii8akcB7DqzfdnD9AD
@@ -635,7 +635,7 @@
   level: 41
   operation_id: 125
   protocol_id: 3
-  ptr: null
+  ptr: -1
   timestamp: 2022-01-25T17:04:35Z
   value: '{"prim":"Pair","args":[{"int":"4"},[]]}'
 - contract: KT1R9BdHMfGTwKnbCHii8akcB7DqzfdnD9AD
@@ -645,7 +645,7 @@
   level: 41
   operation_id: 125
   protocol_id: 3
-  ptr: null
+  ptr: -1
   timestamp: 2022-01-25T17:04:35Z
   value: '{"prim":"Pair","args":[{"int":"1"},[]]}'
 - contract: KT1DREzUemWyb1q7dUnHmxw3x8Ryq5VLZE8e
