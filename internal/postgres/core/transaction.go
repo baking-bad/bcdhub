@@ -273,3 +273,19 @@ func (t Transaction) DeleteBigMapStatesByContract(ctx context.Context, contract 
 		Exec(ctx, &states)
 	return
 }
+
+func (t Transaction) BabylonUpdateBigMapDiffs(ctx context.Context, contract string, ptr int64) (int, error) {
+	res, err := t.tx.NewUpdate().
+		Model((*bigmapdiff.BigMapDiff)(nil)).
+		Where("contract = ?", contract).
+		Set("ptr = ?", ptr).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}

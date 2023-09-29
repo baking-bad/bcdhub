@@ -42,12 +42,6 @@ func (storage *Storage) GetForAddress(ctx context.Context, address string) (resp
 	return
 }
 
-// GetByAddress -
-func (storage *Storage) GetByAddress(ctx context.Context, address string) (response []bigmapdiff.BigMapDiff, err error) {
-	err = core.Contract(storage.DB.NewSelect().Model(&response), address).Order("id desc").Scan(ctx)
-	return
-}
-
 // Count -
 func (storage *Storage) Count(ctx context.Context, ptr int64) (int, error) {
 	return storage.DB.NewSelect().

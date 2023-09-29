@@ -103,19 +103,12 @@ func (p *Babylon) getUpdates(ctx context.Context, script noderpc.Script, contrac
 		newPtr = p
 	}
 
-	bmd, err := p.bmdRepo.GetByAddress(ctx, contract.Account.Address)
+	updatedRows, err := tx.BabylonUpdateBigMapDiffs(ctx, contract.Account.Address, newPtr)
 	if err != nil {
 		return err
 	}
-	if len(bmd) == 0 {
+	if updatedRows == 0 {
 		return nil
-	}
-
-	for i := range bmd {
-		bmd[i].Ptr = newPtr
-		if err := tx.BigMapDiffs(ctx, &bmd[i]); err != nil {
-			return err
-		}
 	}
 
 	keys, err := tx.DeleteBigMapStatesByContract(ctx, contract.Account.Address)

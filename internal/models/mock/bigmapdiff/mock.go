@@ -156,45 +156,6 @@ func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, bigmapdiff.GetCo
 	return c
 }
 
-// GetByAddress mocks base method.
-func (m *MockRepository) GetByAddress(ctx context.Context, address string) ([]bigmapdiff.BigMapDiff, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByAddress", ctx, address)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapDiff)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByAddress indicates an expected call of GetByAddress.
-func (mr *MockRepositoryMockRecorder) GetByAddress(ctx, address any) *RepositoryGetByAddressCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAddress", reflect.TypeOf((*MockRepository)(nil).GetByAddress), ctx, address)
-	return &RepositoryGetByAddressCall{Call: call}
-}
-
-// RepositoryGetByAddressCall wrap *gomock.Call
-type RepositoryGetByAddressCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetByAddressCall) Return(arg0 []bigmapdiff.BigMapDiff, arg1 error) *RepositoryGetByAddressCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetByAddressCall) Do(f func(context.Context, string) ([]bigmapdiff.BigMapDiff, error)) *RepositoryGetByAddressCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetByAddressCall) DoAndReturn(f func(context.Context, string) ([]bigmapdiff.BigMapDiff, error)) *RepositoryGetByAddressCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // GetByPtr mocks base method.
 func (m *MockRepository) GetByPtr(ctx context.Context, contract string, ptr int64) ([]bigmapdiff.BigMapState, error) {
 	m.ctrl.T.Helper()

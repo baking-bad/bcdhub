@@ -42,25 +42,6 @@ func (s *StorageTestSuite) TestBigMapDiffsGetForAddress() {
 	s.Require().Equal(testsuite.MustHexDecode("7b22737472696e67223a22227d"), []byte(diff.Key))
 }
 
-func (s *StorageTestSuite) TestBigMapDiffsGetByAddress() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	diffs, err := s.bigMapDiffs.GetByAddress(ctx, "KT1W3fGSo8XfRSESPAg3Jngzt3D8xpPqW64i")
-	s.Require().NoError(err)
-	s.Require().Len(diffs, 1)
-
-	diff := diffs[0]
-	s.Require().EqualValues(1, diff.ID)
-	s.Require().EqualValues(4, diff.Ptr)
-	s.Require().EqualValues(33, diff.Level)
-	s.Require().EqualValues(3, diff.ProtocolID)
-	s.Require().EqualValues(34, diff.OperationID)
-	s.Require().EqualValues("KT1W3fGSo8XfRSESPAg3Jngzt3D8xpPqW64i", diff.Contract)
-	s.Require().Equal("expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo", diff.KeyHash)
-	s.Require().Equal(testsuite.MustHexDecode("7b22737472696e67223a22227d"), []byte(diff.Key))
-}
-
 func (s *StorageTestSuite) TestBigMapDiffsCount() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

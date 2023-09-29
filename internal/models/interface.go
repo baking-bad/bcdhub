@@ -53,6 +53,7 @@ type Transaction interface {
 	ToJakarta(ctx context.Context) error
 	JakartaVesting(ctx context.Context, contract *contract.Contract) error
 	JakartaUpdateNonDelegator(ctx context.Context, contract *contract.Contract) error
+	BabylonUpdateBigMapDiffs(ctx context.Context, contract string, ptr int64) (int, error)
 	DeleteBigMapStatesByContract(ctx context.Context, contract string) ([]bigmapdiff.BigMapState, error)
 
 	Commit() error

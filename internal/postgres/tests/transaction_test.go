@@ -423,3 +423,24 @@ func (s *StorageTestSuite) TestTicketBalances() {
 	s.Require().NoError(err)
 	s.Require().Len(balances, 3)
 }
+
+func (s *StorageTestSuite) TestBabylonUpdateBigMapDiffs() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	count, err := tx.BabylonUpdateBigMapDiffs(ctx, "KT1R9BdHMfGTwKnbCHii8akcB7DqzfdnD9AD", 10000)
+	s.Require().NoError(err)
+
+	err = tx.Commit()
+	s.Require().NoError(err)
+
+	s.Require().EqualValues(4, count)
+
+	var diffs []bigmapdiff.BigMapDiff
+	err = s.storage.DB.NewSelect().Model(&diffs).Where("ptr = 10000").Scan(ctx)
+	s.Require().NoError(err)
+	s.Require().Len(diffs, 4)
+}
