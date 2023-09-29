@@ -117,45 +117,6 @@ func (c *RepositoryCurrentCall) DoAndReturn(f func(context.Context, string, int6
 	return c
 }
 
-// CurrentByContract mocks base method.
-func (m *MockRepository) CurrentByContract(ctx context.Context, contract string) ([]bigmapdiff.BigMapState, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CurrentByContract", ctx, contract)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapState)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CurrentByContract indicates an expected call of CurrentByContract.
-func (mr *MockRepositoryMockRecorder) CurrentByContract(ctx, contract any) *RepositoryCurrentByContractCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CurrentByContract", reflect.TypeOf((*MockRepository)(nil).CurrentByContract), ctx, contract)
-	return &RepositoryCurrentByContractCall{Call: call}
-}
-
-// RepositoryCurrentByContractCall wrap *gomock.Call
-type RepositoryCurrentByContractCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryCurrentByContractCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *RepositoryCurrentByContractCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryCurrentByContractCall) Do(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *RepositoryCurrentByContractCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryCurrentByContractCall) DoAndReturn(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *RepositoryCurrentByContractCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // Get mocks base method.
 func (m *MockRepository) Get(ctx context.Context, reqCtx bigmapdiff.GetContext) ([]bigmapdiff.Bucket, error) {
 	m.ctrl.T.Helper()

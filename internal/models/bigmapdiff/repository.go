@@ -12,7 +12,6 @@ type Repository interface {
 	GetForAddress(ctx context.Context, address string) ([]BigMapState, error)
 	Count(ctx context.Context, ptr int64) (int, error)
 	Current(ctx context.Context, keyHash string, ptr int64) (BigMapState, error)
-	CurrentByContract(ctx context.Context, contract string) ([]BigMapState, error)
 	Previous(ctx context.Context, diffs []BigMapDiff) ([]BigMapDiff, error)
 	GetStats(ctx context.Context, ptr int64) (Stats, error)
 	Keys(ctx context.Context, reqCtx GetContext) (states []BigMapState, err error)

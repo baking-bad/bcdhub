@@ -182,14 +182,6 @@ func (storage *Storage) GetStats(ctx context.Context, ptr int64) (stats bigmapdi
 	return
 }
 
-// CurrentByContract -
-func (storage *Storage) CurrentByContract(ctx context.Context, contract string) (keys []bigmapdiff.BigMapState, err error) {
-	err = storage.DB.NewSelect().Model(&keys).
-		Where("contract = ?", contract).
-		Scan(ctx)
-	return
-}
-
 // Keys -
 func (storage *Storage) Keys(ctx context.Context, req bigmapdiff.GetContext) (states []bigmapdiff.BigMapState, err error) {
 	err = storage.buildGetContextForState(req).Scan(ctx, &states)

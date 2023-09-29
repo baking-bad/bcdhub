@@ -319,28 +319,21 @@ func (s *StorageTestSuite) TestToJakarta() {
 	s.Require().EqualValues(14, newContract.JakartaID)
 }
 
-func (s *StorageTestSuite) TestBabylonBigMapStates() {
+func (s *StorageTestSuite) TestDeleteBigMapStates() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
 
-	err = tx.BabylonBigMapStates(ctx, &bigmapdiff.BigMapState{
-		ID:       3,
-		Ptr:      1000,
-		KeyHash:  "expruDuAZnFKqmLoisJqUGqrNzXTvw7PJM2rYk97JErM5FHCerQqgn",
-		Contract: "KT1Pz65ssbPF7Zv9Dh7ggqUkgAYNSuJ9iia7",
-	})
+	states, err := tx.DeleteBigMapStatesByContract(ctx, "KT1Pz65ssbPF7Zv9Dh7ggqUkgAYNSuJ9iia7")
 	s.Require().NoError(err)
 
 	err = tx.Commit()
 	s.Require().NoError(err)
+	s.Require().Len(states, 9)
 
-	var state bigmapdiff.BigMapState
-	err = s.storage.DB.NewSelect().Model(&state).Where("id = 3").Scan(ctx)
-	s.Require().NoError(err)
-	s.Require().EqualValues(1000, state.Ptr)
+	s.Require().Equal("KT1Pz65ssbPF7Zv9Dh7ggqUkgAYNSuJ9iia7", states[0].Contract)
 }
 
 func (s *StorageTestSuite) TestUpdateStats() {

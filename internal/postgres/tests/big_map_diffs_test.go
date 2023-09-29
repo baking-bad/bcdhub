@@ -147,15 +147,6 @@ func (s *StorageTestSuite) TestBigMapDiffsGetStats() {
 	s.Require().EqualValues("KT1NSpRTVR4MUwx64XCADXDUmpMGQw5yVNK1", stats.Contract)
 }
 
-func (s *StorageTestSuite) TestBigMapDiffsCurrentByContract() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	diff, err := s.bigMapDiffs.CurrentByContract(ctx, "KT1NSpRTVR4MUwx64XCADXDUmpMGQw5yVNK1")
-	s.Require().NoError(err)
-	s.Require().Len(diff, 4)
-}
-
 func (s *StorageTestSuite) TestBigMapDiffsKeys() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

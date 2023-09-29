@@ -118,7 +118,7 @@ func (p *Babylon) getUpdates(ctx context.Context, script noderpc.Script, contrac
 		}
 	}
 
-	keys, err := p.bmdRepo.CurrentByContract(ctx, contract.Account.Address)
+	keys, err := tx.DeleteBigMapStatesByContract(ctx, contract.Account.Address)
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,9 @@ func (p *Babylon) getUpdates(ctx context.Context, script noderpc.Script, contrac
 
 	for i := range keys {
 		keys[i].Ptr = newPtr
-		if err := tx.BabylonBigMapStates(ctx, &keys[i]); err != nil {
+		keys[i].ID = 0
+
+		if err := tx.BigMapStates(ctx, &keys[i]); err != nil {
 			return err
 		}
 	}

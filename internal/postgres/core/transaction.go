@@ -218,11 +218,6 @@ func (t Transaction) ToJakarta(ctx context.Context) error {
 	return err
 }
 
-func (t Transaction) BabylonBigMapStates(ctx context.Context, state *bigmapdiff.BigMapState) error {
-	_, err := t.tx.NewUpdate().Model(state).WherePK().Column("ptr").Exec(ctx)
-	return err
-}
-
 func (t Transaction) UpdateStats(ctx context.Context, stats stats.Stats) error {
 	_, err := t.tx.NewInsert().
 		Model(&stats).
@@ -268,4 +263,13 @@ func (t Transaction) TicketBalances(ctx context.Context, balances ...*ticket.Bal
 		Set("amount = balance.amount + EXCLUDED.amount").
 		Exec(ctx)
 	return err
+}
+
+func (t Transaction) DeleteBigMapStatesByContract(ctx context.Context, contract string) (states []bigmapdiff.BigMapState, err error) {
+	_, err = t.tx.NewDelete().
+		Model((*bigmapdiff.BigMapState)(nil)).
+		Where("contract = ?", contract).
+		Returning("*").
+		Exec(ctx, &states)
+	return
 }
