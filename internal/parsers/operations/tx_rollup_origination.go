@@ -57,6 +57,10 @@ func (p TxRollupOrigination) Parse(ctx context.Context, data noderpc.Operation, 
 	store.AddOperations(&txRollupOrigination)
 	store.AddAccounts(&txRollupOrigination.Source)
 
+	if txRollupOrigination.IsApplied() {
+		store.AddAccounts(&txRollupOrigination.Destination)
+	}
+
 	return nil
 }
 
