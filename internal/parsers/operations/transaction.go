@@ -78,9 +78,9 @@ func (p Transaction) Parse(ctx context.Context, data noderpc.Operation, store pa
 
 	store.AddOperations(&tx)
 	store.AddAccounts(
-		&tx.Source,
-		&tx.Delegate,
-		&tx.Destination,
+		tx.Source,
+		tx.Delegate,
+		tx.Destination,
 	)
 
 	switch tx.Destination.Type {

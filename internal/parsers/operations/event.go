@@ -58,7 +58,7 @@ func (p Event) Parse(ctx context.Context, data noderpc.Operation, store parsers.
 	p.stackTrace.Add(event)
 
 	store.AddOperations(&event)
-	store.AddAccounts(&event.Source)
+	store.AddAccounts(event.Source)
 
 	return nil
 }

@@ -77,9 +77,8 @@ func (p Origination) Parse(ctx context.Context, data noderpc.Operation, store pa
 
 	store.AddOperations(&origination)
 	store.AddAccounts(
-		&origination.Source,
-		&origination.Destination,
-		&origination.Delegate,
+		origination.Source,
+		origination.Delegate,
 	)
 
 	return nil

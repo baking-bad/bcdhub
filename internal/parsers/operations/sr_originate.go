@@ -58,11 +58,11 @@ func (p SrOriginate) Parse(ctx context.Context, data noderpc.Operation, store pa
 			return err
 		}
 		store.AddSmartRollups(&smartRollup)
-		store.AddAccounts(&smartRollup.Address)
+		store.AddAccounts(smartRollup.Address)
 		operation.Destination = smartRollup.Address
 	}
 
-	store.AddAccounts(&operation.Destination, &operation.Source)
+	store.AddAccounts(operation.Destination, operation.Source)
 
 	return nil
 }

@@ -45,7 +45,7 @@ func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *opera
 		UpdatesCount: 1,
 		Level:        operation.Level,
 	}
-	store.AddTickets(&tckt)
+	store.AddTickets(tckt)
 
 	updates := make([]*ticket.TicketUpdate, 0)
 	for i := range data.Updates {
@@ -62,8 +62,8 @@ func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *opera
 			Amount: decimal.RequireFromString(data.Updates[i].Amount),
 		}
 		updates = append(updates, &update)
-		store.AddAccounts(&update.Account, &tckt.Ticketer)
-		store.AddTicketBalances(&ticket.Balance{
+		store.AddAccounts(update.Account, tckt.Ticketer)
+		store.AddTicketBalances(ticket.Balance{
 			Account: update.Account,
 			Ticket:  tckt,
 			Amount:  update.Amount.Copy(),

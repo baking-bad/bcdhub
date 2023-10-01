@@ -927,6 +927,15 @@ func TestGroup_Parse(t *testing.T) {
 						DeffatedStorage:                    []byte("{\"int\":\"0\"}\n"),
 					},
 				},
+				Accounts: map[string]*account.Account{
+					"KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR": {
+						Address:         "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
+						Type:            types.AccountTypeContract,
+						Level:           86142,
+						OperationsCount: 1,
+						LastAction:      timestamp,
+					},
+				},
 				Contracts: []*modelContract.Contract{
 					{
 						Level:     86142,
@@ -2093,7 +2102,15 @@ func TestGroup_Parse(t *testing.T) {
 						Contract:        "KT1BM1SyQnTzNU1J8TZv5Mdj4ScuTgNKH5uj",
 					},
 				},
-
+				Accounts: map[string]*account.Account{
+					"KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6": {
+						Address:         "KT1Jk8LRDoj6LkopYZwRq5ZEWBhYv8nVc6e6",
+						Type:            types.AccountTypeContract,
+						Level:           381735,
+						OperationsCount: 4,
+						LastAction:      timestamp,
+					},
+				},
 				Contracts: []*modelContract.Contract{
 					{
 						Timestamp: timestamp,

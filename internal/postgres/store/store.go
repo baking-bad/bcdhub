@@ -118,10 +118,10 @@ func (store *Store) AddSmartRollups(rollups ...*smartrollup.SmartRollup) {
 }
 
 // AddAccounts -
-func (store *Store) AddAccounts(accounts ...*account.Account) {
+func (store *Store) AddAccounts(accounts ...account.Account) {
 	for i := range accounts {
 		if account, ok := store.Accounts[accounts[i].Address]; !ok {
-			store.Accounts[accounts[i].Address] = accounts[i]
+			store.Accounts[accounts[i].Address] = &accounts[i]
 		} else {
 			account.OperationsCount += accounts[i].OperationsCount
 			account.EventsCount += accounts[i].EventsCount
@@ -132,11 +132,11 @@ func (store *Store) AddAccounts(accounts ...*account.Account) {
 }
 
 // AddTickets -
-func (store *Store) AddTickets(tickets ...*ticket.Ticket) {
+func (store *Store) AddTickets(tickets ...ticket.Ticket) {
 	for i := range tickets {
 		hash := tickets[i].Hash()
 		if t, ok := store.Tickets[hash]; !ok {
-			store.Tickets[hash] = tickets[i]
+			store.Tickets[hash] = &tickets[i]
 		} else {
 			t.UpdatesCount += tickets[i].UpdatesCount
 		}
@@ -144,11 +144,11 @@ func (store *Store) AddTickets(tickets ...*ticket.Ticket) {
 }
 
 // AddTicketBalances -
-func (store *Store) AddTicketBalances(balance ...*ticket.Balance) {
+func (store *Store) AddTicketBalances(balance ...ticket.Balance) {
 	for i := range balance {
 		key := fmt.Sprintf("%s_%s", balance[i].Ticket.Hash(), balance[i].Account.Address)
 		if t, ok := store.TicketBalances[key]; !ok {
-			store.TicketBalances[key] = balance[i]
+			store.TicketBalances[key] = &balance[i]
 		} else {
 			t.Amount = t.Amount.Add(balance[i].Amount)
 		}

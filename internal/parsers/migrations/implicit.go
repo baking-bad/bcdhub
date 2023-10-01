@@ -139,7 +139,7 @@ func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, 
 				OperationsCount: 1,
 				LastAction:      head.Timestamp,
 			}
-			store.AddAccounts(&tx.Destination)
+			store.AddAccounts(tx.Destination)
 			break
 		}
 	}

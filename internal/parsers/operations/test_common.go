@@ -146,6 +146,11 @@ func compareParserResponse(t *testing.T, got, want *parsers.TestStore) {
 	for hash := range got.Tickets {
 		require.Equal(t, want.Tickets[hash], got.Tickets[hash])
 	}
+	for key, wantAddress := range want.Accounts {
+		gotAddress, ok := got.Accounts[key]
+		require.True(t, ok)
+		require.Equal(t, wantAddress, gotAddress)
+	}
 }
 
 func compareAddress(t *testing.T, want, got account.Account) {

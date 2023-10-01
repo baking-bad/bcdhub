@@ -64,9 +64,9 @@ func (p *VestingParser) Parse(ctx context.Context, data noderpc.ContractData, he
 	}
 
 	store.AddAccounts(
-		&vestingOperation.Source,
-		&vestingOperation.Destination,
-		&vestingOperation.Delegate,
+		vestingOperation.Source,
+		vestingOperation.Destination,
+		vestingOperation.Delegate,
 	)
 
 	contracts := store.ListContracts()

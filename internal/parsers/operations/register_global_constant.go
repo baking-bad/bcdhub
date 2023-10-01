@@ -52,6 +52,6 @@ func (p RegisterGlobalConstant) Parse(ctx context.Context, data noderpc.Operatio
 	if registerGlobalConstant.IsApplied() {
 		store.AddGlobalConstants(NewGlobalConstant().Parse(data, registerGlobalConstant))
 	}
-	store.AddAccounts(&registerGlobalConstant.Source)
+	store.AddAccounts(registerGlobalConstant.Source)
 	return nil
 }

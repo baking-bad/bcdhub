@@ -56,7 +56,7 @@ func (p TransferTicket) Parse(ctx context.Context, data noderpc.Operation, store
 			OperationsCount: 1,
 			LastAction:      p.head.Timestamp,
 		}
-		store.AddAccounts(&transferTicket.Destination)
+		store.AddAccounts(transferTicket.Destination)
 	}
 
 	p.fillInternal(&transferTicket)
@@ -65,7 +65,7 @@ func (p TransferTicket) Parse(ctx context.Context, data noderpc.Operation, store
 	p.stackTrace.Add(transferTicket)
 
 	store.AddOperations(&transferTicket)
-	store.AddAccounts(&transferTicket.Source)
+	store.AddAccounts(transferTicket.Source)
 
 	return nil
 }

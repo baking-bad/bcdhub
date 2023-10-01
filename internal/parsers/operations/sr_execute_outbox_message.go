@@ -56,7 +56,7 @@ func (p SrExecuteOutboxMessage) Parse(ctx context.Context, data noderpc.Operatio
 			OperationsCount: 1,
 			LastAction:      p.head.Timestamp,
 		}
-		store.AddAccounts(&operation.Destination)
+		store.AddAccounts(operation.Destination)
 	}
 	p.fillInternal(&operation)
 	operation.SetBurned(*p.protocol.Constants)
@@ -78,7 +78,7 @@ func (p SrExecuteOutboxMessage) Parse(ctx context.Context, data noderpc.Operatio
 	}
 
 	store.AddOperations(&operation)
-	store.AddAccounts(&operation.Source)
+	store.AddAccounts(operation.Source)
 
 	return nil
 }

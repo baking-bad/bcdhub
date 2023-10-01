@@ -22,11 +22,11 @@ type Store interface {
 	AddOperations(operations ...*operation.Operation)
 	AddGlobalConstants(constants ...*contract.GlobalConstant)
 	AddSmartRollups(rollups ...*smartrollup.SmartRollup)
-	AddTickets(tickets ...*ticket.Ticket)
-	AddTicketBalances(balances ...*ticket.Balance)
+	AddTickets(tickets ...ticket.Ticket)
+	AddTicketBalances(balances ...ticket.Balance)
 	ListContracts() []*contract.Contract
 	ListOperations() []*operation.Operation
-	AddAccounts(accounts ...*account.Account)
+	AddAccounts(accounts ...account.Account)
 	Save(ctx context.Context) error
 	SetBlock(block *block.Block)
 }
@@ -90,12 +90,26 @@ func (store *TestStore) AddSmartRollups(rollups ...*smartrollup.SmartRollup) {
 	store.SmartRollups = append(store.SmartRollups, rollups...)
 }
 
+// AddAccounts -
+func (store *TestStore) AddAccounts(accounts ...account.Account) {
+	for i := range accounts {
+		if account, ok := store.Accounts[accounts[i].Address]; !ok {
+			store.Accounts[accounts[i].Address] = &accounts[i]
+		} else {
+			account.OperationsCount += accounts[i].OperationsCount
+			account.EventsCount += accounts[i].EventsCount
+			account.MigrationsCount += accounts[i].MigrationsCount
+			account.TicketUpdatesCount += accounts[i].TicketUpdatesCount
+		}
+	}
+}
+
 // AddTickets -
-func (store *TestStore) AddTickets(tickets ...*ticket.Ticket) {
+func (store *TestStore) AddTickets(tickets ...ticket.Ticket) {
 	for i := range tickets {
 		hash := tickets[i].Hash()
 		if t, ok := store.Tickets[hash]; !ok {
-			store.Tickets[hash] = tickets[i]
+			store.Tickets[hash] = &tickets[i]
 		} else {
 			t.UpdatesCount += tickets[i].UpdatesCount
 		}
@@ -103,11 +117,11 @@ func (store *TestStore) AddTickets(tickets ...*ticket.Ticket) {
 }
 
 // AddTicketBalances -
-func (store *TestStore) AddTicketBalances(balance ...*ticket.Balance) {
+func (store *TestStore) AddTicketBalances(balance ...ticket.Balance) {
 	for i := range balance {
 		key := fmt.Sprintf("%s_%s", balance[i].Ticket.Hash(), balance[i].Account.Address)
 		if t, ok := store.TicketBalances[key]; !ok {
-			store.TicketBalances[key] = balance[i]
+			store.TicketBalances[key] = &balance[i]
 		} else {
 			t.Amount = t.Amount.Add(balance[i].Amount)
 		}
@@ -122,15 +136,6 @@ func (store *TestStore) ListContracts() []*contract.Contract {
 // ListOperations -
 func (store *TestStore) ListOperations() []*operation.Operation {
 	return store.Operations
-}
-
-// AddAccounts -
-func (store *TestStore) AddAccounts(accounts ...*account.Account) {
-	for i := range accounts {
-		if _, ok := store.Accounts[accounts[i].Address]; !ok {
-			store.Accounts[accounts[i].Address] = accounts[i]
-		}
-	}
 }
 
 // Save -
