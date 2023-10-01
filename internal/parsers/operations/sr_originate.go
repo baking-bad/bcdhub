@@ -62,7 +62,7 @@ func (p SrOriginate) Parse(ctx context.Context, data noderpc.Operation, store pa
 		operation.Destination = smartRollup.Address
 	}
 
-	store.AddAccounts(operation.Destination, operation.Source)
+	store.AddAccounts(operation.Source)
 
 	return nil
 }
