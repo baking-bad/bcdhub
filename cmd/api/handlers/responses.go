@@ -204,16 +204,18 @@ type ContractWithStats struct {
 
 // RecentlyCalledContract -
 type RecentlyCalledContract struct {
-	ID         int64     `json:"id"`
-	Address    string    `json:"address"`
-	LastAction time.Time `json:"last_action,omitempty" extensions:"x-nullable"`
-	TxCount    int64     `json:"tx_count,omitempty" extensions:"x-nullable"`
+	ID              int64     `json:"id"`
+	Address         string    `json:"address"`
+	LastAction      time.Time `json:"last_action"`
+	OperationsCount int64     `json:"operations_count"`
 }
 
 // FromModel -
 func (c *RecentlyCalledContract) FromModel(contract contract.Contract) {
 	c.Address = contract.Account.Address
 	c.ID = contract.ID
+	c.LastAction = contract.Account.LastAction
+	c.OperationsCount = contract.Account.OperationsCount
 }
 
 // OperationResponse -
