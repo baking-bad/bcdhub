@@ -99,9 +99,7 @@ func (rpc *NodeRPC) checkStatusCode(r io.Reader, statusCode int, checkStatusCode
 			return err
 		}
 		invalidResponseErr.Raw = data
-		if err := json.Unmarshal(data, &invalidResponseErr.Errors); err != nil {
-			return errors.Wrap(invalidResponseErr, err.Error())
-		}
+		_ = json.Unmarshal(data, &invalidResponseErr.Errors)
 		return invalidResponseErr
 	default:
 		return nil
