@@ -43,7 +43,6 @@ func (p *Alpha) Parse(ctx context.Context, operation *operation.Operation, store
 	}
 
 	store.AddContracts(&contract)
-	store.AddAccounts(contract.Account)
 	return nil
 }
 

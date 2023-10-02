@@ -73,6 +73,7 @@ func (p Origination) Parse(ctx context.Context, data noderpc.Operation, store pa
 		if err := p.appliedHandler(ctx, data, &origination, store); err != nil {
 			return err
 		}
+		store.AddAccounts(origination.Destination)
 	}
 
 	store.AddOperations(&origination)

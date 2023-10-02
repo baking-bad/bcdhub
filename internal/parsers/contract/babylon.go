@@ -43,7 +43,6 @@ func (p *Babylon) Parse(ctx context.Context, operation *operation.Operation, sto
 	}
 
 	store.AddContracts(&contract)
-	store.AddAccounts(contract.Account)
 	return nil
 }
 

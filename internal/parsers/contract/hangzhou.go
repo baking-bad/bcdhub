@@ -43,7 +43,6 @@ func (p *Hangzhou) Parse(ctx context.Context, operation *operation.Operation, st
 	}
 
 	store.AddContracts(&contract)
-	store.AddAccounts(contract.Account)
 	return nil
 }
 

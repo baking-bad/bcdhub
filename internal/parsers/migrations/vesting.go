@@ -63,12 +63,6 @@ func (p *VestingParser) Parse(ctx context.Context, data noderpc.ContractData, he
 		return err
 	}
 
-	store.AddAccounts(
-		vestingOperation.Source,
-		vestingOperation.Destination,
-		vestingOperation.Delegate,
-	)
-
 	contracts := store.ListContracts()
 	for i := range contracts {
 		if contracts[i].Account.Address == address {
@@ -79,6 +73,11 @@ func (p *VestingParser) Parse(ctx context.Context, data noderpc.ContractData, he
 				Kind:       types.MigrationKindBootstrap,
 				Contract:   *contracts[i],
 			})
+			store.AddAccounts(
+				vestingOperation.Source,
+				vestingOperation.Destination,
+				vestingOperation.Delegate,
+			)
 			break
 		}
 	}

@@ -108,6 +108,7 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 				Kind:       types.MigrationKindBootstrap,
 				Contract:   *contracts[i],
 			})
+			store.AddAccounts(origination.Destination)
 			break
 		}
 	}
