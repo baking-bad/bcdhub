@@ -264,10 +264,12 @@ func (store *Store) setOperationAccountsId(operation *operation.Operation) error
 		return errors.Errorf("unknown source account: %s", operation.Source.Address)
 	}
 
-	if id, ok := store.getAccountId(operation.Destination); ok {
-		operation.DestinationID = id
-	} else {
-		return errors.Errorf("unknown destination account: %s", operation.Destination.Address)
+	if !(operation.IsOrigination() && !operation.IsApplied()) {
+		if id, ok := store.getAccountId(operation.Destination); ok {
+			operation.DestinationID = id
+		} else {
+			return errors.Errorf("unknown destination account: %s", operation.Destination.Address)
+		}
 	}
 
 	if id, ok := store.getAccountId(operation.Initiator); ok {
