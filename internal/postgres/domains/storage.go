@@ -54,9 +54,12 @@ func (storage *Storage) Same(ctx context.Context, network string, c contract.Con
 			Join("LEFT JOIN ?.scripts as alpha on alpha.id = contracts.alpha_id", schema).
 			Join("LEFT JOIN ?.scripts as babylon on babylon.id = contracts.babylon_id", schema).
 			Join("LEFT JOIN ?.scripts as jakarta on jakarta.id = contracts.jakarta_id", schema).
-			Where("alpha.hash = ?", script.Hash).
-			WhereOr("babylon.hash = ?", script.Hash).
-			WhereOr("jakarta.hash = ?", script.Hash)
+			WhereGroup(" AND ", func(sq *bun.SelectQuery) *bun.SelectQuery {
+				return sq.
+					Where("alpha.hash = ?", script.Hash).
+					WhereOr("babylon.hash = ?", script.Hash).
+					WhereOr("jakarta.hash = ?", script.Hash)
+			})
 
 		if value == network {
 			query.Where("contracts.id != ?", c.ID)
