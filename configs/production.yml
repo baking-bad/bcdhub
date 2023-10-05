@@ -15,6 +15,8 @@ rpc:
   #   uri: https://rpc.tzkt.io/oxfordnet
   #   timeout: 20
   #   requests_per_second: 20
+
+log_level: ${LOG_LEVEL:-info}
   
 services:
   mainnet:
@@ -65,12 +67,12 @@ api:
       mainnet: https://rpc.tzkt.io/mainnet
       ghostnet: https://rpc.tzkt.io/ghostnet
       nairobinet: https://rpc.tzkt.io/nairobinet
-      oxfordnet: https://rpc.tzkt.io/oxfordnet
+      # oxfordnet: https://rpc.tzkt.io/oxfordnet
   networks:
     - mainnet
     - ghostnet
     - nairobinet
-    - oxfordnet
+    # - oxfordnet
 
 indexer:
   project_name: indexer
