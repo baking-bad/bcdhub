@@ -11,10 +11,10 @@ rpc:
     uri: https://rpc.tzkt.io/nairobinet
     timeout: 20
     requests_per_second: 10
-  oxfordnet:
-    uri: https://rpc.tzkt.io/oxfordnet
-    timeout: 20
-    requests_per_second: 20
+  # oxfordnet:
+  #   uri: https://rpc.tzkt.io/oxfordnet
+  #   timeout: 20
+  #   requests_per_second: 20
   
 services:
   mainnet:
@@ -23,8 +23,8 @@ services:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   nairobinet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
-  oxfordnet:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
+  # oxfordnet:
+  #   mempool: https://mempool.test.dipdup.net/v1/graphql
 
 storage:
   pg: 
@@ -85,8 +85,8 @@ indexer:
       receiver_threads: ${TESTNET_THREADS:-10}
     nairobinet:
       receiver_threads: ${TESTNET_THREADS:-10}
-    oxfordnet:
-      receiver_threads: ${TESTNET_THREADS:-10}
+    # oxfordnet:
+    #   receiver_threads: ${TESTNET_THREADS:-10}
   connections:
     max: 5
     idle: 5
@@ -101,7 +101,7 @@ scripts:
     - mainnet
     - ghostnet
     - nairobinet
-    - oxfordnet
+    # - oxfordnet
   connections:
     max: 5
     idle: 5
