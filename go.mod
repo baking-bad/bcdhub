@@ -1,6 +1,6 @@
 module github.com/baking-bad/bcdhub
 
-go 1.20
+go 1.21
 
 require (
 	github.com/btcsuite/btcutil v1.0.2
