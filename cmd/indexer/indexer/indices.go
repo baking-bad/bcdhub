@@ -44,15 +44,6 @@ func (bi *BlockchainIndexer) createIndices(ctx context.Context) error {
 	if err := bi.Storage.CreateIndex(ctx, "contracts_level_idx", "level", contractModel); err != nil {
 		return err
 	}
-	if err := bi.Storage.CreateIndex(ctx, "contracts_alpha_id_idx", "alpha_id", contractModel); err != nil {
-		return err
-	}
-	if err := bi.Storage.CreateIndex(ctx, "contracts_babylon_id_idx", "babylon_id", contractModel); err != nil {
-		return err
-	}
-	if err := bi.Storage.CreateIndex(ctx, "contracts_jakarta_id_idx", "jakarta_id", contractModel); err != nil {
-		return err
-	}
 
 	// Global constants
 	globalConstant := (*contract.GlobalConstant)(nil)

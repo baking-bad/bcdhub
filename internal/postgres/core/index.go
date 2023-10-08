@@ -85,6 +85,30 @@ func createBaseIndices(ctx context.Context, db bun.IDB) error {
 			Exec(ctx); err != nil {
 			return err
 		}
+		if _, err := db.NewCreateIndex().
+			Model((*contract.Contract)(nil)).
+			IfNotExists().
+			Index("contracts_alpha_id_idx").
+			Column("alpha_id").
+			Exec(ctx); err != nil {
+			return err
+		}
+		if _, err := db.NewCreateIndex().
+			Model((*contract.Contract)(nil)).
+			IfNotExists().
+			Index("contracts_babylon_id_idx").
+			Column("babylon_id").
+			Exec(ctx); err != nil {
+			return err
+		}
+		if _, err := db.NewCreateIndex().
+			Model((*contract.Contract)(nil)).
+			IfNotExists().
+			Index("contracts_jakarta_id_idx").
+			Column("jakarta_id").
+			Exec(ctx); err != nil {
+			return err
+		}
 
 		// Scripts
 		if _, err := db.NewCreateIndex().
