@@ -10,10 +10,10 @@ import (
 
 // RawScript -
 type RawScript struct {
-	Code      []byte
-	Parameter []byte
-	Storage   []byte
-	Views     []byte
+	Code      []byte `json:"-"`
+	Parameter []byte `json:"-"`
+	Storage   []byte `json:"-"`
+	Views     []byte `json:"-"`
 }
 
 type prim struct {

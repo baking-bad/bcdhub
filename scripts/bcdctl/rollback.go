@@ -10,8 +10,8 @@ import (
 )
 
 type rollbackCommand struct {
-	Level   int64  `short:"l" long:"level" description:"Level to rollback"`
-	Network string `short:"n" long:"network" description:"Network"`
+	Level   int64  `description:"Level to rollback" long:"level"   short:"l"`
+	Network string `description:"Network"           long:"network" short:"n"`
 }
 
 var rollbackCmd rollbackCommand

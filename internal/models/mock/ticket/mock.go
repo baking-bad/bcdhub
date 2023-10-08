@@ -40,18 +40,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // BalancesForAccount mocks base method.
-func (m *MockRepository) BalancesForAccount(ctx context.Context, accountId, limit, offset int64) ([]ticket.Balance, error) {
+func (m *MockRepository) BalancesForAccount(ctx context.Context, accountId int64, req ticket.BalanceRequest) ([]ticket.Balance, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BalancesForAccount", ctx, accountId, limit, offset)
+	ret := m.ctrl.Call(m, "BalancesForAccount", ctx, accountId, req)
 	ret0, _ := ret[0].([]ticket.Balance)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BalancesForAccount indicates an expected call of BalancesForAccount.
-func (mr *MockRepositoryMockRecorder) BalancesForAccount(ctx, accountId, limit, offset any) *RepositoryBalancesForAccountCall {
+func (mr *MockRepositoryMockRecorder) BalancesForAccount(ctx, accountId, req any) *RepositoryBalancesForAccountCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BalancesForAccount", reflect.TypeOf((*MockRepository)(nil).BalancesForAccount), ctx, accountId, limit, offset)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BalancesForAccount", reflect.TypeOf((*MockRepository)(nil).BalancesForAccount), ctx, accountId, req)
 	return &RepositoryBalancesForAccountCall{Call: call}
 }
 
@@ -67,13 +67,13 @@ func (c *RepositoryBalancesForAccountCall) Return(arg0 []ticket.Balance, arg1 er
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryBalancesForAccountCall) Do(f func(context.Context, int64, int64, int64) ([]ticket.Balance, error)) *RepositoryBalancesForAccountCall {
+func (c *RepositoryBalancesForAccountCall) Do(f func(context.Context, int64, ticket.BalanceRequest) ([]ticket.Balance, error)) *RepositoryBalancesForAccountCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryBalancesForAccountCall) DoAndReturn(f func(context.Context, int64, int64, int64) ([]ticket.Balance, error)) *RepositoryBalancesForAccountCall {
+func (c *RepositoryBalancesForAccountCall) DoAndReturn(f func(context.Context, int64, ticket.BalanceRequest) ([]ticket.Balance, error)) *RepositoryBalancesForAccountCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

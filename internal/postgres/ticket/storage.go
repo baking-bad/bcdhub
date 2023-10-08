@@ -64,7 +64,7 @@ func (storage *Storage) UpdatesForOperation(ctx context.Context, operationId int
 	return
 }
 
-func (storage *Storage) BalancesForAccount(ctx context.Context, accountId int64, limit, offset int64) (balances []ticket.Balance, err error) {
+func (storage *Storage) BalancesForAccount(ctx context.Context, accountId int64, req ticket.BalanceRequest) (balances []ticket.Balance, err error) {
 	query := storage.DB.
 		NewSelect().
 		Model(&balances).
@@ -72,13 +72,20 @@ func (storage *Storage) BalancesForAccount(ctx context.Context, accountId int64,
 		Relation("Ticket.Ticketer", func(sq *bun.SelectQuery) *bun.SelectQuery {
 			return sq.Column("address")
 		}).
-		Where("account_id = ?", accountId).
-		Offset(int(offset))
+		Where("account_id = ?", accountId)
 
-	if limit > 0 && limit < 100 {
-		query.Limit(int(limit))
+	if req.Offset > 0 {
+		query.Offset(int(req.Offset))
+	}
+
+	if req.Limit > 0 && req.Limit < 100 {
+		query.Limit(int(req.Limit))
 	} else {
 		query.Limit(10)
+	}
+
+	if req.WithoutZeroBalances {
+		query.Where("amount > 0")
 	}
 
 	err = query.Scan(ctx)

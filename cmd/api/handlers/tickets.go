@@ -41,7 +41,7 @@ func GetContractTicketUpdates() gin.HandlerFunc {
 			return
 		}
 
-		updates, err := ctx.TicketUpdates.Updates(c.Request.Context(), req.Address, args.Size, args.Offset)
+		updates, err := ctx.Tickets.Updates(c.Request.Context(), req.Address, args.Size, args.Offset)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -67,7 +67,7 @@ func GetTicketUpdatesForOperation() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		updates, err := ctx.TicketUpdates.UpdatesForOperation(c.Request.Context(), req.ID)
+		updates, err := ctx.Tickets.UpdatesForOperation(c.Request.Context(), req.ID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -91,12 +91,22 @@ func GetTicketBalancesForAccount() gin.HandlerFunc {
 			return
 		}
 
+		var args ticketBalancesRequest
+		if err := c.BindQuery(&args); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, Error{Message: err.Error()})
+			return
+		}
+
 		acc, err := ctx.Accounts.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		balances, err := ctx.TicketUpdates.BalancesForAccount(c.Request.Context(), acc.ID, 10, 0)
+		balances, err := ctx.Tickets.BalancesForAccount(c.Request.Context(), acc.ID, ticket.BalanceRequest{
+			Limit:               args.Size,
+			Offset:              args.Offset,
+			WithoutZeroBalances: args.WithoutZeroBalances,
+		})
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

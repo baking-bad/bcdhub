@@ -39,8 +39,8 @@ type ConstantRepository interface {
 
 // ListGlobalConstantItem -
 type ListGlobalConstantItem struct {
-	Timestamp  time.Time `json:"timestamp" pg:"timestamp"`
-	Level      int64     `json:"level" pg:"level"`
-	Address    string    `json:"address" pg:"address"`
-	LinksCount uint64    `json:"links_count" pg:"links_count"`
+	Timestamp  time.Time `bun:"timestamp"`
+	Level      int64     `bun:"level"`
+	Address    string    `bun:"address"`
+	LinksCount uint64    `bun:"links_count"`
 }

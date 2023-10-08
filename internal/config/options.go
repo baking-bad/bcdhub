@@ -100,7 +100,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOp
 		ctx.Protocols = protocol.NewStorage(conn)
 		ctx.GlobalConstants = global_constant.NewStorage(conn)
 		ctx.Domains = domains.NewStorage(conn)
-		ctx.TicketUpdates = ticket.NewStorage(conn)
+		ctx.Tickets = ticket.NewStorage(conn)
 		ctx.Scripts = contractStorage
 		ctx.SmartRollups = smartrollup.NewStorage(conn)
 		ctx.Stats = stats.NewStorage(conn)

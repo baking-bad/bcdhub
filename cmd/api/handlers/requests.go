@@ -8,8 +8,8 @@ import (
 )
 
 type getAccountRequest struct {
-	Address string `uri:"address" binding:"required,address"`
-	Network string `uri:"network" binding:"required,network"`
+	Address string `binding:"required,address" uri:"address"`
+	Network string `binding:"required,network" uri:"network"`
 }
 
 // NetworkID -
@@ -18,8 +18,8 @@ func (req getAccountRequest) NetworkID() types.Network {
 }
 
 type getContractRequest struct {
-	Address string `uri:"address" binding:"required,contract"`
-	Network string `uri:"network" binding:"required,network"`
+	Address string `binding:"required,contract" uri:"address"`
+	Network string `binding:"required,network"  uri:"network"`
 }
 
 // NetworkID -
@@ -34,7 +34,7 @@ type getContractCodeRequest struct {
 }
 
 type withStatsRequest struct {
-	Stats *bool `form:"stats,omitempty" binding:"omitempty"`
+	Stats *bool `binding:"omitempty" form:"stats,omitempty"`
 }
 
 // HasStats -
@@ -44,21 +44,21 @@ func (req withStatsRequest) HasStats() bool {
 
 // CodeDiffLeg -
 type CodeDiffLeg struct {
-	Address  string        `json:"address" binding:"required,address"`
-	Network  types.Network `json:"network" binding:"required,network"`
+	Address  string        `binding:"required,address" json:"address"`
+	Network  types.Network `binding:"required,network" json:"network"`
 	Protocol string        `json:"protocol,omitempty"`
 	Level    int64         `json:"level,omitempty"`
 }
 
 // CodeDiffRequest -
 type CodeDiffRequest struct {
-	Left  CodeDiffLeg `json:"left" binding:"required"`
-	Right CodeDiffLeg `json:"right" binding:"required"`
+	Left  CodeDiffLeg `binding:"required" json:"left"`
+	Right CodeDiffLeg `binding:"required" json:"right"`
 }
 
 type getBigMapRequest struct {
-	Network string `uri:"network" binding:"required,network"`
-	Ptr     int64  `uri:"ptr" binding:"min=0"`
+	Network string `binding:"required,network" uri:"network"`
+	Ptr     int64  `binding:"min=0"            uri:"ptr"`
 }
 
 // NetworkID -
@@ -67,9 +67,9 @@ func (req getBigMapRequest) NetworkID() types.Network {
 }
 
 type getBigMapByKeyHashRequest struct {
-	Network string `uri:"network" binding:"required,network"`
-	Ptr     int64  `uri:"ptr" binding:"min=0"`
-	KeyHash string `uri:"key_hash" binding:"required"`
+	Network string `binding:"required,network" uri:"network"`
+	Ptr     int64  `binding:"min=0"            uri:"ptr"`
+	KeyHash string `binding:"required"         uri:"key_hash"`
 }
 
 // OauthRequest -
@@ -84,33 +84,33 @@ type OauthParams struct {
 }
 
 type opgForAddressRequest struct {
-	LastID int64  `form:"last_id" binding:"omitempty"`
-	Size   uint64 `form:"size" binding:"min=0"`
+	LastID int64  `binding:"omitempty" form:"last_id"`
+	Size   uint64 `binding:"min=0"     form:"size"`
 }
 
 type pageableRequest struct {
-	Offset int64 `form:"offset" binding:"min=0"`
-	Size   int64 `form:"size" binding:"min=0,bcd_max_size=10"`
+	Offset int64 `binding:"min=0"                 form:"offset"`
+	Size   int64 `binding:"min=0,bcd_max_size=10" form:"size"`
 }
 
 // OPGRequest -
 type OPGRequest struct {
 	getByNetwork
-	Hash string `uri:"hash" binding:"required,opg" example:"ooy4c6G2BZzybYEY3vRQ7WXGL63tFmamTeGTHdjUxhd6ckbSNnb"`
+	Hash string `binding:"required,opg" example:"ooy4c6G2BZzybYEY3vRQ7WXGL63tFmamTeGTHdjUxhd6ckbSNnb" uri:"hash"`
 }
 
 // OperationGroupContentRequest -
 type OperationGroupContentRequest struct {
 	OPGRequest
 
-	Counter int64 `uri:"counter" binding:"required" example:"123456"`
+	Counter int64 `binding:"required" example:"123456" uri:"counter"`
 }
 
 // ImplicitOperationRequest -
 type ImplicitOperationRequest struct {
 	getByNetwork
 
-	Counter int64 `uri:"counter" binding:"required" example:"123456"`
+	Counter int64 `binding:"required" example:"123456" uri:"counter"`
 }
 
 // FormatterRequest -
@@ -121,7 +121,7 @@ type FormatterRequest struct {
 }
 
 type getByNetwork struct {
-	Network string `uri:"network" binding:"required,network" example:"mainnet"`
+	Network string `binding:"required,network" example:"mainnet" uri:"network"`
 }
 
 // NetworkID -
@@ -131,58 +131,58 @@ func (req getByNetwork) NetworkID() types.Network {
 
 type bigMapSearchRequest struct {
 	pageableRequest
-	MaxLevel *int64 `form:"max_level,omitempty" binding:"omitempty,gt_int64_ptr=MinLevel"`
-	MinLevel *int64 `form:"min_level,omitempty" binding:"omitempty"`
+	MaxLevel *int64 `binding:"omitempty,gt_int64_ptr=MinLevel" form:"max_level,omitempty"`
+	MinLevel *int64 `binding:"omitempty"                       form:"min_level,omitempty"`
 }
 
 type opgRequest struct {
-	WithMempool     bool `form:"with_mempool" binding:"omitempty"`
-	WithStorageDiff bool `form:"with_storage_diff" binding:"omitempty"`
+	WithMempool     bool `binding:"omitempty" form:"with_mempool"`
+	WithStorageDiff bool `binding:"omitempty" form:"with_storage_diff"`
 }
 
 type getEntrypointDataRequest struct {
-	Name   string                 `json:"name" binding:"required"`
-	Data   map[string]interface{} `json:"data" binding:"required"`
+	Name   string                 `binding:"required" json:"name"`
+	Data   map[string]interface{} `binding:"required" json:"data"`
 	Format string                 `json:"format"`
 }
 
 type getOperationByIDRequest struct {
-	ID int64 `uri:"id" binding:"required"`
+	ID int64 `binding:"required" uri:"id"`
 }
 
 type runOperationRequest struct {
-	Data   map[string]interface{} `json:"data" binding:"required"`
-	Name   string                 `json:"name" binding:"required"`
+	Data   map[string]interface{} `binding:"required"          json:"data"`
+	Name   string                 `binding:"required"          json:"name"`
 	Amount int64                  `json:"amount,omitempty"`
-	Source string                 `json:"source,omitempty" binding:"omitempty,address"`
+	Source string                 `binding:"omitempty,address" json:"source,omitempty"`
 }
 
 type runCodeRequest struct {
-	Data     map[string]interface{} `json:"data" binding:"required"`
-	Name     string                 `json:"name" binding:"required"`
+	Data     map[string]interface{} `binding:"required"          json:"data"`
+	Name     string                 `binding:"required"          json:"name"`
 	Amount   int64                  `json:"amount,omitempty"`
 	GasLimit int64                  `json:"gas_limit,omitempty"`
-	Source   string                 `json:"source,omitempty" binding:"omitempty,address"`
-	Sender   string                 `json:"sender,omitempty" binding:"omitempty,address"`
+	Source   string                 `binding:"omitempty,address" json:"source,omitempty"`
+	Sender   string                 `binding:"omitempty,address" json:"sender,omitempty"`
 }
 
 type storageSchemaRequest struct {
-	FillType string `form:"fill_type,omitempty" binding:"omitempty,fill_type"`
+	FillType string `binding:"omitempty,fill_type" form:"fill_type,omitempty"`
 }
 
 type entrypointSchemaRequest struct {
-	FillType       string  `form:"fill_type,omitempty" binding:"omitempty"`
-	EntrypointName string  `form:"entrypoint" binding:"required"`
-	Hash           string  `form:"hash,omitempty" binding:"omitempty"`
-	Counter        *uint64 `form:"counter,omitempty" binding:"omitempty"`
+	FillType       string  `binding:"omitempty" form:"fill_type,omitempty"`
+	EntrypointName string  `binding:"required"  form:"entrypoint"`
+	Hash           string  `binding:"omitempty" form:"hash,omitempty"`
+	Counter        *uint64 `binding:"omitempty" form:"counter,omitempty"`
 }
 
 type forkRequest struct {
-	Address string `json:"address,omitempty" binding:"omitempty,address,required_with=Network"`
-	Network string `json:"network,omitempty" binding:"omitempty,network,required_with=Address"`
-	Script  string `json:"script,omitempty" binding:"omitempty"`
+	Address string `binding:"omitempty,address,required_with=Network" json:"address,omitempty"`
+	Network string `binding:"omitempty,network,required_with=Address" json:"network,omitempty"`
+	Script  string `binding:"omitempty"                               json:"script,omitempty"`
 
-	Storage map[string]interface{} `json:"storage" binding:"required"`
+	Storage map[string]interface{} `binding:"required" json:"storage"`
 }
 
 // NetworkID -
@@ -191,12 +191,12 @@ func (req forkRequest) NetworkID() types.Network {
 }
 
 type storageRequest struct {
-	Level int `form:"level" binding:"omitempty,gte=1"`
+	Level int `binding:"omitempty,gte=1" form:"level"`
 }
 
 // GetTokenStatsRequest -
 type GetTokenStatsRequest struct {
-	Period    string `form:"period" binding:"oneof=all year month week day hour" example:"year"`
+	Period    string `binding:"oneof=all year month week day hour" example:"year" form:"period"`
 	Contracts string `form:"contracts"`
 }
 
@@ -209,26 +209,26 @@ func (req GetTokenStatsRequest) Addresses() []string {
 }
 
 type executeViewRequest struct {
-	Data           map[string]interface{}       `json:"data" binding:"required"`
-	Name           string                       `json:"name" binding:"required_if=Kind on-chain"`
-	Implementation *int                         `json:"implementation" binding:"required_if=Kind on-chain"`
-	Kind           ViewSchemaKind               `json:"kind" binding:"required"`
+	Data           map[string]interface{}       `binding:"required"                   json:"data"`
+	Name           string                       `binding:"required_if=Kind on-chain"  json:"name"`
+	Implementation *int                         `binding:"required_if=Kind on-chain"  json:"implementation"`
+	Kind           ViewSchemaKind               `binding:"required"                   json:"kind"`
 	Amount         int64                        `json:"amount,omitempty"`
 	GasLimit       int64                        `json:"gas_limit,omitempty"`
-	Source         string                       `json:"source,omitempty" binding:"omitempty,address"`
-	Sender         string                       `json:"sender,omitempty" binding:"omitempty,address"`
-	View           *contract.ViewImplementation `json:"view,omitempty" binding:"required_if=Kind off-chain"`
+	Source         string                       `binding:"omitempty,address"          json:"source,omitempty"`
+	Sender         string                       `binding:"omitempty,address"          json:"sender,omitempty"`
+	View           *contract.ViewImplementation `binding:"required_if=Kind off-chain" json:"view,omitempty"`
 }
 
 type getGlobalConstantRequest struct {
-	Address string `uri:"address" binding:"required,global_constant"`
+	Address string `binding:"required,global_constant" uri:"address"`
 }
 
 type globalConstantsListRequest struct {
 	pageableRequest
 
-	OrderBy string `form:"order_by" binding:"omitempty,oneof=level timestamp links_count address"`
-	Sort    string `form:"sort" binding:"omitempty,oneof=asc desc"`
+	OrderBy string `binding:"omitempty,oneof=level timestamp links_count address" form:"order_by"`
+	Sort    string `binding:"omitempty,oneof=asc desc"                            form:"sort"`
 }
 
 type globalConstantsContractsRequest struct {
@@ -237,19 +237,24 @@ type globalConstantsContractsRequest struct {
 }
 
 type getViewsArgs struct {
-	Kind ViewSchemaKind `form:"kind" binding:"omitempty,oneof=off-chain on-chain"`
+	Kind ViewSchemaKind `binding:"omitempty,oneof=off-chain on-chain" form:"kind"`
 }
 
 type findContract struct {
-	Tags string `form:"tags" binding:"omitempty"`
+	Tags string `binding:"omitempty" form:"tags"`
 }
 
 type smartRollupListRequest struct {
 	pageableRequest
 
-	Sort string `form:"sort" binding:"omitempty,oneof=asc desc"`
+	Sort string `binding:"omitempty,oneof=asc desc" form:"sort"`
 }
 
 type getSmartRollupRequest struct {
-	Address string `uri:"address" binding:"required,smart_rollup"`
+	Address string `binding:"required,smart_rollup" uri:"address"`
+}
+
+type ticketBalancesRequest struct {
+	pageableRequest
+	WithoutZeroBalances bool `binding:"omitempty" form:"skip_empty"`
 }

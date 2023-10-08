@@ -3,6 +3,8 @@ package tests
 import (
 	"context"
 	"time"
+
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 )
 
 func (s *StorageTestSuite) TestTicketGet() {
@@ -45,7 +47,10 @@ func (s *StorageTestSuite) TestBalancesForAccount() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	balances, err := s.ticketUpdates.BalancesForAccount(ctx, 131, 10, 0)
+	balances, err := s.ticketUpdates.BalancesForAccount(ctx, 131, ticket.BalanceRequest{
+		Limit:               10,
+		WithoutZeroBalances: true,
+	})
 	s.Require().NoError(err)
 	s.Require().Len(balances, 2)
 
@@ -62,7 +67,9 @@ func (s *StorageTestSuite) TestBalancesForAccountEmpty() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	balances, err := s.ticketUpdates.BalancesForAccount(ctx, 12, 10, 0)
+	balances, err := s.ticketUpdates.BalancesForAccount(ctx, 12, ticket.BalanceRequest{
+		Limit: 10,
+	})
 	s.Require().NoError(err)
 	s.Require().Len(balances, 0)
 }

@@ -44,7 +44,7 @@ type Context struct {
 	Migrations      migration.Repository
 	Operations      operation.Repository
 	Protocols       protocol.Repository
-	TicketUpdates   ticket.Repository
+	Tickets         ticket.Repository
 	Domains         domains.Repository
 	Scripts         contract.ScriptRepository
 	SmartRollups    smartrollup.Repository
