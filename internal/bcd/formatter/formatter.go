@@ -26,6 +26,7 @@ func IsFramed(n gjson.Result) bool {
 		"key", "unit", "signature", "operation",
 		"int", "nat", "string", "bytes", "mutez", "bool", "key_hash", "timestamp", "address",
 		"bls12_381_g1", "bls12_381_g2", "bls12_381_fr", "chain_id", "never",
+		"chest", "chest_key", "tx_rollup_l2_address",
 	}) {
 		return n.Get("annots").Exists()
 	}

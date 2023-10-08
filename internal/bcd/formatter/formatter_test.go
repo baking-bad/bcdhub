@@ -97,6 +97,9 @@ func TestMichelineToMichelson(t *testing.T) {
 		"KT1WhouvVKZFH94VXj9pa8v4szvfrBwXoBUj",
 		"KT1XFnSFqmXsBmNQVPByuYYkBFoNcXne4Ktu",
 		"KT1XRwPmdw7j4LhHgTw8S2dTVbmsXqT6VtpX",
+		"KT1LfmcX6usZoHYNf9LPrBL1sYCGDDeuApJq",
+		"KT1U4Gb8FjnmyyiUxu4Uy5iFuBRzp4ezbYa7",
+		"KT1BcTXqU4TW1tPuujvyWYvnUJ2VrpY3WnzY",
 	}
 
 	for _, tt := range tests {
