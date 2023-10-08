@@ -35,10 +35,10 @@ jobs:
         languages: ${{ matrix.language }}
 
     - name: Build indexer
-      run: cd cmd/indexer && go build .
+      run: cd cmd/indexer && go build -a -installsuffix cgo -o ../../indexer .
     
     - name: Build api
-      run: cd cmd/api && go build .
+      run: cd cmd/api && go build -a -installsuffix cgo -o ../../indexer .
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2

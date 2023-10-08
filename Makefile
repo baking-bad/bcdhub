@@ -12,7 +12,7 @@ api:
 
 indexer:
 	docker-compose up -d db
-	cd cmd/indexer && go run .
+	cd cmd/indexer && go build -a -installsuffix cgo -o ../../indexer .
 
 seo:
 ifeq ($(BCD_ENV), development)
