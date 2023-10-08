@@ -3,11 +3,11 @@ package helpers
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // InitSentry -
@@ -19,12 +19,12 @@ func InitSentry(debug bool, environment, dsn string) {
 		AttachStacktrace: true,
 		BeforeSend:       beforeSend,
 	}); err != nil {
-		logger.Info().Msgf("Sentry initialization failed: %v\n", err)
+		log.Err(err).Msg("Sentry initialization failed")
 	}
 }
 
 func beforeSend(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-	logger.Info().Msgf("[Sentry message] %s", event.Message)
+	log.Info().Msgf("[Sentry message] %s", event.Message)
 	return event
 }
 

@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/teztnets"
 	"github.com/robfig/cron/v3"
+	"github.com/rs/zerolog/log"
 )
 
 // Worker -
@@ -53,7 +53,7 @@ func (w *Worker) Start(ctx context.Context) {
 	}
 
 	if _, err := w.checkNetwork(ctx); err != nil {
-		logger.Error().Err(err).Str("network", w.network.String()).Msg("failed to receive periodic network info")
+		log.Err(err).Str("network", w.network.String()).Msg("failed to receive periodic network info")
 		return
 	}
 
@@ -61,7 +61,7 @@ func (w *Worker) Start(ctx context.Context) {
 		w.schedule,
 		w.handleScheduleEvent(ctx),
 	); err != nil {
-		logger.Error().Err(err).Str("network", w.network.String()).Msg("failed to run cron function")
+		log.Err(err).Str("network", w.network.String()).Msg("failed to run cron function")
 		return
 	}
 
@@ -76,14 +76,14 @@ func (w *Worker) Close() error {
 
 func (w *Worker) handleScheduleEvent(ctx context.Context) func() {
 	return func() {
-		logger.Info().Str("network", w.network.String()).Msg("trying to receive new rpc url")
+		log.Info().Str("network", w.network.String()).Msg("trying to receive new rpc url")
 
 		changed, err := w.checkNetwork(ctx)
 		if err != nil {
-			logger.Error().Err(err).Str("network", w.network.String()).Msg("failed to receive periodic network info")
+			log.Err(err).Str("network", w.network.String()).Msg("failed to receive periodic network info")
 		}
 		if changed {
-			logger.Info().Msg("rpc url changed")
+			log.Info().Msg("rpc url changed")
 			return
 		}
 
@@ -97,10 +97,10 @@ func (w *Worker) handleScheduleEvent(ctx context.Context) func() {
 			case <-ticker.C:
 				changed, err := w.checkNetwork(ctx)
 				if err != nil {
-					logger.Error().Err(err).Str("network", w.network.String()).Msg("failed to receive periodic network info")
+					log.Err(err).Str("network", w.network.String()).Msg("failed to receive periodic network info")
 				}
 				if changed {
-					logger.Info().Msg("rpc url changed")
+					log.Info().Msg("rpc url changed")
 					return
 				}
 			}
@@ -127,12 +127,12 @@ func (w *Worker) checkNetwork(ctx context.Context) (bool, error) {
 		if w.currentUrl != data.RPCURL {
 			if w.currentUrl != "" {
 				if err := w.handler(ctx, w.network.String(), data.RPCURL); err != nil {
-					logger.Error().Err(err).Str("network", w.network.String()).Msg("failed to apply new rpc url")
+					log.Err(err).Str("network", w.network.String()).Msg("failed to apply new rpc url")
 				}
 			}
 			w.currentUrl = data.RPCURL
 
-			logger.Info().Str("network", parts[0]).Str("url", w.currentUrl).Msg("new url was found")
+			log.Info().Str("network", parts[0]).Str("url", w.currentUrl).Msg("new url was found")
 			return true, nil
 		}
 	}

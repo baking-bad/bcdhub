@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -13,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
+	"github.com/rs/zerolog/log"
 	"github.com/uptrace/bun"
 )
 
@@ -68,11 +68,11 @@ func createSchema(ctx context.Context, db *bun.DB, schemaName string) error {
 		defer wg.Done()
 		wg.Add(1)
 		if _, err := db.NewRaw("set search_path = 'public'").Exec(ctx); err != nil {
-			logger.Err(err)
+			log.Err(err).Msg("set search path to public")
 			return
 		}
 		if _, err := db.NewRaw("CREATE EXTENSION IF NOT EXISTS timescaledb;").Exec(ctx); err != nil {
-			logger.Err(err)
+			log.Err(err).Msg("create timescale extension")
 		}
 	})
 

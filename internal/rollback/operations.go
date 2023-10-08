@@ -3,14 +3,14 @@ package rollback
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 func (rm Manager) rollbackOperations(ctx context.Context, level int64, rCtx *rollbackContext) error {
-	logger.Info().Msg("rollback operations...")
+	log.Info().Msg("rollback operations...")
 
 	ops, err := rm.rollback.GetOperations(ctx, level)
 	if err != nil {

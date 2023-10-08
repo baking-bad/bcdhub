@@ -20,7 +20,7 @@ COPY cmd/api cmd/api
 COPY internal internal
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/api/
-RUN go build -a -installsuffix cgo -o /go/bin/api .
+RUN go build -tags=jsoniter -a -installsuffix cgo -o /go/bin/api .
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub
 COPY scripts scripts

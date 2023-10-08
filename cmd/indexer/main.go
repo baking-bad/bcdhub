@@ -13,19 +13,17 @@ import (
 	"github.com/baking-bad/bcdhub/internal/profiler"
 	"github.com/dipdup-io/workerpool"
 	"github.com/grafana/pyroscope-go"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Err(err)
+		log.Err(err).Msg("loading config")
 		return
 	}
 
-	if err := logger.SetLevel(cfg.LogLevel); err != nil {
-		logger.Err(err)
-		return
-	}
+	logger.New(cfg.LogLevel)
 
 	if cfg.Indexer.SentryEnabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
@@ -47,7 +45,7 @@ func main() {
 	indexers, err := indexer.CreateIndexers(ctx, cfg, g)
 	if err != nil {
 		cancel()
-		logger.Err(err)
+		log.Err(err).Msg("indexers creation")
 		helpers.CatchErrorSentry(err)
 		return
 	}
@@ -70,5 +68,5 @@ func main() {
 			panic(err)
 		}
 	}
-	logger.Info().Msg("Stopped")
+	log.Info().Msg("stopped")
 }

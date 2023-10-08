@@ -5,8 +5,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 // GetInfo godoc
@@ -46,7 +46,7 @@ func GetInfo() gin.HandlerFunc {
 			}
 			balance, err = ctx.Cache.TezosBalance(c, acc.Address, block.Level)
 			if err != nil {
-				logger.Err(err)
+				log.Err(err).Msg("receiving tezos balance")
 			}
 		}
 		c.SecureJSON(http.StatusOK, AccountInfo{

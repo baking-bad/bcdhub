@@ -4,7 +4,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/rs/zerolog/log"
 	"github.com/yhirose/go-peg"
 )
 
@@ -71,11 +71,11 @@ func (c Converter) FromString(input string) (string, error) {
 func (c Converter) trace() {
 	if c.debug {
 		c.parser.TracerEnter = func(name string, s string, v *peg.Values, d peg.Any, p int) {
-			logger.Info().Msgf("Enter: %s %d %d %s", name, p, len(s), s[p:])
+			log.Info().Msgf("Enter: %s %d %d %s", name, p, len(s), s[p:])
 		}
 		c.parser.TracerLeave = func(name string, s string, v *peg.Values, d peg.Any, p int, l int) {
 			if l != -1 {
-				logger.Info().Msgf("Leave: %s %d %d", name, len(s), l+p)
+				log.Info().Msgf("Leave: %s %d %d", name, len(s), l+p)
 			}
 		}
 	}

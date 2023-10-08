@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	contracts "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
@@ -16,6 +15,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // ImplicitParser -
@@ -113,7 +113,7 @@ func (p *ImplicitParser) origination(ctx context.Context, implicit noderpc.Impli
 		}
 	}
 
-	logger.Info().Msg("Implicit bootstrap migration found")
+	log.Info().Msg("Implicit bootstrap migration found")
 	return nil
 }
 

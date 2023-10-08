@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/rs/zerolog/log"
 )
 
 const defaultConfTemplate = `server {
@@ -40,7 +40,7 @@ func makeNginxConfig(filepath, baseURL string) error {
 		return err
 	}
 
-	logger.Info().Msgf("Nginx default config created in %s", filepath)
+	log.Info().Msgf("Nginx default config created in %s", filepath)
 
 	return nil
 }

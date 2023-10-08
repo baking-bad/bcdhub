@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"time"
 
-	bcdLogger "github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -118,13 +118,13 @@ func WaitNew(cfg Config, schemaName, appName string, timeout int, opts ...Postgr
 	for db == nil {
 		db, err = New(cfg, schemaName, appName, opts...)
 		if err != nil {
-			bcdLogger.Warning().Msgf("Waiting postgres up %d seconds...", timeout)
+			log.Warn().Msgf("Waiting postgres up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))
 		}
 	}
 
 	for err := db.DB.Ping(); err != nil; err = db.DB.Ping() {
-		bcdLogger.Warning().Msgf("Waiting postgres up %d seconds...", timeout)
+		log.Warn().Msgf("Waiting postgres up %d seconds...", timeout)
 		time.Sleep(time.Second * time.Duration(timeout))
 	}
 

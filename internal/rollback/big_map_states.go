@@ -3,11 +3,11 @@ package rollback
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/rs/zerolog/log"
 )
 
 func (rm Manager) rollbackBigMapState(ctx context.Context, level int64) error {
-	logger.Info().Msg("rollback big map states...")
+	log.Info().Msg("rollback big map states...")
 	states, err := rm.rollback.StatesChangedAtLevel(ctx, level)
 	if err != nil {
 		return err

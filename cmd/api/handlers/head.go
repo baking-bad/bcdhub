@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // GetHead godoc
@@ -40,7 +40,7 @@ func GetHead() gin.HandlerFunc {
 
 			head, err := getHead(ctx, network, block)
 			if err != nil {
-				logger.Warning().Str("network", network.String()).Err(err).Msg("head API")
+				log.Warn().Str("network", network.String()).Err(err).Msg("head api")
 				continue
 			}
 

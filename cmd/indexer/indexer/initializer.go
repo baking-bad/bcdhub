@@ -3,11 +3,11 @@ package indexer
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/rs/zerolog/log"
 	"github.com/uptrace/bun"
 )
 
@@ -38,19 +38,19 @@ func (initializer Initializer) Init(ctx context.Context) error {
 		if exists := initializer.repo.TablesExist(ctx); exists {
 			// check first block in node and in database, compare its hash.
 			// if hash is differed new periodic chain was started.
-			logger.Info().Str("network", initializer.network.String()).Msg("checking for new periodic chain...")
+			log.Info().Str("network", initializer.network.String()).Msg("checking for new periodic chain...")
 			blockHash, err := initializer.rpc.BlockHash(ctx, 1)
 			if err != nil {
 				return err
 			}
 			firstBlock, err := initializer.block.Get(ctx, 1)
 			if err == nil && firstBlock.Hash != blockHash {
-				logger.Info().Str("network", initializer.network.String()).Msg("found new periodic chain")
-				logger.Warning().Str("network", initializer.network.String()).Msg("drop database...")
+				log.Info().Str("network", initializer.network.String()).Msg("found new periodic chain")
+				log.Warn().Str("network", initializer.network.String()).Msg("drop database...")
 				if err := initializer.repo.Drop(ctx); err != nil {
 					return err
 				}
-				logger.Warning().Str("network", initializer.network.String()).Msg("database was dropped")
+				log.Warn().Str("network", initializer.network.String()).Msg("database was dropped")
 			}
 		}
 	}

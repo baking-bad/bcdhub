@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -12,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // Migration -
@@ -98,7 +98,7 @@ func (m Migration) fromLazyStorageDiff(ctx context.Context, data noderpc.Operati
 			if migration != nil {
 				operation.Destination.MigrationsCount += 1
 				store.AddMigrations(migration)
-				logger.Info().Fields(migration.LogFields()).Msg("Migration detected")
+				log.Info().Fields(migration.LogFields()).Msg("Migration detected")
 			}
 		}
 	}
@@ -128,7 +128,7 @@ func (m Migration) fromBigMapDiffs(ctx context.Context, data noderpc.Operation, 
 		if migration != nil {
 			operation.Destination.MigrationsCount += 1
 			store.AddMigrations(migration)
-			logger.Info().Fields(migration.LogFields()).Msg("Migration detected")
+			log.Info().Fields(migration.LogFields()).Msg("Migration detected")
 		}
 	}
 	return nil

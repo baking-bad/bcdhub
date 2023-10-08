@@ -3,17 +3,17 @@ package indexer
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
+	"github.com/rs/zerolog/log"
 )
 
 func (bi *BlockchainIndexer) createIndices(ctx context.Context) error {
-	logger.Info().Str("network", bi.Network.String()).Msg("creating database indices...")
+	log.Info().Str("network", bi.Network.String()).Msg("creating database indices...")
 
 	// Big map action
 	action := (*bigmapaction.BigMapAction)(nil)

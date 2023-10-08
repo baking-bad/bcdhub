@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/rollback"
+	"github.com/rs/zerolog/log"
 )
 
 type rollbackCommand struct {
@@ -29,9 +29,9 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		panic(err)
 	}
 
-	logger.Warning().Msgf("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", network.String(), state.Level, x.Level)
+	log.Warn().Msgf("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", network.String(), state.Level, x.Level)
 	if !yes() {
-		logger.Info().Msg("Cancelled")
+		log.Info().Msg("Cancelled")
 		return nil
 	}
 
@@ -47,7 +47,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 	if err = manager.Rollback(context.Background(), network, state, x.Level); err != nil {
 		return err
 	}
-	logger.Info().Msg("Done")
+	log.Info().Msg("Done")
 
 	return nil
 }

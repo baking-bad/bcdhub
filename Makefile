@@ -8,7 +8,7 @@ BACKUP?=dump_latest.gz
 
 api:
 	docker-compose up -d db
-	cd cmd/api && go run .
+	cd cmd/api && go run -tags=jsoniter .
 
 indexer:
 	docker-compose up -d db

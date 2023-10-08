@@ -3,12 +3,12 @@ package rollback
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/rs/zerolog/log"
 )
 
 func (rm Manager) rollbackScripts(ctx context.Context, level int64) error {
-	logger.Info().Msg("rollback scripts and global constants...")
+	log.Info().Msg("rollback scripts and global constants...")
 	constants, err := rm.rollback.GlobalConstants(ctx, level)
 	if err != nil {
 		return err

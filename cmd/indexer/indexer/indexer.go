@@ -8,7 +8,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
@@ -24,6 +23,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/rollback"
 	"github.com/dipdup-io/workerpool"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 var errBcdQuit = errors.New("bcd-quit")
@@ -62,7 +62,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 		config.WithStorage(cfg.Storage, "indexer", 10),
 		config.WithRPC(cfg.RPC),
 	)
-	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
+	log.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 
 	bi := &BlockchainIndexer{
 		Context:      internalCtx,
@@ -102,7 +102,7 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 		return err
 	}
 	bi.state = currentState
-	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %d", currentState.Level)
+	log.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %d", currentState.Level)
 
 	currentProtocol, err := bi.Protocols.Get(ctx, "", currentState.Level)
 	if err != nil {
@@ -115,7 +115,7 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 			return err
 		}
 
-		logger.Info().
+		log.Info().
 			Str("network", bi.Network.String()).
 			Msgf("Creating new protocol %s starting at %d", header.Protocol, header.Level)
 
@@ -140,13 +140,13 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 	}
 
 	bi.currentProtocol = currentProtocol
-	logger.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", currentProtocol.Hash)
+	log.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", currentProtocol.Hash)
 
 	for {
 		if _, err := bi.Context.RPC.GetLevel(ctx); err == nil {
 			break
 		}
-		logger.Warning().Str("network", bi.Network.String()).Msg("waiting node rpc...")
+		log.Warn().Str("network", bi.Network.String()).Msg("waiting node rpc...")
 		time.Sleep(time.Second * 15)
 	}
 
@@ -165,7 +165,7 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 	// First tick
 	if err := bi.process(ctx); err != nil {
 		if !errors.Is(err, errSameLevel) {
-			logger.Err(err)
+			log.Err(err).Msg("processing")
 			helpers.LocalCatchErrorSentry(localSentry, err)
 		}
 	}
@@ -185,7 +185,7 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 					}
 					continue
 				}
-				logger.Err(err)
+				log.Err(err).Msg("processing")
 				helpers.LocalCatchErrorSentry(localSentry, err)
 			}
 
@@ -213,7 +213,7 @@ func (bi *BlockchainIndexer) setUpdateTicker(seconds int) {
 	if bi.updateTicker != nil {
 		bi.updateTicker.Stop()
 	}
-	logger.Info().Str("network", bi.Network.String()).Msgf("Data will be updated every %.0f seconds", duration.Seconds())
+	log.Info().Str("network", bi.Network.String()).Msgf("Data will be updated every %.0f seconds", duration.Seconds())
 	bi.updateTicker = time.NewTicker(duration)
 	bi.refreshTimer <- struct{}{}
 }
@@ -231,11 +231,11 @@ func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
 			for ok {
 				if bi.state.Level > 0 && block.Header.Predecessor != bi.state.Hash {
 					if err := bi.Rollback(ctx); err != nil {
-						logger.Error().Err(err).Msg("Rollback")
+						log.Err(err).Msg("rollback")
 					}
 				} else {
 					if err := bi.handleBlock(ctx, block); err != nil {
-						logger.Error().Err(err).
+						log.Err(err).
 							Str("network", bi.Network.String()).
 							Int64("block", block.Header.Level).
 							Stack().
@@ -265,7 +265,7 @@ func (bi *BlockchainIndexer) Index(ctx context.Context, head noderpc.Header) err
 
 	bi.indicesInit.Do(func() {
 		if err := bi.createIndices(ctx); err != nil {
-			logger.Error().Err(err).Msg("can't create index")
+			log.Err(err).Msg("can't create index")
 		}
 	})
 
@@ -283,7 +283,7 @@ func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) erro
 		return errors.Wrap(err, "block processing")
 	}
 
-	logger.Info().
+	log.Info().
 		Str("network", bi.Network.String()).
 		Int64("processing_time_ms", time.Since(start).Milliseconds()).
 		Int64("block", block.Header.Level).
@@ -319,7 +319,7 @@ func (bi *BlockchainIndexer) doMigration(ctx context.Context, header noderpc.Hea
 		return nil
 	}
 
-	logger.Info().
+	log.Info().
 		Str("network", bi.Network.String()).
 		Int64("block", header.Level).
 		Msgf("New protocol detected: %s -> %s", bi.currentProtocol.Hash, header.Protocol)
@@ -346,7 +346,7 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header) e
 	}
 
 	bi.setUpdateTicker(0)
-	logger.Info().
+	log.Info().
 		Str("network", bi.Network.String()).
 		Msgf("Migration to %s is completed", bi.currentProtocol.Alias)
 
@@ -355,7 +355,7 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header) e
 
 // Rollback -
 func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
-	logger.Warning().Str("network", bi.Network.String()).Msgf("Rollback from %8d", bi.state.Level)
+	log.Warn().Str("network", bi.Network.String()).Msgf("Rollback from %8d", bi.state.Level)
 
 	lastLevel, err := bi.getLastRollbackBlock(ctx)
 	if err != nil {
@@ -376,8 +376,8 @@ func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
 		return err
 	}
 	bi.state = newState
-	logger.Info().Str("network", bi.Network.String()).Msgf("New indexer state: %8d", bi.state.Level)
-	logger.Info().Str("network", bi.Network.String()).Msg("Rollback finished")
+	log.Info().Str("network", bi.Network.String()).Msgf("New indexer state: %8d", bi.state.Level)
+	log.Info().Str("network", bi.Network.String()).Msg("Rollback finished")
 	return nil
 }
 
@@ -397,7 +397,7 @@ func (bi *BlockchainIndexer) getLastRollbackBlock(ctx context.Context) (int64, e
 		}
 
 		if block.Hash == headAtLevel.Predecessor {
-			logger.Warning().Str("network", bi.Network.String()).Msgf("Found equal predecessors at level: %7d", block.Level)
+			log.Warn().Str("network", bi.Network.String()).Msgf("Found equal predecessors at level: %7d", block.Level)
 			end = true
 			lastLevel = block.Level
 		}
@@ -415,7 +415,7 @@ func (bi *BlockchainIndexer) process(ctx context.Context) error {
 		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.Protocol.ChainID, head.ChainID)
 	}
 
-	logger.Info().Str("network", bi.Network.String()).Int64("node", head.Level).Int64("indexer", bi.state.Level).Msg("current state")
+	log.Info().Str("network", bi.Network.String()).Int64("node", head.Level).Int64("indexer", bi.state.Level).Msg("current state")
 
 	switch {
 	case head.Level > bi.state.Level:
@@ -426,7 +426,7 @@ func (bi *BlockchainIndexer) process(ctx context.Context) error {
 			return err
 		}
 
-		logger.Info().Str("network", bi.Network.String()).Msg("Synced")
+		log.Info().Str("network", bi.Network.String()).Msg("Synced")
 		return nil
 	case head.Level < bi.state.Level:
 		return bi.Rollback(ctx)
@@ -492,7 +492,7 @@ func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, inde
 		config.WithStorage(cfg.Storage, "indexer", 10),
 		config.WithRPC(cfg.RPC),
 	)
-	logger.Info().Str("network", bi.Context.Network.String()).Msg("Creating indexer object...")
+	log.Info().Str("network", bi.Context.Network.String()).Msg("Creating indexer object...")
 	bi.receiver = NewReceiver(bi.Context.RPC, 20, indexerConfig.ReceiverThreads)
 
 	bi.refreshTimer = make(chan struct{}, 10)

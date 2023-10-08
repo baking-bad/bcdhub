@@ -3,10 +3,10 @@ package indexer
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/dipdup-io/workerpool"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // Block -
@@ -96,7 +96,7 @@ func (r *Receiver) job(ctx context.Context, level int64) {
 	block, err := r.get(ctx, level)
 	if err != nil {
 		if !errors.Is(err, context.Canceled) {
-			logger.Error().Int64("block", level).Err(err).Msg("Receiver.get")
+			log.Err(err).Int64("block", level).Msg("Receiver.get")
 			r.pool.AddTask(level)
 		}
 		return

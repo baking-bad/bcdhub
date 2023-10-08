@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -13,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/migrations"
 	"github.com/baking-bad/bcdhub/internal/postgres/store"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type Migration struct {
@@ -61,7 +61,7 @@ func (m Migration) finilizeProtocol(
 	if proto.EndLevel > 0 || head.Level == 1 {
 		return nil
 	}
-	logger.Info().
+	log.Info().
 		Str("network", m.network.String()).
 		Msgf("Finalizing the previous protocol: %s", proto.Alias)
 
@@ -74,7 +74,7 @@ func (m Migration) newProtocol(
 	tx models.Transaction,
 	head noderpc.Header,
 ) (protocol.Protocol, error) {
-	logger.Info().
+	log.Info().
 		Str("network", m.network.String()).
 		Msgf("Creating new protocol %s starting at %d", head.Protocol, head.Level)
 
@@ -105,7 +105,7 @@ func (m Migration) contractMigrations(
 		return m.standartMigration(ctx, currentProtocol, newProtocol, head, tx)
 	}
 
-	logger.Info().
+	log.Info().
 		Str("network", m.network.String()).
 		Msgf("Same symlink %s for %s / %s", newProtocol.SymLink, currentProtocol.Alias, newProtocol.Alias)
 
@@ -145,13 +145,13 @@ func (m Migration) vestingMigration(ctx context.Context, tx models.Transaction, 
 }
 
 func (m Migration) standartMigration(ctx context.Context, currentProtocol, newProtocol protocol.Protocol, head noderpc.Header, tx models.Transaction) error {
-	logger.Info().Str("network", m.network.String()).Msg("Try to find migrations...")
+	log.Info().Str("network", m.network.String()).Msg("Try to find migrations...")
 
 	contracts, err := m.ctx.Contracts.AllExceptDelegators(ctx)
 	if err != nil {
 		return err
 	}
-	logger.Info().Str("network", m.network.String()).Msgf("Now %2d contracts are indexed", len(contracts))
+	log.Info().Str("network", m.network.String()).Msgf("Now %2d contracts are indexed", len(contracts))
 
 	specific, err := Get(m.ctx, newProtocol.Hash)
 	if err != nil {
@@ -166,7 +166,7 @@ func (m Migration) standartMigration(ctx context.Context, currentProtocol, newPr
 			continue
 		}
 
-		logger.Info().Str("network", m.network.String()).Msgf("Migrate %s...", contracts[i].Account.Address)
+		log.Info().Str("network", m.network.String()).Msgf("Migrate %s...", contracts[i].Account.Address)
 		script, err := m.ctx.RPC.GetScriptJSON(ctx, contracts[i].Account.Address, newProtocol.StartLevel)
 		if err != nil {
 			return err

@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/periodic"
 	"github.com/dipdup-io/workerpool"
+	"github.com/rs/zerolog/log"
 )
 
 // PeriodicIndexer -
@@ -91,7 +91,7 @@ func (p *PeriodicIndexer) Rollback(ctx context.Context) error {
 }
 
 func (p *PeriodicIndexer) handleUrlChanged(ctx context.Context, network, url string) error {
-	logger.Warning().Str("network", network).Str("url", url).Msg("cancelling indexer due to URL changing...")
+	log.Warn().Str("network", network).Str("url", url).Msg("cancelling indexer due to URL changing...")
 	p.indexerCancel()
 
 	if err := p.indexer.Close(); err != nil {

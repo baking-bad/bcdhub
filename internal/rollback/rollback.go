@@ -3,7 +3,6 @@ package rollback
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -15,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // Manager -
@@ -47,7 +47,7 @@ func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState
 	}
 
 	for level := fromState.Level; level > toLevel; level-- {
-		logger.Info().Str("network", network.String()).Msgf("start rollback to %d", level)
+		log.Info().Str("network", network.String()).Msgf("start rollback to %d", level)
 
 		if _, err := rm.blockRepo.Get(ctx, level); err != nil {
 			if rm.storage.IsRecordNotFound(err) {
@@ -57,11 +57,11 @@ func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState
 		}
 
 		if err := rm.rollbackBlock(ctx, level); err != nil {
-			logger.Error().Err(err).Str("network", network.String()).Msg("rollback error")
+			log.Err(err).Str("network", network.String()).Msg("rollback error")
 			return rm.rollback.Rollback()
 		}
 
-		logger.Info().Str("network", network.String()).Msgf("rolled back to %d", level)
+		log.Info().Str("network", network.String()).Msgf("rolled back to %d", level)
 	}
 
 	return rm.rollback.Commit()
@@ -117,7 +117,7 @@ func (rm Manager) rollbackMigrations(ctx context.Context, level int64, rCtx *rol
 	if _, err := rm.rollback.DeleteAll(ctx, (*migration.Migration)(nil), level); err != nil {
 		return err
 	}
-	logger.Info().Msg("rollback migrations")
+	log.Info().Msg("rollback migrations")
 	return nil
 }
 
@@ -132,7 +132,7 @@ func (rm Manager) rollbackAll(ctx context.Context, level int64, rCtx *rollbackCo
 		if _, err := rm.rollback.DeleteAll(ctx, model, level); err != nil {
 			return err
 		}
-		logger.Info().Msgf("rollback: %T", model)
+		log.Info().Msgf("rollback: %T", model)
 	}
 
 	contractsCount, err := rm.rollback.DeleteAll(ctx, (*contract.Contract)(nil), level)
@@ -140,7 +140,7 @@ func (rm Manager) rollbackAll(ctx context.Context, level int64, rCtx *rollbackCo
 		return err
 	}
 	rCtx.generalStats.ContractsCount -= contractsCount
-	logger.Info().Msgf("rollback contracts")
+	log.Info().Msgf("rollback contracts")
 
 	return nil
 }

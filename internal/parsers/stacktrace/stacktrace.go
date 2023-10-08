@@ -5,9 +5,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/rs/zerolog/log"
 )
 
 // Item -
@@ -153,7 +153,7 @@ func (st *StackTrace) String() string {
 	}
 
 	if err := st.print(topLevel, 1, &builder); err != nil {
-		logger.Err(err)
+		log.Err(err).Msg("print stacktrace")
 	}
 	return builder.String()
 }

@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/jessevdk/go-flags"
+	"github.com/rs/zerolog/log"
 )
 
 var ctxs config.Contexts
@@ -15,7 +15,7 @@ var ctxs config.Contexts
 func main() {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Err(err)
+		log.Err(err).Msg("load config")
 		return
 	}
 
@@ -32,7 +32,7 @@ func main() {
 		"Rollback state",
 		"Rollback network state to certain level",
 		&rollbackCmd); err != nil {
-		logger.Err(err)
+		log.Err(err).Msg("add rollback command")
 		return
 	}
 
