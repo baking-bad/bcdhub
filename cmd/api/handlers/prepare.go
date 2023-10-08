@@ -326,7 +326,7 @@ func getErrorLocation(c context.Context, ctx *config.Context, operation operatio
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}
-	code, err := getScriptBytes(c, ctx.Contracts, operation.Destination.Address, proto.SymLink)
+	code, err := getScriptBytes(c, ctx.Cache, operation.Destination.Address, proto.SymLink)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}

@@ -71,7 +71,7 @@ func getContractCodeJSON(c context.Context, ctx *config.Context, address string,
 	if err != nil {
 		return res, err
 	}
-	script, err := ctx.Contracts.Script(c, address, symLink)
+	script, err := ctx.Cache.Script(c, address, symLink)
 	if err != nil {
 		return res, err
 	}

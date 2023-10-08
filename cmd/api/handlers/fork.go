@@ -45,7 +45,7 @@ func buildStorageDataFromForkRequest(c context.Context, ctxs config.Contexts, re
 		if err != nil {
 			return nil, err
 		}
-		scriptData, err = getScriptBytes(c, ctx.Contracts, req.Address, symLink)
+		scriptData, err = getScriptBytes(c, ctx.Cache, req.Address, symLink)
 		if err != nil {
 			return nil, err
 		}

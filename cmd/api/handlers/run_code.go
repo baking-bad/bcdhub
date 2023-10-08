@@ -148,7 +148,7 @@ func RunCode() gin.HandlerFunc {
 			return
 		}
 
-		scriptBytes, err := getScriptBytes(c.Request.Context(), ctx.Contracts, req.Address, state.Protocol.SymLink)
+		scriptBytes, err := getScriptBytes(c.Request.Context(), ctx.Cache, req.Address, state.Protocol.SymLink)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -246,7 +246,7 @@ func parseAppliedRunCode(c context.Context, ctx *config.Context, response noderp
 				s = script
 			} else {
 				var err error
-				s, err = getScript(c, ctx.Contracts, op.Destination, proto.SymLink)
+				s, err = getScript(c, ctx.Cache, op.Destination, proto.SymLink)
 				if err != nil {
 					return nil, err
 				}

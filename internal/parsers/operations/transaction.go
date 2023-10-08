@@ -112,7 +112,7 @@ func (p Transaction) parseContractParams(ctx context.Context, data noderpc.Opera
 		}
 	}
 
-	scriptEntity, err := p.ctx.Contracts.Script(ctx, tx.Destination.Address, p.protocol.SymLink)
+	scriptEntity, err := p.ctx.Cache.Script(ctx, tx.Destination.Address, p.protocol.SymLink)
 	if err != nil {
 		if !tx.Internal {
 			return nil

@@ -56,6 +56,7 @@ func (cache *Cache) ContractTags(ctx context.Context, address string) (types.Tag
 		return c.Tags, nil
 	})
 	if err != nil {
+		cache.Delete(key)
 		return 0, err
 	}
 	return item.Value().(types.Tags), nil
@@ -68,6 +69,7 @@ func (cache *Cache) TezosBalance(ctx context.Context, address string, level int6
 		return cache.rpc.GetContractBalance(ctx, address, level)
 	})
 	if err != nil {
+		cache.Delete(key)
 		return 0, err
 	}
 	return item.Value().(int64), nil
@@ -84,6 +86,7 @@ func (cache *Cache) StorageTypeBytes(ctx context.Context, address, symLink strin
 		return cache.contracts.ScriptPart(ctx, address, symLink, consts.STORAGE)
 	})
 	if err != nil {
+		cache.Delete(key)
 		return nil, err
 	}
 	return item.Value().([]byte), nil
@@ -96,7 +99,20 @@ func (cache *Cache) ProtocolByID(ctx context.Context, id int64) (protocol.Protoc
 		return cache.protocols.GetByID(ctx, id)
 	})
 	if err != nil {
+		cache.Delete(key)
 		return protocol.Protocol{}, err
 	}
 	return item.Value().(protocol.Protocol), nil
+}
+
+func (cache *Cache) Script(ctx context.Context, address, symLink string) (contract.Script, error) {
+	key := fmt.Sprintf("script:%s:%s", address, symLink)
+	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
+		return cache.contracts.Script(ctx, address, symLink)
+	})
+	if err != nil {
+		cache.Delete(key)
+		return contract.Script{}, err
+	}
+	return item.Value().(contract.Script), nil
 }
