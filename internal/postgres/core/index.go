@@ -13,6 +13,7 @@ import (
 func (p *Postgres) CreateIndex(ctx context.Context, name, columns string, model any) error {
 	_, err := p.DB.NewCreateIndex().
 		Model(model).
+		Concurrently().
 		IfNotExists().
 		Index(name).
 		ColumnExpr(columns).

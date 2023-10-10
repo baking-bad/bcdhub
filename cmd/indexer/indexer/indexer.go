@@ -265,7 +265,7 @@ func (bi *BlockchainIndexer) Index(ctx context.Context, head noderpc.Header) err
 
 	bi.indicesInit.Do(func() {
 		if err := bi.createIndices(ctx); err != nil {
-			log.Err(err).Msg("can't create index")
+			log.Err(err).Str("network", bi.Network.String()).Msg("can't create index")
 		}
 	})
 
