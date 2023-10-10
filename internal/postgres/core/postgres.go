@@ -70,6 +70,8 @@ func connectionOptions(cfg Config, schema string, appName string) ([]pgdriver.Op
 		}))
 	}
 
+	opts = append(opts, pgdriver.WithTimeout(time.Minute*10))
+
 	return opts, nil
 }
 
