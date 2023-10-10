@@ -18,6 +18,7 @@ import (
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-contrib/cors"
 	ginLogger "github.com/gin-contrib/logger"
+	"github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -119,6 +120,7 @@ func (api *app) makeRouter() {
 
 	r.Use(gin.Recovery())
 	r.Use(ginLogger.SetLogger())
+	r.Use(timeout.New(timeout.WithTimeout(30 * time.Second)))
 
 	v1 := r.Group("v1")
 	{
