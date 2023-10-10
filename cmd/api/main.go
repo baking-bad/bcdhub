@@ -120,7 +120,12 @@ func (api *app) makeRouter() {
 
 	r.Use(gin.Recovery())
 	r.Use(ginLogger.SetLogger())
-	r.Use(timeout.New(timeout.WithTimeout(30 * time.Second)))
+	r.Use(timeout.New(
+		timeout.WithTimeout(30*time.Second),
+		timeout.WithHandler(func(c *gin.Context) {
+			c.Next()
+		}),
+	))
 
 	v1 := r.Group("v1")
 	{
