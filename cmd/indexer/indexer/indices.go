@@ -123,5 +123,7 @@ func (bi *BlockchainIndexer) createIndices(ctx context.Context) error {
 		return err
 	}
 
+	log.Info().Str("network", bi.Network.String()).Msg("database indices was created")
+
 	return nil
 }
