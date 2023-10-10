@@ -711,3 +711,19 @@ func NewTicketBalance(balance ticket.Balance) TicketBalance {
 		TicketId: balance.TicketId,
 	}
 }
+
+type GlobalConstantItem struct {
+	Timestamp  time.Time `json:"timestamp"`
+	Level      int64     `json:"level"`
+	Address    string    `json:"address"`
+	LinksCount uint64    `json:"links_count"`
+}
+
+func NewGlobalConstantItem(item contract.ListGlobalConstantItem) GlobalConstantItem {
+	return GlobalConstantItem{
+		Timestamp:  item.Timestamp,
+		Level:      item.Level,
+		Address:    item.Address,
+		LinksCount: item.LinksCount,
+	}
+}

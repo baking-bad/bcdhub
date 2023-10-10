@@ -61,7 +61,7 @@ func GetGlobalConstant() gin.HandlerFunc {
 // @Param sort query string false "Sort order" Enums(asc, desc)
 // @Accept json
 // @Produce json
-// @Success 200 {array} contract.ListGlobalConstantItem
+// @Success 200 {array} GlobalConstantItem
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
@@ -79,7 +79,13 @@ func ListGlobalConstants() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		c.SecureJSON(http.StatusOK, constants)
+
+		response := make([]GlobalConstantItem, len(constants))
+		for i := range constants {
+			response[i] = NewGlobalConstantItem(constants[i])
+		}
+
+		c.SecureJSON(http.StatusOK, response)
 	}
 }
 
