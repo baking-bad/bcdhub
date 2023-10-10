@@ -305,40 +305,41 @@ func (c *TransactionAccountsCall) DoAndReturn(f func(context.Context, ...*accoun
 	return c
 }
 
-// BabylonBigMapStates mocks base method.
-func (m *MockTransaction) BabylonBigMapStates(ctx context.Context, state *bigmapdiff.BigMapState) error {
+// BabylonUpdateBigMapDiffs mocks base method.
+func (m *MockTransaction) BabylonUpdateBigMapDiffs(ctx context.Context, contract string, ptr int64) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BabylonBigMapStates", ctx, state)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "BabylonUpdateBigMapDiffs", ctx, contract, ptr)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// BabylonBigMapStates indicates an expected call of BabylonBigMapStates.
-func (mr *MockTransactionMockRecorder) BabylonBigMapStates(ctx, state any) *TransactionBabylonBigMapStatesCall {
+// BabylonUpdateBigMapDiffs indicates an expected call of BabylonUpdateBigMapDiffs.
+func (mr *MockTransactionMockRecorder) BabylonUpdateBigMapDiffs(ctx, contract, ptr any) *TransactionBabylonUpdateBigMapDiffsCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BabylonBigMapStates", reflect.TypeOf((*MockTransaction)(nil).BabylonBigMapStates), ctx, state)
-	return &TransactionBabylonBigMapStatesCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BabylonUpdateBigMapDiffs", reflect.TypeOf((*MockTransaction)(nil).BabylonUpdateBigMapDiffs), ctx, contract, ptr)
+	return &TransactionBabylonUpdateBigMapDiffsCall{Call: call}
 }
 
-// TransactionBabylonBigMapStatesCall wrap *gomock.Call
-type TransactionBabylonBigMapStatesCall struct {
+// TransactionBabylonUpdateBigMapDiffsCall wrap *gomock.Call
+type TransactionBabylonUpdateBigMapDiffsCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *TransactionBabylonBigMapStatesCall) Return(arg0 error) *TransactionBabylonBigMapStatesCall {
-	c.Call = c.Call.Return(arg0)
+func (c *TransactionBabylonUpdateBigMapDiffsCall) Return(arg0 int, arg1 error) *TransactionBabylonUpdateBigMapDiffsCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *TransactionBabylonBigMapStatesCall) Do(f func(context.Context, *bigmapdiff.BigMapState) error) *TransactionBabylonBigMapStatesCall {
+func (c *TransactionBabylonUpdateBigMapDiffsCall) Do(f func(context.Context, string, int64) (int, error)) *TransactionBabylonUpdateBigMapDiffsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *TransactionBabylonBigMapStatesCall) DoAndReturn(f func(context.Context, *bigmapdiff.BigMapState) error) *TransactionBabylonBigMapStatesCall {
+func (c *TransactionBabylonUpdateBigMapDiffsCall) DoAndReturn(f func(context.Context, string, int64) (int, error)) *TransactionBabylonUpdateBigMapDiffsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -625,6 +626,45 @@ func (c *TransactionContractsCall) Do(f func(context.Context, ...*contract.Contr
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *TransactionContractsCall) DoAndReturn(f func(context.Context, ...*contract.Contract) error) *TransactionContractsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// DeleteBigMapStatesByContract mocks base method.
+func (m *MockTransaction) DeleteBigMapStatesByContract(ctx context.Context, contract string) ([]bigmapdiff.BigMapState, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBigMapStatesByContract", ctx, contract)
+	ret0, _ := ret[0].([]bigmapdiff.BigMapState)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteBigMapStatesByContract indicates an expected call of DeleteBigMapStatesByContract.
+func (mr *MockTransactionMockRecorder) DeleteBigMapStatesByContract(ctx, contract any) *TransactionDeleteBigMapStatesByContractCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBigMapStatesByContract", reflect.TypeOf((*MockTransaction)(nil).DeleteBigMapStatesByContract), ctx, contract)
+	return &TransactionDeleteBigMapStatesByContractCall{Call: call}
+}
+
+// TransactionDeleteBigMapStatesByContractCall wrap *gomock.Call
+type TransactionDeleteBigMapStatesByContractCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionDeleteBigMapStatesByContractCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *TransactionDeleteBigMapStatesByContractCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionDeleteBigMapStatesByContractCall) Do(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *TransactionDeleteBigMapStatesByContractCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionDeleteBigMapStatesByContractCall) DoAndReturn(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *TransactionDeleteBigMapStatesByContractCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

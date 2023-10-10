@@ -16,3 +16,12 @@ func (s *StorageTestSuite) TestAccountsGet() {
 	s.Require().EqualValues(1, account.Type)
 	s.Require().EqualValues("KT1CMJQmuwwJopNnLhSDHXT3zQVUrNPLA8br", account.Address)
 }
+
+func (s *StorageTestSuite) TestRecentlyCalledContracts() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	data, err := s.accounts.RecentlyCalledContracts(ctx, 0, 3)
+	s.Require().NoError(err)
+	s.Require().Len(data, 3)
+}

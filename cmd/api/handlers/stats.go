@@ -95,7 +95,7 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 			page.Size = 10
 		}
 
-		contracts, err := ctx.Contracts.RecentlyCalled(c.Request.Context(), page.Offset, page.Size)
+		contracts, err := ctx.Accounts.RecentlyCalledContracts(c.Request.Context(), page.Offset, page.Size)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

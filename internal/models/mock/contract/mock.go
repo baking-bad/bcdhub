@@ -157,45 +157,6 @@ func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, string) (contrac
 	return c
 }
 
-// RecentlyCalled mocks base method.
-func (m *MockRepository) RecentlyCalled(ctx context.Context, offset, size int64) ([]contract.Contract, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecentlyCalled", ctx, offset, size)
-	ret0, _ := ret[0].([]contract.Contract)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RecentlyCalled indicates an expected call of RecentlyCalled.
-func (mr *MockRepositoryMockRecorder) RecentlyCalled(ctx, offset, size any) *RepositoryRecentlyCalledCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecentlyCalled", reflect.TypeOf((*MockRepository)(nil).RecentlyCalled), ctx, offset, size)
-	return &RepositoryRecentlyCalledCall{Call: call}
-}
-
-// RepositoryRecentlyCalledCall wrap *gomock.Call
-type RepositoryRecentlyCalledCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryRecentlyCalledCall) Return(arg0 []contract.Contract, arg1 error) *RepositoryRecentlyCalledCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryRecentlyCalledCall) Do(f func(context.Context, int64, int64) ([]contract.Contract, error)) *RepositoryRecentlyCalledCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryRecentlyCalledCall) DoAndReturn(f func(context.Context, int64, int64) ([]contract.Contract, error)) *RepositoryRecentlyCalledCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // Script mocks base method.
 func (m *MockRepository) Script(ctx context.Context, address, symLink string) (contract.Script, error) {
 	m.ctrl.T.Helper()

@@ -10,7 +10,6 @@ import (
 //go:generate mockgen -source=$GOFILE -destination=../mock/contract/mock.go -package=contract -typed
 type Repository interface {
 	Get(ctx context.Context, address string) (Contract, error)
-	RecentlyCalled(ctx context.Context, offset, size int64) ([]Contract, error)
 	Script(ctx context.Context, address string, symLink string) (Script, error)
 
 	// ScriptPart - returns part of script type. Part can be `storage`, `parameter` or `code`.

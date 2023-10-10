@@ -170,27 +170,6 @@ func (storage *Storage) ScriptPart(ctx context.Context, address string, symLink,
 	return data, err
 }
 
-// RecentlyCalled -
-func (storage *Storage) RecentlyCalled(ctx context.Context, offset, size int64) (contracts []contract.Contract, err error) {
-	query := storage.DB.NewSelect().Model(&contracts).
-		ColumnExpr("contract.id, contract.account_id").
-		ColumnExpr("account.address as account__address, account.operations_count as account__operations_count, account.last_action as account__last_action").
-		Join(`LEFT JOIN "accounts" AS "account" ON "account"."id" = "contract"."account_id"`)
-
-	if offset > 0 {
-		query.Offset(int(offset))
-	}
-	if size > 0 {
-		query.Limit(int(size))
-	} else {
-		query.Limit(10)
-	}
-	err = query.
-		OrderExpr("account.last_action desc, account.operations_count desc").
-		Scan(ctx)
-	return
-}
-
 // FindOne -
 func (storage *Storage) FindOne(ctx context.Context, tags types.Tags) (result contract.Contract, err error) {
 	err = storage.DB.NewSelect().Model(&result).

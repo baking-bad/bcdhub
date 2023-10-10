@@ -211,11 +211,11 @@ type RecentlyCalledContract struct {
 }
 
 // FromModel -
-func (c *RecentlyCalledContract) FromModel(contract contract.Contract) {
-	c.Address = contract.Account.Address
-	c.ID = contract.ID
-	c.LastAction = contract.Account.LastAction
-	c.OperationsCount = contract.Account.OperationsCount
+func (c *RecentlyCalledContract) FromModel(account account.Account) {
+	c.Address = account.Address
+	c.ID = account.ID
+	c.LastAction = account.LastAction
+	c.OperationsCount = account.OperationsCount
 }
 
 // OperationResponse -

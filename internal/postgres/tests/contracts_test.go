@@ -96,15 +96,6 @@ func (s *StorageTestSuite) TestContractScriptPart() {
 	s.Require().NotEmpty(data)
 }
 
-func (s *StorageTestSuite) TestContractRecentlyCalled() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	data, err := s.contracts.RecentlyCalled(ctx, 0, 3)
-	s.Require().NoError(err)
-	s.Require().Len(data, 3)
-}
-
 func (s *StorageTestSuite) TestContractFindOne() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
