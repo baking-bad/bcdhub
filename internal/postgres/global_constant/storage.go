@@ -67,7 +67,7 @@ func (storage *Storage) List(ctx context.Context, size, offset int64, orderBy, s
 	err := storage.DB.NewRaw(
 		`select global_constants.timestamp, global_constants.level, global_constants.address, count(contracts.id) as links_count from global_constants 
 		left join script_constants as t on  global_constants.id = t.global_constant_id
-		left join contracts on t.script_id = contracts.babylon_id or t.script_id = contracts.jakarta_id 
+		left join contracts on t.script_id = contracts.jakarta_id 
 		group by global_constants.id
 		order by ?
 		limit ?
