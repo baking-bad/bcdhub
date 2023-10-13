@@ -91,3 +91,34 @@ func (storage *Storage) BalancesForAccount(ctx context.Context, accountId int64,
 	err = query.Scan(ctx)
 	return
 }
+
+func (storage *Storage) List(ctx context.Context, ticketer string, limit, offset int64) (tickets []ticket.Ticket, err error) {
+	var ticketerId uint64
+	if err := storage.DB.NewSelect().
+		Model((*account.Account)(nil)).
+		Column("id").
+		Where("address = ?", ticketer).
+		Limit(1).
+		Scan(ctx, &ticketerId); err != nil {
+		return nil, err
+	}
+
+	query := storage.DB.
+		NewSelect().
+		Model(&tickets).
+		Where("ticketer_id = ?", ticketerId).
+		Relation("Ticketer")
+
+	if offset > 0 {
+		query.Offset(int(offset))
+	}
+
+	if limit > 0 && limit < 100 {
+		query.Limit(int(limit))
+	} else {
+		query.Limit(10)
+	}
+
+	err = query.Scan(ctx)
+	return
+}

@@ -712,6 +712,45 @@ func NewTicketBalance(balance ticket.Balance) TicketBalance {
 	}
 }
 
+type Ticket struct {
+	Ticketer     string          `json:"ticketer"`
+	ContentType  []ast.Typedef   `json:"content_type"`
+	Content      *ast.MiguelNode `json:"content,omitempty"`
+	UpdatesCount int             `json:"updates_count"`
+	Level        int64           `json:"first_level"`
+}
+
+func NewTicket(t ticket.Ticket) (Ticket, error) {
+	result := Ticket{
+		Ticketer:     t.Ticketer.Address,
+		UpdatesCount: t.UpdatesCount,
+		Level:        t.Level,
+	}
+
+	content, err := ast.NewTypedAstFromBytes(t.ContentType)
+	if err != nil {
+		return result, err
+	}
+	docs, err := content.Docs("")
+	if err != nil {
+		return result, err
+	}
+	result.ContentType = docs
+
+	if err := content.SettleFromBytes(t.Content); err != nil {
+		return result, err
+	}
+	contentMiguel, err := content.ToMiguel()
+	if err != nil {
+		return result, err
+	}
+	if len(contentMiguel) > 0 {
+		result.Content = contentMiguel[0]
+	}
+
+	return result, nil
+}
+
 type GlobalConstantItem struct {
 	Timestamp  time.Time `json:"timestamp"`
 	Level      int64     `json:"level"`

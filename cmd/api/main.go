@@ -191,6 +191,7 @@ func (api *app) makeRouter() {
 			contract.GET("migrations", handlers.GetContractMigrations())
 			contract.GET("global_constants", handlers.GetContractGlobalConstants())
 			contract.GET("ticket_updates", handlers.GetContractTicketUpdates())
+			contract.GET("tickets", handlers.GetContractTickets())
 			contract.GET("events", handlers.ListEvents())
 
 			storage := contract.Group("storage")

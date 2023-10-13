@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
@@ -22,7 +21,7 @@ import (
 // @Param offset query integer false "Offset" mininum(1)
 // @Accept json
 // @Produce json
-// @Success 200 {array} GlobalConstant
+// @Success 200 {array} TicketUpdate
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
@@ -46,6 +45,48 @@ func GetContractTicketUpdates() gin.HandlerFunc {
 			return
 		}
 		response, err := prepareTicketUpdates(c.Request.Context(), ctx, updates, nil)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, response)
+	}
+}
+
+// GetContractTickets godoc
+// @Summary Get tickets for contract
+// @Description Get tickets for contract
+// @Tags contract
+// @ID get-contract-tickets
+// @Param network path string true "network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param size query integer false "Updates count" mininum(1) maximum(10)
+// @Param offset query integer false "Offset" mininum(1)
+// @Accept json
+// @Produce json
+// @Success 200 {array} Ticket
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/contract/{network}/{address}/tickets [get]
+func GetContractTickets() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.MustGet("context").(*config.Context)
+
+		var req getContractRequest
+		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		var args pageableRequest
+		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+			return
+		}
+
+		tickets, err := ctx.Tickets.List(c.Request.Context(), req.Address, args.Size, args.Offset)
+		if handleError(c, ctx.Storage, err, 0) {
+			return
+		}
+		response, err := prepareTickets(tickets)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -122,27 +163,12 @@ func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []tick
 	response := make([]TicketUpdate, 0, len(updates))
 	for i := range updates {
 		update := NewTicketUpdateFromModel(updates[i])
-
-		content, err := ast.NewTypedAstFromBytes(updates[i].Ticket.ContentType)
+		ticket, err := NewTicket(updates[i].Ticket)
 		if err != nil {
 			return nil, err
 		}
-		docs, err := content.Docs("")
-		if err != nil {
-			return nil, err
-		}
-		update.ContentType = docs
-
-		if err := content.SettleFromBytes(updates[i].Ticket.Content); err != nil {
-			return nil, err
-		}
-		contentMiguel, err := content.ToMiguel()
-		if err != nil {
-			return nil, err
-		}
-		if len(contentMiguel) > 0 {
-			update.Content = contentMiguel[0]
-		}
+		update.ContentType = ticket.ContentType
+		update.Content = ticket.Content
 
 		if len(hash) == 0 {
 			operation, err := ctx.Operations.GetByID(c, updates[i].OperationId)
@@ -165,28 +191,25 @@ func prepareTicketBalances(balances []ticket.Balance) ([]TicketBalance, error) {
 	response := make([]TicketBalance, len(balances))
 	for i := range balances {
 		balance := NewTicketBalance(balances[i])
-
-		content, err := ast.NewTypedAstFromBytes(balances[i].Ticket.ContentType)
+		ticket, err := NewTicket(balances[i].Ticket)
 		if err != nil {
 			return nil, err
 		}
-		docs, err := content.Docs("")
-		if err != nil {
-			return nil, err
-		}
-		balance.ContentType = docs
-
-		if err := content.SettleFromBytes(balances[i].Ticket.Content); err != nil {
-			return nil, err
-		}
-		contentMiguel, err := content.ToMiguel()
-		if err != nil {
-			return nil, err
-		}
-		if len(contentMiguel) > 0 {
-			balance.Content = contentMiguel[0]
-		}
+		balance.ContentType = ticket.ContentType
+		balance.Content = ticket.Content
 		response[i] = balance
+	}
+	return response, nil
+}
+
+func prepareTickets(tickets []ticket.Ticket) ([]Ticket, error) {
+	response := make([]Ticket, len(tickets))
+	for i := range tickets {
+		ticket, err := NewTicket(tickets[i])
+		if err != nil {
+			return nil, err
+		}
+		response[i] = ticket
 	}
 	return response, nil
 }
