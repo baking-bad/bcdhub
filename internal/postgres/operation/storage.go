@@ -51,7 +51,7 @@ func (storage *Storage) Last(ctx context.Context, filters map[string]interface{}
 	for current.After(endTime) {
 		query := storage.DB.NewSelect().Model((*operation.Operation)(nil)).
 			Where("deffated_storage is not null").
-			OrderExpr("operation.id desc")
+			OrderExpr("operation.timestamp desc, operation.id desc")
 
 		for key, value := range filters {
 			switch val := value.(type) {
