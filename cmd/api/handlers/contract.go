@@ -119,6 +119,7 @@ func GetSameContracts() gin.HandlerFunc {
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
+			result.LastAction = same[i].Account.LastAction
 			result.Network = same[i].Network
 			response.Contracts = append(response.Contracts, ContractWithStats{
 				Contract:  result,

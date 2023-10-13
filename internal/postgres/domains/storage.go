@@ -49,7 +49,7 @@ func (storage *Storage) Same(ctx context.Context, network string, c contract.Con
 			TableExpr("?.contracts", schema).
 			ColumnExpr("? as network", value).
 			ColumnExpr("contracts.*").
-			ColumnExpr("accounts.address as account__address").
+			ColumnExpr("accounts.address as account__address, accounts.last_action as account__last_action").
 			Join("LEFT JOIN ?.accounts on contracts.account_id = accounts.id", schema).
 			Join("LEFT JOIN ?.scripts as alpha on alpha.id = contracts.alpha_id", schema).
 			Join("LEFT JOIN ?.scripts as babylon on babylon.id = contracts.babylon_id", schema).
