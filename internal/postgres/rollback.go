@@ -98,9 +98,9 @@ func (r Rollback) GetLastAction(ctx context.Context, addressIds ...int64) (actio
 	for i := range addressIds {
 		var action models.LastAction
 		_, err = r.tx.NewRaw(`select max(foo.ts) as time, address from (
-				(select "timestamp" as ts, source_id as address from operations where source_id = ?0 order by id desc limit 1)
+				(select "timestamp" as ts, source_id as address from operations where source_id = ?0 order by timestamp desc limit 1)
 				union all
-				(select "timestamp" as ts, destination_id as address from operations where destination_id = ?0 order by id desc limit 1)
+				(select "timestamp" as ts, destination_id as address from operations where destination_id = ?0 order by timestamp desc limit 1)
 			) as foo
 			group by address`, addressIds[i]).
 			Exec(ctx, &action)
