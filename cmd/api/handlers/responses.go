@@ -648,6 +648,7 @@ type TicketUpdate struct {
 	ID            int64           `json:"id"`
 	Level         int64           `json:"level"`
 	Timestamp     time.Time       `json:"timestamp"`
+	TicketId      int64           `json:"ticket_id"`
 	Ticketer      string          `json:"ticketer"`
 	Address       string          `json:"address"`
 	Amount        string          `json:"amount"`
@@ -662,6 +663,7 @@ func NewTicketUpdateFromModel(update ticket.TicketUpdate) TicketUpdate {
 		ID:        update.ID,
 		Timestamp: update.Timestamp.UTC(),
 		Level:     update.Level,
+		TicketId:  update.TicketId,
 		Ticketer:  update.Ticket.Ticketer.Address,
 		Address:   update.Account.Address,
 		Amount:    update.Amount.String(),
