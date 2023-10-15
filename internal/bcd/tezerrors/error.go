@@ -39,10 +39,9 @@ func (e *Errors) Scan(value interface{}) error {
 		return fmt.Errorf("pg: can't parse bytea: %q", tmp)
 	}
 
-	if tmp[0] != '\\' || tmp[1] != 'x' {
-		return fmt.Errorf("pg: can't parse bytea: %q", tmp)
+	if tmp[0] == '\\' && tmp[1] == 'x' {
+		tmp = tmp[2:]
 	}
-	tmp = tmp[2:]
 
 	b := make([]byte, len(tmp))
 	if _, err := hex.Decode(b, tmp); err != nil {
