@@ -19,17 +19,8 @@ func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
 }
 
-// Get -
-func (storage *Storage) Updates(ctx context.Context, ticketer string, limit, offset int64) (response []ticket.TicketUpdate, err error) {
-	var ticketerId uint64
-	if err := storage.DB.NewSelect().
-		Model((*account.Account)(nil)).
-		Column("id").
-		Where("address = ?", ticketer).
-		Limit(1).
-		Scan(ctx, &ticketerId); err != nil {
-		return nil, err
-	}
+// Updates -
+func (storage *Storage) Updates(ctx context.Context, req ticket.UpdatesRequest) (response []ticket.TicketUpdate, err error) {
 	query := storage.DB.
 		NewSelect().
 		Model(&response).
@@ -38,13 +29,40 @@ func (storage *Storage) Updates(ctx context.Context, ticketer string, limit, off
 		Relation("Account", func(sq *bun.SelectQuery) *bun.SelectQuery {
 			return sq.Column("address")
 		}).
-		Where("ticket.ticketer_id = ?", ticketerId)
+		Limit(storage.GetPageSize(req.Limit))
 
-	if offset > 0 {
-		query.Offset(int(offset))
+	if req.Ticketer != "" {
+		var ticketerId uint64
+		if err := storage.DB.NewSelect().
+			Model((*account.Account)(nil)).
+			Column("id").
+			Where("address = ?", req.Ticketer).
+			Limit(1).
+			Scan(ctx, &ticketerId); err != nil {
+			return nil, err
+		}
+		query.Where("ticket.ticketer_id = ?", ticketerId)
 	}
-	if limit > 0 {
-		query.Limit(storage.GetPageSize(limit))
+
+	if req.Account != "" {
+		var accountId uint64
+		if err := storage.DB.NewSelect().
+			Model((*account.Account)(nil)).
+			Column("id").
+			Where("address = ?", req.Account).
+			Limit(1).
+			Scan(ctx, &accountId); err != nil {
+			return nil, err
+		}
+		query.Where("account_id = ?", accountId)
+	}
+
+	if req.TicketId != nil {
+		query.Where("ticket_id = ?", *req.TicketId)
+	}
+
+	if req.Offset > 0 {
+		query.Offset(int(req.Offset))
 	}
 
 	err = query.Order("id desc").Scan(ctx)

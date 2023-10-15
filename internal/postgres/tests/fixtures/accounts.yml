@@ -736,6 +736,15 @@
   events_count: 0
   migrations_count: 0
   ticket_updates_count: 0
+- address: tz2GGf91VB3gK7MaaP8Xua6ohhHAhH4hTC11
+  id: 131
+  last_action: 2022-01-25T16:59:07Z
+  level: 39
+  operations_count: 2
+  type: 1
+  events_count: 0
+  migrations_count: 0
+  ticket_updates_count: 0
 - address: KT1BrG24EYvtYGeGgd615Yzhvoa14BNPLZzu
   id: 132
   last_action: 2022-01-25T16:59:07Z

@@ -5,13 +5,62 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
+	"github.com/baking-bad/bcdhub/internal/testsuite"
 )
 
-func (s *StorageTestSuite) TestTicketGet() {
+func (s *StorageTestSuite) TestTicketUpdates() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	updates, err := s.ticketUpdates.Updates(ctx, "KT1SM849krq9FFxGWCZyc7X5GvAz8XnRmXnf", 10, 0)
+	updates, err := s.ticketUpdates.Updates(ctx, ticket.UpdatesRequest{
+		Ticketer: "KT1SM849krq9FFxGWCZyc7X5GvAz8XnRmXnf",
+		Limit:    10,
+		Offset:   0,
+	})
+	s.Require().NoError(err)
+	s.Require().Len(updates, 2)
+
+	update := updates[0]
+	s.Require().EqualValues(2, update.ID)
+	s.Require().EqualValues(104, update.OperationId)
+	s.Require().EqualValues(40, update.Level)
+	s.Require().EqualValues(1, update.TicketId)
+	s.Require().EqualValues(131, update.AccountId)
+	s.Require().EqualValues("43", update.Amount.String())
+	s.Require().EqualValues("KT1SM849krq9FFxGWCZyc7X5GvAz8XnRmXnf", update.Ticket.Ticketer.Address)
+}
+
+func (s *StorageTestSuite) TestTicketUpdatesForAccount() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	updates, err := s.ticketUpdates.Updates(ctx, ticket.UpdatesRequest{
+		Account: "tz2GGf91VB3gK7MaaP8Xua6ohhHAhH4hTC11",
+		Limit:   10,
+		Offset:  0,
+	})
+	s.Require().NoError(err)
+	s.Require().Len(updates, 2)
+
+	update := updates[1]
+	s.Require().EqualValues(2, update.ID)
+	s.Require().EqualValues(104, update.OperationId)
+	s.Require().EqualValues(40, update.Level)
+	s.Require().EqualValues(1, update.TicketId)
+	s.Require().EqualValues(131, update.AccountId)
+	s.Require().EqualValues("43", update.Amount.String())
+	s.Require().EqualValues("KT1SM849krq9FFxGWCZyc7X5GvAz8XnRmXnf", update.Ticket.Ticketer.Address)
+}
+
+func (s *StorageTestSuite) TestTicketUpdatesByTicketId() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	updates, err := s.ticketUpdates.Updates(ctx, ticket.UpdatesRequest{
+		TicketId: testsuite.Ptr(uint64(1)),
+		Limit:    10,
+		Offset:   0,
+	})
 	s.Require().NoError(err)
 	s.Require().Len(updates, 2)
 

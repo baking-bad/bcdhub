@@ -258,3 +258,10 @@ type ticketBalancesRequest struct {
 	pageableRequest
 	WithoutZeroBalances bool `binding:"omitempty" form:"skip_empty"`
 }
+
+type ticketUpdatesRequest struct {
+	pageableRequest
+
+	Account  string  `binding:"omitempty,address" form:"account"`
+	TicketId *uint64 `binding:"omitempty"         form:"ticket_id"`
+}

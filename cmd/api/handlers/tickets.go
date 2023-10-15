@@ -15,10 +15,12 @@ import (
 // @Description Get ticket updates for contract
 // @Tags contract
 // @ID get-contract-ticket-updates
-// @Param network path string true "network"
-// @Param address path string true "KT address" minlength(36) maxlength(36)
-// @Param size query integer false "Updates count" mininum(1) maximum(10)
-// @Param offset query integer false "Offset" mininum(1)
+// @Param network   path  string  true  "network"
+// @Param address   path  string  true  "KT address"    minlength(36) maxlength(36)
+// @Param account   query string  false "Address"       minlength(36) maxlength(36)
+// @Param ticket_id query integer false "Ticket id"     mininum(0)
+// @Param size      query integer false "Updates count" mininum(1) maximum(10)
+// @Param offset    query integer false "Offset"        mininum(1)
 // @Accept json
 // @Produce json
 // @Success 200 {array} TicketUpdate
@@ -35,12 +37,21 @@ func GetContractTicketUpdates() gin.HandlerFunc {
 			return
 		}
 
-		var args pageableRequest
+		var args ticketUpdatesRequest
 		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
-		updates, err := ctx.Tickets.Updates(c.Request.Context(), req.Address, args.Size, args.Offset)
+		updates, err := ctx.Tickets.Updates(c.Request.Context(),
+			ticket.UpdatesRequest{
+				Ticketer: req.Address,
+				Account:  args.Account,
+				TicketId: args.TicketId,
+				Limit:    args.Size,
+				Offset:   args.Offset,
+			},
+		)
+
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
