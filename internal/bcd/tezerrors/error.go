@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"encoding/hex"
 	stdJSON "encoding/json"
 
 	jsoniter "github.com/json-iterator/go"
@@ -43,12 +42,7 @@ func (e *Errors) Scan(value interface{}) error {
 		tmp = tmp[2:]
 	}
 
-	b := make([]byte, len(tmp))
-	if _, err := hex.Decode(b, tmp); err != nil {
-		return err
-	}
-
-	return json.Unmarshal(b, e)
+	return json.Unmarshal(tmp, e)
 }
 
 // Value return json value, implement driver.Valuer interface
