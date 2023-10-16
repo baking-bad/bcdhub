@@ -48,7 +48,5 @@ jobs:
           build-args: |
             TAG=4.6.3
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           tags: ${{ steps.meta-gui.outputs.tags }}
           labels: ${{ steps.meta-gui.outputs.labels }}
