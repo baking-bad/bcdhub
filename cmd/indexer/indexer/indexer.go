@@ -6,13 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -21,10 +19,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/protocols"
 	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/baking-bad/bcdhub/internal/postgres/store"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 	"github.com/dipdup-io/workerpool"
-	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 var errBcdQuit = errors.New("bcd-quit")
@@ -60,10 +59,10 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 	internalCtx := config.NewContext(
 		networkType,
 		config.WithConfigCopy(cfg),
-		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle, true),
+		config.WithStorage(cfg.Storage, "indexer", 10),
 		config.WithRPC(cfg.RPC),
 	)
-	logger.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
+	log.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 
 	bi := &BlockchainIndexer{
 		Context:      internalCtx,
@@ -98,14 +97,14 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 		return err
 	}
 
-	currentState, err := bi.Blocks.Last()
+	currentState, err := bi.Blocks.Last(ctx)
 	if err != nil {
 		return err
 	}
 	bi.state = currentState
-	logger.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %d", currentState.Level)
+	log.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %d", currentState.Level)
 
-	currentProtocol, err := bi.Protocols.Get("", currentState.Level)
+	currentProtocol, err := bi.Protocols.Get(ctx, "", currentState.Level)
 	if err != nil {
 		if !bi.Storage.IsRecordNotFound(err) {
 			return err
@@ -116,25 +115,38 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 			return err
 		}
 
-		logger.Info().Str("network", bi.Network.String()).Msgf("Creating new protocol %s starting at %d", header.Protocol, header.Level)
-		currentProtocol, err = createProtocol(ctx, bi.RPC, header.ChainID, header.Protocol, header.Level)
+		log.Info().
+			Str("network", bi.Network.String()).
+			Msgf("Creating new protocol %s starting at %d", header.Protocol, header.Level)
+
+		currentProtocol, err = protocols.Create(ctx, bi.RPC, header)
 		if err != nil {
 			return err
 		}
 
-		if err := currentProtocol.Save(db.DB); err != nil {
+		tx, err := core.NewTransaction(ctx, bi.StorageDB.DB)
+		if err != nil {
+			return err
+		}
+		if err := tx.Protocol(ctx, &currentProtocol); err != nil {
+			return err
+		}
+		if err := tx.UpdateStats(ctx, stats.Stats{}); err != nil {
+			return err
+		}
+		if err := tx.Commit(); err != nil {
 			return err
 		}
 	}
 
 	bi.currentProtocol = currentProtocol
-	logger.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", currentProtocol.Hash)
+	log.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", currentProtocol.Hash)
 
 	for {
 		if _, err := bi.Context.RPC.GetLevel(ctx); err == nil {
 			break
 		}
-		logger.Warning().Str("network", bi.Network.String()).Msg("waiting node rpc...")
+		log.Warn().Str("network", bi.Network.String()).Msg("waiting node rpc...")
 		time.Sleep(time.Second * 15)
 	}
 
@@ -153,7 +165,7 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 	// First tick
 	if err := bi.process(ctx); err != nil {
 		if !errors.Is(err, errSameLevel) {
-			logger.Err(err)
+			log.Err(err).Msg("processing")
 			helpers.LocalCatchErrorSentry(localSentry, err)
 		}
 	}
@@ -173,7 +185,7 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 					}
 					continue
 				}
-				logger.Err(err)
+				log.Err(err).Msg("processing")
 				helpers.LocalCatchErrorSentry(localSentry, err)
 			}
 
@@ -201,36 +213,38 @@ func (bi *BlockchainIndexer) setUpdateTicker(seconds int) {
 	if bi.updateTicker != nil {
 		bi.updateTicker.Stop()
 	}
-	logger.Info().Str("network", bi.Network.String()).Msgf("Data will be updated every %.0f seconds", duration.Seconds())
+	log.Info().Str("network", bi.Network.String()).Msgf("Data will be updated every %.0f seconds", duration.Seconds())
 	bi.updateTicker = time.NewTicker(duration)
 	bi.refreshTimer <- struct{}{}
 }
 
 func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
-	ticker := time.NewTicker(time.Millisecond)
-	defer ticker.Stop()
-
 	for {
 		select {
 		case <-ctx.Done():
 			return
 
-		case block := <-bi.receiver.Blocks():
-			bi.blocks[block.Header.Level] = block
+		case newBlock := <-bi.receiver.Blocks():
+			bi.blocks[newBlock.Header.Level] = newBlock
 
-		case <-ticker.C:
-			if block, ok := bi.blocks[bi.state.Level+1]; ok {
+			block, ok := bi.blocks[bi.state.Level+1]
+			for ok {
 				if bi.state.Level > 0 && block.Header.Predecessor != bi.state.Hash {
 					if err := bi.Rollback(ctx); err != nil {
-						logger.Error().Err(err).Msg("Rollback")
+						log.Err(err).Msg("rollback")
 					}
 				} else {
 					if err := bi.handleBlock(ctx, block); err != nil {
-						logger.Error().Err(err).Msg("handleBlock")
+						log.Err(err).
+							Str("network", bi.Network.String()).
+							Int64("block", block.Header.Level).
+							Stack().
+							Msg("handleBlock")
 					}
 				}
 
 				delete(bi.blocks, block.Header.Level)
+				block, ok = bi.blocks[bi.state.Level+1]
 			}
 		}
 	}
@@ -249,68 +263,121 @@ func (bi *BlockchainIndexer) Index(ctx context.Context, head noderpc.Header) err
 		}
 	}
 
-	bi.indicesInit.Do(bi.createIndices)
+	bi.indicesInit.Do(func() {
+		if err := bi.createIndices(ctx); err != nil {
+			log.Err(err).Str("network", bi.Network.String()).Msg("can't create index")
+		}
+	})
 
 	return nil
 }
 
 func (bi *BlockchainIndexer) handleBlock(ctx context.Context, block *Block) error {
 	start := time.Now()
-	return bi.StorageDB.DB.RunInTransaction(ctx,
-		func(tx *pg.Tx) error {
 
-			if block.Header.Protocol != bi.currentProtocol.Hash || bi.needVestingMigration(block.Header.Level) {
-				logger.Info().Str("network", bi.Network.String()).Msgf("New protocol detected: %s -> %s", bi.currentProtocol.Hash, block.Header.Protocol)
+	if err := bi.doMigration(ctx, block.Header); err != nil {
+		return errors.Wrap(err, "migration error")
+	}
 
-				if err := bi.migrate(ctx, block.Header, tx); err != nil {
-					return err
-				}
-			}
+	if err := bi.parseAndSaveBlock(ctx, block); err != nil {
+		return errors.Wrap(err, "block processing")
+	}
 
-			store := postgres.NewStore(tx, bi.Partitions)
-			if err := bi.implicitMigration(ctx, block, bi.currentProtocol, store); err != nil {
-				return err
-			}
+	log.Info().
+		Str("network", bi.Network.String()).
+		Int64("processing_time_ms", time.Since(start).Milliseconds()).
+		Int64("block", block.Header.Level).
+		Msg("indexed")
 
-			if err := bi.getDataFromBlock(block, store); err != nil {
-				return err
-			}
+	return nil
+}
 
-			if err := store.Save(ctx); err != nil {
-				return err
-			}
+func (bi *BlockchainIndexer) parseAndSaveBlock(ctx context.Context, block *Block) error {
+	store := store.NewStore(bi.StorageDB.DB, bi.Stats)
+	if err := bi.parseImplicitOperations(ctx, block, bi.currentProtocol, store); err != nil {
+		return err
+	}
 
-			if err := bi.createBlock(block.Header, tx); err != nil {
-				return err
-			}
+	if err := bi.getDataFromBlock(ctx, block, store); err != nil {
+		return err
+	}
 
-			logger.Info().Str("network", bi.Network.String()).Int64("processing_time_ms", time.Since(start).Milliseconds()).Int64("block", block.Header.Level).Msg("indexed")
-			return nil
-		},
-	)
+	if err := bi.createBlock(ctx, block.Header, store); err != nil {
+		return err
+	}
+
+	if err := store.Save(ctx); err != nil {
+		return err
+	}
+
+	bi.state = *store.Block
+	return nil
+}
+
+func (bi *BlockchainIndexer) doMigration(ctx context.Context, header noderpc.Header) error {
+	if header.Protocol == bi.currentProtocol.Hash && header.Level > 1 {
+		return nil
+	}
+
+	log.Info().
+		Str("network", bi.Network.String()).
+		Int64("block", header.Level).
+		Msgf("New protocol detected: %s -> %s", bi.currentProtocol.Hash, header.Protocol)
+
+	return bi.migrate(ctx, header)
+}
+
+func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header) error {
+	tx, err := core.NewTransaction(ctx, bi.StorageDB.DB)
+	if err != nil {
+		return errors.Wrap(err, "create postgres transaction")
+	}
+
+	migraton := protocols.NewMigration(bi.Network, bi.Context)
+	newProto, err := migraton.Do(ctx, tx, bi.currentProtocol, head)
+	if err != nil {
+		return errors.Wrap(err, "migration.Do")
+	}
+
+	bi.currentProtocol = newProto
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	bi.setUpdateTicker(0)
+	log.Info().
+		Str("network", bi.Network.String()).
+		Msgf("Migration to %s is completed", bi.currentProtocol.Alias)
+
+	return nil
 }
 
 // Rollback -
 func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
-	logger.Warning().Str("network", bi.Network.String()).Msgf("Rollback from %7d", bi.state.Level)
+	log.Warn().Str("network", bi.Network.String()).Msgf("Rollback from %8d", bi.state.Level)
 
 	lastLevel, err := bi.getLastRollbackBlock(ctx)
 	if err != nil {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.RPC, bi.Storage, bi.Blocks, bi.BigMapDiffs)
-	if err := manager.Rollback(ctx, bi.StorageDB.DB, bi.Network, bi.state, lastLevel); err != nil {
+	saver, err := postgres.NewRollback(bi.StorageDB.DB)
+	if err != nil {
+		return err
+	}
+	manager := rollback.NewManager(bi.Storage, bi.Blocks, saver, bi.Stats)
+	if err := manager.Rollback(ctx, bi.Network, bi.state, lastLevel); err != nil {
 		return err
 	}
 
-	newState, err := bi.Blocks.Last()
+	newState, err := bi.Blocks.Last(ctx)
 	if err != nil {
 		return err
 	}
 	bi.state = newState
-	logger.Info().Str("network", bi.Network.String()).Msgf("New indexer state: %7d", bi.state.Level)
-	logger.Info().Str("network", bi.Network.String()).Msg("Rollback finished")
+	log.Info().Str("network", bi.Network.String()).Msgf("New indexer state: %8d", bi.state.Level)
+	log.Info().Str("network", bi.Network.String()).Msg("Rollback finished")
 	return nil
 }
 
@@ -324,13 +391,13 @@ func (bi *BlockchainIndexer) getLastRollbackBlock(ctx context.Context) (int64, e
 			return 0, err
 		}
 
-		block, err := bi.Blocks.Get(level - 1)
+		block, err := bi.Blocks.Get(ctx, level-1)
 		if err != nil {
 			return 0, err
 		}
 
 		if block.Hash == headAtLevel.Predecessor {
-			logger.Warning().Str("network", bi.Network.String()).Msgf("Found equal predecessors at level: %7d", block.Level)
+			log.Warn().Str("network", bi.Network.String()).Msgf("Found equal predecessors at level: %7d", block.Level)
 			end = true
 			lastLevel = block.Level
 		}
@@ -348,7 +415,7 @@ func (bi *BlockchainIndexer) process(ctx context.Context) error {
 		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.Protocol.ChainID, head.ChainID)
 	}
 
-	logger.Info().Str("network", bi.Network.String()).Int64("node", head.Level).Int64("indexer", bi.state.Level).Msg("current state")
+	log.Info().Str("network", bi.Network.String()).Int64("node", head.Level).Int64("indexer", bi.state.Level).Msg("current state")
 
 	switch {
 	case head.Level > bi.state.Level:
@@ -359,7 +426,7 @@ func (bi *BlockchainIndexer) process(ctx context.Context) error {
 			return err
 		}
 
-		logger.Info().Str("network", bi.Network.String()).Msg("Synced")
+		log.Info().Str("network", bi.Network.String()).Msg("Synced")
 		return nil
 	case head.Level < bi.state.Level:
 		return bi.Rollback(ctx)
@@ -367,26 +434,23 @@ func (bi *BlockchainIndexer) process(ctx context.Context) error {
 		return errSameLevel
 	}
 }
-func (bi *BlockchainIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
+func (bi *BlockchainIndexer) createBlock(ctx context.Context, head noderpc.Header, store parsers.Store) error {
 	newBlock := block.Block{
 		Hash:       head.Hash,
 		ProtocolID: bi.currentProtocol.ID,
 		Level:      head.Level,
 		Timestamp:  head.Timestamp,
 	}
-	if err := newBlock.Save(tx); err != nil {
-		return err
-	}
-
-	bi.state = newBlock
+	store.SetBlock(&newBlock)
 	return nil
 }
 
-func (bi *BlockchainIndexer) getDataFromBlock(block *Block, store parsers.Store) error {
+func (bi *BlockchainIndexer) getDataFromBlock(ctx context.Context, block *Block, store parsers.Store) error {
 	if block.Header.Level <= 1 {
 		return nil
 	}
 	parserParams, err := operations.NewParseParams(
+		ctx,
 		bi.Context,
 		operations.WithProtocol(&bi.currentProtocol),
 		operations.WithHead(block.Header),
@@ -397,69 +461,14 @@ func (bi *BlockchainIndexer) getDataFromBlock(block *Block, store parsers.Store)
 
 	for i := range block.OPG {
 		parser := operations.NewGroup(parserParams)
-		if err := parser.Parse(block.OPG[i], store); err != nil {
+		if err := parser.Parse(ctx, block.OPG[i], store); err != nil {
 			return err
 		}
 	}
 
 	return nil
 }
-
-func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header, tx pg.DBI) error {
-	if bi.currentProtocol.EndLevel == 0 && head.Level > 1 {
-		logger.Info().Str("network", bi.Network.String()).Msgf("Finalizing the previous protocol: %s", bi.currentProtocol.Alias)
-		bi.currentProtocol.EndLevel = head.Level - 1
-		if err := bi.currentProtocol.Save(bi.StorageDB.DB); err != nil {
-			return err
-		}
-	}
-
-	newProtocol, err := bi.Protocols.Get(head.Protocol, head.Level)
-	if err != nil {
-		logger.Info().Str("network", bi.Network.String()).Msgf("Creating new protocol %s starting at %d", head.Protocol, head.Level)
-		newProtocol, err = createProtocol(ctx, bi.RPC, head.ChainID, head.Protocol, head.Level)
-		if err != nil {
-			return err
-		}
-		if err := newProtocol.Save(bi.StorageDB.DB); err != nil {
-			return err
-		}
-	}
-
-	if bi.needVestingMigration(head.Level) {
-		if err := bi.vestingMigration(ctx, head, tx); err != nil {
-			return err
-		}
-	} else {
-		if bi.currentProtocol.SymLink == "" {
-			return errors.Errorf("[%s] Protocol should be initialized", bi.Network)
-		}
-		if newProtocol.SymLink != bi.currentProtocol.SymLink {
-			if err := bi.standartMigration(ctx, newProtocol, head, tx); err != nil {
-				return err
-			}
-		} else {
-			logger.Info().Str("network", bi.Network.String()).Msgf("Same symlink %s for %s / %s",
-				newProtocol.SymLink, bi.currentProtocol.Alias, newProtocol.Alias)
-		}
-
-	}
-
-	bi.currentProtocol = newProtocol
-
-	bi.setUpdateTicker(0)
-	logger.Info().Str("network", bi.Network.String()).Msgf("Migration to %s is completed", bi.currentProtocol.Alias)
-	return nil
-}
-
-func (bi *BlockchainIndexer) needVestingMigration(level int64) bool {
-	return (bi.Network == types.Mainnet ||
-		bi.Network == types.Dailynet ||
-		bi.Network == types.Mondaynet) &&
-		level == 1
-}
-
-func (bi *BlockchainIndexer) implicitMigration(ctx context.Context, block *Block, protocol protocol.Protocol, store parsers.Store) error {
+func (bi *BlockchainIndexer) parseImplicitOperations(ctx context.Context, block *Block, protocol protocol.Protocol, store parsers.Store) error {
 	if block == nil || block.Metadata == nil {
 		return nil
 	}
@@ -476,123 +485,14 @@ func (bi *BlockchainIndexer) implicitMigration(ctx context.Context, block *Block
 	return implicitParser.Parse(ctx, *block.Metadata, block.Header, store)
 }
 
-func (bi *BlockchainIndexer) standartMigration(ctx context.Context, newProtocol protocol.Protocol, head noderpc.Header, tx pg.DBI) error {
-	logger.Info().Str("network", bi.Network.String()).Msg("Try to find migrations...")
-
-	var contracts []contract.Contract
-	if err := bi.StorageDB.DB.Model((*contract.Contract)(nil)).
-		Relation("Account").
-		Where("tags & 4 = 0"). // except delegator contracts
-		Select(&contracts); err != nil {
-		return err
-	}
-	logger.Info().Str("network", bi.Network.String()).Msgf("Now %2d contracts are indexed", len(contracts))
-
-	specific, err := protocols.Get(bi.Context, newProtocol.Hash)
-	if err != nil {
-		return err
-	}
-
-	for i := range contracts {
-		if !specific.MigrationParser.IsMigratable(contracts[i].Account.Address) && newProtocol.SymLink == bcd.SymLinkJakarta {
-			if _, err = bi.StorageDB.DB.Model(&contracts[i]).
-				Set("jakarta_id = babylon_id").
-				WherePK().
-				Update(&contracts[i]); err != nil {
-				return err
-			}
-			continue
-		}
-
-		logger.Info().Str("network", bi.Network.String()).Msgf("Migrate %s...", contracts[i].Account.Address)
-		script, err := bi.RPC.GetScriptJSON(ctx, contracts[i].Account.Address, newProtocol.StartLevel)
-		if err != nil {
-			return err
-		}
-
-		if err := specific.MigrationParser.Parse(script, &contracts[i], bi.currentProtocol, newProtocol, head.Timestamp, tx); err != nil {
-			return err
-		}
-
-		switch newProtocol.SymLink {
-		case bcd.SymLinkBabylon:
-			if _, err := bi.StorageDB.DB.
-				Model(&contracts[i]).
-				Set("babylon_id = ?babylon_id").
-				WherePK().Update(&contracts[i]); err != nil {
-				return err
-			}
-		case bcd.SymLinkJakarta:
-			if _, err := bi.StorageDB.DB.
-				Model(&contracts[i]).
-				Set("jakarta_id = ?jakarta_id").
-				WherePK().Update(&contracts[i]); err != nil {
-				return err
-			}
-		}
-
-	}
-
-	// only delegator contracts
-	switch newProtocol.SymLink {
-	case bcd.SymLinkBabylon:
-		_, err = bi.StorageDB.DB.Model((*contract.Contract)(nil)).
-			Set("babylon_id = alpha_id").
-			Where("tags & 4 > 0").
-			Update()
-	case bcd.SymLinkJakarta:
-		_, err = bi.StorageDB.DB.Model((*contract.Contract)(nil)).
-			Set("jakarta_id = babylon_id").
-			Where("tags & 4 > 0").
-			Update()
-	}
-	return err
-}
-
-func (bi *BlockchainIndexer) vestingMigration(ctx context.Context, head noderpc.Header, tx pg.DBI) error {
-	addresses, err := bi.RPC.GetContractsByBlock(ctx, head.Level)
-	if err != nil {
-		return err
-	}
-
-	specific, err := protocols.Get(bi.Context, bi.currentProtocol.Hash)
-	if err != nil {
-		return err
-	}
-
-	p, err := migrations.NewVestingParser(bi.Context, specific.ContractParser, bi.currentProtocol)
-	if err != nil {
-		return err
-	}
-
-	store := postgres.NewStore(tx, bi.Partitions)
-
-	for _, address := range addresses {
-		if !bcd.IsContract(address) {
-			continue
-		}
-
-		data, err := bi.RPC.GetContractData(ctx, address, head.Level)
-		if err != nil {
-			return err
-		}
-
-		if err := p.Parse(data, head, address, store); err != nil {
-			return err
-		}
-	}
-
-	return store.Save(ctx)
-}
-
 func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, indexerConfig config.IndexerConfig) error {
 	bi.Context = config.NewContext(
 		bi.Network,
 		config.WithConfigCopy(cfg),
-		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle, true),
+		config.WithStorage(cfg.Storage, "indexer", 10),
 		config.WithRPC(cfg.RPC),
 	)
-	logger.Info().Str("network", bi.Context.Network.String()).Msg("Creating indexer object...")
+	log.Info().Str("network", bi.Context.Network.String()).Msg("Creating indexer object...")
 	bi.receiver = NewReceiver(bi.Context.RPC, 20, indexerConfig.ReceiverThreads)
 
 	bi.refreshTimer = make(chan struct{}, 10)

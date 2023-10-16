@@ -2,35 +2,31 @@ package migrations
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/contract"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models"
 	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/go-pg/pg/v10"
 )
 
 // Babylon -
-type Babylon struct {
-	bmdRepo bigmapdiff.Repository
-}
+type Babylon struct{}
 
 // NewBabylon -
-func NewBabylon(bmdRepo bigmapdiff.Repository) *Babylon {
-	return &Babylon{
-		bmdRepo: bmdRepo,
-	}
+func NewBabylon() *Babylon {
+	return &Babylon{}
 }
 
 // Parse -
-func (p *Babylon) Parse(script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx pg.DBI) error {
-	if err := p.getUpdates(script, *old, tx); err != nil {
+func (p *Babylon) Parse(ctx context.Context, script noderpc.Script, old *modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx models.Transaction) error {
+	if err := p.getUpdates(ctx, script, *old, tx); err != nil {
 		return err
 	}
 
@@ -55,6 +51,7 @@ func (p *Babylon) Parse(script noderpc.Script, old *modelsContract.Contract, pre
 	}
 
 	contractScript := modelsContract.Script{
+		Level:     next.StartLevel,
 		Hash:      newHash,
 		Code:      s.Code,
 		Storage:   s.Storage,
@@ -62,7 +59,7 @@ func (p *Babylon) Parse(script noderpc.Script, old *modelsContract.Contract, pre
 		Views:     s.Views,
 	}
 
-	if err := contractScript.Save(tx); err != nil {
+	if err := tx.Scripts(ctx, &contractScript); err != nil {
 		return err
 	}
 
@@ -70,14 +67,15 @@ func (p *Babylon) Parse(script noderpc.Script, old *modelsContract.Contract, pre
 
 	m := &migration.Migration{
 		ContractID:     old.ID,
-		Level:          previous.EndLevel,
+		Contract:       *old,
+		Level:          next.StartLevel,
 		ProtocolID:     next.ID,
 		PrevProtocolID: previous.ID,
 		Timestamp:      timestamp,
 		Kind:           types.MigrationKindUpdate,
 	}
 
-	return m.Save(tx)
+	return tx.Migrations(ctx, m)
 }
 
 // IsMigratable -
@@ -85,7 +83,7 @@ func (p *Babylon) IsMigratable(address string) bool {
 	return true
 }
 
-func (p *Babylon) getUpdates(script noderpc.Script, contract modelsContract.Contract, tx pg.DBI) error {
+func (p *Babylon) getUpdates(ctx context.Context, script noderpc.Script, contract modelsContract.Contract, tx models.Transaction) error {
 	storage, err := script.GetSettledStorage()
 	if err != nil {
 		return err
@@ -100,22 +98,15 @@ func (p *Babylon) getUpdates(script noderpc.Script, contract modelsContract.Cont
 		newPtr = p
 	}
 
-	bmd, err := p.bmdRepo.GetByAddress(contract.Account.Address)
+	updatedRows, err := tx.BabylonUpdateBigMapDiffs(ctx, contract.Account.Address, newPtr)
 	if err != nil {
 		return err
 	}
-	if len(bmd) == 0 {
+	if updatedRows == 0 {
 		return nil
 	}
 
-	for i := range bmd {
-		bmd[i].Ptr = newPtr
-		if err := bmd[i].Save(tx); err != nil {
-			return err
-		}
-	}
-
-	keys, err := p.bmdRepo.CurrentByContract(contract.Account.Address)
+	keys, err := tx.DeleteBigMapStatesByContract(ctx, contract.Account.Address)
 	if err != nil {
 		return err
 	}
@@ -124,12 +115,10 @@ func (p *Babylon) getUpdates(script noderpc.Script, contract modelsContract.Cont
 	}
 
 	for i := range keys {
-		if _, err := tx.Model(&keys[i]).WherePK().Delete(); err != nil {
-			return err
-		}
-
 		keys[i].Ptr = newPtr
-		if err := keys[i].Save(tx); err != nil {
+		keys[i].ID = 0
+
+		if err := tx.BigMapStates(ctx, &keys[i]); err != nil {
 			return err
 		}
 	}

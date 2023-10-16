@@ -5,9 +5,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/rs/zerolog/log"
 )
 
 // Item -
@@ -153,7 +153,7 @@ func (st *StackTrace) String() string {
 	}
 
 	if err := st.print(topLevel, 1, &builder); err != nil {
-		logger.Err(err)
+		log.Err(err).Msg("print stacktrace")
 	}
 	return builder.String()
 }
@@ -169,20 +169,6 @@ func (st *StackTrace) print(arr []int64, depth int, builder io.StringWriter) err
 			}
 			st.print(item.children, depth+1, builder)
 		}
-	}
-	return nil
-}
-
-// Fill -
-func (st *StackTrace) Fill(repo operation.Repository, op operation.Operation) error {
-	ops, err := repo.Get(map[string]interface{}{
-		"hash": op.Hash,
-	}, 0, true)
-	if err != nil {
-		return err
-	}
-	for i := range ops {
-		st.Add(ops[i])
 	}
 	return nil
 }

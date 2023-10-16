@@ -26,7 +26,7 @@ func ContractsHelpers() gin.HandlerFunc {
 
 		splitted := strings.Split(args.Tags, ",")
 		tags := types.NewTags(splitted)
-		contract, err := ctx.Contracts.FindOne(tags)
+		contract, err := ctx.Contracts.FindOne(c.Request.Context(), tags)
 		if handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}

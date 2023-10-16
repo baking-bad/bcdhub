@@ -5,8 +5,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 // GetInfo godoc
@@ -33,32 +33,31 @@ func GetInfo() gin.HandlerFunc {
 			return
 		}
 
-		acc, err := ctx.Accounts.Get(req.Address)
+		acc, err := ctx.Accounts.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		stats, err := ctx.Operations.ContractStats(acc.Address)
-		if handleError(c, ctx.Storage, err, 0) {
-			return
-		}
+
 		var balance int64
 		if !(bcd.IsRollupAddressLazy(acc.Address) || bcd.IsSmartRollupAddressLazy(acc.Address)) {
-			block, err := ctx.Blocks.Last()
+			block, err := ctx.Blocks.Last(c.Request.Context())
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 			balance, err = ctx.Cache.TezosBalance(c, acc.Address, block.Level)
 			if err != nil {
-				logger.Err(err)
+				log.Err(err).Msg("receiving tezos balance")
 			}
 		}
 		c.SecureJSON(http.StatusOK, AccountInfo{
-			Address:     acc.Address,
-			Alias:       acc.Alias,
-			TxCount:     stats.Count,
-			Balance:     balance,
-			LastAction:  stats.LastAction.UTC(),
-			AccountType: acc.Type.String(),
+			Address:            acc.Address,
+			OperationsCount:    acc.OperationsCount,
+			EventsCount:        acc.EventsCount,
+			MigrationsCount:    acc.MigrationsCount,
+			TicketUpdatesCount: acc.TicketUpdatesCount,
+			Balance:            balance,
+			LastAction:         acc.LastAction.UTC(),
+			AccountType:        acc.Type.String(),
 		})
 	}
 

@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -18,7 +20,7 @@ func NewAlpha() *Alpha {
 }
 
 // ParseTransaction -
-func (a *Alpha) ParseTransaction(content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
+func (a *Alpha) ParseTransaction(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	result := content.GetResult()
 	if result == nil {
 		return nil
@@ -29,7 +31,7 @@ func (a *Alpha) ParseTransaction(content noderpc.Operation, operation *operation
 }
 
 // ParseOrigination -
-func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
+func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	if content.Script == nil {
 		return nil
 	}

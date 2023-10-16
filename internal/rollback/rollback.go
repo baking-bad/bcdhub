@@ -2,227 +2,145 @@ package rollback
 
 import (
 	"context"
-	"time"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
-	"github.com/baking-bad/bcdhub/internal/models/operation"
+	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // Manager -
 type Manager struct {
-	rpc       noderpc.INode
 	storage   models.GeneralRepository
 	blockRepo block.Repository
-	bmdRepo   bigmapdiff.Repository
+	rollback  models.Rollback
+	statsRepo stats.Repository
 }
 
 // NewManager -
-func NewManager(rpc noderpc.INode, storage models.GeneralRepository, blockRepo block.Repository, bmdRepo bigmapdiff.Repository) Manager {
+func NewManager(
+	storage models.GeneralRepository,
+	blockRepo block.Repository,
+	rollback models.Rollback,
+	statsRepo stats.Repository,
+) Manager {
 	return Manager{
-		rpc, storage, blockRepo, bmdRepo,
+		storage:   storage,
+		blockRepo: blockRepo,
+		rollback:  rollback,
+		statsRepo: statsRepo,
 	}
 }
 
 // Rollback - rollback indexer state to level
-func (rm Manager) Rollback(ctx context.Context, db pg.DBI, network types.Network, fromState block.Block, toLevel int64) error {
+func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState block.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
 		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
 
 	for level := fromState.Level; level > toLevel; level-- {
-		logger.Info().Msgf("Rollback to %d block", level)
+		log.Info().Str("network", network.String()).Msgf("start rollback to %d", level)
 
-		if _, err := rm.blockRepo.Get(level); err != nil {
+		if _, err := rm.blockRepo.Get(ctx, level); err != nil {
 			if rm.storage.IsRecordNotFound(err) {
 				continue
 			}
 			return err
 		}
 
-		err := db.RunInTransaction(ctx, func(tx *pg.Tx) error {
-			if err := rm.rollbackAll(tx, level); err != nil {
-				return err
-			}
-			if err := rm.rollbackOperations(tx, level); err != nil {
-				return err
-			}
-			if err := rm.rollbackMigrations(tx, level); err != nil {
-				return err
-			}
-			if err := rm.rollbackBigMapState(tx, level); err != nil {
-				return err
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (rm Manager) rollbackAll(tx pg.DBI, level int64) error {
-	for _, index := range []models.Model{
-		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
-		&bigmapaction.BigMapAction{}, &contract.GlobalConstant{},
-	} {
-		if _, err := tx.Model(index).
-			Where("level = ?", level).
-			Delete(index); err != nil {
-			return err
+		if err := rm.rollbackBlock(ctx, level); err != nil {
+			log.Err(err).Str("network", network.String()).Msg("rollback error")
+			return rm.rollback.Rollback()
 		}
 
-		logger.Info().
-			Str("model", index.GetIndex()).
-			Msg("rollback")
+		log.Info().Str("network", network.String()).Msgf("rolled back to %d", level)
 	}
-	return nil
+
+	return rm.rollback.Commit()
 }
 
-func (rm Manager) rollbackMigrations(tx pg.DBI, level int64) error {
-	logger.Info().Msg("rollback migrations...")
-	if _, err := tx.Model(new(migration.Migration)).
-		Where("contract_id IN (?)", tx.Model(new(contract.Contract)).Column("id").Where("level > ?", level)).
-		Where("level = ?", level).
-		Delete(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (rm Manager) rollbackBigMapState(tx pg.DBI, level int64) error {
-	logger.Info().Msg("rollback big map states...")
-	states, err := rm.bmdRepo.StatesChangedAfter(level)
+func (rm Manager) rollbackBlock(ctx context.Context, level int64) error {
+	rollbackCtx, err := newRollbackContext(ctx, rm.statsRepo)
 	if err != nil {
 		return err
 	}
 
-	for i, state := range states {
-		diff, err := rm.bmdRepo.LastDiff(state.Ptr, state.KeyHash, false)
-		if err != nil {
-			if rm.storage.IsRecordNotFound(err) {
-				if _, err := tx.Model(&states[i]).Delete(); err != nil {
-					return err
-				}
-				continue
-			}
-			return err
-		}
-		states[i].LastUpdateLevel = diff.Level
-		states[i].LastUpdateTime = diff.Timestamp
-		states[i].IsRollback = true
-
-		if len(diff.Value) > 0 {
-			states[i].Value = diff.ValueBytes()
-			states[i].Removed = false
-		} else {
-			states[i].Removed = true
-			valuedDiff, err := rm.bmdRepo.LastDiff(state.Ptr, state.KeyHash, true)
-			if err != nil {
-				if !rm.storage.IsRecordNotFound(err) {
-					return err
-				}
-			} else {
-				states[i].Value = valuedDiff.ValueBytes()
-			}
-		}
-
-		if err := states[i].Save(tx); err != nil {
-			return err
-		}
+	if err := rm.rollbackOperations(ctx, level, &rollbackCtx); err != nil {
+		return err
+	}
+	if err := rm.rollbackBigMapState(ctx, level); err != nil {
+		return err
+	}
+	if err := rm.rollbackScripts(ctx, level); err != nil {
+		return err
+	}
+	if err := rm.rollbackMigrations(ctx, level, &rollbackCtx); err != nil {
+		return err
+	}
+	if err := rm.rollbackTickets(ctx, level); err != nil {
+		return err
+	}
+	if err := rm.rollbackAll(ctx, level, &rollbackCtx); err != nil {
+		return err
+	}
+	if err := rm.rollback.Protocols(ctx, level); err != nil {
+		return err
+	}
+	if err := rollbackCtx.update(ctx, rm.rollback); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-type lastAction struct {
-	Address string    `pg:"address"`
-	Time    time.Time `pg:"time"`
-}
-
-func (rm Manager) rollbackOperations(tx pg.DBI, level int64) error {
-	logger.Info().Msg("rollback operations...")
-	var ops []operation.Operation
-	if err := tx.Model(&operation.Operation{}).
-		Where("level = ?", level).
-		Select(&ops); err != nil {
-		return err
+func (rm Manager) rollbackMigrations(ctx context.Context, level int64, rCtx *rollbackContext) error {
+	migrations, err := rm.rollback.GetMigrations(ctx, level)
+	if err != nil {
+		return nil
 	}
-	if len(ops) == 0 {
+	if len(migrations) == 0 {
 		return nil
 	}
 
-	ids := make([]int64, len(ops))
-	for i := range ops {
-		ids[i] = ops[i].ID
+	for i := range migrations {
+		rCtx.applyMigration(migrations[i].Contract.AccountID)
 	}
 
-	if _, err := tx.Model(&operation.Operation{}).
-		WhereIn("id IN (?)", ids).
-		Delete(); err != nil {
+	if _, err := rm.rollback.DeleteAll(ctx, (*migration.Migration)(nil), level); err != nil {
 		return err
 	}
+	log.Info().Msg("rollback migrations")
+	return nil
+}
 
-	contracts := make(map[string]uint64)
-	for i := range ops {
-		if ops[i].IsOrigination() {
-			continue
-		}
-		if ops[i].Destination.Type == types.AccountTypeContract {
-			if _, ok := contracts[ops[i].Destination.Address]; !ok {
-				contracts[ops[i].Destination.Address] = 1
-			} else {
-				contracts[ops[i].Destination.Address] += 1
-			}
-		}
-		if ops[i].Source.Type == types.AccountTypeContract {
-			if _, ok := contracts[ops[i].Source.Address]; !ok {
-				contracts[ops[i].Source.Address] = 1
-			} else {
-				contracts[ops[i].Source.Address] += 1
-			}
-		}
-	}
-
-	if len(contracts) > 0 {
-		addresses := make([]string, 0, len(contracts))
-		for address := range contracts {
-			addresses = append(addresses, address)
-		}
-		length := len(addresses) * 10
-
-		var actions []lastAction
-
-		if _, err := tx.Query(&actions, `select max(foo.ts) as time, foo.address from (
-			(select "timestamp" as ts, source as address from operations where source in (?) order by id desc limit ?)
-			union all
-			(select "timestamp" as ts, destination as address from operations where destination in (?) order by id desc limit ?)
-		) as foo
-		group by address
-		`, addresses, length, addresses, length); err != nil {
+func (rm Manager) rollbackAll(ctx context.Context, level int64, rCtx *rollbackContext) error {
+	for _, model := range []models.Model{
+		(*block.Block)(nil),
+		(*bigmapdiff.BigMapDiff)(nil),
+		(*bigmapaction.BigMapAction)(nil),
+		(*smartrollup.SmartRollup)(nil),
+		(*account.Account)(nil),
+	} {
+		if _, err := rm.rollback.DeleteAll(ctx, model, level); err != nil {
 			return err
 		}
-
-		for i := range actions {
-			count, ok := contracts[actions[i].Address]
-			if !ok {
-				count = 1
-			}
-			if _, err := tx.Exec(`update contracts set tx_count = tx_count - ?, last_action = ? where address = ?;`, count, actions[i].Time.UTC(), actions[i].Address); err != nil {
-				return err
-			}
-		}
+		log.Info().Msgf("rollback: %T", model)
 	}
+
+	contractsCount, err := rm.rollback.DeleteAll(ctx, (*contract.Contract)(nil), level)
+	if err != nil {
+		return err
+	}
+	rCtx.generalStats.ContractsCount -= contractsCount
+	log.Info().Msgf("rollback contracts")
 
 	return nil
 }

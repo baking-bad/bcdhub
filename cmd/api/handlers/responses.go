@@ -15,55 +15,54 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Error -
 type Error struct {
-	Message string `json:"message" example:"text"`
+	Message string `example:"text" json:"message"`
 }
 
 // Operation -
 type Operation struct {
-	ID                                 int64              `json:"id,omitempty" extensions:"x-nullable"`
-	Level                              int64              `json:"level,omitempty" extensions:"x-nullable"`
-	Fee                                int64              `json:"fee,omitempty" extensions:"x-nullable"`
-	Counter                            int64              `json:"counter,omitempty" extensions:"x-nullable"`
-	GasLimit                           int64              `json:"gas_limit,omitempty" extensions:"x-nullable"`
-	StorageLimit                       int64              `json:"storage_limit,omitempty" extensions:"x-nullable"`
-	Amount                             int64              `json:"amount,omitempty" extensions:"x-nullable"`
-	Balance                            int64              `json:"balance,omitempty" extensions:"x-nullable"`
-	Burned                             int64              `json:"burned,omitempty" extensions:"x-nullable"`
-	AllocatedDestinationContractBurned int64              `json:"allocated_destination_contract_burned,omitempty" extensions:"x-nullable"`
+	ID                                 int64              `extensions:"x-nullable"     json:"id,omitempty"`
+	Level                              int64              `extensions:"x-nullable"     json:"level,omitempty"`
+	Fee                                int64              `extensions:"x-nullable"     json:"fee,omitempty"`
+	Counter                            int64              `extensions:"x-nullable"     json:"counter,omitempty"`
+	GasLimit                           int64              `extensions:"x-nullable"     json:"gas_limit,omitempty"`
+	StorageLimit                       int64              `extensions:"x-nullable"     json:"storage_limit,omitempty"`
+	Amount                             int64              `extensions:"x-nullable"     json:"amount,omitempty"`
+	Balance                            int64              `extensions:"x-nullable"     json:"balance,omitempty"`
+	Burned                             int64              `extensions:"x-nullable"     json:"burned,omitempty"`
+	AllocatedDestinationContractBurned int64              `extensions:"x-nullable"     json:"allocated_destination_contract_burned,omitempty"`
 	IndexedTime                        int64              `json:"-"`
 	ContentIndex                       int64              `json:"content_index"`
-	ConsumedGas                        int64              `json:"consumed_gas,omitempty" extensions:"x-nullable" example:"100"`
-	StorageSize                        int64              `json:"storage_size,omitempty" extensions:"x-nullable" example:"200"`
-	PaidStorageSizeDiff                int64              `json:"paid_storage_size_diff,omitempty" extensions:"x-nullable" example:"300"`
+	ConsumedGas                        int64              `example:"100"               extensions:"x-nullable"                                json:"consumed_gas,omitempty"`
+	StorageSize                        int64              `example:"200"               extensions:"x-nullable"                                json:"storage_size,omitempty"`
+	PaidStorageSizeDiff                int64              `example:"300"               extensions:"x-nullable"                                json:"paid_storage_size_diff,omitempty"`
 	TicketUpdatesCount                 int                `json:"ticket_updates_count"`
 	BigMapDiffsCount                   int                `json:"big_map_diffs_count"`
-	Errors                             []*tezerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
-	Parameters                         interface{}        `json:"parameters,omitempty" extensions:"x-nullable"`
-	StorageDiff                        *ast.MiguelNode    `json:"storage_diff,omitempty" extensions:"x-nullable"`
-	Payload                            []*ast.MiguelNode  `json:"payload,omitempty" extensions:"x-nullable"`
-	RawMempool                         interface{}        `json:"rawMempool,omitempty" extensions:"x-nullable"`
+	Errors                             []*tezerrors.Error `extensions:"x-nullable"     json:"errors,omitempty"`
+	Parameters                         interface{}        `extensions:"x-nullable"     json:"parameters,omitempty"`
+	StorageDiff                        *ast.MiguelNode    `extensions:"x-nullable"     json:"storage_diff,omitempty"`
+	Payload                            []*ast.MiguelNode  `extensions:"x-nullable"     json:"payload,omitempty"`
+	RawMempool                         interface{}        `extensions:"x-nullable"     json:"rawMempool,omitempty"`
 	Timestamp                          time.Time          `json:"timestamp"`
 	Protocol                           string             `json:"protocol"`
-	Hash                               string             `json:"hash,omitempty" extensions:"x-nullable"`
+	Hash                               string             `extensions:"x-nullable"     json:"hash,omitempty"`
 	Network                            string             `json:"network"`
 	Kind                               string             `json:"kind"`
-	Source                             string             `json:"source,omitempty" extensions:"x-nullable"`
-	SourceAlias                        string             `json:"source_alias,omitempty" extensions:"x-nullable"`
-	Destination                        string             `json:"destination,omitempty" extensions:"x-nullable"`
-	DestinationAlias                   string             `json:"destination_alias,omitempty" extensions:"x-nullable"`
-	PublicKey                          string             `json:"public_key,omitempty" extensions:"x-nullable"`
-	ManagerPubKey                      string             `json:"manager_pubkey,omitempty" extensions:"x-nullable"`
-	Delegate                           string             `json:"delegate,omitempty" extensions:"x-nullable"`
+	Source                             string             `extensions:"x-nullable"     json:"source,omitempty"`
+	Destination                        string             `extensions:"x-nullable"     json:"destination,omitempty"`
+	PublicKey                          string             `extensions:"x-nullable"     json:"public_key,omitempty"`
+	ManagerPubKey                      string             `extensions:"x-nullable"     json:"manager_pubkey,omitempty"`
+	Delegate                           string             `extensions:"x-nullable"     json:"delegate,omitempty"`
 	Status                             string             `json:"status"`
-	Entrypoint                         string             `json:"entrypoint,omitempty" extensions:"x-nullable"`
-	Tag                                string             `json:"tag,omitempty" extensions:"x-nullable"`
-	AllocatedDestinationContract       bool               `json:"allocated_destination_contract,omitempty" extensions:"x-nullable" example:"true"`
+	Entrypoint                         string             `extensions:"x-nullable"     json:"entrypoint,omitempty"`
+	Tag                                string             `extensions:"x-nullable"     json:"tag,omitempty"`
+	AllocatedDestinationContract       bool               `example:"true"              extensions:"x-nullable"                                json:"allocated_destination_contract,omitempty"`
 	Internal                           bool               `json:"internal"`
 	Mempool                            bool               `json:"mempool"`
 	Storage                            stdJSON.RawMessage `json:"-"`
@@ -155,37 +154,29 @@ type Contract struct {
 	Timestamp time.Time `json:"timestamp"`
 
 	Hash        string   `json:"hash,omitempty"`
-	Tags        []string `json:"tags,omitempty" extensions:"x-nullable"`
-	Hardcoded   []string `json:"hardcoded,omitempty" extensions:"x-nullable"`
-	FailStrings []string `json:"fail_strings,omitempty" extensions:"x-nullable"`
-	Annotations []string `json:"annotations,omitempty" extensions:"x-nullable"`
-	Entrypoints []string `json:"entrypoints,omitempty" extensions:"x-nullable"`
+	Tags        []string `extensions:"x-nullable" json:"tags,omitempty"`
+	Hardcoded   []string `extensions:"x-nullable" json:"hardcoded,omitempty"`
+	FailStrings []string `extensions:"x-nullable" json:"fail_strings,omitempty"`
+	Annotations []string `extensions:"x-nullable" json:"annotations,omitempty"`
+	Entrypoints []string `extensions:"x-nullable" json:"entrypoints,omitempty"`
 
 	Address  string `json:"address"`
-	Manager  string `json:"manager,omitempty" extensions:"x-nullable"`
-	Delegate string `json:"delegate,omitempty" extensions:"x-nullable"`
+	Manager  string `extensions:"x-nullable" json:"manager,omitempty"`
+	Delegate string `extensions:"x-nullable" json:"delegate,omitempty"`
 
-	FoundBy         string    `json:"found_by,omitempty" extensions:"x-nullable"`
-	LastAction      time.Time `json:"last_action,omitempty" extensions:"x-nullable"`
-	TxCount         int64     `json:"tx_count,omitempty" extensions:"x-nullable"`
-	MigrationsCount int64     `json:"migrations_count,omitempty" extensions:"x-nullable"`
-	Alias           string    `json:"alias,omitempty" extensions:"x-nullable"`
-	DelegateAlias   string    `json:"delegate_alias,omitempty" extensions:"x-nullable"`
-	Slug            string    `json:"slug,omitempty" extensions:"x-nullable"`
+	FoundBy         string    `extensions:"x-nullable" json:"found_by,omitempty"`
+	LastAction      time.Time `extensions:"x-nullable" json:"last_action,omitempty"`
+	TxCount         int64     `extensions:"x-nullable" json:"tx_count,omitempty"`
+	MigrationsCount int64     `extensions:"x-nullable" json:"migrations_count,omitempty"`
+	Slug            string    `extensions:"x-nullable" json:"slug,omitempty"`
 }
 
 // FromModel -
 func (c *Contract) FromModel(contract contract.Contract) {
 	c.Address = contract.Account.Address
-	c.Alias = contract.Account.Alias
 	c.Delegate = contract.Delegate.Address
-	c.DelegateAlias = contract.Delegate.Alias
-	c.TxCount = contract.TxCount
-	c.LastAction = contract.LastAction
-
 	c.Level = contract.Level
 	c.Manager = contract.Manager.Address
-	c.MigrationsCount = contract.MigrationsCount
 	c.Tags = contract.Tags.ToArray()
 	c.Timestamp = contract.Timestamp
 
@@ -208,33 +199,29 @@ func (c *Contract) FromModel(contract contract.Contract) {
 type ContractWithStats struct {
 	Contract
 
-	SameCount        int64 `json:"same_count"`
-	EventsCount      int   `json:"events_count"`
-	HasTicketUpdates bool  `json:"has_ticket_updates"`
+	SameCount int64 `json:"same_count"`
 }
 
 // RecentlyCalledContract -
 type RecentlyCalledContract struct {
-	ID         int64     `json:"id"`
-	Address    string    `json:"address"`
-	Alias      string    `json:"alias,omitempty" extensions:"x-nullable"`
-	LastAction time.Time `json:"last_action,omitempty" extensions:"x-nullable"`
-	TxCount    int64     `json:"tx_count,omitempty" extensions:"x-nullable"`
+	ID              int64     `json:"id"`
+	Address         string    `json:"address"`
+	LastAction      time.Time `json:"last_action"`
+	OperationsCount int64     `json:"operations_count"`
 }
 
 // FromModel -
-func (c *RecentlyCalledContract) FromModel(contract contract.Contract) {
-	c.Address = contract.Account.Address
-	c.Alias = contract.Account.Alias
-	c.TxCount = contract.TxCount
-	c.LastAction = contract.LastAction
-	c.ID = contract.ID
+func (c *RecentlyCalledContract) FromModel(account account.Account) {
+	c.Address = account.Address
+	c.ID = account.ID
+	c.LastAction = account.LastAction
+	c.OperationsCount = account.OperationsCount
 }
 
 // OperationResponse -
 type OperationResponse struct {
 	Operations []Operation `json:"operations"`
-	LastID     string      `json:"last_id,omitempty" extensions:"x-nullable" example:"1588640276994159"`
+	LastID     string      `example:"1588640276994159" extensions:"x-nullable" json:"last_id,omitempty"`
 }
 
 // BigMapItem -
@@ -255,75 +242,22 @@ type BigMapResponseItem struct {
 
 // GetBigMapResponse -
 type GetBigMapResponse struct {
-	Address       string        `json:"address"`
-	Network       string        `json:"network"`
-	Ptr           int64         `json:"ptr"`
-	ActiveKeys    uint          `json:"active_keys"`
-	TotalKeys     uint          `json:"total_keys"`
-	ContractAlias string        `json:"contract_alias,omitempty" extensions:"x-nullable"`
-	Typedef       []ast.Typedef `json:"typedef,omitempty" extensions:"x-nullable"`
+	Address    string        `json:"address"`
+	Network    string        `json:"network"`
+	Ptr        int64         `json:"ptr"`
+	ActiveKeys uint          `json:"active_keys"`
+	TotalKeys  uint          `json:"total_keys"`
+	Typedef    []ast.Typedef `extensions:"x-nullable" json:"typedef,omitempty"`
 }
 
 // Migration -
 type Migration struct {
 	Level        int64     `json:"level"`
 	Timestamp    time.Time `json:"timestamp"`
-	Hash         string    `json:"hash,omitempty" extensions:"x-nullable"`
+	Hash         string    `extensions:"x-nullable" json:"hash,omitempty"`
 	Protocol     string    `json:"protocol"`
 	PrevProtocol string    `json:"prev_protocol"`
 	Kind         string    `json:"kind"`
-}
-
-// TokenContract -
-type TokenContract struct {
-	Network       string                      `json:"network"`
-	Level         int64                       `json:"level"`
-	Timestamp     time.Time                   `json:"timestamp"`
-	LastAction    time.Time                   `json:"last_action"`
-	Address       string                      `json:"address"`
-	Manager       string                      `json:"manager,omitempty" extensions:"x-nullable"`
-	Delegate      string                      `json:"delegate,omitempty" extensions:"x-nullable"`
-	Alias         string                      `json:"alias,omitempty" extensions:"x-nullable"`
-	DelegateAlias string                      `json:"delegate_alias,omitempty" extensions:"x-nullable"`
-	Type          string                      `json:"type"`
-	Balance       int64                       `json:"balance"`
-	TxCount       int64                       `json:"tx_count"`
-	Methods       map[string]TokenMethodStats `json:"methods,omitempty" extensions:"x-nullable"`
-}
-
-// TokenMethodStats -
-type TokenMethodStats struct {
-	CallCount          int64 `json:"call_count"`
-	AverageConsumedGas int64 `json:"average_consumed_gas"`
-}
-
-// PageableTokenContracts -
-type PageableTokenContracts struct {
-	Total  int64           `json:"total"`
-	Tokens []TokenContract `json:"tokens"`
-}
-
-// TokenTransfer -
-type TokenTransfer struct {
-	Contract  string    `json:"contract"`
-	Network   string    `json:"network"`
-	Protocol  string    `json:"protocol"`
-	Hash      string    `json:"hash"`
-	Counter   int64     `json:"counter,omitempty" extensions:"x-nullable"`
-	Status    string    `json:"status"`
-	Timestamp time.Time `json:"timestamp"`
-	Level     int64     `json:"level"`
-	From      string    `json:"from,omitempty" extensions:"x-nullable"`
-	To        string    `json:"to"`
-	Amount    int64     `json:"amount"`
-	Source    string    `json:"source"`
-	Nonce     *int64    `json:"nonce,omitempty" extensions:"x-nullable"`
-}
-
-// PageableTokenTransfers -
-type PageableTokenTransfers struct {
-	Transfers []TokenTransfer `json:"transfers"`
-	LastID    string          `json:"last_id,omitempty" extensions:"x-nullable"`
 }
 
 // BigMapDiffItem -
@@ -335,15 +269,15 @@ type BigMapDiffItem struct {
 
 // BigMapDiffByKeyResponse -
 type BigMapDiffByKeyResponse struct {
-	Key     interface{}      `json:"key,omitempty" extensions:"x-nullable"`
+	Key     interface{}      `extensions:"x-nullable" json:"key,omitempty"`
 	KeyHash string           `json:"key_hash"`
-	Values  []BigMapDiffItem `json:"values,omitempty" extensions:"x-nullable"`
+	Values  []BigMapDiffItem `extensions:"x-nullable" json:"values,omitempty"`
 	Total   int64            `json:"total"`
 }
 
 // BigMapKeyStateResponse -
 type BigMapKeyStateResponse struct {
-	Key             interface{} `json:"key,omitempty" extensions:"x-nullable"`
+	Key             interface{} `extensions:"x-nullable"  json:"key,omitempty"`
 	KeyHash         string      `json:"key_hash"`
 	KeyString       string      `json:"key_string"`
 	Value           interface{} `json:"value"`
@@ -362,11 +296,11 @@ type CodeDiffResponse struct {
 
 // NetworkStats -
 type NetworkStats struct {
-	ContractsCount  int64      `json:"contracts_count" example:"10"`
-	OperationsCount int64      `json:"operations_count" example:"100"`
-	ContractCalls   uint64     `json:"contract_calls" example:"100"`
-	UniqueContracts uint64     `json:"unique_contracts" example:"100"`
-	FACount         uint64     `json:"fa_count" example:"100"`
+	ContractsCount  int64      `example:"10"     json:"contracts_count"`
+	OperationsCount int64      `example:"100"    json:"operations_count"`
+	ContractCalls   uint64     `example:"100"    json:"contract_calls"`
+	UniqueContracts uint64     `example:"100"    json:"unique_contracts"`
+	FACount         uint64     `example:"100"    json:"fa_count"`
 	Protocols       []Protocol `json:"protocols"`
 }
 
@@ -387,7 +321,7 @@ type SearchBigMapDiff struct {
 type EntrypointSchema struct {
 	ast.EntrypointType
 	Schema       *ast.JSONSchema `json:"schema"`
-	DefaultModel ast.JSONModel   `json:"default_model,omitempty" extensions:"x-nullable"`
+	DefaultModel ast.JSONModel   `extensions:"x-nullable" json:"default_model,omitempty"`
 }
 
 // GetErrorLocationResponse -
@@ -399,20 +333,12 @@ type GetErrorLocationResponse struct {
 	EndColumn   int    `json:"end_col"`
 }
 
-// Alias -
-type Alias struct {
-	Alias   string `json:"alias" example:"Contract alias"`
-	Network string `json:"network" example:"babylonnet"`
-	Address string `json:"address" example:"KT1CeekjGVRc5ASmgWDc658NBExetoKNuiqz"`
-	Slug    string `json:"slug" example:"contract_slug"`
-}
-
 // Protocol -
 type Protocol struct {
-	Hash       string `json:"hash" example:"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"`
-	StartLevel int64  `json:"start_level" example:"851969"`
-	EndLevel   int64  `json:"end_level,omitempty" example:"0" extensions:"x-nullable"`
-	Alias      string `json:"alias" example:"Carthage"`
+	Hash       string `example:"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb" json:"hash"`
+	StartLevel int64  `example:"851969"                                              json:"start_level"`
+	EndLevel   int64  `example:"0"                                                   extensions:"x-nullable" json:"end_level,omitempty"`
+	Alias      string `example:"Carthage"                                            json:"alias"`
 }
 
 // FromModel -
@@ -425,17 +351,19 @@ func (p *Protocol) FromModel(protocol protocol.Protocol) {
 
 // Block -
 type Block struct {
-	Network                      string    `json:"network" example:"mainnet"`
-	Hash                         string    `json:"hash" example:"BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT"`
-	Level                        int64     `json:"level" example:"100"`
-	Predecessor                  string    `json:"predecessor" example:"BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs"`
-	ChainID                      string    `json:"chain_id" example:"NetXdQprcVkpaWU"`
-	Timestamp                    time.Time `json:"timestamp" example:"2018-06-30T18:05:27Z"`
-	Protocol                     string    `json:"protocol" example:"PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"`
-	CostPerByte                  int64     `json:"cost_per_byte" example:"250"`
-	HardGasLimitPerOperation     int64     `json:"hard_gas_limit_per_operation" example:"1040000"`
-	HardStorageLimitPerOperation int64     `json:"hard_storage_limit_per_operation" example:"60000"`
-	TimeBetweenBlocks            int64     `json:"time_between_blocks" example:"30"`
+	Network                      string    `example:"mainnet"                                             json:"network"`
+	Hash                         string    `example:"BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT" json:"hash"`
+	Level                        int64     `example:"100"                                                 json:"level"`
+	Predecessor                  string    `example:"BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs" json:"predecessor"`
+	ChainID                      string    `example:"NetXdQprcVkpaWU"                                     json:"chain_id"`
+	Timestamp                    time.Time `example:"2018-06-30T18:05:27Z"                                json:"timestamp"`
+	Protocol                     string    `example:"PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY" json:"protocol"`
+	CostPerByte                  int64     `example:"250"                                                 json:"cost_per_byte"`
+	HardGasLimitPerOperation     int64     `example:"1040000"                                             json:"hard_gas_limit_per_operation"`
+	HardStorageLimitPerOperation int64     `example:"60000"                                               json:"hard_storage_limit_per_operation"`
+	TimeBetweenBlocks            int64     `example:"30"                                                  json:"time_between_blocks"`
+
+	Stats *Stats `json:"stats,omitempty"`
 }
 
 // FromModel -
@@ -445,10 +373,42 @@ func (b *Block) FromModel(block block.Block) {
 	b.Protocol = block.Protocol.Hash
 	b.ChainID = block.Protocol.ChainID
 	b.Timestamp = block.Timestamp
-	b.CostPerByte = block.Protocol.CostPerByte
-	b.HardGasLimitPerOperation = block.Protocol.HardGasLimitPerOperation
-	b.HardStorageLimitPerOperation = block.Protocol.HardStorageLimitPerOperation
-	b.TimeBetweenBlocks = block.Protocol.TimeBetweenBlocks
+	if block.Protocol.Constants != nil {
+		b.CostPerByte = block.Protocol.CostPerByte
+		b.HardGasLimitPerOperation = block.Protocol.HardGasLimitPerOperation
+		b.HardStorageLimitPerOperation = block.Protocol.HardStorageLimitPerOperation
+		b.TimeBetweenBlocks = block.Protocol.TimeBetweenBlocks
+	}
+}
+
+type Stats struct {
+	ContractsCount              int `json:"contracts_count"`
+	SmartRollupsCount           int `json:"smart_rollups_count"`
+	GlobalConstantsCount        int `json:"global_constants_count"`
+	OperationsCount             int `json:"operations_count"`
+	EventsCount                 int `json:"events_count"`
+	TransactionsCount           int `json:"tx_count"`
+	OriginationsCount           int `json:"originations_count"`
+	SrOriginationsCount         int `json:"sr_originations_count"`
+	SrExecutesCount             int `json:"sr_executes_count"`
+	RegisterGlobalConstantCount int `json:"register_global_constants_count"`
+	TransferTicketsCount        int `json:"transfer_tickets_count"`
+}
+
+func NewStats(s stats.Stats) *Stats {
+	return &Stats{
+		ContractsCount:              s.ContractsCount,
+		SmartRollupsCount:           s.SmartRollupsCount,
+		GlobalConstantsCount:        s.GlobalConstantsCount,
+		OperationsCount:             s.OperationsCount,
+		EventsCount:                 s.EventsCount,
+		TransactionsCount:           s.TransactionsCount,
+		OriginationsCount:           s.OriginationsCount,
+		SrOriginationsCount:         s.SrOriginationsCount,
+		SrExecutesCount:             s.SrExecutesCount,
+		RegisterGlobalConstantCount: s.RegisterGlobalConstantCount,
+		TransferTicketsCount:        s.TransferTicketsCount,
+	}
 }
 
 // SameContractsResponse -
@@ -467,14 +427,14 @@ type SeriesFloat [][]float64
 type BigMapHistoryResponse struct {
 	Address string              `json:"address"`
 	Ptr     int64               `json:"ptr"`
-	Items   []BigMapHistoryItem `json:"items,omitempty" extensions:"x-nullable"`
+	Items   []BigMapHistoryItem `extensions:"x-nullable" json:"items,omitempty"`
 }
 
 // BigMapHistoryItem -
 type BigMapHistoryItem struct {
 	Action         string    `json:"action"`
-	SourcePtr      *int64    `json:"source_ptr,omitempty" extensions:"x-nullable"`
-	DestinationPtr *int64    `json:"destination_ptr,omitempty" extensions:"x-nullable"`
+	SourcePtr      *int64    `extensions:"x-nullable" json:"source_ptr,omitempty"`
+	DestinationPtr *int64    `extensions:"x-nullable" json:"destination_ptr,omitempty"`
 	Timestamp      time.Time `json:"timestamp"`
 	Level          int64     `json:"level"`
 }
@@ -498,12 +458,14 @@ type Screenshot struct {
 
 // AccountInfo -
 type AccountInfo struct {
-	Address     string    `json:"address"`
-	Alias       string    `json:"alias,omitempty" extensions:"x-nullable"`
-	Balance     int64     `json:"balance"`
-	TxCount     int64     `json:"tx_count"`
-	LastAction  time.Time `json:"last_action"`
-	AccountType string    `json:"account_type"`
+	Address            string    `json:"address"`
+	Balance            int64     `json:"balance"`
+	OperationsCount    int64     `json:"operations_count"`
+	MigrationsCount    int64     `json:"migrations_count"`
+	EventsCount        int64     `json:"events_count"`
+	TicketUpdatesCount int64     `json:"ticket_updates_count"`
+	LastAction         time.Time `json:"last_action"`
+	AccountType        string    `json:"account_type"`
 }
 
 // CountResponse -
@@ -523,7 +485,7 @@ type ViewSchema struct {
 	Implementation int             `json:"implementation"`
 	Description    string          `json:"description,omitempty"`
 	Schema         *ast.JSONSchema `json:"schema"`
-	DefaultModel   interface{}     `json:"default_model,omitempty" extensions:"x-nullable"`
+	DefaultModel   interface{}     `extensions:"x-nullable"      json:"default_model,omitempty"`
 	Error          string          `json:"error,omitempty"`
 	Kind           ViewSchemaKind  `json:"kind"`
 }
@@ -594,9 +556,9 @@ type CodeFromMichelsonResponse struct {
 
 // CodeFromMichelsonStorage -
 type CodeFromMichelsonStorage struct {
-	Type         []ast.Typedef   `json:"type,omitempty" extensions:"x-nullable"`
+	Type         []ast.Typedef   `extensions:"x-nullable" json:"type,omitempty"`
 	Schema       *ast.JSONSchema `json:"schema"`
-	DefaultModel ast.JSONModel   `json:"default_model,omitempty" extensions:"x-nullable"`
+	DefaultModel ast.JSONModel   `extensions:"x-nullable" json:"default_model,omitempty"`
 }
 
 // OPGResponse -
@@ -644,7 +606,7 @@ type Event struct {
 	Timestamp time.Time         `json:"timestamp"`
 	Level     int64             `json:"level"`
 	Tag       string            `json:"tag"`
-	Payload   []*ast.MiguelNode `json:"payload,omitempty" extensions:"x-nullable"`
+	Payload   []*ast.MiguelNode `extensions:"x-nullable" json:"payload,omitempty"`
 }
 
 // NewEvent -
@@ -686,6 +648,7 @@ type TicketUpdate struct {
 	ID            int64           `json:"id"`
 	Level         int64           `json:"level"`
 	Timestamp     time.Time       `json:"timestamp"`
+	TicketId      int64           `json:"ticket_id"`
 	Ticketer      string          `json:"ticketer"`
 	Address       string          `json:"address"`
 	Amount        string          `json:"amount"`
@@ -700,7 +663,8 @@ func NewTicketUpdateFromModel(update ticket.TicketUpdate) TicketUpdate {
 		ID:        update.ID,
 		Timestamp: update.Timestamp.UTC(),
 		Level:     update.Level,
-		Ticketer:  update.Ticketer.Address,
+		TicketId:  update.TicketId,
+		Ticketer:  update.Ticket.Ticketer.Address,
 		Address:   update.Account.Address,
 		Amount:    update.Amount.String(),
 	}
@@ -731,5 +695,76 @@ func NewSmartRollup(rollup smartrollup.SmartRollup) SmartRollup {
 		GenesisCommitmentHash: rollup.GenesisCommitmentHash,
 		PvmKind:               rollup.PvmKind,
 		Kernel:                kernel,
+	}
+}
+
+type TicketBalance struct {
+	Ticketer    string          `json:"ticketer"`
+	Amount      string          `json:"amount"`
+	ContentType []ast.Typedef   `json:"content_type"`
+	Content     *ast.MiguelNode `json:"content,omitempty"`
+	TicketId    int64           `json:"ticket_id"`
+}
+
+func NewTicketBalance(balance ticket.Balance) TicketBalance {
+	return TicketBalance{
+		Ticketer: balance.Ticket.Ticketer.Address,
+		Amount:   balance.Amount.String(),
+		TicketId: balance.TicketId,
+	}
+}
+
+type Ticket struct {
+	Ticketer     string          `json:"ticketer"`
+	ContentType  []ast.Typedef   `json:"content_type"`
+	Content      *ast.MiguelNode `json:"content,omitempty"`
+	UpdatesCount int             `json:"updates_count"`
+	Level        int64           `json:"first_level"`
+}
+
+func NewTicket(t ticket.Ticket) (Ticket, error) {
+	result := Ticket{
+		Ticketer:     t.Ticketer.Address,
+		UpdatesCount: t.UpdatesCount,
+		Level:        t.Level,
+	}
+
+	content, err := ast.NewTypedAstFromBytes(t.ContentType)
+	if err != nil {
+		return result, err
+	}
+	docs, err := content.Docs("")
+	if err != nil {
+		return result, err
+	}
+	result.ContentType = docs
+
+	if err := content.SettleFromBytes(t.Content); err != nil {
+		return result, err
+	}
+	contentMiguel, err := content.ToMiguel()
+	if err != nil {
+		return result, err
+	}
+	if len(contentMiguel) > 0 {
+		result.Content = contentMiguel[0]
+	}
+
+	return result, nil
+}
+
+type GlobalConstantItem struct {
+	Timestamp  time.Time `json:"timestamp"`
+	Level      int64     `json:"level"`
+	Address    string    `json:"address"`
+	LinksCount uint64    `json:"links_count"`
+}
+
+func NewGlobalConstantItem(item contract.ListGlobalConstantItem) GlobalConstantItem {
+	return GlobalConstantItem{
+		Timestamp:  item.Timestamp,
+		Level:      item.Level,
+		Address:    item.Address,
+		LinksCount: item.LinksCount,
 	}
 }

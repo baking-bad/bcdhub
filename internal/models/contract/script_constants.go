@@ -1,14 +1,19 @@
 package contract
 
-import "github.com/go-pg/pg/v10"
+import (
+	"context"
+
+	"github.com/uptrace/bun"
+)
 
 // ScriptConstants -
 type ScriptConstants struct {
-	// nolint
-	tableName struct{} `pg:"script_constants"`
+	bun.BaseModel `bun:"script_constants"`
 
 	ScriptId         int64
+	Script           Script `bun:"rel:belongs-to,join:script_id=id"`
 	GlobalConstantId int64
+	GlobalConstant   GlobalConstant `bun:"rel:belongs-to,join:global_constant_id=id"`
 }
 
 // GetID -
@@ -16,12 +21,11 @@ func (ScriptConstants) GetID() int64 {
 	return 0
 }
 
-// GetIndex -
-func (ScriptConstants) GetIndex() string {
+func (ScriptConstants) TableName() string {
 	return "script_constants"
 }
 
 // Save -
-func (ScriptConstants) Save(tx pg.DBI) error {
+func (ScriptConstants) Save(ctx context.Context, tx bun.IDB) error {
 	return nil
 }

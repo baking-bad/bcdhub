@@ -54,7 +54,7 @@ func GetViewsSchema() gin.HandlerFunc {
 		views := make([]ViewSchema, 0)
 
 		if args.Kind == EmptyView || args.Kind == OnchainView {
-			onChain, err := getOnChainViewsSchema(ctx.Contracts, ctx.Blocks, req.Address)
+			onChain, err := getOnChainViewsSchema(c.Request.Context(), ctx.Contracts, ctx.Blocks, req.Address)
 			if err != nil {
 				if !ctx.Storage.IsRecordNotFound(err) {
 					handleError(c, ctx.Storage, err, 0)
@@ -129,12 +129,12 @@ func getOffChainViewSchema(view contract.View) *ViewSchema {
 	return nil
 }
 
-func getOnChainViewsSchema(contracts contract.Repository, blocks block.Repository, address string) ([]ViewSchema, error) {
-	block, err := blocks.Last()
+func getOnChainViewsSchema(ctx context.Context, contracts contract.Repository, blocks block.Repository, address string) ([]ViewSchema, error) {
+	block, err := blocks.Last(ctx)
 	if err != nil {
 		return nil, err
 	}
-	rawViews, err := contracts.ScriptPart(address, block.Protocol.SymLink, consts.VIEWS)
+	rawViews, err := contracts.ScriptPart(ctx, address, block.Protocol.SymLink, consts.VIEWS)
 	if err != nil {
 		return nil, err
 	}
@@ -211,12 +211,12 @@ func ExecuteView() gin.HandlerFunc {
 			return
 		}
 
-		view, parameters, err := getViewForExecute(ctx.Contracts, ctx.Blocks, req.Address, execView)
+		view, parameters, err := getViewForExecute(c.Request.Context(), ctx.Contracts, ctx.Blocks, req.Address, execView)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		state, err := ctx.Blocks.Last()
+		state, err := ctx.Blocks.Last(c.Request.Context())
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -267,14 +267,14 @@ func ExecuteView() gin.HandlerFunc {
 	}
 }
 
-func getViewForExecute(contracts contract.Repository, blocks block.Repository, address string, req executeViewRequest) (views.View, []byte, error) {
+func getViewForExecute(ctx context.Context, contracts contract.Repository, blocks block.Repository, address string, req executeViewRequest) (views.View, []byte, error) {
 	switch req.Kind {
 	case OnchainView:
-		block, err := blocks.Last()
+		block, err := blocks.Last(ctx)
 		if err != nil {
 			return nil, nil, err
 		}
-		rawViews, err := contracts.ScriptPart(address, block.Protocol.SymLink, consts.VIEWS)
+		rawViews, err := contracts.ScriptPart(ctx, address, block.Protocol.SymLink, consts.VIEWS)
 		if err != nil {
 			return nil, nil, err
 		}

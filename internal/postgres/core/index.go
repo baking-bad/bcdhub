@@ -3,64 +3,142 @@ package core
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/go-pg/pg/v10/orm"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/uptrace/bun"
 )
 
-// CreateTables -
-func (p *Postgres) CreateTables() error {
-	for _, index := range models.AllModels() {
-		if err := p.DB.Model(index).CreateTable(&orm.CreateTableOptions{
-			IfNotExists: true,
-		}); err != nil {
-			return err
-		}
-	}
-	return nil
+func (p *Postgres) CreateIndex(ctx context.Context, name, columns string, model any) error {
+	_, err := p.DB.NewCreateIndex().
+		Model(model).
+		IfNotExists().
+		Index(name).
+		ColumnExpr(columns).
+		Exec(ctx)
+	return err
 }
 
-// Drop - drops full database
-func (p *Postgres) Drop(ctx context.Context) error {
-	for _, table := range models.ManyToMany() {
-		if err := p.DB.Model(table).DropTable(&orm.DropTableOptions{
-			IfExists: true,
-			Cascade:  true,
-		}); err != nil {
+func createBaseIndices(ctx context.Context, db bun.IDB) error {
+	return db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		// Blocks
+		if _, err := db.NewCreateIndex().
+			Model((*block.Block)(nil)).
+			IfNotExists().
+			Index("blocks_level_idx").
+			Column("level").
+			Exec(ctx); err != nil {
 			return err
 		}
-	}
 
-	for _, table := range models.AllModels() {
-		if err := p.DB.Model(table).DropTable(&orm.DropTableOptions{
-			IfExists: true,
-			Cascade:  true,
-		}); err != nil {
+		// Big map diff
+		if _, err := db.NewCreateIndex().
+			Model((*bigmapdiff.BigMapDiff)(nil)).
+			IfNotExists().
+			Index("big_map_diff_idx").
+			ColumnExpr("contract, ptr").
+			Exec(ctx); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-const tableExistsQuery = `SELECT EXISTS(
-    SELECT * 
-    FROM information_schema.tables 
-    WHERE 
-      table_schema = ? AND 
-      table_name = ?
-) as flag;`
-
-type existsResponse struct {
-	Flag bool `pg:"flag,use_zero"`
-}
-
-// TablesExist - returns true if all tables exist otherwise false
-func (p *Postgres) TablesExist() bool {
-	for _, table := range models.AllDocuments() {
-		var exists existsResponse
-		_, err := p.DB.QueryOne(&exists, tableExistsQuery, p.schema, table)
-		if !exists.Flag || err != nil {
-			return false
+		if _, err := db.NewCreateIndex().
+			Model((*bigmapdiff.BigMapDiff)(nil)).
+			IfNotExists().
+			Index("big_map_diff_key_hash_idx").
+			ColumnExpr("key_hash, ptr").
+			Exec(ctx); err != nil {
+			return err
 		}
-	}
-	return true
+
+		// Big map state
+		if _, err := db.NewCreateIndex().
+			Model((*bigmapdiff.BigMapState)(nil)).
+			IfNotExists().
+			Index("big_map_state_ptr_idx").
+			Column("ptr").
+			Exec(ctx); err != nil {
+			return err
+		}
+		if _, err := db.NewCreateIndex().
+			Model((*bigmapdiff.BigMapState)(nil)).
+			IfNotExists().
+			Index("big_map_state_contract_idx").
+			Column("contract").
+			Exec(ctx); err != nil {
+			return err
+		}
+		if _, err := db.NewCreateIndex().
+			Model((*bigmapdiff.BigMapState)(nil)).
+			IfNotExists().
+			Index("big_map_state_last_update_level_idx").
+			Column("last_update_level").
+			Exec(ctx); err != nil {
+			return err
+		}
+
+		// Contracts
+		if _, err := db.NewCreateIndex().
+			Model((*contract.Contract)(nil)).
+			IfNotExists().
+			Index("contracts_account_id_idx").
+			Column("account_id").
+			Exec(ctx); err != nil {
+			return err
+		}
+		if _, err := db.NewCreateIndex().
+			Model((*contract.Contract)(nil)).
+			IfNotExists().
+			Index("contracts_alpha_id_idx").
+			Column("alpha_id").
+			Exec(ctx); err != nil {
+			return err
+		}
+		if _, err := db.NewCreateIndex().
+			Model((*contract.Contract)(nil)).
+			IfNotExists().
+			Index("contracts_babylon_id_idx").
+			Column("babylon_id").
+			Exec(ctx); err != nil {
+			return err
+		}
+		if _, err := db.NewCreateIndex().
+			Model((*contract.Contract)(nil)).
+			IfNotExists().
+			Index("contracts_jakarta_id_idx").
+			Column("jakarta_id").
+			Exec(ctx); err != nil {
+			return err
+		}
+
+		// Scripts
+		if _, err := db.NewCreateIndex().
+			Model((*contract.Script)(nil)).
+			IfNotExists().
+			Unique().
+			Index("script_hash_idx").
+			Column("hash").
+			Exec(ctx); err != nil {
+			return err
+		}
+
+		// Operations
+		if _, err := db.NewCreateIndex().
+			Model((*operation.Operation)(nil)).
+			IfNotExists().
+			Index("operations_destination_idx").
+			Column("destination_id").
+			Exec(ctx); err != nil {
+			return err
+		}
+		if _, err := db.NewCreateIndex().
+			Model((*operation.Operation)(nil)).
+			IfNotExists().
+			Index("operations_status_idx").
+			Column("status").
+			Exec(ctx); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

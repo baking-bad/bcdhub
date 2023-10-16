@@ -5,23 +5,22 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // Migration -
 type Migration struct {
-	// nolint
-	tableName struct{} `pg:"migrations"`
+	bun.BaseModel `bun:"migrations"`
 
-	ID             int64
-	ProtocolID     int64 `pg:",type:SMALLINT"`
+	ID             int64 `bun:"id,pk,notnull,autoincrement"`
+	ProtocolID     int64 `bun:"protocol_id,type:SMALLINT"`
 	PrevProtocolID int64
 	Hash           []byte
-	Timestamp      time.Time
+	Timestamp      time.Time `bun:"timestamp,pk,notnull"`
 	Level          int64
-	Kind           types.MigrationKind `pg:",type:SMALLINT"`
+	Kind           types.MigrationKind `bun:"kind,type:SMALLINT"`
 	ContractID     int64
-	Contract       *contract.Contract `pg:",rel:has-one"`
+	Contract       contract.Contract `bun:"rel:belongs-to"`
 }
 
 // GetID -
@@ -29,15 +28,9 @@ func (m *Migration) GetID() int64 {
 	return m.ID
 }
 
-// GetIndex -
-func (m *Migration) GetIndex() string {
+// TableName -
+func (Migration) TableName() string {
 	return "migrations"
-}
-
-// Save -
-func (m *Migration) Save(tx pg.DBI) error {
-	_, err := tx.Model(m).Returning("id").Insert()
-	return err
 }
 
 // LogFields -

@@ -1,0 +1,21 @@
+- id: 1
+  operation_id: 104
+  level: 40
+  timestamp: '2022-01-23 17:06:04+00'
+  ticket_id: 1
+  account_id: 105
+  amount: 42
+- id: 2
+  operation_id: 104
+  level: 40
+  timestamp: '2022-01-23 17:06:04+00'
+  ticket_id: 1
+  account_id: 131
+  amount: 43
+- id: 3
+  operation_id: 102
+  level: 40
+  timestamp: '2022-01-23 17:08:31+00'
+  ticket_id: 2
+  account_id: 131
+  amount: 43

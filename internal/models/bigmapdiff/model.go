@@ -4,23 +4,22 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // BigMapDiff -
 type BigMapDiff struct {
-	// nolint
-	tableName struct{} `pg:"big_map_diffs,partition_by:RANGE(timestamp)"`
+	bun.BaseModel `bun:"big_map_diffs"`
 
-	ID          int64       `pg:",pk"`
-	Ptr         int64       `pg:",use_zero"`
-	Key         types.Bytes `pg:",notnull,type:bytea"`
-	KeyHash     string
-	Value       types.Bytes `pg:",type:bytea"`
+	ID          int64       `bun:"id,pk,notnull,autoincrement"`
+	Ptr         int64       `bun:"ptr"`
+	Key         types.Bytes `bun:"key,notnull,type:bytea"`
+	KeyHash     string      `bun:"key_hash,type:text"`
+	Value       types.Bytes `bun:"value,type:bytea"`
 	Level       int64
-	Contract    string
-	Timestamp   time.Time `pg:",pk"`
-	ProtocolID  int64     `pg:",type:SMALLINT"`
+	Contract    string    `bun:"contract,type:text"`
+	Timestamp   time.Time `bun:"timestamp,pk,notnull"`
+	ProtocolID  int64     `bun:"protocol_id,type:SMALLINT"`
 	OperationID int64
 }
 
@@ -29,28 +28,8 @@ func (b *BigMapDiff) GetID() int64 {
 	return b.ID
 }
 
-// GetIndex -
-func (b *BigMapDiff) GetIndex() string {
+func (BigMapDiff) TableName() string {
 	return "big_map_diffs"
-}
-
-// Save -
-func (b *BigMapDiff) Save(tx pg.DBI) error {
-	_, err := tx.Model(b).
-		OnConflict("(id, timestamp) DO UPDATE").
-		Set(`
-			ptr = excluded.ptr, 
-			key = excluded.key, 
-			key_hash = excluded.key_hash, 
-			value = excluded.value, 
-			level = excluded.level, 
-			contract = excluded.contract,
-			timestamp = excluded.timestamp, 
-			protocol_id = excluded.protocol_id, 
-			operation_id = excluded.operation_id`).
-		Returning("id").
-		Insert()
-	return err
 }
 
 // LogFields -

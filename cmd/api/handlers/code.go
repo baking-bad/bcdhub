@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -40,18 +41,18 @@ func GetContractCode() gin.HandlerFunc {
 		}
 
 		if req.Protocol == "" {
-			state, err := ctx.Blocks.Last()
+			state, err := ctx.Blocks.Last(c.Request.Context())
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
-			proto, err := ctx.Cache.ProtocolByID(state.ProtocolID)
+			proto, err := ctx.Cache.ProtocolByID(c.Request.Context(), state.ProtocolID)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 			req.Protocol = proto.Hash
 		}
 
-		code, err := getContractCodeJSON(ctx, req.Address, req.Protocol)
+		code, err := getContractCodeJSON(c.Request.Context(), ctx, req.Address, req.Protocol)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -65,12 +66,12 @@ func GetContractCode() gin.HandlerFunc {
 	}
 }
 
-func getContractCodeJSON(ctx *config.Context, address string, protocol string) (res gjson.Result, err error) {
+func getContractCodeJSON(c context.Context, ctx *config.Context, address string, protocol string) (res gjson.Result, err error) {
 	symLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return res, err
 	}
-	script, err := ctx.Contracts.Script(address, symLink)
+	script, err := ctx.Cache.Script(c, address, symLink)
 	if err != nil {
 		return res, err
 	}

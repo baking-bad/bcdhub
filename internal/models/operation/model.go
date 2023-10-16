@@ -13,65 +13,64 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // Operation -
 type Operation struct {
-	// nolint
-	tableName struct{} `pg:"operations,partition_by:RANGE(timestamp)"`
+	bun.BaseModel `bun:"operations"`
 
-	ID                                 int64      `pg:",pk"`
-	ContentIndex                       int64      `pg:",use_zero"`
-	Level                              int64      `pg:",use_zero"`
-	Counter                            int64      `pg:",use_zero"`
-	Fee                                int64      `pg:",use_zero"`
-	GasLimit                           int64      `pg:",use_zero"`
-	StorageLimit                       int64      `pg:",use_zero"`
-	Amount                             int64      `pg:",use_zero"`
-	ConsumedGas                        int64      `pg:",use_zero"`
-	StorageSize                        int64      `pg:",use_zero"`
-	PaidStorageSizeDiff                int64      `pg:",use_zero"`
-	Burned                             int64      `pg:",use_zero"`
-	AllocatedDestinationContractBurned int64      `pg:",use_zero"`
-	ProtocolID                         int64      `pg:",type:SMALLINT"`
-	TicketUpdatesCount                 int        `pg:",use_zero"`
-	BigMapDiffsCount                   int        `pg:",use_zero"`
-	Tags                               types.Tags `pg:",use_zero"`
-	Nonce                              *int64
+	ID                                 int64 `bun:"id,pk,notnull,autoincrement"`
+	ContentIndex                       int64
+	Level                              int64
+	Counter                            int64
+	Fee                                int64
+	GasLimit                           int64
+	StorageLimit                       int64
+	Amount                             int64
+	ConsumedGas                        int64
+	StorageSize                        int64
+	PaidStorageSizeDiff                int64
+	Burned                             int64
+	AllocatedDestinationContractBurned int64
+	ProtocolID                         int64 `bun:"protocol_id,type:SMALLINT"`
+	TicketUpdatesCount                 int
+	BigMapDiffsCount                   int
+	Tags                               types.Tags
+	Nonce                              *int64 `bun:"nonce,nullzero"`
 
 	InitiatorID   int64
-	Initiator     account.Account `pg:",rel:has-one"`
+	Initiator     account.Account `bun:"rel:belongs-to"`
 	SourceID      int64
-	Source        account.Account `pg:",rel:has-one"`
+	Source        account.Account `bun:"rel:belongs-to"`
 	DestinationID int64
-	Destination   account.Account `pg:",rel:has-one"`
+	Destination   account.Account `bun:"rel:belongs-to"`
 	DelegateID    int64
-	Delegate      account.Account `pg:",rel:has-one"`
+	Delegate      account.Account `bun:"rel:belongs-to"`
 
-	Timestamp time.Time             `pg:",pk,notnull"`
-	Status    types.OperationStatus `pg:",type:SMALLINT"`
-	Kind      types.OperationKind   `pg:",type:SMALLINT"`
+	Timestamp time.Time             `bun:"timestamp,pk,notnull"`
+	Status    types.OperationStatus `bun:"status,type:SMALLINT"`
+	Kind      types.OperationKind   `bun:"kind,type:SMALLINT"`
 
-	Entrypoint      types.NullString `pg:",type:text"`
-	Tag             types.NullString `pg:",type:text"`
+	Entrypoint      types.NullString `bun:"entrypoint,type:text"`
+	Tag             types.NullString `bun:"tag,type:text"`
 	Hash            []byte
 	Parameters      []byte
 	DeffatedStorage []byte
 	Payload         []byte
 	PayloadType     []byte
-	Script          []byte `pg:"-"`
+	Script          []byte `bun:"-"`
 
-	Errors tezerrors.Errors `pg:",type:bytea"`
+	Errors tezerrors.Errors `bun:"errors,type:bytea"`
 
-	AST *ast.Script `pg:"-"`
+	AST *ast.Script `bun:"-"`
 
-	BigMapDiffs   []*bigmapdiff.BigMapDiff     `pg:"rel:has-many"`
-	BigMapActions []*bigmapaction.BigMapAction `pg:"rel:has-many"`
-	TickerUpdates []*ticket.TicketUpdate       `pg:"rel:has-many"`
+	BigMapDiffs   []*bigmapdiff.BigMapDiff     `bun:"rel:has-many"`
+	BigMapActions []*bigmapaction.BigMapAction `bun:"rel:has-many"`
+	TicketUpdates []*ticket.TicketUpdate       `bun:"rel:has-many"`
 
-	AllocatedDestinationContract bool `pg:",use_zero"`
-	Internal                     bool `pg:",use_zero"`
+	AllocatedDestinationContract bool
+	Internal                     bool
 }
 
 // GetID -
@@ -79,15 +78,8 @@ func (o *Operation) GetID() int64 {
 	return o.ID
 }
 
-// GetIndex -
-func (o *Operation) GetIndex() string {
+func (o *Operation) TableName() string {
 	return "operations"
-}
-
-// Save -
-func (o *Operation) Save(tx pg.DBI) error {
-	_, err := tx.Model(o).Returning("id").Insert()
-	return err
 }
 
 // LogFields -
@@ -150,6 +142,12 @@ func (o *Operation) IsApplied() bool {
 // IsCall -
 func (o *Operation) IsCall() bool {
 	return (bcd.IsContract(o.Destination.Address) || bcd.IsSmartRollupHash(o.Destination.Address)) && len(o.Parameters) > 0
+}
+
+func (o *Operation) CanHasStorageDiff() bool {
+	return o.IsApplied() &&
+		len(o.DeffatedStorage) > 0 &&
+		(o.IsCall() || o.IsOrigination() || o.IsImplicit())
 }
 
 // Result -

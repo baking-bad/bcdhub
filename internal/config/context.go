@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/baking-bad/bcdhub/internal/cache"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -14,13 +13,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // Context -
@@ -44,11 +44,11 @@ type Context struct {
 	Migrations      migration.Repository
 	Operations      operation.Repository
 	Protocols       protocol.Repository
-	TicketUpdates   ticket.Repository
+	Tickets         ticket.Repository
 	Domains         domains.Repository
 	Scripts         contract.ScriptRepository
 	SmartRollups    smartrollup.Repository
-	Partitions      *postgres.PartitionManager
+	Stats           stats.Repository
 
 	Cache *cache.Cache
 }
@@ -93,7 +93,7 @@ func NewContexts(cfg Config, networks []string, opts ...ContextOption) Contexts 
 	for i := range networks {
 		networkType := types.NewNetwork(networks[i])
 		if networkType == types.Empty {
-			logger.Warning().Msgf("unknown network: %s", networks[i])
+			log.Warn().Str("network", networks[i]).Msg("unknown network")
 			continue
 		}
 		ctxs[networkType] = NewContext(networkType, opts...)

@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -19,10 +21,13 @@ func NewSrOriginate(params *ParseParams) SrOriginate {
 }
 
 // Parse -
-func (p SrOriginate) Parse(data noderpc.Operation, store parsers.Store) error {
+func (p SrOriginate) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
-		Address: data.Source,
-		Type:    types.NewAccountType(data.Source),
+		Address:         data.Source,
+		Type:            types.NewAccountType(data.Source),
+		Level:           p.head.Level,
+		OperationsCount: 1,
+		LastAction:      p.head.Timestamp,
 	}
 
 	operation := operation.Operation{
@@ -42,7 +47,7 @@ func (p SrOriginate) Parse(data noderpc.Operation, store parsers.Store) error {
 
 	p.fillInternal(&operation)
 	operation.SetBurned(*p.protocol.Constants)
-	parseOperationResult(data, &operation)
+	parseOperationResult(data, &operation, store)
 	p.stackTrace.Add(operation)
 
 	store.AddOperations(&operation)
@@ -53,8 +58,11 @@ func (p SrOriginate) Parse(data noderpc.Operation, store parsers.Store) error {
 			return err
 		}
 		store.AddSmartRollups(&smartRollup)
+		store.AddAccounts(smartRollup.Address)
 		operation.Destination = smartRollup.Address
 	}
+
+	store.AddAccounts(operation.Source)
 
 	return nil
 }

@@ -52,6 +52,10 @@ func TestDecodeBase58String(t *testing.T) {
 			name: "smart rollup commitment hash",
 			data: "src13MtM1eBzxCH1FBhLAkAiWGW6JbjvycLeH6vuz5k9GSiTYTCTja",
 			want: "751b92ce705ebc551917bb488310498e969d7a1261fda86b509e7da2c780ec8d",
+		}, {
+			name: "operation",
+			data: "opMhUv6wNFN1k5DofyPonyts1mSo4cTjCsk19i4Li7reT1oAQ1K",
+			want: "e1e56182ae0a8738f804ac7edfd199a6ce617a6ee6751a0c69a4ad972098ebc7",
 		},
 	}
 	for _, tt := range tests {
@@ -181,6 +185,11 @@ func TestEncodeBase58String(t *testing.T) {
 			prefix: "src1",
 			data:   "751b92ce705ebc551917bb488310498e969d7a1261fda86b509e7da2c780ec8d",
 			want:   "src13MtM1eBzxCH1FBhLAkAiWGW6JbjvycLeH6vuz5k9GSiTYTCTja",
+		}, {
+			name:   "operation",
+			prefix: "o",
+			data:   "53E4FC89A78AD0D8C5B02A03C679DE44A42ED2EF8283D7CB759DD57877646EBC",
+			want:   "ooHAF4skSPJe5NwF7Xy9tJy4GSGZUDF5UCNfDFQ4GNKjg1uKajf",
 		},
 	}
 	for _, tt := range tests {

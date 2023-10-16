@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 #  The first stage container, for building the application
 # ---------------------------------------------------------------------
-FROM golang:1.20-alpine as builder
+FROM golang:1.21-alpine as builder
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on
@@ -20,7 +20,7 @@ COPY cmd/api cmd/api
 COPY internal internal
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/api/
-RUN go build -a -installsuffix cgo -o /go/bin/api .
+RUN go build -tags=jsoniter -a -installsuffix cgo -o /go/bin/api .
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub
 COPY scripts scripts

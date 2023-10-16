@@ -1,0 +1,120 @@
+{
+    "protocol":"PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf",
+    "chain_id":"NetXyuzvDo2Ugzb",
+    "hash":"oozKKBjBK44uGCrMcT6wwPbUD62mF7ddenwXSyJKJAAiSRxq4JQ",
+    "branch":"BLRf8KfLrQ9171LdZ3CZXXZbzxthdBUMXNBTyUcZEAHVBN7sYuw",
+    "contents":[{
+    "kind": "transfer_ticket",
+    "source": "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+    "fee": "668",
+    "counter": "666002",
+    "gas_limit": "3295",
+    "storage_limit": "110",
+    "ticket_contents": {
+        "string": "Ticket"
+    },
+    "ticket_ty": {
+        "prim": "string"
+    },
+    "ticket_ticketer": "KT1Nux298EEiVoTzF7jQS3iBV3K4ShN8ucSP",
+    "ticket_amount": "1",
+    "destination": "KT1MYutYhGoyCRf9y2JqfWoLKPJ3zMiDmMhE",
+    "entrypoint": "save",
+    "metadata": {
+        "balance_updates": [
+            {
+                "kind": "contract",
+                "contract": "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+                "change": "-668",
+                "origin": "block"
+            },
+            {
+                "kind": "accumulator",
+                "category": "block fees",
+                "change": "668",
+                "origin": "block"
+            }
+        ],
+        "operation_result": {
+            "status": "applied",
+            "balance_updates": [
+                {
+                    "kind": "contract",
+                    "contract": "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+                    "change": "-16500",
+                    "origin": "block"
+                },
+                {
+                    "kind": "burned",
+                    "category": "storage fees",
+                    "change": "16500",
+                    "origin": "block"
+                }
+            ],
+            "ticket_updates": [
+                {
+                    "ticket_token": {
+                        "ticketer": "KT1Nux298EEiVoTzF7jQS3iBV3K4ShN8ucSP",
+                        "content_type": {"prim":"string"},
+                        "content": {"string":"Ticket"}
+                    },
+                    "updates": [
+                        {
+                            "account": "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+                            "amount": "-1"
+                        }
+                    ]
+                }
+            ],
+            "consumed_milligas": "1282385",
+            "paid_storage_size_diff": "66"
+        },
+        "internal_operation_results": [
+            {
+                "kind": "transaction",
+                "source": "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+                "nonce": 0,
+                "amount": "0",
+                "destination": "KT1MYutYhGoyCRf9y2JqfWoLKPJ3zMiDmMhE",
+                "parameters": {"entrypoint":"save","value":{"prim":"Pair","args":[{"bytes":"019d326434ec72a63f89180ef9cd739b59706efb3e00"},{"prim":"Pair","args":[{"string":"Ticket"},{"int":"1"}]}]}},
+                "result": {
+                    "status": "applied",
+                    "storage": [{"prim":"Pair","args":[{"bytes":"019d326434ec72a63f89180ef9cd739b59706efb3e00"},{"prim":"Pair","args":[{"string":"Ticket"},{"int":"1"}]}]}],
+                    "balance_updates": [
+                        {
+                            "kind": "contract",
+                            "contract": "tz2UUqEaKhW3p7T7QvBSxd4jz2Kzc28oBvC7",
+                            "change": "-11000",
+                            "origin": "block"
+                        },
+                        {
+                            "kind": "burned",
+                            "category": "storage fees",
+                            "change": "11000",
+                            "origin": "block"
+                        }
+                    ],
+                    "ticket_receipt": [
+                        {
+                            "ticket_token": {
+                                "ticketer": "KT1Nux298EEiVoTzF7jQS3iBV3K4ShN8ucSP",
+                                "content_type": {"prim":"string"},
+                                "content": {"string":"Ticket"}
+                            },
+                            "updates": [
+                                {
+                                    "account": "KT1MYutYhGoyCRf9y2JqfWoLKPJ3zMiDmMhE",
+                                    "amount": "1"
+                                }
+                            ]
+                        }
+                    ],
+                    "consumed_milligas": "1912189",
+                    "storage_size": "238",
+                    "paid_storage_size_diff": "44"
+                }
+            }
+        ]
+    }
+
+}]}

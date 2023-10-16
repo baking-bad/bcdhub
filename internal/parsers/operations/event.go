@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -19,10 +21,14 @@ func NewEvent(params *ParseParams) Event {
 }
 
 // Parse -
-func (p Event) Parse(data noderpc.Operation, store parsers.Store) error {
+func (p Event) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
-		Address: data.Source,
-		Type:    types.NewAccountType(data.Source),
+		Address:         data.Source,
+		Type:            types.NewAccountType(data.Source),
+		Level:           p.head.Level,
+		OperationsCount: 1,
+		LastAction:      p.head.Timestamp,
+		EventsCount:     1,
 	}
 
 	event := operation.Operation{
@@ -45,13 +51,14 @@ func (p Event) Parse(data noderpc.Operation, store parsers.Store) error {
 		Internal:     true,
 	}
 
-	parseOperationResult(data, &event)
+	parseOperationResult(data, &event, store)
 
 	event.SetBurned(*p.protocol.Constants)
 
 	p.stackTrace.Add(event)
 
 	store.AddOperations(&event)
+	store.AddAccounts(event.Source)
 
 	return nil
 }

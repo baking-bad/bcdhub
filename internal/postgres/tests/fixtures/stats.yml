@@ -1,0 +1,7 @@
+- id: 1
+  contracts_count: 120
+  operations_count: 192
+  tx_count: 72
+  originations_count: 118
+  sr_originations_count: 0
+  events_count: 2

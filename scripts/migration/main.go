@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 var migrationsList = []migrations.Migration{}
@@ -18,13 +18,13 @@ var migrationsList = []migrations.Migration{}
 func main() {
 	migration, err := chooseMigration()
 	if err != nil {
-		logger.Err(err)
+		log.Err(err).Msg("choose migration")
 		return
 	}
 
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Err(err)
+		log.Err(err).Msg("load config")
 		return
 	}
 
@@ -32,7 +32,7 @@ func main() {
 
 	ctxs := config.NewContexts(
 		cfg, cfg.Scripts.Networks,
-		config.WithStorage(cfg.Storage, "migrations", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle, false),
+		config.WithStorage(cfg.Storage, "migrations", 0),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions(),
@@ -40,14 +40,14 @@ func main() {
 	defer ctxs.Close()
 
 	for _, ctx := range ctxs {
-		logger.Info().Msgf("Starting %v migration for %s...", migration.Key(), ctx.Network.String())
+		log.Info().Msgf("Starting %v migration for %s...", migration.Key(), ctx.Network.String())
 		if err := migration.Do(ctx); err != nil {
-			logger.Err(err)
+			log.Err(err).Msg("migration execution")
 			return
 		}
 	}
 
-	logger.Info().Msgf("%s migration done. Spent: %v", migration.Key(), time.Since(start))
+	log.Info().Msgf("%s migration done. Spent: %v", migration.Key(), time.Since(start))
 }
 
 func chooseMigration() (migrations.Migration, error) {

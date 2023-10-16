@@ -24,8 +24,11 @@ func (sr SmartRolupParser) Parse(data noderpc.Operation, operation operation.Ope
 	result := data.GetResult()
 	rollup := smartrollup.SmartRollup{
 		Address: account.Account{
-			Address: result.Address,
-			Type:    types.NewAccountType(result.Address),
+			Address:         result.Address,
+			Type:            types.NewAccountType(result.Address),
+			Level:           operation.Level,
+			OperationsCount: 1,
+			LastAction:      operation.Timestamp,
 		},
 		GenesisCommitmentHash: result.GenesisCommitmentHash,
 		PvmKind:               data.PvmKind,

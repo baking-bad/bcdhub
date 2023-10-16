@@ -3,21 +3,20 @@ package contract
 import (
 	"time"
 
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // GlobalConstant -
 type GlobalConstant struct {
-	// nolint
-	tableName struct{} `pg:"global_constants"`
+	bun.BaseModel `bun:"global_constants"`
 
-	ID        int64     `json:"-"`
+	ID        int64     `bun:"id,pk,notnull,autoincrement"`
 	Timestamp time.Time `json:"timestamp"`
 	Level     int64     `json:"level"`
-	Address   string    `json:"address"`
-	Value     []byte    `json:"value,omitempty"`
+	Address   string    `bun:"address,type:text"`
+	Value     []byte
 
-	Scripts []Script `pg:",many2many:script_constants"`
+	Scripts []Script `bun:"m2m:script_constants,join:GlobalConstant=Script"`
 }
 
 // GetID -
@@ -25,15 +24,8 @@ func (m *GlobalConstant) GetID() int64 {
 	return m.ID
 }
 
-// GetIndex -
-func (m *GlobalConstant) GetIndex() string {
+func (GlobalConstant) TableName() string {
 	return "global_constants"
-}
-
-// Save -
-func (m *GlobalConstant) Save(tx pg.DBI) error {
-	_, err := tx.Model(m).Returning("id").Insert()
-	return err
 }
 
 // LogFields -
@@ -42,4 +34,8 @@ func (m *GlobalConstant) LogFields() map[string]interface{} {
 		"address": m.Address,
 		"block":   m.Level,
 	}
+}
+
+func (GlobalConstant) PartitionBy() string {
+	return ""
 }

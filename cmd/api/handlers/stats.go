@@ -32,7 +32,7 @@ func GetStats() gin.HandlerFunc {
 
 		blocks := make([]Block, 0)
 		for _, network := range networks {
-			last, err := ctxs[network].Blocks.Last()
+			last, err := ctxs[network].Blocks.Last(c.Request.Context())
 			if err != nil {
 				if ctxs[network].Storage.IsRecordNotFound(err) {
 					continue
@@ -42,12 +42,21 @@ func GetStats() gin.HandlerFunc {
 			}
 			var block Block
 			block.FromModel(last)
-			predecessor, err := ctxs[network].Blocks.Get(last.Level)
-			if handleError(c, ctxs[network].Storage, err, 0) {
+			predecessor, err := ctxs[network].Blocks.Get(c.Request.Context(), last.Level)
+			if err != nil && !ctxs[network].Storage.IsRecordNotFound(err) {
+				handleError(c, ctxs[network].Storage, err, 0)
 				return
 			}
 			block.Network = network.String()
 			block.Predecessor = predecessor.Hash
+
+			stats, err := ctxs[network].Stats.Get(c.Request.Context())
+			if err != nil && !ctxs[network].Storage.IsRecordNotFound(err) {
+				handleError(c, ctxs[network].Storage, err, 0)
+				return
+			}
+			block.Stats = NewStats(stats)
+
 			blocks = append(blocks, block)
 		}
 
@@ -86,7 +95,7 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 			page.Size = 10
 		}
 
-		contracts, err := ctx.Contracts.RecentlyCalled(page.Offset, page.Size)
+		contracts, err := ctx.Accounts.RecentlyCalledContracts(c.Request.Context(), page.Offset, page.Size)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -117,10 +126,10 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 func ContractsCount() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
-		count, err := ctx.Contracts.Count()
+		stats, err := ctx.Stats.Get(c.Request.Context())
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		c.SecureJSON(http.StatusOK, count)
+		c.SecureJSON(http.StatusOK, stats.ContractsCount)
 	}
 }

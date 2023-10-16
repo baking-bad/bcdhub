@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -37,16 +38,16 @@ func GetMempool() gin.HandlerFunc {
 			return
 		}
 
-		res, err := ctx.Mempool.Get(req.Address)
+		res, err := ctx.Mempool.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
 
-		c.SecureJSON(http.StatusOK, mempoolPostprocessing(ctx, res))
+		c.SecureJSON(http.StatusOK, mempoolPostprocessing(c.Request.Context(), ctx, res))
 	}
 }
 
-func mempoolPostprocessing(ctx *config.Context, res mempool.PendingOperations) []Operation {
+func mempoolPostprocessing(c context.Context, ctx *config.Context, res mempool.PendingOperations) []Operation {
 	ret := make([]Operation, 0)
 	if len(res.Originations)+len(res.Transactions) == 0 {
 		return ret
@@ -60,7 +61,7 @@ func mempoolPostprocessing(ctx *config.Context, res mempool.PendingOperations) [
 	}
 
 	for _, tx := range res.Transactions {
-		op := prepareMempoolTransaction(ctx, tx)
+		op := prepareMempoolTransaction(c, ctx, tx)
 		if op != nil {
 			ret = append(ret, *op)
 		}
@@ -69,7 +70,7 @@ func mempoolPostprocessing(ctx *config.Context, res mempool.PendingOperations) [
 	return ret
 }
 
-func prepareMempoolTransaction(ctx *config.Context, tx mempool.PendingTransaction) *Operation {
+func prepareMempoolTransaction(c context.Context, ctx *config.Context, tx mempool.PendingTransaction) *Operation {
 	status := tx.Status
 	if status == consts.Applied {
 		status = consts.Pending
@@ -84,23 +85,21 @@ func prepareMempoolTransaction(ctx *config.Context, tx mempool.PendingTransactio
 	}
 
 	op := Operation{
-		Hash:             tx.Hash,
-		Network:          ctx.Network.String(),
-		Timestamp:        time.Unix(tx.UpdatedAt, 0).UTC(),
-		SourceAlias:      ctx.Cache.Alias(tx.Source),
-		DestinationAlias: ctx.Cache.Alias(tx.Destination),
-		Kind:             tx.Kind,
-		Source:           tx.Source,
-		Fee:              tx.Fee,
-		Counter:          tx.Counter,
-		GasLimit:         tx.GasLimit,
-		StorageLimit:     tx.StorageLimit,
-		Amount:           amount,
-		Destination:      tx.Destination,
-		Mempool:          true,
-		Status:           status,
-		RawMempool:       tx.Raw,
-		Protocol:         tx.Protocol,
+		Hash:         tx.Hash,
+		Network:      ctx.Network.String(),
+		Timestamp:    time.Unix(tx.UpdatedAt, 0).UTC(),
+		Kind:         tx.Kind,
+		Source:       tx.Source,
+		Fee:          tx.Fee,
+		Counter:      tx.Counter,
+		GasLimit:     tx.GasLimit,
+		StorageLimit: tx.StorageLimit,
+		Amount:       amount,
+		Destination:  tx.Destination,
+		Mempool:      true,
+		Status:       status,
+		RawMempool:   tx.Raw,
+		Protocol:     tx.Protocol,
 	}
 
 	errs, err := tezerrors.ParseArray(tx.Errors)
@@ -111,7 +110,7 @@ func prepareMempoolTransaction(ctx *config.Context, tx mempool.PendingTransactio
 
 	if bcd.IsContract(op.Destination) && op.Protocol != "" && op.Status == consts.Pending {
 		if len(tx.Parameters) > 0 {
-			_ = buildMempoolOperationParameters(ctx, tx.Parameters, &op)
+			_ = buildMempoolOperationParameters(c, ctx, tx.Parameters, &op)
 		} else {
 			op.Entrypoint = consts.DefaultEntrypoint
 		}
@@ -133,7 +132,6 @@ func prepareMempoolOrigination(ctx *config.Context, origination mempool.PendingO
 		Hash:         origination.Hash,
 		Network:      ctx.Network.String(),
 		Timestamp:    time.Unix(origination.UpdatedAt, 0).UTC(),
-		SourceAlias:  ctx.Cache.Alias(origination.Source),
 		Kind:         origination.Kind,
 		Source:       origination.Source,
 		Fee:          origination.Fee,
@@ -154,12 +152,12 @@ func prepareMempoolOrigination(ctx *config.Context, origination mempool.PendingO
 	return &op
 }
 
-func buildMempoolOperationParameters(ctx *config.Context, data []byte, op *Operation) error {
-	proto, err := ctx.Protocols.Get(op.Protocol, -1)
+func buildMempoolOperationParameters(c context.Context, ctx *config.Context, data []byte, op *Operation) error {
+	proto, err := ctx.Protocols.Get(c, op.Protocol, -1)
 	if err != nil {
 		return err
 	}
-	parameter, err := getParameterType(ctx.Contracts, op.Destination, proto.SymLink)
+	parameter, err := getParameterType(c, ctx.Contracts, op.Destination, proto.SymLink)
 	if err != nil {
 		return err
 	}

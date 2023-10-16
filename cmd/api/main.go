@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
-	"os"
 	"runtime"
 	"time"
 
@@ -19,10 +17,13 @@ import (
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-contrib/cors"
+	ginLogger "github.com/gin-contrib/logger"
+	"github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/grafana/pyroscope-go"
+	"github.com/rs/zerolog/log"
 )
 
 type app struct {
@@ -40,6 +41,8 @@ func newApp() *app {
 	if err != nil {
 		panic(err)
 	}
+
+	logger.New(cfg.LogLevel)
 
 	if cfg.API.SentryEnabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
@@ -78,7 +81,7 @@ func newApp() *app {
 	}
 
 	app.Contexts = config.NewContexts(cfg, cfg.API.Networks,
-		config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize), cfg.API.Connections.Open, cfg.API.Connections.Idle, false),
+		config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize)),
 		config.WithRPC(cfg.RPC),
 		config.WithMempool(cfg.Services),
 		config.WithLoadErrorDescriptions(),
@@ -90,7 +93,12 @@ func newApp() *app {
 }
 
 func (api *app) makeRouter() {
+	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
+		log.Info().Str("method", httpMethod).Str("path", absolutePath).Str("name", handlerName).Msg("endpoint")
+	}
+
 	r := gin.New()
+
 	store := persistence.NewInMemoryStore(time.Second * 30)
 
 	r.MaxMultipartMemory = 4 << 20 // max upload size 4 MiB
@@ -111,12 +119,13 @@ func (api *app) makeRouter() {
 	}
 
 	r.Use(gin.Recovery())
-
-	if env := os.Getenv(config.EnvironmentVar); env == config.EnvironmentProd {
-		r.Use(loggerFormat())
-	} else {
-		r.Use(gin.Logger())
-	}
+	r.Use(ginLogger.SetLogger())
+	r.Use(timeout.New(
+		timeout.WithTimeout(30*time.Second),
+		timeout.WithHandler(func(c *gin.Context) {
+			c.Next()
+		}),
+	))
 
 	v1 := r.Group("v1")
 	{
@@ -124,7 +133,7 @@ func (api *app) makeRouter() {
 
 		v1.GET("head", handlers.ContextsMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHead()))
 		v1.GET("head/:network", handlers.NetworkMiddleware(api.Contexts), cache.CachePage(store, time.Second*10, handlers.GetHeadByNetwork()))
-		opg := v1.Group("opg/:hash")
+		opg := v1.Group("/opg/:network/:hash")
 		{
 			opg.GET("", handlers.ContextsMiddleware(api.Contexts), handlers.GetOperation())
 			opg.GET(":counter", handlers.ContextsMiddleware(api.Contexts), handlers.GetByHashAndCounter())
@@ -178,11 +187,11 @@ func (api *app) makeRouter() {
 		{
 			contract.GET("", handlers.ContextsMiddleware(api.Contexts), handlers.GetContract())
 			contract.GET("code", handlers.GetContractCode())
-			contract.GET("operations", handlers.GetContractOperations())
 			contract.GET("opg", handlers.GetOperationGroups())
 			contract.GET("migrations", handlers.GetContractMigrations())
 			contract.GET("global_constants", handlers.GetContractGlobalConstants())
 			contract.GET("ticket_updates", handlers.GetContractTicketUpdates())
+			contract.GET("tickets", handlers.GetContractTickets())
 			contract.GET("events", handlers.ListEvents())
 
 			storage := contract.Group("storage")
@@ -216,6 +225,7 @@ func (api *app) makeRouter() {
 			acc := account.Group(":address")
 			{
 				acc.GET("", handlers.GetInfo())
+				acc.GET("ticket_balances", handlers.GetTicketBalancesForAccount())
 			}
 		}
 
@@ -262,7 +272,7 @@ func (api *app) Run() {
 		if errors.Is(err, http.ErrServerClosed) {
 			return
 		}
-		logger.Err(err)
+		log.Err(err).Msg("API running error")
 		helpers.CatchErrorSentry(err)
 	}
 }
@@ -291,20 +301,6 @@ func corsSettings() gin.HandlerFunc {
 		AllowHeaders:     []string{"X-Requested-With", "Authorization", "Origin", "Content-Length", "Content-Type", "Referer", "Cache-Control", "User-Agent"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
-	})
-}
-
-func loggerFormat() gin.HandlerFunc {
-	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		return fmt.Sprintf("%15s | %3d | %13v | %-7s %s | %s\n%s",
-			param.ClientIP,
-			param.StatusCode,
-			param.Latency,
-			param.Method,
-			param.Path,
-			param.Request.UserAgent(),
-			param.ErrorMessage,
-		)
 	})
 }
 

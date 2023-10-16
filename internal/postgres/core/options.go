@@ -1,8 +1,6 @@
 package core
 
 import (
-	"time"
-
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 )
 
@@ -16,32 +14,6 @@ func WithPageSize(pageSize int64) PostgresOption {
 			pageSize = consts.DefaultSize
 		}
 		pg.PageSize = pageSize
-	}
-}
-
-// WithMaxConnections -
-func WithMaxConnections(count int) PostgresOption {
-	return func(pg *Postgres) {
-		if count == 0 {
-			count = consts.DefaultSize
-		}
-		if opts := pg.DB.Options(); opts != nil {
-			opts.PoolSize = count
-			opts.MaxConnAge = time.Hour
-		}
-	}
-}
-
-// WithIdleConnections -
-func WithIdleConnections(count int) PostgresOption {
-	return func(pg *Postgres) {
-		if count == 0 {
-			count = consts.DefaultSize
-		}
-		if opts := pg.DB.Options(); opts != nil {
-			opts.IdleTimeout = time.Minute * 30
-			opts.MinIdleConns = count
-		}
 	}
 }
 

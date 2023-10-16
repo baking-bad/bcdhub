@@ -6,8 +6,7 @@
     "address":  {
         "address": "KT1KemKUx79keZgFW756jQrqKcZJ21y4SPdS",
         "network": "mainnet",
-        "type": 1,
-        "alias": "tZERO Compliance"
+        "type": 1
     },
     "manager": {
         "address": "tz1TZERoLXqCytrJBmjdzNrAYie1TQ1c2cHN",

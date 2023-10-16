@@ -1,13 +1,13 @@
 package bigmapdiff
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/go-pg/pg/v10/orm"
+	"github.com/uptrace/bun"
 )
 
-func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *orm.Query {
-	query := storage.DB.Model().Table(models.DocBigMapDiff).ColumnExpr("max(id) as id, count(id) as keys_count")
+func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *bun.SelectQuery {
+	query := storage.DB.NewSelect().Model((*bigmapdiff.BigMapDiff)(nil)).
+		ColumnExpr("max(id) as id, count(id) as keys_count")
 
 	if ctx.Contract != "" {
 		query.Where("contract = ?", ctx.Contract)
@@ -34,8 +34,8 @@ func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *orm.Query {
 	return query.Group("key_hash").Order("id desc")
 }
 
-func (storage *Storage) buildGetContextForState(ctx bigmapdiff.GetContext) *orm.Query {
-	query := storage.DB.Model().Table(models.DocBigMapState)
+func (storage *Storage) buildGetContextForState(ctx bigmapdiff.GetContext) *bun.SelectQuery {
+	query := storage.DB.NewSelect().Model((*bigmapdiff.BigMapState)(nil))
 
 	if ctx.Contract != "" {
 		query.Where("contract = ?", ctx.Contract)

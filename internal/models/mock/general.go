@@ -12,7 +12,17 @@ import (
 	context "context"
 	reflect "reflect"
 
-	models "github.com/baking-bad/bcdhub/internal/models"
+	account "github.com/baking-bad/bcdhub/internal/models/account"
+	bigmapaction "github.com/baking-bad/bcdhub/internal/models/bigmapaction"
+	bigmapdiff "github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	block "github.com/baking-bad/bcdhub/internal/models/block"
+	contract "github.com/baking-bad/bcdhub/internal/models/contract"
+	migration "github.com/baking-bad/bcdhub/internal/models/migration"
+	operation "github.com/baking-bad/bcdhub/internal/models/operation"
+	protocol "github.com/baking-bad/bcdhub/internal/models/protocol"
+	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
+	stats "github.com/baking-bad/bcdhub/internal/models/stats"
+	ticket "github.com/baking-bad/bcdhub/internal/models/ticket"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -39,116 +49,40 @@ func (m *MockGeneralRepository) EXPECT() *MockGeneralRepositoryMockRecorder {
 	return m.recorder
 }
 
-// BulkDelete mocks base method.
-func (m *MockGeneralRepository) BulkDelete(arg0 context.Context, arg1 []models.Model) error {
+// CreateIndex mocks base method.
+func (m *MockGeneralRepository) CreateIndex(ctx context.Context, name, columns string, model any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDelete", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateIndex", ctx, name, columns, model)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkDelete indicates an expected call of BulkDelete.
-func (mr *MockGeneralRepositoryMockRecorder) BulkDelete(arg0, arg1 any) *GeneralRepositoryBulkDeleteCall {
+// CreateIndex indicates an expected call of CreateIndex.
+func (mr *MockGeneralRepositoryMockRecorder) CreateIndex(ctx, name, columns, model any) *GeneralRepositoryCreateIndexCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockGeneralRepository)(nil).BulkDelete), arg0, arg1)
-	return &GeneralRepositoryBulkDeleteCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIndex", reflect.TypeOf((*MockGeneralRepository)(nil).CreateIndex), ctx, name, columns, model)
+	return &GeneralRepositoryCreateIndexCall{Call: call}
 }
 
-// GeneralRepositoryBulkDeleteCall wrap *gomock.Call
-type GeneralRepositoryBulkDeleteCall struct {
+// GeneralRepositoryCreateIndexCall wrap *gomock.Call
+type GeneralRepositoryCreateIndexCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryBulkDeleteCall) Return(arg0 error) *GeneralRepositoryBulkDeleteCall {
+func (c *GeneralRepositoryCreateIndexCall) Return(arg0 error) *GeneralRepositoryCreateIndexCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryBulkDeleteCall) Do(f func(context.Context, []models.Model) error) *GeneralRepositoryBulkDeleteCall {
+func (c *GeneralRepositoryCreateIndexCall) Do(f func(context.Context, string, string, any) error) *GeneralRepositoryCreateIndexCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryBulkDeleteCall) DoAndReturn(f func(context.Context, []models.Model) error) *GeneralRepositoryBulkDeleteCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// CreateTables mocks base method.
-func (m *MockGeneralRepository) CreateTables() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTables")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateTables indicates an expected call of CreateTables.
-func (mr *MockGeneralRepositoryMockRecorder) CreateTables() *GeneralRepositoryCreateTablesCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTables", reflect.TypeOf((*MockGeneralRepository)(nil).CreateTables))
-	return &GeneralRepositoryCreateTablesCall{Call: call}
-}
-
-// GeneralRepositoryCreateTablesCall wrap *gomock.Call
-type GeneralRepositoryCreateTablesCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryCreateTablesCall) Return(arg0 error) *GeneralRepositoryCreateTablesCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryCreateTablesCall) Do(f func() error) *GeneralRepositoryCreateTablesCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryCreateTablesCall) DoAndReturn(f func() error) *GeneralRepositoryCreateTablesCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// DeleteByContract mocks base method.
-func (m *MockGeneralRepository) DeleteByContract(indices []string, address string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByContract", indices, address)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteByContract indicates an expected call of DeleteByContract.
-func (mr *MockGeneralRepositoryMockRecorder) DeleteByContract(indices, address any) *GeneralRepositoryDeleteByContractCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByContract", reflect.TypeOf((*MockGeneralRepository)(nil).DeleteByContract), indices, address)
-	return &GeneralRepositoryDeleteByContractCall{Call: call}
-}
-
-// GeneralRepositoryDeleteByContractCall wrap *gomock.Call
-type GeneralRepositoryDeleteByContractCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryDeleteByContractCall) Return(arg0 error) *GeneralRepositoryDeleteByContractCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryDeleteByContractCall) Do(f func([]string, string) error) *GeneralRepositoryDeleteByContractCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryDeleteByContractCall) DoAndReturn(f func([]string, string) error) *GeneralRepositoryDeleteByContractCall {
+func (c *GeneralRepositoryCreateIndexCall) DoAndReturn(f func(context.Context, string, string, any) error) *GeneralRepositoryCreateIndexCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -191,79 +125,40 @@ func (c *GeneralRepositoryDropCall) DoAndReturn(f func(context.Context) error) *
 	return c
 }
 
-// GetAll mocks base method.
-func (m *MockGeneralRepository) GetAll(index string) ([]models.Model, error) {
+// InitDatabase mocks base method.
+func (m *MockGeneralRepository) InitDatabase(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll", index)
-	ret0, _ := ret[0].([]models.Model)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAll indicates an expected call of GetAll.
-func (mr *MockGeneralRepositoryMockRecorder) GetAll(index any) *GeneralRepositoryGetAllCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGeneralRepository)(nil).GetAll), index)
-	return &GeneralRepositoryGetAllCall{Call: call}
-}
-
-// GeneralRepositoryGetAllCall wrap *gomock.Call
-type GeneralRepositoryGetAllCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryGetAllCall) Return(arg0 []models.Model, arg1 error) *GeneralRepositoryGetAllCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryGetAllCall) Do(f func(string) ([]models.Model, error)) *GeneralRepositoryGetAllCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryGetAllCall) DoAndReturn(f func(string) ([]models.Model, error)) *GeneralRepositoryGetAllCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetByID mocks base method.
-func (m *MockGeneralRepository) GetByID(output models.Model) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", output)
+	ret := m.ctrl.Call(m, "InitDatabase", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// GetByID indicates an expected call of GetByID.
-func (mr *MockGeneralRepositoryMockRecorder) GetByID(output any) *GeneralRepositoryGetByIDCall {
+// InitDatabase indicates an expected call of InitDatabase.
+func (mr *MockGeneralRepositoryMockRecorder) InitDatabase(ctx any) *GeneralRepositoryInitDatabaseCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockGeneralRepository)(nil).GetByID), output)
-	return &GeneralRepositoryGetByIDCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitDatabase", reflect.TypeOf((*MockGeneralRepository)(nil).InitDatabase), ctx)
+	return &GeneralRepositoryInitDatabaseCall{Call: call}
 }
 
-// GeneralRepositoryGetByIDCall wrap *gomock.Call
-type GeneralRepositoryGetByIDCall struct {
+// GeneralRepositoryInitDatabaseCall wrap *gomock.Call
+type GeneralRepositoryInitDatabaseCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryGetByIDCall) Return(arg0 error) *GeneralRepositoryGetByIDCall {
+func (c *GeneralRepositoryInitDatabaseCall) Return(arg0 error) *GeneralRepositoryInitDatabaseCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryGetByIDCall) Do(f func(models.Model) error) *GeneralRepositoryGetByIDCall {
+func (c *GeneralRepositoryInitDatabaseCall) Do(f func(context.Context) error) *GeneralRepositoryInitDatabaseCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryGetByIDCall) DoAndReturn(f func(models.Model) error) *GeneralRepositoryGetByIDCall {
+func (c *GeneralRepositoryInitDatabaseCall) DoAndReturn(f func(context.Context) error) *GeneralRepositoryInitDatabaseCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -306,56 +201,18 @@ func (c *GeneralRepositoryIsRecordNotFoundCall) DoAndReturn(f func(error) bool) 
 	return c
 }
 
-// Save mocks base method.
-func (m *MockGeneralRepository) Save(ctx context.Context, items []models.Model) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", ctx, items)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Save indicates an expected call of Save.
-func (mr *MockGeneralRepositoryMockRecorder) Save(ctx, items any) *GeneralRepositorySaveCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockGeneralRepository)(nil).Save), ctx, items)
-	return &GeneralRepositorySaveCall{Call: call}
-}
-
-// GeneralRepositorySaveCall wrap *gomock.Call
-type GeneralRepositorySaveCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *GeneralRepositorySaveCall) Return(arg0 error) *GeneralRepositorySaveCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *GeneralRepositorySaveCall) Do(f func(context.Context, []models.Model) error) *GeneralRepositorySaveCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositorySaveCall) DoAndReturn(f func(context.Context, []models.Model) error) *GeneralRepositorySaveCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // TablesExist mocks base method.
-func (m *MockGeneralRepository) TablesExist() bool {
+func (m *MockGeneralRepository) TablesExist(ctx context.Context) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TablesExist")
+	ret := m.ctrl.Call(m, "TablesExist", ctx)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // TablesExist indicates an expected call of TablesExist.
-func (mr *MockGeneralRepositoryMockRecorder) TablesExist() *GeneralRepositoryTablesExistCall {
+func (mr *MockGeneralRepositoryMockRecorder) TablesExist(ctx any) *GeneralRepositoryTablesExistCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TablesExist", reflect.TypeOf((*MockGeneralRepository)(nil).TablesExist))
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TablesExist", reflect.TypeOf((*MockGeneralRepository)(nil).TablesExist), ctx)
 	return &GeneralRepositoryTablesExistCall{Call: call}
 }
 
@@ -371,51 +228,1134 @@ func (c *GeneralRepositoryTablesExistCall) Return(arg0 bool) *GeneralRepositoryT
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryTablesExistCall) Do(f func() bool) *GeneralRepositoryTablesExistCall {
+func (c *GeneralRepositoryTablesExistCall) Do(f func(context.Context) bool) *GeneralRepositoryTablesExistCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryTablesExistCall) DoAndReturn(f func() bool) *GeneralRepositoryTablesExistCall {
+func (c *GeneralRepositoryTablesExistCall) DoAndReturn(f func(context.Context) bool) *GeneralRepositoryTablesExistCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
-// UpdateDoc mocks base method.
-func (m *MockGeneralRepository) UpdateDoc(model models.Model) error {
+// MockTransaction is a mock of Transaction interface.
+type MockTransaction struct {
+	ctrl     *gomock.Controller
+	recorder *MockTransactionMockRecorder
+}
+
+// MockTransactionMockRecorder is the mock recorder for MockTransaction.
+type MockTransactionMockRecorder struct {
+	mock *MockTransaction
+}
+
+// NewMockTransaction creates a new mock instance.
+func NewMockTransaction(ctrl *gomock.Controller) *MockTransaction {
+	mock := &MockTransaction{ctrl: ctrl}
+	mock.recorder = &MockTransactionMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTransaction) EXPECT() *MockTransactionMockRecorder {
+	return m.recorder
+}
+
+// Accounts mocks base method.
+func (m *MockTransaction) Accounts(ctx context.Context, accounts ...*account.Account) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateDoc", model)
+	varargs := []any{ctx}
+	for _, a := range accounts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Accounts", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateDoc indicates an expected call of UpdateDoc.
-func (mr *MockGeneralRepositoryMockRecorder) UpdateDoc(model any) *GeneralRepositoryUpdateDocCall {
+// Accounts indicates an expected call of Accounts.
+func (mr *MockTransactionMockRecorder) Accounts(ctx any, accounts ...any) *TransactionAccountsCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDoc", reflect.TypeOf((*MockGeneralRepository)(nil).UpdateDoc), model)
-	return &GeneralRepositoryUpdateDocCall{Call: call}
+	varargs := append([]any{ctx}, accounts...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Accounts", reflect.TypeOf((*MockTransaction)(nil).Accounts), varargs...)
+	return &TransactionAccountsCall{Call: call}
 }
 
-// GeneralRepositoryUpdateDocCall wrap *gomock.Call
-type GeneralRepositoryUpdateDocCall struct {
+// TransactionAccountsCall wrap *gomock.Call
+type TransactionAccountsCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *GeneralRepositoryUpdateDocCall) Return(err error) *GeneralRepositoryUpdateDocCall {
-	c.Call = c.Call.Return(err)
+func (c *TransactionAccountsCall) Return(arg0 error) *TransactionAccountsCall {
+	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *GeneralRepositoryUpdateDocCall) Do(f func(models.Model) error) *GeneralRepositoryUpdateDocCall {
+func (c *TransactionAccountsCall) Do(f func(context.Context, ...*account.Account) error) *TransactionAccountsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *GeneralRepositoryUpdateDocCall) DoAndReturn(f func(models.Model) error) *GeneralRepositoryUpdateDocCall {
+func (c *TransactionAccountsCall) DoAndReturn(f func(context.Context, ...*account.Account) error) *TransactionAccountsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// BabylonUpdateBigMapDiffs mocks base method.
+func (m *MockTransaction) BabylonUpdateBigMapDiffs(ctx context.Context, contract string, ptr int64) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BabylonUpdateBigMapDiffs", ctx, contract, ptr)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BabylonUpdateBigMapDiffs indicates an expected call of BabylonUpdateBigMapDiffs.
+func (mr *MockTransactionMockRecorder) BabylonUpdateBigMapDiffs(ctx, contract, ptr any) *TransactionBabylonUpdateBigMapDiffsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BabylonUpdateBigMapDiffs", reflect.TypeOf((*MockTransaction)(nil).BabylonUpdateBigMapDiffs), ctx, contract, ptr)
+	return &TransactionBabylonUpdateBigMapDiffsCall{Call: call}
+}
+
+// TransactionBabylonUpdateBigMapDiffsCall wrap *gomock.Call
+type TransactionBabylonUpdateBigMapDiffsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionBabylonUpdateBigMapDiffsCall) Return(arg0 int, arg1 error) *TransactionBabylonUpdateBigMapDiffsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionBabylonUpdateBigMapDiffsCall) Do(f func(context.Context, string, int64) (int, error)) *TransactionBabylonUpdateBigMapDiffsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionBabylonUpdateBigMapDiffsCall) DoAndReturn(f func(context.Context, string, int64) (int, error)) *TransactionBabylonUpdateBigMapDiffsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// BabylonUpdateNonDelegator mocks base method.
+func (m *MockTransaction) BabylonUpdateNonDelegator(ctx context.Context, contract *contract.Contract) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BabylonUpdateNonDelegator", ctx, contract)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BabylonUpdateNonDelegator indicates an expected call of BabylonUpdateNonDelegator.
+func (mr *MockTransactionMockRecorder) BabylonUpdateNonDelegator(ctx, contract any) *TransactionBabylonUpdateNonDelegatorCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BabylonUpdateNonDelegator", reflect.TypeOf((*MockTransaction)(nil).BabylonUpdateNonDelegator), ctx, contract)
+	return &TransactionBabylonUpdateNonDelegatorCall{Call: call}
+}
+
+// TransactionBabylonUpdateNonDelegatorCall wrap *gomock.Call
+type TransactionBabylonUpdateNonDelegatorCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionBabylonUpdateNonDelegatorCall) Return(arg0 error) *TransactionBabylonUpdateNonDelegatorCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionBabylonUpdateNonDelegatorCall) Do(f func(context.Context, *contract.Contract) error) *TransactionBabylonUpdateNonDelegatorCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionBabylonUpdateNonDelegatorCall) DoAndReturn(f func(context.Context, *contract.Contract) error) *TransactionBabylonUpdateNonDelegatorCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// BigMapActions mocks base method.
+func (m *MockTransaction) BigMapActions(ctx context.Context, bigmapdiffs ...*bigmapaction.BigMapAction) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range bigmapdiffs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "BigMapActions", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BigMapActions indicates an expected call of BigMapActions.
+func (mr *MockTransactionMockRecorder) BigMapActions(ctx any, bigmapdiffs ...any) *TransactionBigMapActionsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, bigmapdiffs...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BigMapActions", reflect.TypeOf((*MockTransaction)(nil).BigMapActions), varargs...)
+	return &TransactionBigMapActionsCall{Call: call}
+}
+
+// TransactionBigMapActionsCall wrap *gomock.Call
+type TransactionBigMapActionsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionBigMapActionsCall) Return(arg0 error) *TransactionBigMapActionsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionBigMapActionsCall) Do(f func(context.Context, ...*bigmapaction.BigMapAction) error) *TransactionBigMapActionsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionBigMapActionsCall) DoAndReturn(f func(context.Context, ...*bigmapaction.BigMapAction) error) *TransactionBigMapActionsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// BigMapDiffs mocks base method.
+func (m *MockTransaction) BigMapDiffs(ctx context.Context, bigmapdiffs ...*bigmapdiff.BigMapDiff) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range bigmapdiffs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "BigMapDiffs", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BigMapDiffs indicates an expected call of BigMapDiffs.
+func (mr *MockTransactionMockRecorder) BigMapDiffs(ctx any, bigmapdiffs ...any) *TransactionBigMapDiffsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, bigmapdiffs...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BigMapDiffs", reflect.TypeOf((*MockTransaction)(nil).BigMapDiffs), varargs...)
+	return &TransactionBigMapDiffsCall{Call: call}
+}
+
+// TransactionBigMapDiffsCall wrap *gomock.Call
+type TransactionBigMapDiffsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionBigMapDiffsCall) Return(arg0 error) *TransactionBigMapDiffsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionBigMapDiffsCall) Do(f func(context.Context, ...*bigmapdiff.BigMapDiff) error) *TransactionBigMapDiffsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionBigMapDiffsCall) DoAndReturn(f func(context.Context, ...*bigmapdiff.BigMapDiff) error) *TransactionBigMapDiffsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// BigMapStates mocks base method.
+func (m *MockTransaction) BigMapStates(ctx context.Context, states ...*bigmapdiff.BigMapState) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range states {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "BigMapStates", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BigMapStates indicates an expected call of BigMapStates.
+func (mr *MockTransactionMockRecorder) BigMapStates(ctx any, states ...any) *TransactionBigMapStatesCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, states...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BigMapStates", reflect.TypeOf((*MockTransaction)(nil).BigMapStates), varargs...)
+	return &TransactionBigMapStatesCall{Call: call}
+}
+
+// TransactionBigMapStatesCall wrap *gomock.Call
+type TransactionBigMapStatesCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionBigMapStatesCall) Return(arg0 error) *TransactionBigMapStatesCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionBigMapStatesCall) Do(f func(context.Context, ...*bigmapdiff.BigMapState) error) *TransactionBigMapStatesCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionBigMapStatesCall) DoAndReturn(f func(context.Context, ...*bigmapdiff.BigMapState) error) *TransactionBigMapStatesCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Block mocks base method.
+func (m *MockTransaction) Block(ctx context.Context, block *block.Block) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Block", ctx, block)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Block indicates an expected call of Block.
+func (mr *MockTransactionMockRecorder) Block(ctx, block any) *TransactionBlockCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Block", reflect.TypeOf((*MockTransaction)(nil).Block), ctx, block)
+	return &TransactionBlockCall{Call: call}
+}
+
+// TransactionBlockCall wrap *gomock.Call
+type TransactionBlockCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionBlockCall) Return(arg0 error) *TransactionBlockCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionBlockCall) Do(f func(context.Context, *block.Block) error) *TransactionBlockCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionBlockCall) DoAndReturn(f func(context.Context, *block.Block) error) *TransactionBlockCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Commit mocks base method.
+func (m *MockTransaction) Commit() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Commit")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Commit indicates an expected call of Commit.
+func (mr *MockTransactionMockRecorder) Commit() *TransactionCommitCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commit", reflect.TypeOf((*MockTransaction)(nil).Commit))
+	return &TransactionCommitCall{Call: call}
+}
+
+// TransactionCommitCall wrap *gomock.Call
+type TransactionCommitCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionCommitCall) Return(arg0 error) *TransactionCommitCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionCommitCall) Do(f func() error) *TransactionCommitCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionCommitCall) DoAndReturn(f func() error) *TransactionCommitCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Contracts mocks base method.
+func (m *MockTransaction) Contracts(ctx context.Context, contracts ...*contract.Contract) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range contracts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Contracts", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Contracts indicates an expected call of Contracts.
+func (mr *MockTransactionMockRecorder) Contracts(ctx any, contracts ...any) *TransactionContractsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, contracts...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Contracts", reflect.TypeOf((*MockTransaction)(nil).Contracts), varargs...)
+	return &TransactionContractsCall{Call: call}
+}
+
+// TransactionContractsCall wrap *gomock.Call
+type TransactionContractsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionContractsCall) Return(arg0 error) *TransactionContractsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionContractsCall) Do(f func(context.Context, ...*contract.Contract) error) *TransactionContractsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionContractsCall) DoAndReturn(f func(context.Context, ...*contract.Contract) error) *TransactionContractsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// DeleteBigMapStatesByContract mocks base method.
+func (m *MockTransaction) DeleteBigMapStatesByContract(ctx context.Context, contract string) ([]bigmapdiff.BigMapState, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBigMapStatesByContract", ctx, contract)
+	ret0, _ := ret[0].([]bigmapdiff.BigMapState)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteBigMapStatesByContract indicates an expected call of DeleteBigMapStatesByContract.
+func (mr *MockTransactionMockRecorder) DeleteBigMapStatesByContract(ctx, contract any) *TransactionDeleteBigMapStatesByContractCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBigMapStatesByContract", reflect.TypeOf((*MockTransaction)(nil).DeleteBigMapStatesByContract), ctx, contract)
+	return &TransactionDeleteBigMapStatesByContractCall{Call: call}
+}
+
+// TransactionDeleteBigMapStatesByContractCall wrap *gomock.Call
+type TransactionDeleteBigMapStatesByContractCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionDeleteBigMapStatesByContractCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *TransactionDeleteBigMapStatesByContractCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionDeleteBigMapStatesByContractCall) Do(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *TransactionDeleteBigMapStatesByContractCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionDeleteBigMapStatesByContractCall) DoAndReturn(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *TransactionDeleteBigMapStatesByContractCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GlobalConstants mocks base method.
+func (m *MockTransaction) GlobalConstants(ctx context.Context, constants ...*contract.GlobalConstant) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range constants {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GlobalConstants", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// GlobalConstants indicates an expected call of GlobalConstants.
+func (mr *MockTransactionMockRecorder) GlobalConstants(ctx any, constants ...any) *TransactionGlobalConstantsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, constants...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GlobalConstants", reflect.TypeOf((*MockTransaction)(nil).GlobalConstants), varargs...)
+	return &TransactionGlobalConstantsCall{Call: call}
+}
+
+// TransactionGlobalConstantsCall wrap *gomock.Call
+type TransactionGlobalConstantsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionGlobalConstantsCall) Return(arg0 error) *TransactionGlobalConstantsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionGlobalConstantsCall) Do(f func(context.Context, ...*contract.GlobalConstant) error) *TransactionGlobalConstantsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionGlobalConstantsCall) DoAndReturn(f func(context.Context, ...*contract.GlobalConstant) error) *TransactionGlobalConstantsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// JakartaUpdateNonDelegator mocks base method.
+func (m *MockTransaction) JakartaUpdateNonDelegator(ctx context.Context, contract *contract.Contract) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JakartaUpdateNonDelegator", ctx, contract)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// JakartaUpdateNonDelegator indicates an expected call of JakartaUpdateNonDelegator.
+func (mr *MockTransactionMockRecorder) JakartaUpdateNonDelegator(ctx, contract any) *TransactionJakartaUpdateNonDelegatorCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JakartaUpdateNonDelegator", reflect.TypeOf((*MockTransaction)(nil).JakartaUpdateNonDelegator), ctx, contract)
+	return &TransactionJakartaUpdateNonDelegatorCall{Call: call}
+}
+
+// TransactionJakartaUpdateNonDelegatorCall wrap *gomock.Call
+type TransactionJakartaUpdateNonDelegatorCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionJakartaUpdateNonDelegatorCall) Return(arg0 error) *TransactionJakartaUpdateNonDelegatorCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionJakartaUpdateNonDelegatorCall) Do(f func(context.Context, *contract.Contract) error) *TransactionJakartaUpdateNonDelegatorCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionJakartaUpdateNonDelegatorCall) DoAndReturn(f func(context.Context, *contract.Contract) error) *TransactionJakartaUpdateNonDelegatorCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// JakartaVesting mocks base method.
+func (m *MockTransaction) JakartaVesting(ctx context.Context, contract *contract.Contract) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JakartaVesting", ctx, contract)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// JakartaVesting indicates an expected call of JakartaVesting.
+func (mr *MockTransactionMockRecorder) JakartaVesting(ctx, contract any) *TransactionJakartaVestingCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JakartaVesting", reflect.TypeOf((*MockTransaction)(nil).JakartaVesting), ctx, contract)
+	return &TransactionJakartaVestingCall{Call: call}
+}
+
+// TransactionJakartaVestingCall wrap *gomock.Call
+type TransactionJakartaVestingCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionJakartaVestingCall) Return(arg0 error) *TransactionJakartaVestingCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionJakartaVestingCall) Do(f func(context.Context, *contract.Contract) error) *TransactionJakartaVestingCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionJakartaVestingCall) DoAndReturn(f func(context.Context, *contract.Contract) error) *TransactionJakartaVestingCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Migrations mocks base method.
+func (m *MockTransaction) Migrations(ctx context.Context, migrations ...*migration.Migration) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range migrations {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Migrations", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Migrations indicates an expected call of Migrations.
+func (mr *MockTransactionMockRecorder) Migrations(ctx any, migrations ...any) *TransactionMigrationsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, migrations...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Migrations", reflect.TypeOf((*MockTransaction)(nil).Migrations), varargs...)
+	return &TransactionMigrationsCall{Call: call}
+}
+
+// TransactionMigrationsCall wrap *gomock.Call
+type TransactionMigrationsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionMigrationsCall) Return(arg0 error) *TransactionMigrationsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionMigrationsCall) Do(f func(context.Context, ...*migration.Migration) error) *TransactionMigrationsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionMigrationsCall) DoAndReturn(f func(context.Context, ...*migration.Migration) error) *TransactionMigrationsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Operations mocks base method.
+func (m *MockTransaction) Operations(ctx context.Context, operations ...*operation.Operation) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range operations {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Operations", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Operations indicates an expected call of Operations.
+func (mr *MockTransactionMockRecorder) Operations(ctx any, operations ...any) *TransactionOperationsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, operations...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Operations", reflect.TypeOf((*MockTransaction)(nil).Operations), varargs...)
+	return &TransactionOperationsCall{Call: call}
+}
+
+// TransactionOperationsCall wrap *gomock.Call
+type TransactionOperationsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionOperationsCall) Return(arg0 error) *TransactionOperationsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionOperationsCall) Do(f func(context.Context, ...*operation.Operation) error) *TransactionOperationsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionOperationsCall) DoAndReturn(f func(context.Context, ...*operation.Operation) error) *TransactionOperationsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Protocol mocks base method.
+func (m *MockTransaction) Protocol(ctx context.Context, proto *protocol.Protocol) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Protocol", ctx, proto)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Protocol indicates an expected call of Protocol.
+func (mr *MockTransactionMockRecorder) Protocol(ctx, proto any) *TransactionProtocolCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Protocol", reflect.TypeOf((*MockTransaction)(nil).Protocol), ctx, proto)
+	return &TransactionProtocolCall{Call: call}
+}
+
+// TransactionProtocolCall wrap *gomock.Call
+type TransactionProtocolCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionProtocolCall) Return(arg0 error) *TransactionProtocolCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionProtocolCall) Do(f func(context.Context, *protocol.Protocol) error) *TransactionProtocolCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionProtocolCall) DoAndReturn(f func(context.Context, *protocol.Protocol) error) *TransactionProtocolCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Rollback mocks base method.
+func (m *MockTransaction) Rollback() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Rollback")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Rollback indicates an expected call of Rollback.
+func (mr *MockTransactionMockRecorder) Rollback() *TransactionRollbackCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockTransaction)(nil).Rollback))
+	return &TransactionRollbackCall{Call: call}
+}
+
+// TransactionRollbackCall wrap *gomock.Call
+type TransactionRollbackCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionRollbackCall) Return(arg0 error) *TransactionRollbackCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionRollbackCall) Do(f func() error) *TransactionRollbackCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionRollbackCall) DoAndReturn(f func() error) *TransactionRollbackCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Save mocks base method.
+func (m *MockTransaction) Save(ctx context.Context, data any) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockTransactionMockRecorder) Save(ctx, data any) *TransactionSaveCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockTransaction)(nil).Save), ctx, data)
+	return &TransactionSaveCall{Call: call}
+}
+
+// TransactionSaveCall wrap *gomock.Call
+type TransactionSaveCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionSaveCall) Return(arg0 error) *TransactionSaveCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionSaveCall) Do(f func(context.Context, any) error) *TransactionSaveCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionSaveCall) DoAndReturn(f func(context.Context, any) error) *TransactionSaveCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// ScriptConstant mocks base method.
+func (m *MockTransaction) ScriptConstant(ctx context.Context, data ...*contract.ScriptConstants) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range data {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ScriptConstant", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ScriptConstant indicates an expected call of ScriptConstant.
+func (mr *MockTransactionMockRecorder) ScriptConstant(ctx any, data ...any) *TransactionScriptConstantCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, data...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScriptConstant", reflect.TypeOf((*MockTransaction)(nil).ScriptConstant), varargs...)
+	return &TransactionScriptConstantCall{Call: call}
+}
+
+// TransactionScriptConstantCall wrap *gomock.Call
+type TransactionScriptConstantCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionScriptConstantCall) Return(arg0 error) *TransactionScriptConstantCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionScriptConstantCall) Do(f func(context.Context, ...*contract.ScriptConstants) error) *TransactionScriptConstantCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionScriptConstantCall) DoAndReturn(f func(context.Context, ...*contract.ScriptConstants) error) *TransactionScriptConstantCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Scripts mocks base method.
+func (m *MockTransaction) Scripts(ctx context.Context, scripts ...*contract.Script) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range scripts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Scripts", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Scripts indicates an expected call of Scripts.
+func (mr *MockTransactionMockRecorder) Scripts(ctx any, scripts ...any) *TransactionScriptsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, scripts...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Scripts", reflect.TypeOf((*MockTransaction)(nil).Scripts), varargs...)
+	return &TransactionScriptsCall{Call: call}
+}
+
+// TransactionScriptsCall wrap *gomock.Call
+type TransactionScriptsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionScriptsCall) Return(arg0 error) *TransactionScriptsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionScriptsCall) Do(f func(context.Context, ...*contract.Script) error) *TransactionScriptsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionScriptsCall) DoAndReturn(f func(context.Context, ...*contract.Script) error) *TransactionScriptsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// SmartRollups mocks base method.
+func (m *MockTransaction) SmartRollups(ctx context.Context, rollups ...*smartrollup.SmartRollup) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range rollups {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SmartRollups", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SmartRollups indicates an expected call of SmartRollups.
+func (mr *MockTransactionMockRecorder) SmartRollups(ctx any, rollups ...any) *TransactionSmartRollupsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, rollups...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SmartRollups", reflect.TypeOf((*MockTransaction)(nil).SmartRollups), varargs...)
+	return &TransactionSmartRollupsCall{Call: call}
+}
+
+// TransactionSmartRollupsCall wrap *gomock.Call
+type TransactionSmartRollupsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionSmartRollupsCall) Return(arg0 error) *TransactionSmartRollupsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionSmartRollupsCall) Do(f func(context.Context, ...*smartrollup.SmartRollup) error) *TransactionSmartRollupsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionSmartRollupsCall) DoAndReturn(f func(context.Context, ...*smartrollup.SmartRollup) error) *TransactionSmartRollupsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// TickerUpdates mocks base method.
+func (m *MockTransaction) TickerUpdates(ctx context.Context, updates ...*ticket.TicketUpdate) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range updates {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "TickerUpdates", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// TickerUpdates indicates an expected call of TickerUpdates.
+func (mr *MockTransactionMockRecorder) TickerUpdates(ctx any, updates ...any) *TransactionTickerUpdatesCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, updates...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TickerUpdates", reflect.TypeOf((*MockTransaction)(nil).TickerUpdates), varargs...)
+	return &TransactionTickerUpdatesCall{Call: call}
+}
+
+// TransactionTickerUpdatesCall wrap *gomock.Call
+type TransactionTickerUpdatesCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionTickerUpdatesCall) Return(arg0 error) *TransactionTickerUpdatesCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionTickerUpdatesCall) Do(f func(context.Context, ...*ticket.TicketUpdate) error) *TransactionTickerUpdatesCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionTickerUpdatesCall) DoAndReturn(f func(context.Context, ...*ticket.TicketUpdate) error) *TransactionTickerUpdatesCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// TicketBalances mocks base method.
+func (m *MockTransaction) TicketBalances(ctx context.Context, balances ...*ticket.Balance) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range balances {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "TicketBalances", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// TicketBalances indicates an expected call of TicketBalances.
+func (mr *MockTransactionMockRecorder) TicketBalances(ctx any, balances ...any) *TransactionTicketBalancesCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, balances...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TicketBalances", reflect.TypeOf((*MockTransaction)(nil).TicketBalances), varargs...)
+	return &TransactionTicketBalancesCall{Call: call}
+}
+
+// TransactionTicketBalancesCall wrap *gomock.Call
+type TransactionTicketBalancesCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionTicketBalancesCall) Return(arg0 error) *TransactionTicketBalancesCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionTicketBalancesCall) Do(f func(context.Context, ...*ticket.Balance) error) *TransactionTicketBalancesCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionTicketBalancesCall) DoAndReturn(f func(context.Context, ...*ticket.Balance) error) *TransactionTicketBalancesCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Tickets mocks base method.
+func (m *MockTransaction) Tickets(ctx context.Context, tickets ...*ticket.Ticket) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range tickets {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Tickets", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Tickets indicates an expected call of Tickets.
+func (mr *MockTransactionMockRecorder) Tickets(ctx any, tickets ...any) *TransactionTicketsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, tickets...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tickets", reflect.TypeOf((*MockTransaction)(nil).Tickets), varargs...)
+	return &TransactionTicketsCall{Call: call}
+}
+
+// TransactionTicketsCall wrap *gomock.Call
+type TransactionTicketsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionTicketsCall) Return(arg0 error) *TransactionTicketsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionTicketsCall) Do(f func(context.Context, ...*ticket.Ticket) error) *TransactionTicketsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionTicketsCall) DoAndReturn(f func(context.Context, ...*ticket.Ticket) error) *TransactionTicketsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// ToBabylon mocks base method.
+func (m *MockTransaction) ToBabylon(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ToBabylon", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ToBabylon indicates an expected call of ToBabylon.
+func (mr *MockTransactionMockRecorder) ToBabylon(ctx any) *TransactionToBabylonCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToBabylon", reflect.TypeOf((*MockTransaction)(nil).ToBabylon), ctx)
+	return &TransactionToBabylonCall{Call: call}
+}
+
+// TransactionToBabylonCall wrap *gomock.Call
+type TransactionToBabylonCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionToBabylonCall) Return(arg0 error) *TransactionToBabylonCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionToBabylonCall) Do(f func(context.Context) error) *TransactionToBabylonCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionToBabylonCall) DoAndReturn(f func(context.Context) error) *TransactionToBabylonCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// ToJakarta mocks base method.
+func (m *MockTransaction) ToJakarta(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ToJakarta", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ToJakarta indicates an expected call of ToJakarta.
+func (mr *MockTransactionMockRecorder) ToJakarta(ctx any) *TransactionToJakartaCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToJakarta", reflect.TypeOf((*MockTransaction)(nil).ToJakarta), ctx)
+	return &TransactionToJakartaCall{Call: call}
+}
+
+// TransactionToJakartaCall wrap *gomock.Call
+type TransactionToJakartaCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionToJakartaCall) Return(arg0 error) *TransactionToJakartaCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionToJakartaCall) Do(f func(context.Context) error) *TransactionToJakartaCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionToJakartaCall) DoAndReturn(f func(context.Context) error) *TransactionToJakartaCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// UpdateStats mocks base method.
+func (m *MockTransaction) UpdateStats(ctx context.Context, stats stats.Stats) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateStats", ctx, stats)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateStats indicates an expected call of UpdateStats.
+func (mr *MockTransactionMockRecorder) UpdateStats(ctx, stats any) *TransactionUpdateStatsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStats", reflect.TypeOf((*MockTransaction)(nil).UpdateStats), ctx, stats)
+	return &TransactionUpdateStatsCall{Call: call}
+}
+
+// TransactionUpdateStatsCall wrap *gomock.Call
+type TransactionUpdateStatsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *TransactionUpdateStatsCall) Return(arg0 error) *TransactionUpdateStatsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *TransactionUpdateStatsCall) Do(f func(context.Context, stats.Stats) error) *TransactionUpdateStatsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *TransactionUpdateStatsCall) DoAndReturn(f func(context.Context, stats.Stats) error) *TransactionUpdateStatsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

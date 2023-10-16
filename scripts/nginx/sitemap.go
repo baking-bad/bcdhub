@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/scripts/nginx/pkg/sitemap"
+	"github.com/rs/zerolog/log"
 )
 
 func makeSitemap(filepath string, cfg config.Config) error {
@@ -23,7 +23,7 @@ func makeSitemap(filepath string, cfg config.Config) error {
 		return err
 	}
 
-	logger.Info().Msgf("Sitemap created in %s", filepath)
+	log.Info().Msgf("Sitemap created in %s", filepath)
 
 	return nil
 }

@@ -7,9 +7,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 )
 
-func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
+func parseOperationResult(data noderpc.Operation, tx *operation.Operation, store parsers.Store) {
 	result := data.GetResult()
 	if result == nil {
 		return
@@ -31,15 +32,21 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 	}
 	if len(result.Originated) > 0 {
 		tx.Destination = account.Account{
-			Address: result.Originated[0],
-			Type:    types.AccountTypeContract,
+			Address:         result.Originated[0],
+			Type:            types.AccountTypeContract,
+			Level:           tx.Level,
+			OperationsCount: 1,
+			LastAction:      tx.Timestamp,
 		}
 	}
 
 	if len(result.OriginatedRollup) > 0 {
 		tx.Destination = account.Account{
-			Address: result.OriginatedRollup,
-			Type:    types.AccountTypeRollup,
+			Address:         result.OriginatedRollup,
+			Type:            types.AccountTypeRollup,
+			Level:           tx.Level,
+			OperationsCount: 1,
+			LastAction:      tx.Timestamp,
 		}
 	}
 
@@ -53,6 +60,6 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 	}
 
 	if tx.IsApplied() {
-		new(TicketUpdateParser).Parse(result, tx)
+		new(TicketUpdateParser).Parse(result, tx, store)
 	}
 }

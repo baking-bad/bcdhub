@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
@@ -11,7 +13,7 @@ import (
 
 // OperationParser -
 type OperationParser interface {
-	Parse(data noderpc.Operation, store parsers.Store) error
+	Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error
 }
 
 // Group -
@@ -25,7 +27,7 @@ func NewGroup(params *ParseParams) Group {
 }
 
 // Parse -
-func (opg Group) Parse(data noderpc.LightOperationGroup, store parsers.Store) error {
+func (opg Group) Parse(ctx context.Context, data noderpc.LightOperationGroup, store parsers.Store) error {
 	helpers.SetTagSentry("hash", data.Hash)
 	if data.Hash != "" {
 		hash, err := encoding.DecodeBase58(data.Hash)
@@ -48,7 +50,7 @@ func (opg Group) Parse(data noderpc.LightOperationGroup, store parsers.Store) er
 		}
 
 		contentParser := NewContent(opg.ParseParams)
-		if err := contentParser.Parse(operation, store); err != nil {
+		if err := contentParser.Parse(ctx, operation, store); err != nil {
 			return err
 		}
 		contentParser.clear()
@@ -84,7 +86,7 @@ func NewContent(params *ParseParams) Content {
 }
 
 // Parse -
-func (content Content) Parse(data noderpc.Operation, store parsers.Store) error {
+func (content Content) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	var operationParser OperationParser
 	switch data.Kind {
 	case consts.Origination, consts.OriginationNew:
@@ -106,18 +108,18 @@ func (content Content) Parse(data noderpc.Operation, store parsers.Store) error 
 	default:
 		return nil
 	}
-	if err := operationParser.Parse(data, store); err != nil {
+	if err := operationParser.Parse(ctx, data, store); err != nil {
 		return err
 	}
 
-	if err := content.parseInternal(data, store); err != nil {
+	if err := content.parseInternal(ctx, data, store); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (content Content) parseInternal(data noderpc.Operation, store parsers.Store) error {
+func (content Content) parseInternal(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	if data.Metadata == nil {
 		return nil
 	}
@@ -130,7 +132,7 @@ func (content Content) parseInternal(data noderpc.Operation, store parsers.Store
 	}
 
 	for i := range internals {
-		if err := content.Parse(internals[i], store); err != nil {
+		if err := content.Parse(ctx, internals[i], store); err != nil {
 			return err
 		}
 	}

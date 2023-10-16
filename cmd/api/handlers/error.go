@@ -5,12 +5,12 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/rs/zerolog/log"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -35,7 +35,7 @@ func handleError(c *gin.Context, repo models.GeneralRepository, err error, code 
 			}
 		}
 
-		logger.Err(err)
+		log.Err(err).Msg("unexpected error")
 	}
 
 	c.AbortWithStatusJSON(code, getErrorMessage(err, repo))

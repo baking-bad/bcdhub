@@ -1,10 +1,10 @@
 package bigmapaction
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models"
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/go-pg/pg/v10/orm"
 )
 
 // Storage -
@@ -18,12 +18,9 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(ptr, limit, offset int64) (actions []bigmapaction.BigMapAction, err error) {
-	query := storage.DB.Model().Table(models.DocBigMapActions).
-		WhereGroup(func(q *orm.Query) (*orm.Query, error) {
-			q.Where("source_ptr = ? AND action <> 3", ptr).WhereOr("destination_ptr = ? AND action = 3 ", ptr)
-			return q, nil
-		}).
+func (storage *Storage) Get(ctx context.Context, ptr, limit, offset int64) (actions []bigmapaction.BigMapAction, err error) {
+	query := storage.DB.NewSelect().Model(&actions).
+		Where("source_ptr = ? AND action <> 3", ptr).WhereOr("destination_ptr = ? AND action = 3 ", ptr).
 		Order("id DESC")
 
 	if limit > 0 {
@@ -32,6 +29,6 @@ func (storage *Storage) Get(ptr, limit, offset int64) (actions []bigmapaction.Bi
 	if offset > 0 {
 		query.Offset(int(offset))
 	}
-	err = query.Select(&actions)
+	err = query.Scan(ctx)
 	return
 }

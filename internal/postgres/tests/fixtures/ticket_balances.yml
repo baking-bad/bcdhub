@@ -1,0 +1,9 @@
+- ticket_id: 1
+  account_id: 105
+  amount: 42
+- ticket_id: 1
+  account_id: 131
+  amount: 43
+- ticket_id: 2
+  account_id: 131
+  amount: 43

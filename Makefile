@@ -8,7 +8,7 @@ BACKUP?=dump_latest.gz
 
 api:
 	docker-compose up -d db
-	cd cmd/api && go run .
+	cd cmd/api && go run -tags=jsoniter .
 
 indexer:
 	docker-compose up -d db
@@ -79,10 +79,10 @@ ps:
 	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"
 
 sandbox-pull:
-	TAG=4.4.0 docker-compose -f docker-compose.flextesa.yml pull
+	TAG_FRONT=4.6.2 TAG_BACK=4.7.2 docker-compose -f docker-compose.flextesa.yml pull
 
 flextesa-sandbox:
-	COMPOSE_PROJECT_NAME=bcdbox TAG=4.6.2 docker-compose -f docker-compose.flextesa.yml up -d
+	COMPOSE_PROJECT_NAME=bcdbox TAG_FRONT=4.6.2 TAG_BACK=4.7.2 docker-compose -f docker-compose.flextesa.yml up -d
 
 sandbox-down:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.flextesa.yml down

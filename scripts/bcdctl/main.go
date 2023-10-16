@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/jessevdk/go-flags"
+	"github.com/rs/zerolog/log"
 )
 
 var ctxs config.Contexts
@@ -15,12 +15,12 @@ var ctxs config.Contexts
 func main() {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Err(err)
+		log.Err(err).Msg("load config")
 		return
 	}
 
 	ctxs = config.NewContexts(cfg, cfg.Scripts.Networks,
-		config.WithStorage(cfg.Storage, "bcdctl", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle, false),
+		config.WithStorage(cfg.Storage, "bcdctl", 0),
 		config.WithConfigCopy(cfg),
 		config.WithRPC(cfg.RPC),
 	)
@@ -32,7 +32,7 @@ func main() {
 		"Rollback state",
 		"Rollback network state to certain level",
 		&rollbackCmd); err != nil {
-		logger.Err(err)
+		log.Err(err).Msg("add rollback command")
 		return
 	}
 

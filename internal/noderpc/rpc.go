@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/time/rate"
 )
 
@@ -80,7 +80,7 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 			break
 		}
 
-		logger.Warning().Msgf("Waiting node %s up 30 second...", baseURL)
+		log.Warn().Msgf("Waiting node %s up 30 second...", baseURL)
 		time.Sleep(time.Second * 30)
 	}
 	return node
@@ -99,9 +99,7 @@ func (rpc *NodeRPC) checkStatusCode(r io.Reader, statusCode int, checkStatusCode
 			return err
 		}
 		invalidResponseErr.Raw = data
-		if err := json.Unmarshal(data, &invalidResponseErr.Errors); err != nil {
-			return errors.Wrap(invalidResponseErr, err.Error())
-		}
+		_ = json.Unmarshal(data, &invalidResponseErr.Errors)
 		return invalidResponseErr
 	default:
 		return nil
@@ -155,7 +153,7 @@ func (rpc *NodeRPC) get(ctx context.Context, uri string, response interface{}) e
 	start := time.Now()
 	defer func() {
 		if rpc.needLog {
-			logger.Info().Str("method", "get").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
+			log.Info().Str("method", "get").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
 		}
 	}()
 
@@ -183,7 +181,7 @@ func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
 	start := time.Now()
 	defer func() {
 		if rpc.needLog {
-			logger.Info().Str("method", "get").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
+			log.Info().Str("method", "get").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
 		}
 	}()
 
@@ -209,7 +207,7 @@ func (rpc *NodeRPC) post(ctx context.Context, uri string, data interface{}, chec
 	start := time.Now()
 	defer func() {
 		if rpc.needLog {
-			logger.Info().Str("method", "post").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
+			log.Info().Str("method", "post").Int64("ms", time.Since(start).Milliseconds()).Msg(uri)
 		}
 	}()
 

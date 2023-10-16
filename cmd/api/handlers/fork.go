@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	stdJSON "encoding/json"
 	"io"
 	"net/http"
@@ -20,7 +21,7 @@ func ForkContract(ctxs config.Contexts) gin.HandlerFunc {
 			return
 		}
 
-		response, err := buildStorageDataFromForkRequest(ctxs, req)
+		response, err := buildStorageDataFromForkRequest(c.Request.Context(), ctxs, req)
 		if err != nil {
 			handleError(c, ctxs.Any().Storage, err, 0)
 			return
@@ -29,7 +30,7 @@ func ForkContract(ctxs config.Contexts) gin.HandlerFunc {
 	}
 }
 
-func buildStorageDataFromForkRequest(ctxs config.Contexts, req forkRequest) (*ForkResponse, error) {
+func buildStorageDataFromForkRequest(c context.Context, ctxs config.Contexts, req forkRequest) (*ForkResponse, error) {
 	var err error
 	var scriptData []byte
 
@@ -40,11 +41,11 @@ func buildStorageDataFromForkRequest(ctxs config.Contexts, req forkRequest) (*Fo
 		if err != nil {
 			return nil, err
 		}
-		symLink, err := getCurrentSymLink(ctx.Blocks)
+		symLink, err := getCurrentSymLink(c, ctx.Blocks)
 		if err != nil {
 			return nil, err
 		}
-		scriptData, err = getScriptBytes(ctx.Contracts, req.Address, symLink)
+		scriptData, err = getScriptBytes(c, ctx.Cache, req.Address, symLink)
 		if err != nil {
 			return nil, err
 		}

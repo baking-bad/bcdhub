@@ -9,6 +9,7 @@
 package protocol
 
 import (
+	context "context"
 	reflect "reflect"
 
 	protocol "github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -39,18 +40,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockRepository) Get(hash string, level int64) (protocol.Protocol, error) {
+func (m *MockRepository) Get(ctx context.Context, hash string, level int64) (protocol.Protocol, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", hash, level)
+	ret := m.ctrl.Call(m, "Get", ctx, hash, level)
 	ret0, _ := ret[0].(protocol.Protocol)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(hash, level any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, hash, level any) *RepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), hash, level)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, hash, level)
 	return &RepositoryGetCall{Call: call}
 }
 
@@ -66,69 +67,30 @@ func (c *RepositoryGetCall) Return(arg0 protocol.Protocol, arg1 error) *Reposito
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(string, int64) (protocol.Protocol, error)) *RepositoryGetCall {
+func (c *RepositoryGetCall) Do(f func(context.Context, string, int64) (protocol.Protocol, error)) *RepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(string, int64) (protocol.Protocol, error)) *RepositoryGetCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetAll mocks base method.
-func (m *MockRepository) GetAll() ([]protocol.Protocol, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
-	ret0, _ := ret[0].([]protocol.Protocol)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAll indicates an expected call of GetAll.
-func (mr *MockRepositoryMockRecorder) GetAll() *RepositoryGetAllCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll))
-	return &RepositoryGetAllCall{Call: call}
-}
-
-// RepositoryGetAllCall wrap *gomock.Call
-type RepositoryGetAllCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetAllCall) Return(response []protocol.Protocol, err error) *RepositoryGetAllCall {
-	c.Call = c.Call.Return(response, err)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetAllCall) Do(f func() ([]protocol.Protocol, error)) *RepositoryGetAllCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetAllCall) DoAndReturn(f func() ([]protocol.Protocol, error)) *RepositoryGetAllCall {
+func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, string, int64) (protocol.Protocol, error)) *RepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetByID mocks base method.
-func (m *MockRepository) GetByID(id int64) (protocol.Protocol, error) {
+func (m *MockRepository) GetByID(ctx context.Context, id int64) (protocol.Protocol, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", id)
+	ret := m.ctrl.Call(m, "GetByID", ctx, id)
 	ret0, _ := ret[0].(protocol.Protocol)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByID indicates an expected call of GetByID.
-func (mr *MockRepositoryMockRecorder) GetByID(id any) *RepositoryGetByIDCall {
+func (mr *MockRepositoryMockRecorder) GetByID(ctx, id any) *RepositoryGetByIDCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), id)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), ctx, id)
 	return &RepositoryGetByIDCall{Call: call}
 }
 
@@ -144,52 +106,13 @@ func (c *RepositoryGetByIDCall) Return(response protocol.Protocol, err error) *R
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetByIDCall) Do(f func(int64) (protocol.Protocol, error)) *RepositoryGetByIDCall {
+func (c *RepositoryGetByIDCall) Do(f func(context.Context, int64) (protocol.Protocol, error)) *RepositoryGetByIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetByIDCall) DoAndReturn(f func(int64) (protocol.Protocol, error)) *RepositoryGetByIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetByNetworkWithSort mocks base method.
-func (m *MockRepository) GetByNetworkWithSort(sortField, order string) ([]protocol.Protocol, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByNetworkWithSort", sortField, order)
-	ret0, _ := ret[0].([]protocol.Protocol)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByNetworkWithSort indicates an expected call of GetByNetworkWithSort.
-func (mr *MockRepositoryMockRecorder) GetByNetworkWithSort(sortField, order any) *RepositoryGetByNetworkWithSortCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByNetworkWithSort", reflect.TypeOf((*MockRepository)(nil).GetByNetworkWithSort), sortField, order)
-	return &RepositoryGetByNetworkWithSortCall{Call: call}
-}
-
-// RepositoryGetByNetworkWithSortCall wrap *gomock.Call
-type RepositoryGetByNetworkWithSortCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *RepositoryGetByNetworkWithSortCall) Return(response []protocol.Protocol, err error) *RepositoryGetByNetworkWithSortCall {
-	c.Call = c.Call.Return(response, err)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *RepositoryGetByNetworkWithSortCall) Do(f func(string, string) ([]protocol.Protocol, error)) *RepositoryGetByNetworkWithSortCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetByNetworkWithSortCall) DoAndReturn(f func(string, string) ([]protocol.Protocol, error)) *RepositoryGetByNetworkWithSortCall {
+func (c *RepositoryGetByIDCall) DoAndReturn(f func(context.Context, int64) (protocol.Protocol, error)) *RepositoryGetByIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -4,28 +4,28 @@ import (
 	"bytes"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/go-pg/pg/v10"
 	"github.com/lib/pq"
+	"github.com/uptrace/bun"
 )
 
 // Scripts -
 type Script struct {
-	// nolint
-	tableName struct{} `pg:"scripts"`
+	bun.BaseModel `bun:"scripts"`
 
-	ID          int64
-	Hash        string         `pg:",unique"`
-	Code        []byte         `pg:",type:bytea"`
-	Parameter   []byte         `pg:",type:bytea"`
-	Storage     []byte         `pg:",type:bytea"`
-	Views       []byte         `pg:",type:bytea"`
-	Entrypoints pq.StringArray `pg:",type:text[]"`
-	FailStrings pq.StringArray `pg:",type:text[]"`
-	Annotations pq.StringArray `pg:",type:text[]"`
-	Hardcoded   pq.StringArray `pg:",type:text[]"`
-	Tags        types.Tags     `pg:",use_zero"`
+	ID          int64          `bun:"id,pk,notnull,autoincrement"`
+	Level       int64          `bun:"level"`
+	Hash        string         `bun:"hash,type:text"`
+	Code        []byte         `bun:",type:bytea"`
+	Parameter   []byte         `bun:",type:bytea"`
+	Storage     []byte         `bun:",type:bytea"`
+	Views       []byte         `bun:",type:bytea"`
+	Entrypoints pq.StringArray `bun:",type:text[]"`
+	FailStrings pq.StringArray `bun:",type:text[]"`
+	Annotations pq.StringArray `bun:",type:text[]"`
+	Hardcoded   pq.StringArray `bun:",type:text[]"`
+	Tags        types.Tags
 
-	Constants []GlobalConstant `pg:",many2many:script_constants"`
+	Constants []GlobalConstant `bun:"m2m:script_constants,join:Script=GlobalConstant"`
 }
 
 // GetID -
@@ -33,18 +33,8 @@ func (s *Script) GetID() int64 {
 	return s.ID
 }
 
-// GetIndex -
-func (s *Script) GetIndex() string {
+func (Script) TableName() string {
 	return "scripts"
-}
-
-// Save -
-func (s *Script) Save(tx pg.DBI) error {
-	_, err := tx.Model(s).
-		Where("hash = ?hash").
-		OnConflict("DO NOTHING").
-		Returning("id").SelectOrInsert()
-	return err
 }
 
 // Full -

@@ -7,8 +7,7 @@
     "address": {
         "address": "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
         "network": "mainnet",
-        "type": 1,
-        "alias": "Aspen Digital"
+        "type": 1
     },
     "manager": {
         "address": "tz1TZERoLXqCytrJBmjdzNrAYie1TQ1c2cHN",

@@ -8,8 +8,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/rs/zerolog/log"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -126,7 +126,7 @@ func (node *Node) IsLambda() bool {
 	}
 	b, err := hex.DecodeString(input[22:24])
 	if err != nil {
-		logger.Err(err)
+		log.Err(err).Str("input", input).Msg("decoding lambda")
 		return false
 	}
 	if len(b) != 1 {

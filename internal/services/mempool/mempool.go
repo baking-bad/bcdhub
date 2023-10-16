@@ -27,7 +27,7 @@ func NewMempool(url string) *Mempool {
 }
 
 // Get -
-func (m *Mempool) Get(address string) (result PendingOperations, err error) {
+func (m *Mempool) Get(ctx context.Context, address string) (result PendingOperations, err error) {
 	req := graphql.NewRequest(`
 		query ($address: String!) {
 			originations(where: {source: {_eq: $address}, _not: {status: {_eq: "in_chain"}}}) {
@@ -83,12 +83,12 @@ func (m *Mempool) Get(address string) (result PendingOperations, err error) {
 	req.Var("address", address)
 	req.Header.Set("Cache-Control", "no-cache")
 
-	err = m.client.Run(context.Background(), req, &result)
+	err = m.client.Run(ctx, req, &result)
 	return
 }
 
 // GetByHash -
-func (m *Mempool) GetByHash(hash string) (result PendingOperations, err error) {
+func (m *Mempool) GetByHash(ctx context.Context, hash string) (result PendingOperations, err error) {
 	req := graphql.NewRequest(`
 		query ($hash: String!) {
 			originations(where: {hash: {_eq: $hash}, _not: {status: {_eq: "in_chain"}}}) {
@@ -142,6 +142,6 @@ func (m *Mempool) GetByHash(hash string) (result PendingOperations, err error) {
 	req.Var("hash", hash)
 	req.Header.Set("Cache-Control", "no-cache")
 
-	err = m.client.Run(context.Background(), req, &result)
+	err = m.client.Run(ctx, req, &result)
 	return
 }

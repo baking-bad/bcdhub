@@ -4,22 +4,21 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // BigMapAction -
 type BigMapAction struct {
-	// nolint
-	tableName struct{} `pg:"big_map_actions"`
+	bun.BaseModel `bun:"big_map_actions"`
 
-	ID             int64
-	Action         types.BigMapAction `pg:",type:SMALLINT"`
+	ID             int64              `bun:"id,pk,notnull,autoincrement"`
+	Action         types.BigMapAction `bun:"action,type:SMALLINT"`
 	SourcePtr      *int64
 	DestinationPtr *int64
 	OperationID    int64
 	Level          int64
-	Address        string
-	Timestamp      time.Time
+	Address        string    `bun:"address,type:text"`
+	Timestamp      time.Time `bun:"timestamp,pk,notnull"`
 }
 
 // GetID -
@@ -27,22 +26,6 @@ func (b *BigMapAction) GetID() int64 {
 	return b.ID
 }
 
-// GetIndex -
-func (b *BigMapAction) GetIndex() string {
+func (b *BigMapAction) TableName() string {
 	return "big_map_actions"
-}
-
-// Save -
-func (b *BigMapAction) Save(tx pg.DBI) error {
-	_, err := tx.Model(b).OnConflict("(id) DO UPDATE").
-		Set(`
-		action = excluded.action, 
-		source_ptr = excluded.source_ptr, 
-		destination_ptr = excluded.destination_ptr,
-		operation_id = excluded.operation_id,
-		level = excluded.level,
-		address = excluded.address,
-		timestamp = excluded.timestamp`).
-		Returning("id").Insert()
-	return err
 }

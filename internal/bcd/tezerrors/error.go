@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"encoding/hex"
 	stdJSON "encoding/json"
 
 	jsoniter "github.com/json-iterator/go"
@@ -39,17 +38,11 @@ func (e *Errors) Scan(value interface{}) error {
 		return fmt.Errorf("pg: can't parse bytea: %q", tmp)
 	}
 
-	if tmp[0] != '\\' || tmp[1] != 'x' {
-		return fmt.Errorf("pg: can't parse bytea: %q", tmp)
-	}
-	tmp = tmp[2:]
-
-	b := make([]byte, len(tmp))
-	if _, err := hex.Decode(b, tmp); err != nil {
-		return err
+	if tmp[0] == '\\' && tmp[1] == 'x' {
+		tmp = tmp[2:]
 	}
 
-	return json.Unmarshal(b, e)
+	return json.Unmarshal(tmp, e)
 }
 
 // Value return json value, implement driver.Valuer interface

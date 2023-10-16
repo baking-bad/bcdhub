@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/rollback"
+	"github.com/rs/zerolog/log"
 )
 
 type rollbackCommand struct {
-	Level   int64  `short:"l" long:"level" description:"Level to rollback"`
-	Network string `short:"n" long:"network" description:"Network"`
+	Level   int64  `description:"Level to rollback" long:"level"   short:"l"`
+	Network string `description:"Network"           long:"network" short:"n"`
 }
 
 var rollbackCmd rollbackCommand
@@ -23,22 +24,30 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		panic(err)
 	}
 
-	state, err := ctx.Blocks.Last()
+	state, err := ctx.Blocks.Last(context.Background())
 	if err != nil {
 		panic(err)
 	}
 
-	logger.Warning().Msgf("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", network.String(), state.Level, x.Level)
+	log.Warn().Msgf("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", network.String(), state.Level, x.Level)
 	if !yes() {
-		logger.Info().Msg("Cancelled")
+		log.Info().Msg("Cancelled")
 		return nil
 	}
 
-	manager := rollback.NewManager(ctx.RPC, ctx.Storage, ctx.Blocks, ctx.BigMapDiffs)
-	if err = manager.Rollback(context.Background(), ctx.StorageDB.DB, network, state, x.Level); err != nil {
+	if err := ctx.Storage.InitDatabase(context.Background()); err != nil {
 		return err
 	}
-	logger.Info().Msg("Done")
+
+	saver, err := postgres.NewRollback(ctx.StorageDB.DB)
+	if err != nil {
+		return err
+	}
+	manager := rollback.NewManager(ctx.Storage, ctx.Blocks, saver, ctx.Stats)
+	if err = manager.Rollback(context.Background(), network, state, x.Level); err != nil {
+		return err
+	}
+	log.Info().Msg("Done")
 
 	return nil
 }

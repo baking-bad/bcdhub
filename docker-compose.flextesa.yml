@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   db:
-    image: postgres:14
+    image: timescale/timescaledb:latest-pg15
     shm_size: 1g
     restart: always
     environment:
@@ -18,7 +18,7 @@ services:
 
   api:
     restart: always
-    image: ghcr.io/baking-bad/bcdhub-api:${TAG}
+    image: ghcr.io/baking-bad/bcdhub-api:${TAG_BACK}
     environment:
       - BCD_ENV=sandbox
       - GIN_MODE=debug
@@ -38,7 +38,7 @@ services:
 
   indexer:
     restart: always
-    image: ghcr.io/baking-bad/bcdhub-indexer:${TAG}
+    image: ghcr.io/baking-bad/bcdhub-indexer:${TAG_BACK}
     environment:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
@@ -69,7 +69,7 @@ services:
   gui:
     container_name: sandbox-gui
     restart: always
-    image: ghcr.io/baking-bad/bcdhub-gui:${TAG}
+    image: ghcr.io/baking-bad/bcdhub-gui:${TAG_FRONT}
     depends_on:
       - api
     ports:

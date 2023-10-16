@@ -1,19 +1,25 @@
 package account
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/go-pg/pg/v10"
+	"github.com/uptrace/bun"
 )
 
 // Account -
 type Account struct {
-	// nolint
-	tableName struct{} `pg:"accounts"`
+	bun.BaseModel `bun:"accounts"`
 
-	ID      int64
-	Type    types.AccountType `pg:",type:SMALLINT"`
-	Address string            `pg:",unique:account"`
-	Alias   string
+	ID                 int64             `bun:"id,pk,notnull,autoincrement"`
+	Type               types.AccountType `bun:"type,type:SMALLINT"`
+	Address            string            `bun:"address,type:text,unique:address_hash"`
+	Level              int64             `bun:"level"`
+	LastAction         time.Time         `bun:"last_action"`
+	OperationsCount    int64             `bun:"operations_count"`
+	MigrationsCount    int64             `bun:"migrations_count"`
+	EventsCount        int64             `bun:"events_count"`
+	TicketUpdatesCount int64             `bun:"ticket_updates_count"`
 }
 
 // GetID -
@@ -21,18 +27,8 @@ func (a *Account) GetID() int64 {
 	return a.ID
 }
 
-// GetIndex -
-func (a *Account) GetIndex() string {
+func (Account) TableName() string {
 	return "accounts"
-}
-
-// Save -
-func (a *Account) Save(tx pg.DBI) error {
-	_, err := tx.Model(a).
-		Where("address = ?", a.Address).
-		Returning("id").
-		SelectOrInsert(a)
-	return err
 }
 
 // IsEmpty -

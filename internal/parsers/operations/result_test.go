@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +24,7 @@ func Test_parseOperationResult(t *testing.T) {
 			want: operation.Operation{
 				Status:        types.OperationStatusApplied,
 				ConsumedGas:   1020700,
-				TickerUpdates: make([]*ticket.TicketUpdate, 0),
+				TicketUpdates: make([]*ticket.TicketUpdate, 0),
 			},
 		}, {
 			name:     "test 2",
@@ -31,7 +32,7 @@ func Test_parseOperationResult(t *testing.T) {
 			want: operation.Operation{
 				Status:        types.OperationStatusApplied,
 				ConsumedGas:   1020700,
-				TickerUpdates: make([]*ticket.TicketUpdate, 0),
+				TicketUpdates: make([]*ticket.TicketUpdate, 0),
 			},
 		}, {
 			name:     "test 3",
@@ -42,10 +43,11 @@ func Test_parseOperationResult(t *testing.T) {
 				StorageSize:         232,
 				PaidStorageSizeDiff: 232,
 				Destination: account.Account{
-					Address: "KT1FVhijNC7ZBL5EjcetiKddDQ2n98t8w4jo",
-					Type:    types.AccountTypeContract,
+					Address:         "KT1FVhijNC7ZBL5EjcetiKddDQ2n98t8w4jo",
+					Type:            types.AccountTypeContract,
+					OperationsCount: 1,
 				},
-				TickerUpdates: make([]*ticket.TicketUpdate, 0),
+				TicketUpdates: make([]*ticket.TicketUpdate, 0),
 			},
 		},
 	}
@@ -55,8 +57,10 @@ func Test_parseOperationResult(t *testing.T) {
 			err := readJSONFile(tt.fileName, &op)
 			require.NoError(t, err)
 
+			store := parsers.NewTestStore()
+
 			var res operation.Operation
-			parseOperationResult(op, &res)
+			parseOperationResult(op, &res, store)
 			require.Equal(t, tt.want, res)
 		})
 	}

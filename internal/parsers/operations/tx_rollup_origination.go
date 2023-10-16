@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -19,10 +21,13 @@ func NewTxRollupOrigination(params *ParseParams) TxRollupOrigination {
 }
 
 // Parse -
-func (p TxRollupOrigination) Parse(data noderpc.Operation, store parsers.Store) error {
+func (p TxRollupOrigination) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
-		Address: data.Source,
-		Type:    types.NewAccountType(data.Source),
+		Address:         data.Source,
+		Type:            types.NewAccountType(data.Source),
+		Level:           p.head.Level,
+		OperationsCount: 1,
+		LastAction:      p.head.Timestamp,
 	}
 
 	txRollupOrigination := operation.Operation{
@@ -43,13 +48,18 @@ func (p TxRollupOrigination) Parse(data noderpc.Operation, store parsers.Store) 
 
 	p.fillInternal(&txRollupOrigination)
 
-	parseOperationResult(data, &txRollupOrigination)
+	parseOperationResult(data, &txRollupOrigination, store)
 
 	txRollupOrigination.SetBurned(*p.protocol.Constants)
 
 	p.stackTrace.Add(txRollupOrigination)
 
 	store.AddOperations(&txRollupOrigination)
+	store.AddAccounts(txRollupOrigination.Source)
+
+	if txRollupOrigination.IsApplied() {
+		store.AddAccounts(txRollupOrigination.Destination)
+	}
 
 	return nil
 }

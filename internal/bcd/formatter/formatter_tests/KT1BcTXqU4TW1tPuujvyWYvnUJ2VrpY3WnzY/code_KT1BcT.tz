@@ -1,0 +1,18 @@
+parameter (pair string nat tx_rollup_l2_address address);
+storage unit;
+code { CAR ;
+       UNPAIR 4 ;
+       TICKET_DEPRECATED ;
+       PAIR ;
+       SWAP ;
+       CONTRACT %deposit (pair (ticket string) tx_rollup_l2_address) ;
+       { IF_NONE { { UNIT ; FAILWITH } } {} } ;
+       SWAP ;
+       PUSH mutez 0 ;
+       SWAP ;
+       TRANSFER_TOKENS ;
+       UNIT ;
+       NIL operation ;
+       DIG 2 ;
+       CONS ;
+       PAIR }

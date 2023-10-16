@@ -286,3 +286,23 @@ func TestInvalidSyntacticConstantError_Parse(t *testing.T) {
 		})
 	}
 }
+
+func TestErrors_Scan(t *testing.T) {
+	tests := []struct {
+		name  string
+		e     Errors
+		value interface{}
+	}{
+		{
+			name:  "Test 1",
+			e:     make(Errors, 0),
+			value: []byte(`[{"id":"proto.011-PtHangz2.contract.non_existing_contract","kind":"temporary","title":"Non existing contract","descr":"A contract handle is not present in the context (either it never was or it has been destroyed)"}]`),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.e.Scan(tt.value)
+			require.NoError(t, err)
+		})
+	}
+}

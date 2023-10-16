@@ -1,0 +1,175 @@
+parameter (or (or (chest %commit) (pair %reveal (address %target) (chest_key %proposedKey)))
+              (unit %roll));
+storage (pair (nat %lotterykey)
+              (pair (nat %chest_time)
+                    (map %participants address (pair (chest %randomhash) (bool %revealed)))));
+code { NIL operation ;
+       DIG 1 ;
+       UNPAIR ;
+       DIP { UNPAIR 3 } ;
+       IF_LEFT
+         { IF_LEFT
+             { PUSH mutez 1000000 ;
+               AMOUNT ;
+               COMPARE ;
+               GE ;
+               NOT ;
+               IF { PUSH string "Entry cost is 1tz" ; FAILWITH } {} ;
+               DUP 4 ;
+               SENDER ;
+               MEM ;
+               IF
+                 { PUSH string "participants" ; PUSH string "KeyExists" ; PAIR ; FAILWITH }
+                 { DUP 4 ;
+                   PUSH bool False ;
+                   DUP 3 ;
+                   PAIR ;
+                   SOME ;
+                   SENDER ;
+                   UPDATE ;
+                   DIP { DIG 3 ; DROP } ;
+                   DUG 3 } ;
+               DROP ;
+               PAIR 3 ;
+               DIG 1 ;
+               PAIR }
+             { UNPAIR ;
+               SWAP ;
+               PUSH timestamp 1654436582 ;
+               NOW ;
+               COMPARE ;
+               LT ;
+               IF { PUSH string "The lottery has been closed" ; FAILWITH } {} ;
+               DUP 5 ;
+               SENDER ;
+               GET ;
+               IF_NONE
+                 { PUSH string "participants" ; PUSH string "AssetNotFound" ; PAIR ; FAILWITH }
+                 {} ;
+               CDR ;
+               IF { PUSH string "You have already revealed your key" ; FAILWITH } {} ;
+               DUP 4 ;
+               DUP 6 ;
+               DUP 4 ;
+               GET ;
+               IF_NONE
+                 { PUSH string "participants" ; PUSH string "AssetNotFound" ; PAIR ; FAILWITH }
+                 {} ;
+               CAR ;
+               DUP 3 ;
+               OPEN_CHEST ;
+               IF_LEFT
+                 { DUP ;
+                   UNPACK nat ;
+                   IF_NONE
+                     { DUP 6 ;
+                       NONE (pair chest bool) ;
+                       DUP 5 ;
+                       UPDATE ;
+                       DIP { DIG 5 ; DROP } ;
+                       DUG 5 }
+                     { DUP ;
+                       DUP 6 ;
+                       ADD ;
+                       DIP { DIG 4 ; DROP } ;
+                       DUG 4 ;
+                       DUP 7 ;
+                       DUP 8 ;
+                       SENDER ;
+                       GET ;
+                       IF_NONE
+                         { PUSH string "participants" ;
+                           PUSH string "AssetNotFound" ;
+                           PAIR ;
+                           FAILWITH }
+                         {} ;
+                       UNPAIR ;
+                       SWAP ;
+                       DROP ;
+                       PUSH bool True ;
+                       SWAP ;
+                       PAIR ;
+                       SOME ;
+                       SENDER ;
+                       UPDATE ;
+                       DIP { DIG 6 ; DROP } ;
+                       DUG 6 ;
+                       DROP } ;
+                   DROP }
+                 { DUP ;
+                   IF
+                     { PUSH string "INVALID_CHEST_KEY" ; FAILWITH }
+                     { DUP 6 ;
+                       NONE (pair chest bool) ;
+                       DUP 5 ;
+                       UPDATE ;
+                       DIP { DIG 5 ; DROP } ;
+                       DUG 5 } ;
+                   DROP } ;
+               NIL operation ;
+               NIL operation ;
+               DUP 8 ;
+               ITER { CONS } ;
+               SENDER ;
+               CONTRACT unit ;
+               IF_NONE { PUSH string "EntryNotFound" ; FAILWITH } {} ;
+               PUSH mutez 350000 ;
+               UNIT ;
+               TRANSFER_TOKENS ;
+               CONS ;
+               ITER { CONS } ;
+               DIP { DIG 5 ; DROP } ;
+               DUG 5 ;
+               DROP 2 ;
+               PAIR 3 ;
+               DIG 1 ;
+               PAIR } }
+         { DROP ;
+           PUSH address "tz1f8jaMYrtQ1qRv7JG5ZX6AJEtTzaDUT2vk" ;
+           SENDER ;
+           COMPARE ;
+           EQ ;
+           NOT ;
+           IF { PUSH string "InvalidCaller" ; FAILWITH } {} ;
+           NIL operation ;
+           NIL operation ;
+           DUP 6 ;
+           ITER { CONS } ;
+           NONE address ;
+           PUSH nat 0 ;
+           PAIR ;
+           DUP 6 ;
+           ITER { UNPAIR ;
+                  DUP 8 ;
+                  SIZE ;
+                  INT ;
+                  DUP 7 ;
+                  INT ;
+                  EDIV ;
+                  IF_NONE
+                    { PUSH string "DivByZero" ; FAILWITH }
+                    { DUP ; CDR ; SWAP ; DROP } ;
+                  DUP 4 ;
+                  CAR ;
+                  COMPARE ;
+                  EQ ;
+                  IF
+                    { DUP ; SOME ; PUSH nat 1 ; DUP 5 ; CAR ; ADD ; PAIR }
+                    { DUP 3 ; CDR ; PUSH nat 1 ; DUP 5 ; CAR ; ADD ; PAIR } ;
+                  DIP { DIG 2 ; DROP } ;
+                  DUG 2 ;
+                  DROP 2 } ;
+           CDR ;
+           IF_NONE { PUSH string "NotFound" ; FAILWITH } {} ;
+           CONTRACT unit ;
+           IF_NONE { PUSH string "EntryNotFound" ; FAILWITH } {} ;
+           BALANCE ;
+           UNIT ;
+           TRANSFER_TOKENS ;
+           CONS ;
+           ITER { CONS } ;
+           DIP { DIG 3 ; DROP } ;
+           DUG 3 ;
+           PAIR 3 ;
+           DIG 1 ;
+           PAIR } }

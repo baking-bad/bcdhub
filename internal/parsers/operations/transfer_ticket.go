@@ -1,6 +1,8 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -19,10 +21,13 @@ func NewTransferTicket(params *ParseParams) TransferTicket {
 }
 
 // Parse -
-func (p TransferTicket) Parse(data noderpc.Operation, store parsers.Store) error {
+func (p TransferTicket) Parse(ctx context.Context, data noderpc.Operation, store parsers.Store) error {
 	source := account.Account{
-		Address: data.Source,
-		Type:    types.NewAccountType(data.Source),
+		Address:         data.Source,
+		Type:            types.NewAccountType(data.Source),
+		Level:           p.head.Level,
+		OperationsCount: 1,
+		LastAction:      p.head.Timestamp,
 	}
 
 	transferTicket := operation.Operation{
@@ -45,17 +50,22 @@ func (p TransferTicket) Parse(data noderpc.Operation, store parsers.Store) error
 
 	if data.Destination != nil {
 		transferTicket.Destination = account.Account{
-			Address: *data.Destination,
-			Type:    types.NewAccountType(*data.Destination),
+			Address:         *data.Destination,
+			Type:            types.NewAccountType(*data.Destination),
+			Level:           p.head.Level,
+			OperationsCount: 1,
+			LastAction:      p.head.Timestamp,
 		}
+		store.AddAccounts(transferTicket.Destination)
 	}
 
 	p.fillInternal(&transferTicket)
 	transferTicket.SetBurned(*p.protocol.Constants)
-	parseOperationResult(data, &transferTicket)
+	parseOperationResult(data, &transferTicket, store)
 	p.stackTrace.Add(transferTicket)
 
 	store.AddOperations(&transferTicket)
+	store.AddAccounts(transferTicket.Source)
 
 	return nil
 }

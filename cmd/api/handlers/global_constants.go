@@ -32,7 +32,7 @@ func GetGlobalConstant() gin.HandlerFunc {
 			return
 		}
 
-		constant, err := ctx.GlobalConstants.Get(req.Address)
+		constant, err := ctx.GlobalConstants.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -61,7 +61,7 @@ func GetGlobalConstant() gin.HandlerFunc {
 // @Param sort query string false "Sort order" Enums(asc, desc)
 // @Accept json
 // @Produce json
-// @Success 200 {array} contract.ListGlobalConstantItem
+// @Success 200 {array} GlobalConstantItem
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
@@ -75,11 +75,17 @@ func ListGlobalConstants() gin.HandlerFunc {
 			return
 		}
 
-		constants, err := ctx.GlobalConstants.List(args.Size, args.Offset, args.OrderBy, args.Sort)
+		constants, err := ctx.GlobalConstants.List(c.Request.Context(), args.Size, args.Offset, args.OrderBy, args.Sort)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		c.SecureJSON(http.StatusOK, constants)
+
+		response := make([]GlobalConstantItem, len(constants))
+		for i := range constants {
+			response[i] = NewGlobalConstantItem(constants[i])
+		}
+
+		c.SecureJSON(http.StatusOK, response)
 	}
 }
 
@@ -113,7 +119,7 @@ func GetContractGlobalConstants() gin.HandlerFunc {
 			return
 		}
 
-		constants, err := ctx.GlobalConstants.ForContract(req.Address, args.Size, args.Offset)
+		constants, err := ctx.GlobalConstants.ForContract(c.Request.Context(), req.Address, args.Size, args.Offset)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -156,7 +162,7 @@ func GetGlobalConstantContracts() gin.HandlerFunc {
 			return
 		}
 
-		contracts, err := ctx.GlobalConstants.ContractList(args.Address, args.Size, args.Offset)
+		contracts, err := ctx.GlobalConstants.ContractList(c.Request.Context(), args.Address, args.Size, args.Offset)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

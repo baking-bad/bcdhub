@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
@@ -19,37 +21,45 @@ type VestingParser struct {
 }
 
 // NewVestingParser -
-func NewVestingParser(ctx *config.Context, contractParser contract.Parser, proto protocol.Protocol) (*VestingParser, error) {
+func NewVestingParser(ctx *config.Context, contractParser contract.Parser, proto protocol.Protocol) *VestingParser {
 	return &VestingParser{
 		parser:   contractParser,
 		protocol: proto,
-	}, nil
+	}
 }
 
 // Parse -
-func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, address string, store parsers.Store) error {
-	if err := p.parser.Parse(&operation.Operation{
+func (p *VestingParser) Parse(ctx context.Context, data noderpc.ContractData, head noderpc.Header, address string, store parsers.Store) error {
+	vestingOperation := &operation.Operation{
 		ProtocolID: p.protocol.ID,
 		Status:     types.OperationStatusApplied,
 		Kind:       types.OperationKindOrigination,
 		Amount:     data.Balance,
 		Counter:    data.Counter,
 		Source: account.Account{
-			Address: data.Manager,
-			Type:    types.NewAccountType(data.Manager),
+			Address:    data.Manager,
+			Type:       types.NewAccountType(data.Manager),
+			Level:      head.Level,
+			LastAction: head.Timestamp,
 		},
 		Destination: account.Account{
-			Address: address,
-			Type:    types.NewAccountType(address),
+			Address:         address,
+			Type:            types.NewAccountType(address),
+			Level:           head.Level,
+			LastAction:      head.Timestamp,
+			MigrationsCount: 1,
 		},
 		Delegate: account.Account{
-			Address: data.Delegate.Value,
-			Type:    types.NewAccountType(data.Delegate.Value),
+			Address:    data.Delegate.Value,
+			Type:       types.NewAccountType(data.Delegate.Value),
+			Level:      head.Level,
+			LastAction: head.Timestamp,
 		},
 		Level:     head.Level,
 		Timestamp: head.Timestamp,
 		Script:    data.RawScript,
-	}, store); err != nil {
+	}
+	if err := p.parser.Parse(ctx, vestingOperation, store); err != nil {
 		return err
 	}
 
@@ -61,8 +71,13 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ad
 				ProtocolID: p.protocol.ID,
 				Timestamp:  head.Timestamp,
 				Kind:       types.MigrationKindBootstrap,
-				Contract:   contracts[i],
+				Contract:   *contracts[i],
 			})
+			store.AddAccounts(
+				vestingOperation.Source,
+				vestingOperation.Destination,
+				vestingOperation.Delegate,
+			)
 			break
 		}
 	}

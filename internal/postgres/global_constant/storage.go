@@ -1,14 +1,15 @@
 package global_constant
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/go-pg/pg/v10"
-	"github.com/go-pg/pg/v10/orm"
+	"github.com/uptrace/bun"
 )
 
 // Storage -
@@ -22,25 +23,25 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(address string) (response contract.GlobalConstant, err error) {
-	query := storage.DB.Model(&response)
-	core.Address(address)(query)
-	err = query.First()
+func (storage *Storage) Get(ctx context.Context, address string) (response contract.GlobalConstant, err error) {
+	query := storage.DB.NewSelect().Model(&response)
+	query = core.Address(query, address)
+	err = query.Limit(1).Scan(ctx)
 	return
 }
 
 // All -
-func (storage *Storage) All(addresses ...string) (response []contract.GlobalConstant, err error) {
+func (storage *Storage) All(ctx context.Context, addresses ...string) (response []contract.GlobalConstant, err error) {
 	if len(addresses) == 0 {
 		return
 	}
 
-	err = storage.DB.Model((*contract.GlobalConstant)(nil)).Where("address IN (?)", pg.In(addresses)).Select(&response)
+	err = storage.DB.NewSelect().Model(&response).Where("address IN (?)", bun.In(addresses)).Scan(ctx)
 	return
 }
 
 // List -
-func (storage *Storage) List(size, offset int64, orderBy, sort string) ([]contract.ListGlobalConstantItem, error) {
+func (storage *Storage) List(ctx context.Context, size, offset int64, orderBy, sort string) ([]contract.ListGlobalConstantItem, error) {
 	if offset < 0 {
 		return nil, nil
 	}
@@ -63,14 +64,14 @@ func (storage *Storage) List(size, offset int64, orderBy, sort string) ([]contra
 	}
 
 	var constants []contract.ListGlobalConstantItem
-	_, err := storage.DB.Query(&constants,
+	err := storage.DB.NewRaw(
 		`select global_constants.timestamp, global_constants.level, global_constants.address, count(contracts.id) as links_count from global_constants 
 		left join script_constants as t on  global_constants.id = t.global_constant_id
-		left join contracts on t.script_id = contracts.babylon_id or t.script_id = contracts.jakarta_id 
+		left join contracts on t.script_id = contracts.jakarta_id 
 		group by global_constants.id
 		order by ?
 		limit ?
-		offset ?`, pg.Safe(orderBy), size, offset)
+		offset ?`, bun.Safe(orderBy), size, offset).Scan(ctx, &constants)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (storage *Storage) List(size, offset int64, orderBy, sort string) ([]contra
 }
 
 // ForContract -
-func (storage *Storage) ForContract(address string, size, offset int64) (response []contract.GlobalConstant, err error) {
+func (storage *Storage) ForContract(ctx context.Context, address string, size, offset int64) (response []contract.GlobalConstant, err error) {
 	if offset < 0 || address == "" {
 		return nil, nil
 	}
@@ -91,22 +92,52 @@ func (storage *Storage) ForContract(address string, size, offset int64) (respons
 		size = consts.DefaultSize
 	}
 
-	err = storage.DB.Model((*contract.Contract)(nil)).
+	var accountID int64
+	if err = storage.DB.
+		NewSelect().
+		Model((*account.Account)(nil)).
+		Column("id").
+		Where("address = ?", address).
+		Scan(ctx, &accountID); err != nil {
+		return
+	}
+
+	var contr contract.Contract
+	if err = storage.DB.
+		NewSelect().
+		Column("id", "alpha_id", "babylon_id", "jakarta_id").
+		Model(&contr).
+		Column("id").
+		Where("account_id = ?", accountID).
+		Scan(ctx); err != nil {
+		return
+	}
+
+	ids := make([]int64, 0)
+	if contr.BabylonID > 0 {
+		ids = append(ids, contr.BabylonID)
+	}
+	if contr.JakartaID > 0 {
+		ids = append(ids, contr.JakartaID)
+	}
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	err = storage.DB.NewSelect().Model((*contract.ScriptConstants)(nil)).
 		ColumnExpr("global_constants.*").
-		Join("LEFT JOIN accounts on account_id = accounts.id").
-		Join("LEFT JOIN script_constants as t on t.script_id = jakarta_id or t.script_id = babylon_id").
-		Join("LEFT JOIN global_constants on t.global_constant_id = global_constants.id").
-		Where("accounts.address = ?", address).
+		Join("LEFT JOIN global_constants on global_constant_id = global_constants.id").
 		Where("global_constant_id is not null").
+		Where("script_id IN (?)", bun.In(ids)).
 		Limit(int(size)).
 		Offset(int(offset)).
-		Order("id desc").
-		Select(&response)
+		Order("global_constants.id desc").
+		Scan(ctx, &response)
 	return
 }
 
 // ContractList -
-func (storage *Storage) ContractList(address string, size, offset int64) ([]contract.Contract, error) {
+func (storage *Storage) ContractList(ctx context.Context, address string, size, offset int64) ([]contract.Contract, error) {
 	if offset < 0 || address == "" {
 		return nil, nil
 	}
@@ -115,19 +146,19 @@ func (storage *Storage) ContractList(address string, size, offset int64) ([]cont
 	}
 
 	var id uint64
-	if err := storage.DB.Model((*contract.GlobalConstant)(nil)).
+	if err := storage.DB.NewSelect().Model((*contract.GlobalConstant)(nil)).
 		Column("id").
 		Where("address = ?", address).
-		Select(&id); err != nil {
+		Scan(ctx, &id); err != nil {
 		return nil, err
 	}
 
 	var scriptIDs []uint64
-	if err := storage.DB.Model(new(contract.ScriptConstants)).
+	if err := storage.DB.NewSelect().Model(new(contract.ScriptConstants)).
 		DistinctOn("script_id").
 		Column("script_id").
 		Where("global_constant_id = ?", id).
-		Select(&scriptIDs); err != nil {
+		Scan(ctx, &scriptIDs); err != nil {
 		return nil, err
 	}
 	if len(scriptIDs) == 0 {
@@ -135,19 +166,16 @@ func (storage *Storage) ContractList(address string, size, offset int64) ([]cont
 	}
 
 	var contracts []contract.Contract
-	if err := storage.DB.Model(&contracts).
+	if err := storage.DB.NewSelect().Model(&contracts).
 		ColumnExpr("contract.*").
-		ColumnExpr("accounts.address as account__address, accounts.alias as account__alias").
-		WhereIn("contract.babylon_id IN (?)", scriptIDs).
-		WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
-			q.WhereIn("contract.jakarta_id IN (?)", scriptIDs)
-			return q, nil
-		}).
+		ColumnExpr("accounts.address as account__address").
+		Where("contract.babylon_id IN (?)", bun.In(scriptIDs)).
+		WhereOr("contract.jakarta_id IN (?)", bun.In(scriptIDs)).
 		Join("LEFT JOIN accounts on contract.account_id = accounts.id").
 		Order("contract.id desc").
 		Limit(int(size)).
 		Offset(int(offset)).
-		Select(&contracts); err != nil {
+		Scan(ctx); err != nil {
 		return nil, err
 	}
 	return contracts, nil

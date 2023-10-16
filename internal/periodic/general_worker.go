@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/teztnets"
 	"github.com/robfig/cron/v3"
+	"github.com/rs/zerolog/log"
 )
 
 // GeneralWorker -
@@ -48,7 +48,7 @@ func (w *GeneralWorker) Start(ctx context.Context) {
 	}
 
 	if _, err := w.checkNetwork(ctx); err != nil {
-		logger.Error().Err(err).Msg("failed to receive periodic network info")
+		log.Err(err).Msg("failed to receive periodic network info")
 		return
 	}
 
@@ -56,7 +56,7 @@ func (w *GeneralWorker) Start(ctx context.Context) {
 		w.schedule,
 		w.handleScheduleEvent(ctx),
 	); err != nil {
-		logger.Error().Err(err).Msg("failed to run cron function")
+		log.Err(err).Msg("failed to run cron function")
 		return
 	}
 
@@ -71,11 +71,11 @@ func (w *GeneralWorker) Close() error {
 
 func (w *GeneralWorker) handleScheduleEvent(ctx context.Context) func() {
 	return func() {
-		logger.Info().Msg("trying to receive new rpc url")
+		log.Info().Msg("trying to receive new rpc url")
 
 		changed, err := w.checkNetwork(ctx)
 		if err != nil {
-			logger.Error().Err(err).Msg("failed to receive periodic network info")
+			log.Err(err).Msg("failed to receive periodic network info")
 		}
 		if changed {
 			return
@@ -91,7 +91,7 @@ func (w *GeneralWorker) handleScheduleEvent(ctx context.Context) func() {
 			case <-ticker.C:
 				changed, err := w.checkNetwork(ctx)
 				if err != nil {
-					logger.Error().Err(err).Msg("failed to receive periodic network info")
+					log.Err(err).Msg("failed to receive periodic network info")
 				}
 				if changed {
 					return
@@ -118,11 +118,11 @@ func (w *GeneralWorker) checkNetwork(ctx context.Context) (bool, error) {
 		network := parts[0]
 		if current := w.urls[network]; current != data.RPCURL {
 			if err := w.handler(ctx, network, data.RPCURL); err != nil {
-				logger.Error().Err(err).Str("network", network).Msg("failed to apply new rpc url")
+				log.Err(err).Str("network", network).Msg("failed to apply new rpc url")
 			}
 			w.urls[network] = data.RPCURL
 
-			logger.Info().Str("network", network).Str("url", data.RPCURL).Msg("new url was found")
+			log.Info().Str("network", network).Str("url", data.RPCURL).Msg("new url was found")
 			changed = true
 		}
 	}

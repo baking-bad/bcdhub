@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -11,6 +13,6 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Parser -
 type Parser interface {
-	ParseTransaction(content noderpc.Operation, operation *operation.Operation, store parsers.Store) error
-	ParseOrigination(content noderpc.Operation, operation *operation.Operation, store parsers.Store) error
+	ParseTransaction(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) error
+	ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) error
 }

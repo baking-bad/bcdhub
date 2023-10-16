@@ -6,8 +6,7 @@
     "address": {
         "address": "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
         "network": "mainnet",
-        "type": 1,
-        "alias": "tzBTC"
+        "type": 1
     },
     "tags": 128,
     "manager": {

@@ -1,6 +1,7 @@
 package operations
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -60,6 +61,7 @@ func TestMigration_Parse(t *testing.T) {
 				Timestamp:  timestamp,
 				Hash:       []byte("hash"),
 				Kind:       types.MigrationKindLambda,
+				Contract:   contract.Contract{},
 			},
 		},
 	}
@@ -71,12 +73,12 @@ func TestMigration_Parse(t *testing.T) {
 
 			contractRepo.
 				EXPECT().
-				Get(gomock.Eq(tt.operation.Destination.Address)).
+				Get(gomock.Any(), tt.operation.Destination.Address).
 				Return(contract.Contract{}, nil).
 				AnyTimes()
 
 			store := parsers.NewTestStore()
-			err = NewMigration(contractRepo).Parse(op, tt.operation, "PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq", store)
+			err = NewMigration(contractRepo).Parse(context.Background(), op, tt.operation, "PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq", store)
 			require.NoError(t, err)
 
 			if tt.want != nil {

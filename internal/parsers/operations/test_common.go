@@ -11,10 +11,12 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
+	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -53,7 +55,7 @@ func readRPCScript(_ context.Context, address string, _ int64) (noderpc.Script, 
 	return script, errors.Errorf("unknown RPC script: %s", address)
 }
 
-func readTestScriptModel(address, symLink string) (contract.Script, error) {
+func readTestScriptModel(_ context.Context, address, symLink string) (contract.Script, error) {
 	data, err := readTestScript(address, bcd.SymLinkBabylon)
 	if err != nil {
 		return contract.Script{}, err
@@ -85,7 +87,7 @@ func readTestScriptModel(address, symLink string) (contract.Script, error) {
 	}, nil
 }
 
-func readTestScriptPart(address, symLink, part string) ([]byte, error) {
+func readTestScriptPart(_ context.Context, address, symLink, part string) ([]byte, error) {
 	data, err := readTestScript(address, bcd.SymLinkBabylon)
 	if err != nil {
 		return nil, err
@@ -106,7 +108,7 @@ func readTestScriptPart(address, symLink, part string) ([]byte, error) {
 	return nil, nil
 }
 
-func readTestContractModel(address string) (contract.Contract, error) {
+func readTestContractModel(_ context.Context, address string) (contract.Contract, error) {
 	var c contract.Contract
 	f, err := os.Open(fmt.Sprintf("./data/models/contract/%s.json", address))
 	if err != nil {
@@ -124,6 +126,7 @@ func compareParserResponse(t *testing.T, got, want *parsers.TestStore) {
 	require.Len(t, got.Migrations, len(want.Migrations))
 	require.Len(t, got.Operations, len(want.Operations))
 	require.Len(t, got.GlobalConstants, len(want.GlobalConstants))
+	require.Len(t, got.Tickets, len(want.Tickets))
 
 	for i := range got.Contracts {
 		compareContract(t, want.Contracts[i], got.Contracts[i])
@@ -140,6 +143,22 @@ func compareParserResponse(t *testing.T, got, want *parsers.TestStore) {
 	for i := range got.GlobalConstants {
 		require.Equal(t, want.GlobalConstants[i], got.GlobalConstants[i])
 	}
+	for hash := range got.Tickets {
+		require.Equal(t, want.Tickets[hash], got.Tickets[hash])
+	}
+	for key, wantAddress := range want.Accounts {
+		gotAddress, ok := got.Accounts[key]
+		require.True(t, ok)
+		require.Equal(t, wantAddress, gotAddress)
+	}
+}
+
+func compareAddress(t *testing.T, want, got account.Account) {
+	if want.Address == "" && got.Address == "" {
+		return
+	}
+
+	require.Equal(t, want, got)
 }
 
 func compareOperations(t *testing.T, want, got *operation.Operation) {
@@ -159,16 +178,17 @@ func compareOperations(t *testing.T, want, got *operation.Operation) {
 	require.Equal(t, want.Hash, got.Hash)
 	require.EqualValues(t, want.Status, got.Status)
 	require.EqualValues(t, want.Kind, got.Kind)
-	require.Equal(t, want.Initiator, got.Initiator)
-	require.Equal(t, want.Source, got.Source)
-	require.Equal(t, want.Destination, got.Destination)
-	require.Equal(t, want.Delegate, got.Delegate)
+	compareAddress(t, want.Initiator, got.Initiator)
+	compareAddress(t, want.Source, got.Source)
+	compareAddress(t, want.Destination, got.Destination)
+	compareAddress(t, want.Delegate, got.Delegate)
 	require.Equal(t, want.Entrypoint, got.Entrypoint)
 	compareBytesArray(t, want.Parameters, got.Parameters)
 	compareBytesArray(t, want.DeffatedStorage, got.DeffatedStorage)
 	require.EqualValues(t, want.Tags, got.Tags)
 	require.Len(t, got.BigMapDiffs, len(want.BigMapDiffs))
 	require.Len(t, got.BigMapActions, len(want.BigMapActions))
+	require.Len(t, got.TicketUpdates, len(want.TicketUpdates))
 
 	for i := range want.BigMapDiffs {
 		compareBigMapDiff(t, want.BigMapDiffs[i], got.BigMapDiffs[i])
@@ -177,6 +197,17 @@ func compareOperations(t *testing.T, want, got *operation.Operation) {
 	for i := range want.BigMapActions {
 		compareBigMapAction(t, want.BigMapActions[i], got.BigMapActions[i])
 	}
+
+	for i := range want.TicketUpdates {
+		compareTicketUpdates(t, want.TicketUpdates[i], got.TicketUpdates[i])
+	}
+}
+
+func compareTicketUpdates(t *testing.T, want, got *ticket.TicketUpdate) {
+	require.EqualValues(t, want.Account, got.Account)
+	require.EqualValues(t, want.Ticket, got.Ticket)
+	require.EqualValues(t, want.Level, got.Level)
+	require.EqualValues(t, want.Timestamp, got.Timestamp)
 }
 
 func compareBigMapDiff(t *testing.T, want, got *bigmapdiff.BigMapDiff) {
