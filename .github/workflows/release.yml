@@ -34,6 +34,9 @@ jobs:
       DOCKER_REGISTRY: ghcr.io
       DOCKER_IMAGE_BASE: ${{ github.repository }}
     steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        
       - name: GUI image tags & labels
         id: meta-gui
         uses: docker/metadata-action@v3
