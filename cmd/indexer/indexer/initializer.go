@@ -44,6 +44,7 @@ func (initializer Initializer) Init(ctx context.Context) error {
 				return err
 			}
 			firstBlock, err := initializer.block.Get(ctx, 1)
+			log.Info().Str("node_hash", blockHash).Str("indexer_hash", firstBlock.Hash).Msg("checking first block hash...")
 			if err == nil && firstBlock.Hash != blockHash {
 				log.Info().Str("network", initializer.network.String()).Msg("found new periodic chain")
 				log.Warn().Str("network", initializer.network.String()).Msg("drop database...")
