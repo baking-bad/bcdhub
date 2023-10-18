@@ -120,7 +120,7 @@ type existsResponse struct {
 func (p *Postgres) TablesExist(ctx context.Context) bool {
 	for _, table := range models.AllDocuments() {
 		var exists existsResponse
-		err := p.DB.QueryRow(tableExistsQuery, p.schema, table).Scan(&exists)
+		err := p.DB.NewRaw(tableExistsQuery, p.schema, table).Scan(ctx, &exists)
 		if !exists.Flag || err != nil {
 			return false
 		}
