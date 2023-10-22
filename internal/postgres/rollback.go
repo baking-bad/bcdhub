@@ -73,7 +73,7 @@ func (r Rollback) LastDiff(ctx context.Context, ptr int64, keyHash string, skipR
 		query.Where("value is not null")
 	}
 
-	err = query.Order("id desc").Limit(1).Scan(ctx)
+	err = query.OrderExpr("timestamp desc, id desc").Limit(1).Scan(ctx)
 	return
 }
 
