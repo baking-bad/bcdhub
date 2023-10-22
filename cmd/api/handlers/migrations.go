@@ -29,7 +29,7 @@ func GetContractMigrations() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 

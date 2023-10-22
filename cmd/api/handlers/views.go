@@ -42,12 +42,12 @@ func GetViewsSchema() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
 		var args getViewsArgs
-		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindQuery(&args); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
@@ -203,11 +203,11 @@ func ExecuteView() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 		var execView executeViewRequest
-		if err := c.BindJSON(&execView); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindJSON(&execView); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 

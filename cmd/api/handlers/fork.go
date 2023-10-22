@@ -17,7 +17,7 @@ import (
 func ForkContract(ctxs config.Contexts) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req forkRequest
-		if err := c.BindJSON(&req); handleError(c, ctxs.Any().Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindJSON(&req); handleError(c, ctxs.Any().Storage, err, http.StatusBadRequest) {
 			return
 		}
 

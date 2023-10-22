@@ -28,7 +28,7 @@ func GetGlobalConstant() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getGlobalConstantRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -71,7 +71,7 @@ func ListGlobalConstants() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var args globalConstantsListRequest
-		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -110,12 +110,12 @@ func GetContractGlobalConstants() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
 		var args pageableRequest
-		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -154,11 +154,11 @@ func GetGlobalConstantContracts() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var args globalConstantsContractsRequest
-		if err := c.BindUri(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
-		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 

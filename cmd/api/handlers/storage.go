@@ -34,12 +34,12 @@ func GetContractStorage() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
 		var sReq storageRequest
-		if err := c.BindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -103,11 +103,11 @@ func GetContractStorageRaw() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 		var sReq storageRequest
-		if err := c.BindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 		storage, err := getDeffattedStorage(c, ctx, req.Address, int64(sReq.Level))
@@ -144,11 +144,11 @@ func GetContractStorageRich() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 		var sReq storageRequest
-		if err := c.BindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&sReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 		storage, err := getDeffattedStorage(c, ctx, req.Address, int64(sReq.Level))
@@ -208,11 +208,11 @@ func GetContractStorageSchema() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 		var ssReq storageSchemaRequest
-		if err := c.BindQuery(&ssReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&ssReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 

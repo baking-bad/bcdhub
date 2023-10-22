@@ -269,7 +269,7 @@ func (api *app) Close() error {
 // Run -
 func (api *app) Run() {
 	if err := api.Router.Run(api.Config.API.Bind); err != nil {
-		if errors.Is(err, http.ErrServerClosed) {
+		if errors.Is(err, http.ErrServerClosed) || errors.Is(err, context.Canceled) {
 			return
 		}
 		log.Err(err).Msg("API running error")
