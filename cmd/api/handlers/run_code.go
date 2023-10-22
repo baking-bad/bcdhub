@@ -27,11 +27,11 @@ func RunOperation() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 		var reqRunOp runOperationRequest
-		if err := c.BindJSON(&reqRunOp); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindJSON(&reqRunOp); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -135,11 +135,11 @@ func RunCode() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 		var reqRunCode runCodeRequest
-		if err := c.BindJSON(&reqRunCode); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindJSON(&reqRunCode); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 

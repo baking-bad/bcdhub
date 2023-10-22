@@ -12,7 +12,7 @@ import (
 func NetworkMiddleware(ctxs config.Contexts) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req getByNetwork
-		if err := c.BindUri(&req); err != nil {
+		if err := c.ShouldBindUri(&req); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, Error{Message: err.Error()})
 			return
 		}

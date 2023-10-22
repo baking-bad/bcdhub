@@ -33,12 +33,12 @@ func GetContractTicketUpdates() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
 		var args ticketUpdatesRequest
-		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -84,12 +84,12 @@ func GetContractTickets() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
 		var args pageableRequest
-		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -112,7 +112,7 @@ func GetTicketUpdatesForOperation() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getOperationByIDRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 		operation, err := ctx.Operations.GetByID(c.Request.Context(), req.ID)
@@ -138,13 +138,13 @@ func GetTicketBalancesForAccount() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getAccountRequest
-		if err := c.BindUri(&req); err != nil {
+		if err := c.ShouldBindUri(&req); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, Error{Message: err.Error()})
 			return
 		}
 
 		var args ticketBalancesRequest
-		if err := c.BindQuery(&args); err != nil {
+		if err := c.ShouldBindQuery(&args); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, Error{Message: err.Error()})
 			return
 		}

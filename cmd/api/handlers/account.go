@@ -28,7 +28,7 @@ func GetInfo() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getAccountRequest
-		if err := c.BindUri(&req); err != nil {
+		if err := c.ShouldBindUri(&req); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, Error{Message: err.Error()})
 			return
 		}

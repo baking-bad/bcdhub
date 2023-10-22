@@ -34,12 +34,12 @@ func GetOperation() gin.HandlerFunc {
 		any := ctxs.Any()
 
 		var req OPGRequest
-		if err := c.BindUri(&req); handleError(c, any.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, any.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
 		var queryReq opgRequest
-		if err := c.BindQuery(&queryReq); handleError(c, any.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&queryReq); handleError(c, any.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -119,7 +119,7 @@ func GetImplicitOperation() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req ImplicitOperationRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -155,7 +155,7 @@ func GetOperationErrorLocation() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getOperationByIDRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -195,7 +195,7 @@ func GetOperationDiff() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getOperationByIDRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 		operation, err := ctx.Operations.GetByID(c.Request.Context(), req.ID)
@@ -241,12 +241,12 @@ func GetOperationGroups() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getAccountRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
 		var args opgForAddressRequest
-		if err := c.BindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&args); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -283,7 +283,7 @@ func GetByHashAndCounter() gin.HandlerFunc {
 		ctxs := c.MustGet("contexts").(config.Contexts)
 
 		var req OperationGroupContentRequest
-		if err := c.BindUri(&req); handleError(c, ctxs.Any().Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctxs.Any().Storage, err, http.StatusNotFound) {
 			return
 		}
 

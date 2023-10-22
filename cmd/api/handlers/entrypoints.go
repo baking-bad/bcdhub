@@ -35,7 +35,7 @@ func GetEntrypoints() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
@@ -92,11 +92,11 @@ func GetEntrypointData() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 		var reqData getEntrypointDataRequest
-		if err := c.BindJSON(&reqData); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindJSON(&reqData); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -144,12 +144,12 @@ func GetEntrypointSchema() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getContractRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusNotFound) {
 			return
 		}
 
 		var esReq entrypointSchemaRequest
-		if err := c.BindQuery(&esReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&esReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 

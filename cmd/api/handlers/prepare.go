@@ -240,7 +240,6 @@ func setParatemetersWithType(params *types.Parameters, parameter *ast.TypedAst, 
 	op.Parameters, err = tree.ToMiguel()
 	if err != nil {
 		if !tezerrors.HasGasExhaustedError(op.Errors) {
-			helpers.CatchErrorSentry(err)
 			return err
 		}
 	}

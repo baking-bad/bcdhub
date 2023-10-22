@@ -35,7 +35,7 @@ func GetBigMap() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getBigMapRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -143,7 +143,7 @@ func GetBigMapHistory() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getBigMapRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -182,11 +182,11 @@ func GetBigMapKeys() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getBigMapRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 		var pageReq bigMapSearchRequest
-		if err := c.BindQuery(&pageReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&pageReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -238,12 +238,12 @@ func GetBigMapByKeyHash() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getBigMapByKeyHashRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
 		var pageReq pageableRequest
-		if err := c.BindQuery(&pageReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&pageReq); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -291,7 +291,7 @@ func GetCurrentBigMapKeyHash() gin.HandlerFunc {
 		ctx := c.MustGet("context").(*config.Context)
 
 		var req getBigMapByKeyHashRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
@@ -345,7 +345,7 @@ func GetBigMapDiffCount() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 		var req getBigMapRequest
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 

@@ -82,12 +82,12 @@ func RecentlyCalledContracts() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.MustGet("context").(*config.Context)
 		var req getByNetwork
-		if err := c.BindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
 		var page pageableRequest
-		if err := c.BindQuery(&page); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
+		if err := c.ShouldBindQuery(&page); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
 
