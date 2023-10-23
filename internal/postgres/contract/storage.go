@@ -106,7 +106,7 @@ func (storage *Storage) Storage(ctx context.Context, id int64) ([]byte, error) {
 	return data, err
 }
 
-// Storage -
+// Views -
 func (storage *Storage) Views(ctx context.Context, id int64) ([]byte, error) {
 	var data []byte
 	err := storage.DB.NewSelect().

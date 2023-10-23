@@ -116,3 +116,19 @@ func (cache *Cache) Script(ctx context.Context, address, symLink string) (contra
 	}
 	return item.Value().(contract.Script), nil
 }
+
+func (cache *Cache) ScriptBytes(ctx context.Context, address, symLink string) ([]byte, error) {
+	key := fmt.Sprintf("script_bytes:%s:%s", address, symLink)
+	item, err := cache.Fetch(key, time.Hour, func() (interface{}, error) {
+		script, err := cache.contracts.Script(ctx, address, symLink)
+		if err != nil {
+			return script, err
+		}
+		return script.Full()
+	})
+	if err != nil {
+		cache.Delete(key)
+		return nil, err
+	}
+	return item.Value().([]byte), nil
+}

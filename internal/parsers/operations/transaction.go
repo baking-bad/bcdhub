@@ -112,7 +112,7 @@ func (p Transaction) parseContractParams(ctx context.Context, data noderpc.Opera
 		}
 	}
 
-	scriptEntity, err := p.ctx.Cache.Script(ctx, tx.Destination.Address, p.protocol.SymLink)
+	scriptBytes, err := p.ctx.Cache.ScriptBytes(ctx, tx.Destination.Address, p.protocol.SymLink)
 	if err != nil {
 		if !tx.Internal {
 			return nil
@@ -146,10 +146,7 @@ func (p Transaction) parseContractParams(ctx context.Context, data noderpc.Opera
 			return err
 		}
 	} else {
-		tx.Script, err = scriptEntity.Full()
-		if err != nil {
-			return err
-		}
+		tx.Script = scriptBytes
 	}
 
 	tx.AST, err = ast.NewScriptWithoutCode(tx.Script)
