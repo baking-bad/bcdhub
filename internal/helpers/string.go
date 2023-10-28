@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"fmt"
 	"net/url"
 	"os"
 	"path"
@@ -29,13 +28,13 @@ func GenerateID() string {
 }
 
 // URLJoin -
-func URLJoin(baseURL, queryPath string) string {
+func URLJoin(baseURL, queryPath string) (string, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
-		return fmt.Sprintf("%s/%s", baseURL, queryPath)
+		return "", err
 	}
 	u.Path = path.Join(u.Path, queryPath)
-	return u.String()
+	return u.String(), nil
 }
 
 // SpaceStringsBuilder -

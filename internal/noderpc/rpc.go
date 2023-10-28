@@ -120,7 +120,10 @@ func (rpc *NodeRPC) makeRequest(ctx context.Context, req *http.Request) (*http.R
 }
 
 func (rpc *NodeRPC) makeGetRequest(ctx context.Context, uri string) (*http.Response, error) {
-	url := helpers.URLJoin(rpc.baseURL, uri)
+	url, err := helpers.URLJoin(rpc.baseURL, uri)
+	if err != nil {
+		return nil, errors.Wrap(ErrNodeRPCError, err.Error())
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, errors.Errorf("makeGetRequest.NewRequest: %v", err)
@@ -129,8 +132,10 @@ func (rpc *NodeRPC) makeGetRequest(ctx context.Context, uri string) (*http.Respo
 }
 
 func (rpc *NodeRPC) makePostRequest(ctx context.Context, uri string, data interface{}) (*http.Response, error) {
-	url := helpers.URLJoin(rpc.baseURL, uri)
-
+	url, err := helpers.URLJoin(rpc.baseURL, uri)
+	if err != nil {
+		return nil, errors.Wrap(ErrNodeRPCError, err.Error())
+	}
 	bData, err := json.Marshal(data)
 	if err != nil {
 		return nil, errors.Errorf("makePostRequest.json.Marshal: %v", err)
