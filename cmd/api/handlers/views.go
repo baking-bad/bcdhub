@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -211,7 +212,7 @@ func ExecuteView() gin.HandlerFunc {
 			return
 		}
 
-		view, parameters, err := getViewForExecute(c.Request.Context(), ctx.Contracts, ctx.Blocks, req.Address, execView)
+		view, parameters, err := getViewForExecute(c.Request.Context(), ctx, req.Address, execView)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -221,7 +222,7 @@ func ExecuteView() gin.HandlerFunc {
 			return
 		}
 
-		timeoutContext, cancel := context.WithTimeout(c, 10*time.Second)
+		timeoutContext, cancel := context.WithTimeout(c, 20*time.Second)
 		defer cancel()
 
 		response, err := view.Execute(timeoutContext, ctx.RPC, views.Args{
@@ -267,14 +268,15 @@ func ExecuteView() gin.HandlerFunc {
 	}
 }
 
-func getViewForExecute(ctx context.Context, contracts contract.Repository, blocks block.Repository, address string, req executeViewRequest) (views.View, []byte, error) {
+func getViewForExecute(ctx context.Context, networkContext *config.Context, address string, req executeViewRequest) (views.View, []byte, error) {
+	symLink, err := bcd.SymLink()
+	if err != nil {
+		return nil, nil, err
+	}
+
 	switch req.Kind {
 	case OnchainView:
-		block, err := blocks.Last(ctx)
-		if err != nil {
-			return nil, nil, err
-		}
-		rawViews, err := contracts.ScriptPart(ctx, address, block.Protocol.SymLink, consts.VIEWS)
+		rawViews, err := networkContext.Contracts.ScriptPart(ctx, address, symLink, consts.VIEWS)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -328,7 +330,17 @@ func getViewForExecute(ctx context.Context, contracts contract.Repository, block
 			return nil, nil, err
 		}
 
-		return views.NewMichelsonStorageView(*req.View, req.Name), parameters, nil
+		storageType, err := networkContext.Contracts.ScriptPart(ctx, address, symLink, consts.STORAGE)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		storageValue, err := getDeffattedStorage(ctx, networkContext, address, 0)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return views.NewMichelsonStorageView(*req.View, req.Name, storageType, storageValue), parameters, nil
 	default:
 		return nil, nil, errors.New("invalid view kind")
 	}

@@ -56,6 +56,11 @@ func GetCurrentProtocol() string {
 	return "PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf"
 }
 
+// SymLink - returns last sym link
+func SymLink() (string, error) {
+	return GetProtoSymLink(GetCurrentProtocol())
+}
+
 // Symbolic links
 const (
 	SymLinkAlpha   = "alpha"
