@@ -25,6 +25,9 @@ func NewMichelsonStorageView(impl contract.ViewImplementation, name string, stor
 	if !impl.MichelsonStorageView.IsParameterEmpty() {
 		parameter = impl.MichelsonStorageView.Parameter
 	}
+	if storageType[0] == '[' {
+		storageType = storageType[1 : len(storageType)-1]
+	}
 	return &MichelsonStorageView{
 		Parameter:    parameter,
 		ReturnType:   impl.MichelsonStorageView.ReturnType,
