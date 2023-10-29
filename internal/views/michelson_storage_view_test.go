@@ -42,12 +42,13 @@ func TestMichelsonStorageView_GetCode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			msv := &MichelsonStorageView{
-				Parameter:  tt.fields.Parameter,
-				Code:       tt.fields.Code,
-				ReturnType: tt.fields.ReturnType,
-				Name:       tt.fields.Name,
+				Parameter:   tt.fields.Parameter,
+				Code:        tt.fields.Code,
+				ReturnType:  tt.fields.ReturnType,
+				Name:        tt.fields.Name,
+				storageType: tt.storageType,
 			}
-			got, err := msv.buildCode(tt.storageType)
+			got, err := msv.buildCode()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MichelsonStorageView.GetCode() error = %v, wantErr %v", err, tt.wantErr)
 				return
