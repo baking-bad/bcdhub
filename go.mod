@@ -8,7 +8,7 @@ require (
 	github.com/dipdup-net/go-lib v0.3.5
 	github.com/ebellocchia/go-base58 v0.1.0
 	github.com/fatih/color v1.13.0
-	github.com/getsentry/sentry-go v0.13.0
+	github.com/getsentry/sentry-go v0.25.0
 	github.com/gin-contrib/cache v1.2.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-contrib/logger v0.2.6
@@ -25,7 +25,7 @@ require (
 	github.com/karlseguin/ccache v2.0.3+incompatible
 	github.com/lib/pq v1.10.9
 	github.com/machinebox/graphql v0.2.2
-	github.com/microcosm-cc/bluemonday v1.0.20
+	github.com/microcosm-cc/bluemonday v1.0.23
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.30.0
@@ -39,7 +39,7 @@ require (
 	github.com/yhirose/go-peg v0.0.0-20210804202551-de25d6753cf1
 	go.uber.org/mock v0.2.0
 	golang.org/x/crypto v0.14.0
-	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9
+	golang.org/x/time v0.3.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

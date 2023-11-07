@@ -26,10 +26,16 @@ func main() {
 	logger.New(cfg.LogLevel)
 
 	if cfg.Indexer.SentryEnabled {
-		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
-		helpers.SetTagSentry("project", cfg.Indexer.ProjectName)
-		defer helpers.CatchPanicSentry()
+		helpers.InitSentry(helpers.SentryConfig{
+			DSN:   cfg.Sentry.URI,
+			Debug: cfg.Sentry.Debug,
+			Env:   cfg.Sentry.Environment,
+			Tags: map[string]string{
+				"project": cfg.Indexer.ProjectName,
+			},
+		})
 	}
+	defer helpers.CatchPanicSentry()
 
 	var prof *pyroscope.Profiler
 	if cfg.Profiler != nil {

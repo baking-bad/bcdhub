@@ -14,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/periodic"
 	"github.com/baking-bad/bcdhub/internal/profiler"
+	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-contrib/cors"
@@ -45,9 +46,14 @@ func newApp() *app {
 	logger.New(cfg.LogLevel)
 
 	if cfg.API.SentryEnabled {
-		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
-		helpers.SetTagSentry("project", cfg.API.ProjectName)
-		defer helpers.CatchPanicSentry()
+		helpers.InitSentry(helpers.SentryConfig{
+			DSN:   cfg.Sentry.URI,
+			Debug: cfg.Sentry.Debug,
+			Env:   cfg.Sentry.Environment,
+			Tags: map[string]string{
+				"project": cfg.API.ProjectName,
+			},
+		})
 	}
 
 	app := new(app)
@@ -114,11 +120,14 @@ func (api *app) makeRouter() {
 		r.Use(corsSettings())
 	}
 
+	r.Use(gin.Recovery())
+
 	if api.Config.API.SentryEnabled {
-		r.Use(helpers.SentryMiddleware())
+		r.Use(sentrygin.New(sentrygin.Options{
+			Repanic: true,
+		}))
 	}
 
-	r.Use(gin.Recovery())
 	r.Use(ginLogger.SetLogger())
 	r.Use(timeout.New(
 		timeout.WithTimeout(30*time.Second),

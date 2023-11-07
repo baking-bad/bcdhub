@@ -4,33 +4,34 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
-	sentrygin "github.com/getsentry/sentry-go/gin"
-	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
+type SentryConfig struct {
+	DSN   string
+	Debug bool
+	Env   string
+	Tags  map[string]string
+}
+
 // InitSentry -
-func InitSentry(debug bool, environment, dsn string) {
+func InitSentry(cfg SentryConfig) {
 	if err := sentry.Init(sentry.ClientOptions{
-		Dsn:              dsn,
-		Environment:      environment,
-		Debug:            debug,
+		Dsn:              cfg.DSN,
+		Environment:      cfg.Env,
+		Debug:            cfg.Debug,
 		AttachStacktrace: true,
 		BeforeSend:       beforeSend,
+		Tags:             cfg.Tags,
 	}); err != nil {
 		log.Err(err).Msg("Sentry initialization failed")
 	}
 }
 
 func beforeSend(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-	log.Info().Msgf("[Sentry message] %s", event.Message)
+	log.Debug().Msgf("[Sentry message] %s", event.Message)
 	return event
-}
-
-// SentryMiddleware -
-func SentryMiddleware() gin.HandlerFunc {
-	return sentrygin.New(sentrygin.Options{})
 }
 
 // SetTagSentry -
@@ -52,11 +53,14 @@ func SetUserIDSentry(id string) {
 // CatchPanicSentry -
 func CatchPanicSentry() {
 	if err := recover(); err != nil {
-		sentry.CurrentHub().WithScope(func(scope *sentry.Scope) {
-			scope.SetLevel(sentry.LevelError)
-		})
-		sentry.CurrentHub().Recover(err)
-		sentry.Flush(time.Second * 5)
+		if hub := sentry.CurrentHub(); hub != nil {
+			hub.WithScope(func(scope *sentry.Scope) {
+				scope.SetLevel(sentry.LevelError)
+			})
+			if eventId := hub.Recover(err); eventId != nil {
+				sentry.Flush(time.Second * 5)
+			}
+		}
 	}
 }
 
@@ -91,12 +95,4 @@ func SetLocalTagSentry(hub *sentry.Hub, key, value string) {
 func LocalCatchErrorSentry(hub *sentry.Hub, err error) {
 	hub.CaptureException(err)
 	hub.Flush(time.Second * 5)
-}
-
-// LocalCatchPanicSentry -
-func LocalCatchPanicSentry(hub *sentry.Hub) {
-	if err := recover(); err != nil {
-		hub.CaptureMessage(err.(string))
-		hub.Flush(time.Second * 5)
-	}
 }
