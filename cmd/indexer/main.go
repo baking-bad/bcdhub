@@ -34,8 +34,8 @@ func main() {
 				"project": cfg.Indexer.ProjectName,
 			},
 		})
+		defer helpers.CatchPanicSentry()
 	}
-	defer helpers.CatchPanicSentry()
 
 	var prof *pyroscope.Profiler
 	if cfg.Profiler != nil {
