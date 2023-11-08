@@ -86,10 +86,12 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	return node
 }
 
-func (rpc *NodeRPC) checkStatusCode(r io.Reader, statusCode int, checkStatusCode bool) error {
+func (rpc *NodeRPC) checkStatusCode(r io.Reader, statusCode int, checkStatusCode bool, uri string) error {
 	switch {
 	case statusCode == http.StatusOK:
 		return nil
+	case statusCode == http.StatusNotFound:
+		return errors.Errorf("%s: not found", uri)
 	case statusCode > http.StatusInternalServerError:
 		return NewNodeUnavailiableError(rpc.baseURL, statusCode)
 	case checkStatusCode:
@@ -107,7 +109,7 @@ func (rpc *NodeRPC) checkStatusCode(r io.Reader, statusCode int, checkStatusCode
 }
 
 func (rpc *NodeRPC) parseResponse(r io.Reader, statusCode int, checkStatusCode bool, uri string, response interface{}) error {
-	if err := rpc.checkStatusCode(r, statusCode, checkStatusCode); err != nil {
+	if err := rpc.checkStatusCode(r, statusCode, checkStatusCode, uri); err != nil {
 		return fmt.Errorf("%w (%s): %w", ErrNodeRPCError, uri, err)
 	}
 
@@ -173,7 +175,7 @@ func (rpc *NodeRPC) get(ctx context.Context, uri string, response interface{}) e
 		return err
 	}
 
-	return rpc.parseResponse(buffer, resp.StatusCode, true, uri, response)
+	return rpc.parseResponse(buffer, resp.StatusCode, true, resp.Request.URL.String(), response)
 }
 
 func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
@@ -196,7 +198,7 @@ func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := rpc.checkStatusCode(resp.Body, resp.StatusCode, true); err != nil {
+	if err := rpc.checkStatusCode(resp.Body, resp.StatusCode, true, uri); err != nil {
 		return nil, fmt.Errorf("%w (%s): %w", ErrNodeRPCError, uri, err)
 	}
 	return io.ReadAll(resp.Body)
@@ -227,7 +229,7 @@ func (rpc *NodeRPC) post(ctx context.Context, uri string, data interface{}, chec
 		return err
 	}
 
-	return rpc.parseResponse(buffer, resp.StatusCode, checkStatusCode, uri, response)
+	return rpc.parseResponse(buffer, resp.StatusCode, checkStatusCode, resp.Request.URL.String(), response)
 }
 
 // Block - returns block

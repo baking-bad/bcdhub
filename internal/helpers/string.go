@@ -3,7 +3,6 @@ package helpers
 import (
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"unicode"
@@ -33,7 +32,7 @@ func URLJoin(baseURL, queryPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	u.Path = path.Join(u.Path, queryPath)
+	u = u.JoinPath(queryPath)
 	return u.String(), nil
 }
 

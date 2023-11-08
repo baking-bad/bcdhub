@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -39,22 +40,55 @@ func (initializer Initializer) Init(ctx context.Context) error {
 			// check first block in node and in database, compare its hash.
 			// if hash is differed new periodic chain was started.
 			log.Info().Str("network", initializer.network.String()).Msg("checking for new periodic chain...")
-			blockHash, err := initializer.rpc.BlockHash(ctx, 1)
+
+			var (
+				notRunning = true
+			)
+
+			for notRunning {
+				header, err := initializer.rpc.GetHead(ctx)
+				if err != nil {
+					return err
+				}
+				notRunning = header.Level == 0
+				log.Info().Bool("running", !notRunning).Str("network", initializer.network.String()).Msg("chain status")
+				if notRunning {
+					time.Sleep(time.Second * 10)
+				}
+			}
+
+			header, err := initializer.rpc.GetHeader(ctx, 1)
 			if err != nil {
 				return err
 			}
+
 			firstBlock, err := initializer.block.Get(ctx, 1)
-			log.Info().Str("node_hash", blockHash).Str("indexer_hash", firstBlock.Hash).Msg("checking first block hash...")
-			if err == nil && firstBlock.Hash != blockHash {
+			if err != nil {
+				return nil
+			}
+
+			log.Info().
+				Str("network", initializer.network.String()).
+				Str("node_hash", header.Hash).
+				Str("indexer_hash", firstBlock.Hash).
+				Msg("checking first block hash...")
+			if firstBlock.Hash != header.Hash {
 				log.Info().Str("network", initializer.network.String()).Msg("found new periodic chain")
-				log.Warn().Str("network", initializer.network.String()).Msg("drop database...")
-				if err := initializer.repo.Drop(ctx); err != nil {
+				if err := initializer.drop(ctx); err != nil {
 					return err
 				}
-				log.Warn().Str("network", initializer.network.String()).Msg("database was dropped")
 			}
 		}
 	}
 
 	return initializer.repo.InitDatabase(ctx)
+}
+
+func (initializer Initializer) drop(ctx context.Context) error {
+	log.Warn().Str("network", initializer.network.String()).Msg("drop database...")
+	if err := initializer.repo.Drop(ctx); err != nil {
+		return err
+	}
+	log.Warn().Str("network", initializer.network.String()).Msg("database was dropped")
+	return nil
 }

@@ -56,7 +56,7 @@ func TestNodeRPC_checkStatusCode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rpc := new(NodeRPC)
-			err := rpc.checkStatusCode(tt.r, tt.statusCode, tt.checkStatusCode)
+			err := rpc.checkStatusCode(tt.r, tt.statusCode, tt.checkStatusCode, "")
 			require.Equal(t, tt.wantErr, err != nil)
 			if err != nil {
 				require.ErrorContains(t, err, tt.errString)
