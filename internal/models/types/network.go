@@ -32,6 +32,7 @@ const (
 	Rollupnet
 	Nairobinet
 	Oxfordnet
+	Weeklynet
 )
 
 var networkNames = map[Network]string{
@@ -50,6 +51,7 @@ var networkNames = map[Network]string{
 	Kathmandunet: "kathmandunet",
 	Limanet:      "limanet",
 	Mondaynet:    "mondaynet",
+	Weeklynet:    "weeklynet",
 	Dailynet:     "dailynet",
 	Mumbainet:    "mumbainet",
 	Rollupnet:    "rollupnet",
@@ -78,6 +80,7 @@ var namesToNetwork = map[string]Network{
 	"rollupnet":    Rollupnet,
 	"nairobinet":   Nairobinet,
 	"oxfordnet":    Oxfordnet,
+	"weeklynet":    Weeklynet,
 }
 
 // String - convert enum to string for printing

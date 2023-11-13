@@ -33,7 +33,7 @@ var symLinks = map[string]string{
 	"PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx": SymLinkBabylon, // Hangzhounet 2
 	"PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP": SymLinkBabylon, // Itacanet
 	"Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A": SymLinkBabylon, // Itacanet 2
-	"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK": SymLinkJakarta, // Monday and daily
+	"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK": SymLinkJakarta, // Weekly and daily
 	"PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY": SymLinkJakarta, // Jakarta
 	"PtKathmankSpLLDALzWw7CGD2j2MtyveTwboEYokqUCP4a1LxMg": SymLinkJakarta, // Kathmandu
 	"PtLimaPtLMwfNinJi9rCfDPWea8dFgTZ1MeJ9f1m2SRic6ayiwW": SymLinkJakarta, // Lima
