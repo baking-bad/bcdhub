@@ -193,6 +193,7 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Annotations = script.Annotations
 	c.Entrypoints = script.Entrypoints
 	c.ID = contract.ID
+	c.LastAction = contract.Account.LastAction
 }
 
 // ContractWithStats -
