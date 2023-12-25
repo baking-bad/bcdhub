@@ -41,6 +41,7 @@ var symLinks = map[string]string{
 	"PtMumbai2TmsJHNGRkD8v8YDbtao7BLUC3wjASn1inAKLFCjaH1": SymLinkJakarta, // Mumbai 2
 	"PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf": SymLinkJakarta, // Nairobinet
 	"ProxfordSW2S7fvchT1Zgj2avb5UES194neRyYVXoaDGvF9egt8": SymLinkJakarta, // Oxford
+	"ProxfordYmVfjWnRcgjWH36fW6PArwqykTFzotUxRs6gmTcZDuH": SymLinkJakarta, // Oxford 2
 }
 
 // GetProtoSymLink -
@@ -77,5 +78,5 @@ var ChainID = map[string]string{
 	"NetXizpkH94bocH": "limanet",
 	"NetXQw6nWSnrJ5t": "mumbainet",
 	"NetXyuzvDo2Ugzb": "nairobinet",
-	"NetXH6zDyMzRsUy": "oxfordnet",
+	"NetXxWsskGahzQB": "oxfordnet",
 }
