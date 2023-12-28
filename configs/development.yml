@@ -11,10 +11,10 @@ rpc:
     uri: https://rpc.tzkt.io/nairobinet
     timeout: 20
     requests_per_second: 15
-  # oxfordnet:
-  #   uri: https://rpc.tzkt.io/oxfordnet
-  #   timeout: 20
-  #   requests_per_second: 20
+  oxfordnet:
+    uri: https://rpc.tzkt.io/oxfordnet
+    timeout: 20
+    requests_per_second: 20
 
 log_level: ${LOG_LEVEL:-info}
 
@@ -64,7 +64,7 @@ api:
       mainnet: https://rpc.tzkt.io/mainnet
       ghostnet: https://rpc.tzkt.io/ghostnet
       nairobinet: https://rpc.tzkt.io/nairobinet
-      # oxfordnet: https://rpc.tzkt.io/oxfordnet       
+      oxfordnet: https://rpc.tzkt.io/oxfordnet       
   networks:
     - mainnet
     - ghostnet
@@ -81,12 +81,12 @@ indexer:
       receiver_threads: 5
     nairobinet:
       receiver_threads: 15
-    # oxfordnet:
-    #   receiver_threads: 10
+    oxfordnet:
+      receiver_threads: 10
 
 scripts:
   networks:
     - mainnet
     - ghostnet
     - nairobinet
-    # - oxfordnet
+    - oxfordnet
