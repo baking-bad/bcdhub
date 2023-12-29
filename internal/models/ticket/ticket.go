@@ -13,10 +13,11 @@ type Ticket struct {
 
 	ID           int64  `bun:"id,pk,notnull,autoincrement"`
 	Level        int64  `bun:"level"`
-	TicketerID   int64  `bun:"ticketer_id,unique:ticket_key"`
-	ContentType  []byte `bun:"content_type,type:bytea,unique:ticket_key"`
-	Content      []byte `bun:"content,type:bytea,unique:ticket_key"`
+	TicketerID   int64  `bun:"ticketer_id"`
+	ContentType  []byte `bun:"content_type,type:bytea"`
+	Content      []byte `bun:"content,type:bytea"`
 	UpdatesCount int    `bun:"updates_count"`
+	Hash         string `bun:"hash,unique:ticket_key"`
 
 	Ticketer account.Account `bun:"rel:belongs-to"`
 }
@@ -29,7 +30,7 @@ func (Ticket) TableName() string {
 	return "tickets"
 }
 
-func (t Ticket) Hash() string {
+func (t Ticket) GetHash() string {
 	data := make([]byte, len(t.ContentType))
 	copy(data, t.ContentType)
 	data = append(data, t.Content...)

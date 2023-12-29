@@ -134,7 +134,7 @@ func (store *Store) AddAccounts(accounts ...account.Account) {
 // AddTickets -
 func (store *Store) AddTickets(tickets ...ticket.Ticket) {
 	for i := range tickets {
-		hash := tickets[i].Hash()
+		hash := tickets[i].GetHash()
 		if t, ok := store.Tickets[hash]; !ok {
 			store.Tickets[hash] = &tickets[i]
 		} else {
@@ -146,7 +146,7 @@ func (store *Store) AddTickets(tickets ...ticket.Ticket) {
 // AddTicketBalances -
 func (store *Store) AddTicketBalances(balance ...ticket.Balance) {
 	for i := range balance {
-		key := fmt.Sprintf("%s_%s", balance[i].Ticket.Hash(), balance[i].Account.Address)
+		key := fmt.Sprintf("%s_%s", balance[i].Ticket.GetHash(), balance[i].Account.Address)
 		if t, ok := store.TicketBalances[key]; !ok {
 			store.TicketBalances[key] = &balance[i]
 		} else {

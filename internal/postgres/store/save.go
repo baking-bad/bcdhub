@@ -118,7 +118,7 @@ func (store *Store) saveTickets(ctx context.Context, tx models.Transaction) erro
 	}
 
 	for i := range arr {
-		store.ticketIds[arr[i].Hash()] = arr[i].ID
+		store.ticketIds[arr[i].GetHash()] = arr[i].ID
 	}
 
 	return nil
@@ -142,7 +142,7 @@ func (store *Store) saveTicketBalances(ctx context.Context, tx models.Transactio
 			return errors.Errorf("unknown ticket balance ticketer: %s", balance.Ticket.Ticketer.Address)
 		}
 
-		if id, ok := store.ticketIds[balance.Ticket.Hash()]; ok {
+		if id, ok := store.ticketIds[balance.Ticket.GetHash()]; ok {
 			balance.TicketId = id
 		} else {
 			return errors.Errorf("unknown ticket of balance: %s", balance.Ticket.Ticketer.Address)
@@ -230,7 +230,7 @@ func (store *Store) saveOperations(ctx context.Context, tx models.Transaction) e
 
 			operation.TicketUpdates[j].OperationId = operation.ID
 
-			hash := operation.TicketUpdates[j].Ticket.Hash()
+			hash := operation.TicketUpdates[j].Ticket.GetHash()
 			if id, ok := store.ticketIds[hash]; ok {
 				operation.TicketUpdates[j].TicketId = id
 			} else {

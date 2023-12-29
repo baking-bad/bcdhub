@@ -375,26 +375,38 @@ func (s *StorageTestSuite) TestTickets() {
 	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
 
-	err = tx.Tickets(ctx, &ticket.Ticket{
-		ContentType:  testsuite.MustHexDecode("7b227072696d223a22737472696e67227d"),
-		Content:      testsuite.MustHexDecode("7b22737472696e67223a22616263227d"),
-		TicketerID:   133,
-		UpdatesCount: 1,
-	}, &ticket.Ticket{
-		ContentType:  testsuite.MustHexDecode("7b227072696d223a22737472696e67227d"),
-		Content:      testsuite.MustHexDecode("7b22737472696e67223a22616263227d"),
-		TicketerID:   132,
-		UpdatesCount: 2,
-	})
+	tickets := []*ticket.Ticket{
+		{
+			ContentType:  testsuite.MustHexDecode("7b227072696d223a22737472696e67227d"),
+			Content:      testsuite.MustHexDecode("7b22737472696e67223a22616263227d"),
+			TicketerID:   133,
+			UpdatesCount: 1,
+			Ticketer: account.Account{
+				Address: "KT1SM849krq9FFxGWCZyc7X5GvAz8XnRmXnf",
+			},
+			Hash: "1e2be4e81235c6c25e245b098cb9dd9ac32c5316ee9f2b3bc4289811cf8e0b67",
+		}, {
+			ContentType:  testsuite.MustHexDecode("7b227072696d223a22737472696e67227d"),
+			Content:      testsuite.MustHexDecode("7b22737472696e67223a22616263227d"),
+			TicketerID:   132,
+			UpdatesCount: 2,
+			Ticketer: account.Account{
+				Address: "KT1BrG24EYvtYGeGgd615Yzhvoa14BNPLZzu",
+			},
+			Hash: "87b52da988c2bb5b6fd8bc53d816fae03faf51dcdc6c99d90203fdcecc8ee23c",
+		},
+	}
+
+	err = tx.Tickets(ctx, tickets...)
 	s.Require().NoError(err)
 
 	err = tx.Commit()
 	s.Require().NoError(err)
 
-	var tickets []ticket.Ticket
-	err = s.storage.DB.NewSelect().Model(&tickets).Scan(ctx)
+	var received []ticket.Ticket
+	err = s.storage.DB.NewSelect().Model(&received).Relation("Ticketer").Scan(ctx)
 	s.Require().NoError(err)
-	s.Require().Len(tickets, 3)
+	s.Require().Len(received, 3)
 }
 
 func (s *StorageTestSuite) TestTicketBalances() {
