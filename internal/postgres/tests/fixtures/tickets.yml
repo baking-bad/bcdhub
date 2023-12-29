@@ -4,9 +4,11 @@
   content: '{"string":"abc"}'
   updates_count: 2
   level: 40
+  hash: 1e2be4e81235c6c25e245b098cb9dd9ac32c5316ee9f2b3bc4289811cf8e0b67
 - id: 2
   updates_count: 1
   level: 40
   ticketer_id: 251
   content_type: '{"prim":"int"}'
   content: '{"int":"1"}'
+  hash: c342d400f1ad59ba909b6f308af1c312f43c88f7200877398d9c5677da43830d

@@ -45,6 +45,7 @@ func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *opera
 		UpdatesCount: 1,
 		Level:        operation.Level,
 	}
+	tckt.Hash = tckt.GetHash()
 	store.AddTickets(tckt)
 
 	updates := make([]*ticket.TicketUpdate, 0)

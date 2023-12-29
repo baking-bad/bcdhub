@@ -244,7 +244,7 @@ func (t Transaction) Tickets(ctx context.Context, tickets ...*ticket.Ticket) err
 	}
 
 	_, err := t.tx.NewInsert().Model(&tickets).
-		Column("ticketer_id", "content", "content_type", "updates_count", "level").
+		Column("ticketer_id", "content", "content_type", "updates_count", "level", "hash").
 		On("CONFLICT ON CONSTRAINT ticket_key DO UPDATE").
 		Set("updates_count = ticket.updates_count + EXCLUDED.updates_count").
 		Returning("id").
