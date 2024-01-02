@@ -93,14 +93,18 @@ func (r *Receiver) get(ctx context.Context, level int64) (Block, error) {
 }
 
 func (r *Receiver) job(ctx context.Context, level int64) {
-	block, err := r.get(ctx, level)
-	if err != nil {
-		if !errors.Is(err, context.Canceled) {
-			log.Err(err).Int64("block", level).Msg("Receiver.get")
-			r.pool.AddTask(level)
+	for {
+		block, err := r.get(ctx, level)
+		if err == nil {
+			r.blocks <- &block
+			r.inProcess.Delete(level)
+			break
 		}
-		return
+
+		if errors.Is(err, context.Canceled) {
+			return
+		}
+
+		log.Err(err).Int64("block", level).Msg("Receiver.get")
 	}
-	r.blocks <- &block
-	r.inProcess.Delete(level)
 }
