@@ -32,6 +32,10 @@ func TestAddressValidator(t *testing.T) {
 			name:    "test 5",
 			value:   "0x6e4943f7a23ab9cbe56f48ff72f6c27e8956762400",
 			wantErr: true,
+		}, {
+			name:    "test 6",
+			value:   "sr18wx6ezkeRjt1SZSeZ2UQzQN3Uc3YLMLqg",
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

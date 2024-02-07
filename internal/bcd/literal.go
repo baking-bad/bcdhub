@@ -28,7 +28,9 @@ func IsContractLazy(str string) bool {
 
 // IsAddressLazy -
 func IsAddressLazy(address string) bool {
-	return (len(address) == 36 && (strings.HasPrefix(address, "KT") || strings.HasPrefix(address, "tz"))) ||
+	return (len(address) == 36 && (strings.HasPrefix(address, "KT") ||
+		strings.HasPrefix(address, "tz") ||
+		strings.HasPrefix(address, "sr1"))) ||
 		(len(address) == 37 && strings.HasPrefix(address, "txr"))
 }
 
