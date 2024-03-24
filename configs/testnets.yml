@@ -1,8 +1,4 @@
 rpc:
-  dailynet:
-    uri: ${DAILYNET_RPC}
-    timeout: 20
-    requests_per_second: 15
   weeklynet:
     uri: ${WEEKLYNET_RPC}
     timeout: 20
@@ -47,21 +43,14 @@ api:
     mempool_enabled: false
     sandbox_mode: false
     rpc:
-      dailynet: ${DAILYNET_RPC}
       weeklynet: ${WEEKLYNET_RPC}
   networks:
-    - dailynet
     - weeklynet
 
 indexer:
   project_name: indexer
   sentry_enabled: false
   networks:
-    dailynet:
-      receiver_threads: 5
-      periodic:
-        info_base_url: https://teztnets.xyz
-        schedule: "0 5 0 * * *" # at 00:05:00 every day
     weeklynet:
       receiver_threads: 10
       periodic:
@@ -70,5 +59,4 @@ indexer:
 
 scripts:
   networks:
-    - dailynet
     - weeklynet
