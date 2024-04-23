@@ -427,7 +427,7 @@ func (or *Or) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	case or.key == 0 && second.key == 0:
 	default:
 		if second.key == rightKey {
-			child, err := second.RightType.ToMiguel()
+			child, err := or.LeftType.ToMiguel()
 			if err != nil {
 				return nil, err
 			}
@@ -435,7 +435,7 @@ func (or *Or) Distinguish(x Distinguishable) (*MiguelNode, error) {
 			node.setDiffType(MiguelKindUpdate)
 		}
 		if second.key == leftKey {
-			child, err := second.LeftType.ToMiguel()
+			child, err := or.RightType.ToMiguel()
 			if err != nil {
 				return nil, err
 			}

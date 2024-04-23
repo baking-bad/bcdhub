@@ -42,6 +42,9 @@ func (node *MiguelNode) print(depth int) string {
 	if node.Value != nil {
 		s.WriteString(fmt.Sprintf(" value=%v", node.Value))
 	}
+	if node.DiffType != "" {
+		s.WriteString(fmt.Sprintf(" diff_type=%v", node.DiffType))
+	}
 	s.WriteByte('\n')
 	for i := range node.Children {
 		s.WriteString(node.Children[i].print(depth + 1))
