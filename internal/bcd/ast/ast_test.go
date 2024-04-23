@@ -1106,7 +1106,7 @@ func TestTypedAst_Diff(t *testing.T) {
 			tree: `{"prim":"or","args":[{"prim":"int"},{"prim":"string"}]}`,
 			curr: `{"prim":"Left","args":[{"int":"10"}]}`,
 			prev: `{"prim":"Right","args":[{"string":"test"}]}`,
-			want: `{"prim":"or","type":"or","name":"@or_1","diff_type":"update","children":[{"prim":"string","type":"string","name":"@string_3","diff_type":"update","value":"test"}]}`,
+			want: `{"prim":"or","type":"or","name":"@or_1","diff_type":"update","children":[{"prim":"int","type":"int","name":"@int_2","diff_type":"update","value":"10"}]}`,
 		}, {
 			name: "or test",
 			tree: `{"prim":"or","args":[{"prim":"int"},{"prim":"string"}]}`,
@@ -1118,7 +1118,7 @@ func TestTypedAst_Diff(t *testing.T) {
 			tree: `{"prim":"or","args":[{"prim":"int"},{"prim":"string"}]}`,
 			curr: `{"prim":"Right","args":[{"string":"test"}]}`,
 			prev: `{"prim":"Left","args":[{"int":"0"}]}`,
-			want: `{"prim":"or","type":"or","name":"@or_1","diff_type":"update","children":[{"prim":"int","type":"int","name":"@int_2","diff_type":"update","value":"0"}]}`,
+			want: `{"prim":"or","type":"or","name":"@or_1","diff_type":"update","children":[{"prim":"string","type":"string","name":"@string_3","diff_type":"update","value":"test"}]}`,
 		}, {
 			name: "or test",
 			tree: `{"prim":"or","args":[{"prim":"int"},{"prim":"string"}]}`,
