@@ -11,6 +11,10 @@ rpc:
     uri: https://rpc.tzkt.io/oxfordnet
     timeout: 20
     requests_per_second: 20
+  parisnet:
+    uri: https://rpc.tzkt.io/parisnet
+    timeout: 20
+    requests_per_second: 20
 
 log_level: ${LOG_LEVEL:-info}
   
@@ -20,6 +24,8 @@ services:
   ghostnet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   oxfordnet:
+    mempool: https://mempool.test.dipdup.net/v1/graphql
+  parisnet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
 
 storage:
@@ -61,10 +67,12 @@ api:
       mainnet: https://rpc.tzkt.io/mainnet
       ghostnet: https://rpc.tzkt.io/ghostnet
       oxfordnet: https://rpc.tzkt.io/oxfordnet
+      parisnet: https://rpc.tzkt.io/parisnet
   networks:
     - mainnet
     - ghostnet
     - oxfordnet
+    - parisnet
 
 indexer:
   project_name: indexer
@@ -75,6 +83,8 @@ indexer:
     ghostnet:
       receiver_threads: ${TESTNET_THREADS:-10}
     oxfordnet:
+      receiver_threads: ${TESTNET_THREADS:-10}
+    parisnet:
       receiver_threads: ${TESTNET_THREADS:-10}
 
 scripts:
@@ -87,3 +97,4 @@ scripts:
     - mainnet
     - ghostnet
     - oxfordnet
+    - parisnet

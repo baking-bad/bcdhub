@@ -82,7 +82,9 @@ func Get(ctx *config.Context, protocol string) (*Specific, error) {
 		"PtMumbai2TmsJHNGRkD8v8YDbtao7BLUC3wjASn1inAKLFCjaH1",
 		"PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf",
 		"ProxfordSW2S7fvchT1Zgj2avb5UES194neRyYVXoaDGvF9egt8",
-		"ProxfordYmVfjWnRcgjWH36fW6PArwqykTFzotUxRs6gmTcZDuH":
+		"ProxfordYmVfjWnRcgjWH36fW6PArwqykTFzotUxRs6gmTcZDuH",
+		"PtParisA6ruu136piHaBC7cQLDP87JEqtczJWP2pLa5QCELGBH5",
+		"PtParisBQscdCm6Cfow6ndeU6wKJyA3aV1j4D3gQBQMsTQyJCrz":
 		return &Specific{
 			StorageParser:         storage.NewLazyBabylon(ctx.BigMapDiffs, ctx.Operations, ctx.Accounts),
 			ContractParser:        contract.NewJakarta(ctx),
@@ -133,7 +135,9 @@ func NeedImplicitParsing(protocol string) bool {
 		"PtMumbai2TmsJHNGRkD8v8YDbtao7BLUC3wjASn1inAKLFCjaH1",
 		"PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf",
 		"ProxfordSW2S7fvchT1Zgj2avb5UES194neRyYVXoaDGvF9egt8",
-		"ProxfordYmVfjWnRcgjWH36fW6PArwqykTFzotUxRs6gmTcZDuH":
+		"ProxfordYmVfjWnRcgjWH36fW6PArwqykTFzotUxRs6gmTcZDuH",
+		"PtParisA6ruu136piHaBC7cQLDP87JEqtczJWP2pLa5QCELGBH5",
+		"PtParisBQscdCm6Cfow6ndeU6wKJyA3aV1j4D3gQBQMsTQyJCrz":
 		return true
 	}
 	return false
