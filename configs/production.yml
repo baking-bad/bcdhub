@@ -72,7 +72,7 @@ api:
     - mainnet
     - ghostnet
     - oxfordnet
-    - parisnet
+#    - parisnet
 
 indexer:
   project_name: indexer
