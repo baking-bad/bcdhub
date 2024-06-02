@@ -112,7 +112,7 @@ func (m Migration) contractMigrations(
 	return nil
 }
 
-func (m Migration) vestingMigration(ctx context.Context, tx models.Transaction, head noderpc.Header, currentProtocol protocol.Protocol) error {
+func (m Migration) vestingMigration(ctx context.Context, _ models.Transaction, head noderpc.Header, currentProtocol protocol.Protocol) error {
 	addresses, err := m.ctx.RPC.GetContractsByBlock(ctx, head.Level)
 	if err != nil {
 		return err

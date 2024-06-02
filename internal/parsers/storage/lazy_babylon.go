@@ -22,6 +22,7 @@ type LazyBabylon struct {
 
 	ptrMap            map[int64]int64
 	temporaryPointers map[int64]*ast.BigMap
+	allocated         map[int64]struct{}
 }
 
 // NewLazyBabylon -
@@ -33,6 +34,7 @@ func NewLazyBabylon(repo bigmapdiff.Repository, operations operation.Repository,
 
 		ptrMap:            make(map[int64]int64),
 		temporaryPointers: make(map[int64]*ast.BigMap),
+		allocated:         make(map[int64]struct{}),
 	}
 }
 
@@ -123,6 +125,9 @@ func (b *LazyBabylon) checkPointers(result *noderpc.OperationResult, storage *as
 			if ptr < 0 {
 				continue
 			}
+			if _, ok := b.temporaryPointers[ptr]; ok {
+				continue
+			}
 
 		default:
 			ptr := lsd.ID
@@ -133,6 +138,9 @@ func (b *LazyBabylon) checkPointers(result *noderpc.OperationResult, storage *as
 				continue
 			}
 			if ptr < 0 {
+				continue
+			}
+			if _, ok := b.temporaryPointers[ptr]; ok {
 				continue
 			}
 
@@ -281,6 +289,7 @@ func (b *LazyBabylon) handleBigMapDiffAlloc(ctx context.Context, diff *noderpc.L
 	if ptr > -1 {
 		operation.BigMapActions = append(operation.BigMapActions, b.createBigMapDiffAction("alloc", address, &ptr, nil, operation))
 	}
+	b.allocated[ptr] = struct{}{}
 
 	return b.handleBigMapDiffUpdate(ctx, diff, ptr, address, operation, store)
 }
@@ -347,19 +356,20 @@ func (b *LazyBabylon) updateTemporaryPointers(src, dst int64) {
 
 func (b *LazyBabylon) getCopyBigMapDiff(ctx context.Context, src int64, address string) (bmd []bigmapdiff.BigMapDiff, err error) {
 	if src > -1 {
+		if _, ok := b.allocated[src]; ok {
+			return b.getDiffsFromUpdates(src)
+		}
 		states, err := b.repo.GetByPtr(ctx, address, src)
 		if err != nil {
 			return nil, err
 		}
+
 		bmd = make([]bigmapdiff.BigMapDiff, 0, len(states))
 		for i := range states {
 			bmd = append(bmd, states[i].ToDiff())
 		}
-	} else {
-		bmd, err = b.getDiffsFromUpdates(src)
-		if err != nil {
-			return nil, err
-		}
+		return bmd, nil
 	}
-	return
+
+	return b.getDiffsFromUpdates(src)
 }
