@@ -93,7 +93,7 @@ func (p Transaction) Parse(ctx context.Context, data noderpc.Operation, store pa
 	}
 }
 
-func (p Transaction) parseSmartRollupParams(data noderpc.Operation, tx *operation.Operation) error {
+func (p Transaction) parseSmartRollupParams(_ noderpc.Operation, tx *operation.Operation) error {
 	if len(tx.Parameters) == 0 {
 		return tx.Entrypoint.Set(consts.DefaultEntrypoint)
 	}
