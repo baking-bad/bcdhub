@@ -12,7 +12,6 @@ type SentryConfig struct {
 	DSN   string
 	Debug bool
 	Env   string
-	Tags  map[string]string
 }
 
 // InitSentry -
@@ -23,7 +22,6 @@ func InitSentry(cfg SentryConfig) {
 		Debug:            cfg.Debug,
 		AttachStacktrace: true,
 		BeforeSend:       beforeSend,
-		Tags:             cfg.Tags,
 	}); err != nil {
 		log.Err(err).Msg("Sentry initialization failed")
 	}

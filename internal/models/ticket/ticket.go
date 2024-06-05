@@ -31,8 +31,10 @@ func (Ticket) TableName() string {
 }
 
 func (t Ticket) GetHash() string {
-	data := make([]byte, len(t.ContentType))
-	copy(data, t.ContentType)
+	ct := make([]byte, len(t.ContentType))
+	copy(ct, t.ContentType)
+	data := make([]byte, 0)
+	data = append(data, ct...)
 	data = append(data, t.Content...)
 	data = append(data, []byte(t.Ticketer.Address)...)
 	h := sha256.New()

@@ -43,8 +43,9 @@ func TestTimestamp_ParseValue(t *testing.T) {
 			ts := &Timestamp{
 				Default: Default{},
 			}
+			val := tt.ts
 			node := &base.Node{
-				StringValue: &tt.ts,
+				StringValue: &val,
 			}
 			err := ts.ParseValue(node)
 			require.Equal(t, tt.wantErr, err != nil)

@@ -30,9 +30,6 @@ func main() {
 			DSN:   cfg.Sentry.URI,
 			Debug: cfg.Sentry.Debug,
 			Env:   cfg.Sentry.Environment,
-			Tags: map[string]string{
-				"project": cfg.Indexer.ProjectName,
-			},
 		})
 		defer helpers.CatchPanicSentry()
 	}

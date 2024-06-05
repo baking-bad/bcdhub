@@ -73,7 +73,8 @@ func TestString_Forge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := new(String)
-			s.StringValue = &tt.s
+			val := tt.s
+			s.StringValue = &val
 
 			got, err := s.Forge()
 			require.Equal(t, tt.wantErr, err != nil)

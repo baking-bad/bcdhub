@@ -15,7 +15,14 @@ linters:
     - mirror
     - tagalign
     - zerologlint
+    - copyloopvar
+    - gosec
+    - misspell
+    - noctx
+    - prealloc
+    - protogetter
+    - makezero
 
 run:
-  go: '1.21'
+  go: '1.22'
   timeout: 3m

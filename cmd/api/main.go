@@ -50,9 +50,6 @@ func newApp() *app {
 			DSN:   cfg.Sentry.URI,
 			Debug: cfg.Sentry.Debug,
 			Env:   cfg.Sentry.Environment,
-			Tags: map[string]string{
-				"project": cfg.API.ProjectName,
-			},
 		})
 	}
 
