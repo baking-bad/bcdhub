@@ -2,7 +2,8 @@ package noderpc
 
 import (
 	"context"
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"reflect"
 	"time"
 
@@ -60,17 +61,22 @@ func NewWaitPool(urls []string, opts ...NodeOption) Pool {
 func (p Pool) getNode() (*poolItem, error) {
 	nodes := make([]*poolItem, 0)
 	for i := range p {
-		// if p[i].isBlocked() {
-		// 	nodes = append(nodes, p[i])
-		// }
 		nodes = append(nodes, p[i])
 	}
 
-	if len(nodes) == 0 {
+	switch len(nodes) {
+	case 0:
 		return nil, errors.Errorf("No available nodes")
-	}
+	case 1:
+		return nodes[0], nil
+	default:
+		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(nodes))))
+		if err != nil {
+			return nil, err
+		}
 
-	return nodes[rand.Intn(len(nodes))], nil
+		return nodes[idx.Int64()], nil
+	}
 }
 
 func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {

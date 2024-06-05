@@ -30,7 +30,7 @@ func newTestBabylon(repoCtrl *gomock.Controller) (*Babylon, *mock_bmd.MockReposi
 func TestBabylon_ParseTransaction(t *testing.T) {
 	type args struct {
 		content   string
-		operation operation.Operation
+		operation *operation.Operation
 	}
 	tests := []struct {
 		name          string
@@ -43,7 +43,7 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 			name: "delphinet/KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
 			args: args{
 				content: `{"kind":"transaction","source":"tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb","fee":"10135","counter":"704669","gas_limit":"97777","storage_limit":"31656","amount":"1000000","destination":"KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e","parameters":{"entrypoint":"launchExchange","value":{"prim":"Pair","args":[{"string":"KT1KVJ4S53zE6E8oo8L8TyMgAh1ACpf9HweA"},{"int":"1000000"}]}},"metadata":{"balance_updates":[{"kind":"contract","contract":"tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb","change":"-10135"},{"kind":"freezer","category":"fees","delegate":"tz1PirboHQVqkYqLSWfHUHEy3AdhYUNJpvGy","cycle":91,"change":"10135"}],"operation_result":{"status":"applied","storage":{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"10416"},{"int":"10417"}]},{"prim":"Pair","args":[[{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}],{"int":"10418"}]}]},"big_map_diff":[{"action":"copy","source_big_map":"10417","destination_big_map":"-8"},{"action":"alloc","big_map":"-7","key_type":{"prim":"key_hash"},"value_type":{"prim":"nat"}},{"action":"alloc","big_map":"-6","key_type":{"prim":"address"},"value_type":{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"option","args":[{"prim":"key_hash"}]},{"prim":"timestamp"}]},{"prim":"pair","args":[{"prim":"nat"},{"prim":"nat"}]}]}},{"action":"alloc","big_map":"-5","key_type":{"prim":"key_hash"},"value_type":{"prim":"timestamp"}},{"action":"alloc","big_map":"-4","key_type":{"prim":"address"},"value_type":{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat"},{"prim":"nat"}]},{"prim":"pair","args":[{"prim":"nat"},{"prim":"nat"}]}]},{"prim":"timestamp"}]}},{"action":"alloc","big_map":"-3","key_type":{"prim":"address"},"value_type":{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"map","args":[{"prim":"address"},{"prim":"nat"}]},{"prim":"nat"}]},{"prim":"nat"}]}},{"action":"update","big_map":"-3","key_hash":"exprtr3iA2ZhFDtnJZDS1nVxJYeXGWw2AWziVAD7DZf7kxsHmNLZBB","key":{"bytes":"00006b82198cb179e8306c1bedd08f12dc863f328886"},"value":{"prim":"Pair","args":[{"prim":"Pair","args":[[],{"int":"1000"}]},{"int":"0"}]}},{"action":"alloc","big_map":"-2","key_type":{"prim":"string"},"value_type":{"prim":"bytes"}},{"action":"update","big_map":"-2","key_hash":"expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo","key":{"string":""},"value":{"bytes":"4b54313964473234535066486464564d4d50456131675342706f4c5a6374786e556b48542f6d65746164617461"}},{"action":"copy","source_big_map":"10416","destination_big_map":"-1"},{"action":"update","big_map":"10418","key_hash":"exprvDFsAkF12eo7cP1EtDk52Ef72CzDhxuJmwXCqbqSWq6CrJ3ziX","key":{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"},"value":{"bytes":"0117f1f0e206ba4c32f1f43de336b0ef2785f4014500"}}],"balance_updates":[{"kind":"contract","contract":"tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb","change":"-29750"},{"kind":"contract","contract":"tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb","change":"-1000000"},{"kind":"contract","contract":"KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e","change":"1000000"}],"consumed_gas":"56838","consumed_milligas":"56837252","storage_size":"39563","paid_storage_size_diff":"119"}}}`,
-				operation: operation.Operation{
+				operation: &operation.Operation{
 					Level: 186900,
 					Destination: account.Account{
 						Address: "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
@@ -103,7 +103,7 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 			tt.args.operation.AST = tree
 
 			store := parsers.NewTestStore()
-			err = b.ParseTransaction(context.Background(), content, &tt.args.operation, store)
+			err = b.ParseTransaction(context.Background(), content, tt.args.operation, store)
 			require.Equal(t, tt.wantErr, err != nil)
 			if err != nil {
 				return

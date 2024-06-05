@@ -116,7 +116,7 @@ func (rpc *NodeRPC) parseResponse(r io.Reader, statusCode int, checkStatusCode b
 	return json.NewDecoder(r).Decode(response)
 }
 
-func (rpc *NodeRPC) makeRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
+func (rpc *NodeRPC) makeRequest(req *http.Request) (*http.Response, error) {
 	req.Header.Set("User-Agent", rpc.userAgent)
 	return rpc.client.Do(req)
 }
@@ -130,7 +130,7 @@ func (rpc *NodeRPC) makeGetRequest(ctx context.Context, uri string) (*http.Respo
 	if err != nil {
 		return nil, errors.Errorf("makeGetRequest.NewRequest: %v", err)
 	}
-	return rpc.makeRequest(ctx, req)
+	return rpc.makeRequest(req)
 }
 
 func (rpc *NodeRPC) makePostRequest(ctx context.Context, uri string, data interface{}) (*http.Response, error) {
@@ -147,7 +147,7 @@ func (rpc *NodeRPC) makePostRequest(ctx context.Context, uri string, data interf
 	if err != nil {
 		return nil, errors.Errorf("makePostRequest.NewRequest: %v", err)
 	}
-	return rpc.makeRequest(ctx, req)
+	return rpc.makeRequest(req)
 }
 
 func (rpc *NodeRPC) get(ctx context.Context, uri string, response interface{}) error {
