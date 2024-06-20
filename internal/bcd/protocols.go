@@ -44,7 +44,8 @@ var symLinks = map[string]string{
 	"ProxfordYmVfjWnRcgjWH36fW6PArwqykTFzotUxRs6gmTcZDuH": SymLinkJakarta, // Oxford 2
 	"PtParisA6ruu136piHaBC7cQLDP87JEqtczJWP2pLa5QCELGBH5": SymLinkJakarta, // Paris A
 	"PtParisBQscdCm6Cfow6ndeU6wKJyA3aV1j4D3gQBQMsTQyJCrz": SymLinkJakarta, // Paris B
-	"PtParisBxoLz5gzMmn3d9WBQNoPSZakgnkMC2VNuQ3KXfUtUQeZ": SymLinkJakarta, // Paris B 2
+	"PtParisBxoLz5gzMmn3d9WBQNoPSZakgnkMC2VNuQ3KXfUtUQeZ": SymLinkJakarta, // Paris B 2,
+	"PsParisCZo7KAh1Z1smVd9ZMZ1HHn5gkzbM94V3PLCpknFWhUAi": SymLinkJakarta, // Paris C
 }
 
 // GetProtoSymLink -
@@ -57,7 +58,7 @@ func GetProtoSymLink(protocol string) (string, error) {
 
 // GetCurrentProtocol - returns last supported protocol
 func GetCurrentProtocol() string {
-	return "PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf"
+	return "PsParisCZo7KAh1Z1smVd9ZMZ1HHn5gkzbM94V3PLCpknFWhUAi"
 }
 
 // SymLink - returns last sym link
