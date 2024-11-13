@@ -46,6 +46,7 @@ var symLinks = map[string]string{
 	"PtParisBQscdCm6Cfow6ndeU6wKJyA3aV1j4D3gQBQMsTQyJCrz": SymLinkJakarta, // Paris B
 	"PtParisBxoLz5gzMmn3d9WBQNoPSZakgnkMC2VNuQ3KXfUtUQeZ": SymLinkJakarta, // Paris B 2,
 	"PsParisCZo7KAh1Z1smVd9ZMZ1HHn5gkzbM94V3PLCpknFWhUAi": SymLinkJakarta, // Paris C
+	"PsQuebecnLByd3JwTiGadoG4nGWi3HYiLXUjkibeFV8dCFeVMUg": SymLinkJakarta, // Quebec
 }
 
 // GetProtoSymLink -
@@ -84,4 +85,5 @@ var ChainID = map[string]string{
 	"NetXyuzvDo2Ugzb": "nairobinet",
 	"NetXxWsskGahzQB": "oxfordnet",
 	"NetXR64bNAYkP4S": "parisnet",
+	"NetXuTeGinLEqxp": "quebecnet",
 }
