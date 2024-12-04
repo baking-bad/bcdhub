@@ -11,9 +11,13 @@ rpc:
     uri: https://rpc.tzkt.io/parisnet
     timeout: 20
     requests_per_second: 20
+  quebecnet:
+    uri: https://rpc.tzkt.io/quebecnet
+    timeout: 20
+    requests_per_second: 20
 
 log_level: ${LOG_LEVEL:-info}
-  
+
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
@@ -21,9 +25,11 @@ services:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   parisnet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
+  quebecnet:
+    mempool: https://mempool.test.dipdup.net/v1/graphql
 
 storage:
-  pg: 
+  pg:
     host: ${DB_HOSTNAME:-db}
     port: 5432
     user: ${POSTGRES_USER}
@@ -61,10 +67,12 @@ api:
       mainnet: https://rpc.tzkt.io/mainnet
       ghostnet: https://rpc.tzkt.io/ghostnet
       parisnet: https://rpc.tzkt.io/parisnet
+      quebecnet: https://rpc.tzkt.io/quebecnet
   networks:
     - mainnet
     - ghostnet
     - parisnet
+    - quebecnet
 
 indexer:
   project_name: indexer
@@ -76,6 +84,8 @@ indexer:
       receiver_threads: ${TESTNET_THREADS:-10}
     parisnet:
       receiver_threads: ${TESTNET_THREADS:-10}
+    quebecnet:
+      receiver_threads: 10
 
 scripts:
   aws:
@@ -87,3 +97,4 @@ scripts:
     - mainnet
     - ghostnet
     - parisnet
+    - quebecnet
