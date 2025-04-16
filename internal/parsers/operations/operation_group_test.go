@@ -2583,7 +2583,7 @@ func TestGroup_Parse(t *testing.T) {
 			for address, level := range tt.storage {
 				rpc.
 					EXPECT().
-					GetScriptStorageRaw(context.Background(), address, level).
+					GetScriptStorageRaw(t.Context(), address, level).
 					DoAndReturn(
 						func(_ context.Context, address string, level int64) ([]byte, error) {
 							storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", address, level)
@@ -2597,11 +2597,11 @@ func TestGroup_Parse(t *testing.T) {
 			err := readJSONFile(tt.filename, &op)
 			require.NoError(t, err)
 
-			parseParams, err := NewParseParams(context.Background(), tt.ctx, tt.paramsOpts...)
+			parseParams, err := NewParseParams(t.Context(), tt.ctx, tt.paramsOpts...)
 			require.NoError(t, err)
 
 			store := parsers.NewTestStore()
-			err = NewGroup(parseParams).Parse(context.Background(), op, store)
+			err = NewGroup(parseParams).Parse(t.Context(), op, store)
 			require.Equal(t, tt.wantErr, err != nil, err)
 			if err == nil {
 				compareParserResponse(t, store, tt.want)

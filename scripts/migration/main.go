@@ -61,7 +61,9 @@ func chooseMigration() (migrations.Migration, error) {
 
 	var input string
 	fmt.Println("\nEnter migration #:")
-	fmt.Scanln(&input)
+	if _, err := fmt.Scanln(&input); err != nil {
+		return nil, err
+	}
 
 	index, err := strconv.Atoi(input)
 	if err != nil {
