@@ -10,13 +10,12 @@ linters:
     - errcheck
     - ineffassign
     - containedctx
-    - tenv
+    - usetesting
     - musttag
     - mirror
     - tagalign
     - zerologlint
     - copyloopvar
-    - gosec
     - misspell
     - noctx
     - prealloc

@@ -23,7 +23,7 @@ func NewNullString(val *string) NullString {
 
 // UnmarshalJSON -
 func (ns *NullString) UnmarshalJSON(data []byte) error {
-	if data == nil || len(data) < 2 {
+	if len(data) < 2 {
 		ns.Valid = false
 		return nil
 	}

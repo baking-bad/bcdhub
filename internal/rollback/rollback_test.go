@@ -1,7 +1,6 @@
 package rollback
 
 import (
-	"context"
 	"database/sql"
 	"testing"
 	"time"
@@ -410,7 +409,7 @@ func TestManager_Rollback(t *testing.T) {
 		}
 		err := NewManager(storage, blockRepo, rb, statsRepo).
 			Rollback(
-				context.Background(),
+				t.Context(),
 				types.Mainnet,
 				state,
 				10,

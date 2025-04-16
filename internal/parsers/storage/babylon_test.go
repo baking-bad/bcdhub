@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -103,7 +102,7 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 			tt.args.operation.AST = tree
 
 			store := parsers.NewTestStore()
-			err = b.ParseTransaction(context.Background(), content, tt.args.operation, store)
+			err = b.ParseTransaction(t.Context(), content, tt.args.operation, store)
 			require.Equal(t, tt.wantErr, err != nil)
 			if err != nil {
 				return
