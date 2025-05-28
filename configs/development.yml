@@ -7,10 +7,6 @@ rpc:
     uri: https://rpc.tzkt.io/ghostnet
     timeout: 20
     requests_per_second: 15
-  quebecnet:
-    uri: https://rpc.tzkt.io/quebecnet
-    timeout: 20
-    requests_per_second: 20
   rionet:
     uri: https://rpc.tzkt.io/rionet
     timeout: 20
@@ -22,8 +18,6 @@ services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
   ghostnet:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
-  quebecnet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   rionet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
@@ -63,12 +57,10 @@ api:
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
       ghostnet: https://rpc.tzkt.io/ghostnet
-      quebecnet: https://rpc.tzkt.io/quebecnet
       rionet: https://rpc.tzkt.io/rionet
   networks:
     - mainnet
     - ghostnet
-    - quebecnet
     - rionet
 
 indexer:
@@ -79,8 +71,6 @@ indexer:
       receiver_threads: 5
     ghostnet:
       receiver_threads: 5
-    quebecnet:
-      receiver_threads: 10
     rionet:
       receiver_threads: 10
 
@@ -88,5 +78,4 @@ scripts:
   networks:
     - mainnet
     - ghostnet
-    - quebecnet
     - rionet
