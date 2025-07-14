@@ -92,6 +92,7 @@ var namesToNetwork = map[string]Network{
 	"parisnet":     Parisnet,
 	"quebecnet":    Quebecnet,
 	"rionet":       Rionet,
+	"seoulnet":     Seoulnet,
 }
 
 // String - convert enum to string for printing
