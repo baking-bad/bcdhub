@@ -48,6 +48,7 @@ var symLinks = map[string]string{
 	"PsParisCZo7KAh1Z1smVd9ZMZ1HHn5gkzbM94V3PLCpknFWhUAi": SymLinkJakarta, // Paris C
 	"PsQuebecnLByd3JwTiGadoG4nGWi3HYiLXUjkibeFV8dCFeVMUg": SymLinkJakarta, // Quebec
 	"PsRiotumaAMotcRoDWW1bysEhQy2n1M5fy8JgRp8jjRfHGmfeA7": SymLinkJakarta, // Rionet
+	"PtSeouLouXkxhg39oWzjxDWaCydNfR3RxCUrNe4Q9Ro8BTehcbh": SymLinkJakarta, // Seoulnet
 }
 
 // GetProtoSymLink -
@@ -88,4 +89,5 @@ var ChainID = map[string]string{
 	"NetXR64bNAYkP4S": "parisnet",
 	"NetXuTeGinLEqxp": "quebecnet",
 	"NetXPdgaoabtBth": "rionet",
+	"NetXd56aBs1aeW3": "seoulnet",
 }
