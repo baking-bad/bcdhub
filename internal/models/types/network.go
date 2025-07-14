@@ -36,6 +36,7 @@ const (
 	Parisnet
 	Quebecnet
 	Rionet
+	Seoulnet
 )
 
 var networkNames = map[Network]string{
@@ -63,6 +64,7 @@ var networkNames = map[Network]string{
 	Parisnet:     "parisnet",
 	Quebecnet:    "quebecnet",
 	Rionet:       "rionet",
+	Seoulnet:     "seoulnet",
 }
 
 var namesToNetwork = map[string]Network{

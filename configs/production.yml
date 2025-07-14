@@ -11,6 +11,10 @@ rpc:
     uri: https://rpc.tzkt.io/rionet
     timeout: 20
     requests_per_second: 20
+  seoulnet:
+    uri: https://rpc.tzkt.io/seoulnet
+    timeout: 20
+    requests_per_second: 20
 
 log_level: ${LOG_LEVEL:-info}
 
@@ -20,6 +24,8 @@ services:
   ghostnet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   rionet:
+    mempool: https://mempool.test.dipdup.net/v1/graphql
+  seoulnet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
 
 storage:
@@ -61,10 +67,12 @@ api:
       mainnet: https://rpc.tzkt.io/mainnet
       ghostnet: https://rpc.tzkt.io/ghostnet
       rionet: https://rpc.tzkt.io/rionet
+      seoulnet: https://rpc.tzkt.io/seoulnet
   networks:
     - mainnet
     - ghostnet
     - rionet
+    - seoulnet
 
 indexer:
   project_name: indexer
@@ -75,7 +83,9 @@ indexer:
     ghostnet:
       receiver_threads: ${TESTNET_THREADS:-10}
     rionet:
-      receiver_threads: 10
+      receiver_threads: ${TESTNET_THREADS:-10}
+    seoulnet:
+      receiver_threads: ${TESTNET_THREADS:-10}
 
 scripts:
   aws:
@@ -87,3 +97,4 @@ scripts:
     - mainnet
     - ghostnet
     - rionet
+    - seoulnet
