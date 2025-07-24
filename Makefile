@@ -79,10 +79,10 @@ ps:
 	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"
 
 sandbox-pull:
-	TAG=4.7.6 docker-compose -f docker-compose.flextesa.yml pull
+	TAG=master docker-compose -f docker-compose.flextesa.yml pull
 
 flextesa-sandbox:
-	COMPOSE_PROJECT_NAME=bcdbox TAG=4.7.6 docker-compose -f docker-compose.flextesa.yml up -d
+	COMPOSE_PROJECT_NAME=bcdbox TAG=master docker-compose -f docker-compose.flextesa.yml up -d
 
 sandbox-down:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.flextesa.yml down

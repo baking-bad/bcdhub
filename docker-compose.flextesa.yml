@@ -11,6 +11,10 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - db:/var/lib/postgresql/data 
+    ports:
+      - 127.0.0.1:${POSTGRES_PORT:-5432}:5432
+    networks:
+      - internal-network
     logging: &bcd-logging
       options:
         max-size: 10m
@@ -29,11 +33,11 @@ services:
     depends_on:
       - db
     ports:
-      - 127.0.0.1:14000:14000
+      - "127.0.0.1:15000:14000"
     volumes:
       - bcdshare:/etc/bcd
-    links:
-      - "flextesa:sandbox"
+    networks:
+      - internal-network
     logging: *bcd-logging
 
   indexer:
@@ -47,14 +51,15 @@ services:
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - db
-    links:
-      - "flextesa:sandbox"
+    networks:
+      - internal-network
     volumes:
       - bcdshare:/etc/bcd
     logging: *bcd-logging
 
   flextesa:
     restart: always
+    container_name: sandbox
     image: oxheadalpha/flextesa:test-multi-arch-00
     command: hangzbox start
     environment:
@@ -64,6 +69,8 @@ services:
       - 127.0.0.1:20000:20000
     expose:
       - 20000/tcp
+    networks:
+      - internal-network
     logging: *bcd-logging
 
   gui:
@@ -73,10 +80,16 @@ services:
     depends_on:
       - api
     ports:
-      - 127.0.0.1:8000:80
+      - "127.0.0.1:8000:80"
+    environment:
+      - API_URL=http://localhost:15000/v1
     logging: *bcd-logging
 
 volumes:
   bcdshare:
   db:
     driver: local
+    
+networks:
+  internal-network:
+    driver: bridge
