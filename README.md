@@ -26,6 +26,8 @@ make sandbox-down
 make sandbox-clear
 ```
 
+To use custom node URL just change `SANDBOX_NODE_URI` in the docker-compose.flextesa.yml to the appropriate one.
+
 ## Read more
 
 * [Configuration](./docs/configuration.md)
