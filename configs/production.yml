@@ -3,10 +3,10 @@ rpc:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
     requests_per_second: 10
-  ghostnet:
-    uri: https://rpc.tzkt.io/ghostnet
-    timeout: 20
-    requests_per_second: 10
+#  ghostnet:
+#    uri: https://rpc.tzkt.io/ghostnet
+#    timeout: 20
+#    requests_per_second: 10
   rionet:
     uri: https://rpc.tzkt.io/rionet
     timeout: 20
@@ -21,8 +21,8 @@ log_level: ${LOG_LEVEL:-info}
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-  ghostnet:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
+#  ghostnet:
+#    mempool: https://mempool.test.dipdup.net/v1/graphql
   rionet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   seoulnet:
@@ -65,12 +65,12 @@ api:
     sandbox_mode: false
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
-      ghostnet: https://rpc.tzkt.io/ghostnet
+#      ghostnet: https://rpc.tzkt.io/ghostnet
       rionet: https://rpc.tzkt.io/rionet
       seoulnet: https://rpc.tzkt.io/seoulnet
   networks:
     - mainnet
-    - ghostnet
+#    - ghostnet
     - rionet
     - seoulnet
 
@@ -80,8 +80,8 @@ indexer:
   networks:
     mainnet:
       receiver_threads: ${MAINNET_THREADS:-10}
-    ghostnet:
-      receiver_threads: ${TESTNET_THREADS:-10}
+#    ghostnet:
+#      receiver_threads: ${TESTNET_THREADS:-10}
     rionet:
       receiver_threads: ${TESTNET_THREADS:-10}
     seoulnet:
@@ -95,6 +95,6 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - ghostnet
+#    - ghostnet
     - rionet
     - seoulnet
