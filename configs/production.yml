@@ -95,6 +95,6 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-#    - ghostnet
+    - ghostnet
     - rionet
     - seoulnet
