@@ -75,19 +75,3 @@ const (
 	SymLinkBabylon = "babylon"
 	SymLinkJakarta = "jakarta"
 )
-
-var ChainID = map[string]string{
-	"NetXdQprcVkpaWU": "mainnet",
-	"NetXZSsxBpMQeAT": "hangzhou2net",
-	"NetXnHfVqm9iesp": "ithacanet",
-	"NetXLH1uAxK7CCh": "jakarta",
-	"NetXi2ZagzEsXbZ": "kathmandunet",
-	"NetXizpkH94bocH": "limanet",
-	"NetXQw6nWSnrJ5t": "mumbainet",
-	"NetXyuzvDo2Ugzb": "nairobinet",
-	"NetXxWsskGahzQB": "oxfordnet",
-	"NetXR64bNAYkP4S": "parisnet",
-	"NetXuTeGinLEqxp": "quebecnet",
-	"NetXPdgaoabtBth": "rionet",
-	"NetXd56aBs1aeW3": "seoulnet",
-}
