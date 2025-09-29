@@ -61,7 +61,7 @@ func GetProtoSymLink(protocol string) (string, error) {
 
 // GetCurrentProtocol - returns last supported protocol
 func GetCurrentProtocol() string {
-	return "PsParisCZo7KAh1Z1smVd9ZMZ1HHn5gkzbM94V3PLCpknFWhUAi"
+	return "PtSeouLouXkxhg39oWzjxDWaCydNfR3RxCUrNe4Q9Ro8BTehcbh"
 }
 
 // SymLink - returns last sym link
@@ -75,19 +75,3 @@ const (
 	SymLinkBabylon = "babylon"
 	SymLinkJakarta = "jakarta"
 )
-
-var ChainID = map[string]string{
-	"NetXdQprcVkpaWU": "mainnet",
-	"NetXZSsxBpMQeAT": "hangzhou2net",
-	"NetXnHfVqm9iesp": "ithacanet",
-	"NetXLH1uAxK7CCh": "jakarta",
-	"NetXi2ZagzEsXbZ": "kathmandunet",
-	"NetXizpkH94bocH": "limanet",
-	"NetXQw6nWSnrJ5t": "mumbainet",
-	"NetXyuzvDo2Ugzb": "nairobinet",
-	"NetXxWsskGahzQB": "oxfordnet",
-	"NetXR64bNAYkP4S": "parisnet",
-	"NetXuTeGinLEqxp": "quebecnet",
-	"NetXPdgaoabtBth": "rionet",
-	"NetXd56aBs1aeW3": "seoulnet",
-}
