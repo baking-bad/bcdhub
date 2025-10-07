@@ -109,3 +109,38 @@ scripts:
     - rionet
     - seoulnet
     - shadownet
+      
+implicit_contracts:
+  mainnet:
+    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
+      level: 1589247
+    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
+      level: 1589247
+  ghostnet:
+    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
+      level: 1
+    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
+      level: 1
+    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
+      level: 1
+  seoulnet:
+    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
+      level: 1
+    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
+      level: 1
+    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
+      level: 1
+  rionet:
+    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
+      level: 1
+    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
+      level: 1
+    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
+      level: 1
+  shadownet:
+    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
+      level: 1
+    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
+      level: 1
+    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
+      level: 1

@@ -311,3 +311,12 @@ func (p Pool) RunScriptView(ctx context.Context, request RunScriptViewRequest) (
 	}
 	return data.Interface().([]byte), nil
 }
+
+// GetStorage -
+func (p Pool) GetStorage(ctx context.Context, level int64, address string) ([]byte, error) {
+	data, err := p.call("GetStorage", ctx, address, level)
+	if err != nil {
+		return nil, err
+	}
+	return data.Interface().([]byte), nil
+}

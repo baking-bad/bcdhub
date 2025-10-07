@@ -5,6 +5,7 @@
 //
 //	mockgen -source=interface.go -destination=mock.go -package=noderpc -typed
 //
+
 // Package noderpc is a generated GoMock package.
 package noderpc
 
@@ -19,6 +20,7 @@ import (
 type MockINode struct {
 	ctrl     *gomock.Controller
 	recorder *MockINodeMockRecorder
+	isgomock struct{}
 }
 
 // MockINodeMockRecorder is the mock recorder for MockINode.
@@ -48,31 +50,31 @@ func (m *MockINode) Block(arg0 context.Context, arg1 int64) (Block, error) {
 }
 
 // Block indicates an expected call of Block.
-func (mr *MockINodeMockRecorder) Block(arg0, arg1 any) *INodeBlockCall {
+func (mr *MockINodeMockRecorder) Block(arg0, arg1 any) *MockINodeBlockCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Block", reflect.TypeOf((*MockINode)(nil).Block), arg0, arg1)
-	return &INodeBlockCall{Call: call}
+	return &MockINodeBlockCall{Call: call}
 }
 
-// INodeBlockCall wrap *gomock.Call
-type INodeBlockCall struct {
+// MockINodeBlockCall wrap *gomock.Call
+type MockINodeBlockCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeBlockCall) Return(arg0 Block, arg1 error) *INodeBlockCall {
+func (c *MockINodeBlockCall) Return(arg0 Block, arg1 error) *MockINodeBlockCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeBlockCall) Do(f func(context.Context, int64) (Block, error)) *INodeBlockCall {
+func (c *MockINodeBlockCall) Do(f func(context.Context, int64) (Block, error)) *MockINodeBlockCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeBlockCall) DoAndReturn(f func(context.Context, int64) (Block, error)) *INodeBlockCall {
+func (c *MockINodeBlockCall) DoAndReturn(f func(context.Context, int64) (Block, error)) *MockINodeBlockCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -87,31 +89,31 @@ func (m *MockINode) BlockHash(arg0 context.Context, arg1 int64) (string, error) 
 }
 
 // BlockHash indicates an expected call of BlockHash.
-func (mr *MockINodeMockRecorder) BlockHash(arg0, arg1 any) *INodeBlockHashCall {
+func (mr *MockINodeMockRecorder) BlockHash(arg0, arg1 any) *MockINodeBlockHashCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockHash", reflect.TypeOf((*MockINode)(nil).BlockHash), arg0, arg1)
-	return &INodeBlockHashCall{Call: call}
+	return &MockINodeBlockHashCall{Call: call}
 }
 
-// INodeBlockHashCall wrap *gomock.Call
-type INodeBlockHashCall struct {
+// MockINodeBlockHashCall wrap *gomock.Call
+type MockINodeBlockHashCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeBlockHashCall) Return(arg0 string, arg1 error) *INodeBlockHashCall {
+func (c *MockINodeBlockHashCall) Return(arg0 string, arg1 error) *MockINodeBlockHashCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeBlockHashCall) Do(f func(context.Context, int64) (string, error)) *INodeBlockHashCall {
+func (c *MockINodeBlockHashCall) Do(f func(context.Context, int64) (string, error)) *MockINodeBlockHashCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeBlockHashCall) DoAndReturn(f func(context.Context, int64) (string, error)) *INodeBlockHashCall {
+func (c *MockINodeBlockHashCall) DoAndReturn(f func(context.Context, int64) (string, error)) *MockINodeBlockHashCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -126,31 +128,31 @@ func (m *MockINode) GetBigMapType(ctx context.Context, ptr, level int64) (BigMap
 }
 
 // GetBigMapType indicates an expected call of GetBigMapType.
-func (mr *MockINodeMockRecorder) GetBigMapType(ctx, ptr, level any) *INodeGetBigMapTypeCall {
+func (mr *MockINodeMockRecorder) GetBigMapType(ctx, ptr, level any) *MockINodeGetBigMapTypeCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapType", reflect.TypeOf((*MockINode)(nil).GetBigMapType), ctx, ptr, level)
-	return &INodeGetBigMapTypeCall{Call: call}
+	return &MockINodeGetBigMapTypeCall{Call: call}
 }
 
-// INodeGetBigMapTypeCall wrap *gomock.Call
-type INodeGetBigMapTypeCall struct {
+// MockINodeGetBigMapTypeCall wrap *gomock.Call
+type MockINodeGetBigMapTypeCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetBigMapTypeCall) Return(arg0 BigMap, arg1 error) *INodeGetBigMapTypeCall {
+func (c *MockINodeGetBigMapTypeCall) Return(arg0 BigMap, arg1 error) *MockINodeGetBigMapTypeCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetBigMapTypeCall) Do(f func(context.Context, int64, int64) (BigMap, error)) *INodeGetBigMapTypeCall {
+func (c *MockINodeGetBigMapTypeCall) Do(f func(context.Context, int64, int64) (BigMap, error)) *MockINodeGetBigMapTypeCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetBigMapTypeCall) DoAndReturn(f func(context.Context, int64, int64) (BigMap, error)) *INodeGetBigMapTypeCall {
+func (c *MockINodeGetBigMapTypeCall) DoAndReturn(f func(context.Context, int64, int64) (BigMap, error)) *MockINodeGetBigMapTypeCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -165,31 +167,31 @@ func (m *MockINode) GetBlockMetadata(ctx context.Context, level int64) (Metadata
 }
 
 // GetBlockMetadata indicates an expected call of GetBlockMetadata.
-func (mr *MockINodeMockRecorder) GetBlockMetadata(ctx, level any) *INodeGetBlockMetadataCall {
+func (mr *MockINodeMockRecorder) GetBlockMetadata(ctx, level any) *MockINodeGetBlockMetadataCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockMetadata", reflect.TypeOf((*MockINode)(nil).GetBlockMetadata), ctx, level)
-	return &INodeGetBlockMetadataCall{Call: call}
+	return &MockINodeGetBlockMetadataCall{Call: call}
 }
 
-// INodeGetBlockMetadataCall wrap *gomock.Call
-type INodeGetBlockMetadataCall struct {
+// MockINodeGetBlockMetadataCall wrap *gomock.Call
+type MockINodeGetBlockMetadataCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetBlockMetadataCall) Return(metadata Metadata, err error) *INodeGetBlockMetadataCall {
+func (c *MockINodeGetBlockMetadataCall) Return(metadata Metadata, err error) *MockINodeGetBlockMetadataCall {
 	c.Call = c.Call.Return(metadata, err)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetBlockMetadataCall) Do(f func(context.Context, int64) (Metadata, error)) *INodeGetBlockMetadataCall {
+func (c *MockINodeGetBlockMetadataCall) Do(f func(context.Context, int64) (Metadata, error)) *MockINodeGetBlockMetadataCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetBlockMetadataCall) DoAndReturn(f func(context.Context, int64) (Metadata, error)) *INodeGetBlockMetadataCall {
+func (c *MockINodeGetBlockMetadataCall) DoAndReturn(f func(context.Context, int64) (Metadata, error)) *MockINodeGetBlockMetadataCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -204,31 +206,31 @@ func (m *MockINode) GetContractBalance(arg0 context.Context, arg1 string, arg2 i
 }
 
 // GetContractBalance indicates an expected call of GetContractBalance.
-func (mr *MockINodeMockRecorder) GetContractBalance(arg0, arg1, arg2 any) *INodeGetContractBalanceCall {
+func (mr *MockINodeMockRecorder) GetContractBalance(arg0, arg1, arg2 any) *MockINodeGetContractBalanceCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractBalance", reflect.TypeOf((*MockINode)(nil).GetContractBalance), arg0, arg1, arg2)
-	return &INodeGetContractBalanceCall{Call: call}
+	return &MockINodeGetContractBalanceCall{Call: call}
 }
 
-// INodeGetContractBalanceCall wrap *gomock.Call
-type INodeGetContractBalanceCall struct {
+// MockINodeGetContractBalanceCall wrap *gomock.Call
+type MockINodeGetContractBalanceCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetContractBalanceCall) Return(arg0 int64, arg1 error) *INodeGetContractBalanceCall {
+func (c *MockINodeGetContractBalanceCall) Return(arg0 int64, arg1 error) *MockINodeGetContractBalanceCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetContractBalanceCall) Do(f func(context.Context, string, int64) (int64, error)) *INodeGetContractBalanceCall {
+func (c *MockINodeGetContractBalanceCall) Do(f func(context.Context, string, int64) (int64, error)) *MockINodeGetContractBalanceCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetContractBalanceCall) DoAndReturn(f func(context.Context, string, int64) (int64, error)) *INodeGetContractBalanceCall {
+func (c *MockINodeGetContractBalanceCall) DoAndReturn(f func(context.Context, string, int64) (int64, error)) *MockINodeGetContractBalanceCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -243,31 +245,31 @@ func (m *MockINode) GetContractData(arg0 context.Context, arg1 string, arg2 int6
 }
 
 // GetContractData indicates an expected call of GetContractData.
-func (mr *MockINodeMockRecorder) GetContractData(arg0, arg1, arg2 any) *INodeGetContractDataCall {
+func (mr *MockINodeMockRecorder) GetContractData(arg0, arg1, arg2 any) *MockINodeGetContractDataCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractData", reflect.TypeOf((*MockINode)(nil).GetContractData), arg0, arg1, arg2)
-	return &INodeGetContractDataCall{Call: call}
+	return &MockINodeGetContractDataCall{Call: call}
 }
 
-// INodeGetContractDataCall wrap *gomock.Call
-type INodeGetContractDataCall struct {
+// MockINodeGetContractDataCall wrap *gomock.Call
+type MockINodeGetContractDataCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetContractDataCall) Return(arg0 ContractData, arg1 error) *INodeGetContractDataCall {
+func (c *MockINodeGetContractDataCall) Return(arg0 ContractData, arg1 error) *MockINodeGetContractDataCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetContractDataCall) Do(f func(context.Context, string, int64) (ContractData, error)) *INodeGetContractDataCall {
+func (c *MockINodeGetContractDataCall) Do(f func(context.Context, string, int64) (ContractData, error)) *MockINodeGetContractDataCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetContractDataCall) DoAndReturn(f func(context.Context, string, int64) (ContractData, error)) *INodeGetContractDataCall {
+func (c *MockINodeGetContractDataCall) DoAndReturn(f func(context.Context, string, int64) (ContractData, error)) *MockINodeGetContractDataCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -282,31 +284,31 @@ func (m *MockINode) GetContractsByBlock(arg0 context.Context, arg1 int64) ([]str
 }
 
 // GetContractsByBlock indicates an expected call of GetContractsByBlock.
-func (mr *MockINodeMockRecorder) GetContractsByBlock(arg0, arg1 any) *INodeGetContractsByBlockCall {
+func (mr *MockINodeMockRecorder) GetContractsByBlock(arg0, arg1 any) *MockINodeGetContractsByBlockCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractsByBlock", reflect.TypeOf((*MockINode)(nil).GetContractsByBlock), arg0, arg1)
-	return &INodeGetContractsByBlockCall{Call: call}
+	return &MockINodeGetContractsByBlockCall{Call: call}
 }
 
-// INodeGetContractsByBlockCall wrap *gomock.Call
-type INodeGetContractsByBlockCall struct {
+// MockINodeGetContractsByBlockCall wrap *gomock.Call
+type MockINodeGetContractsByBlockCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetContractsByBlockCall) Return(arg0 []string, arg1 error) *INodeGetContractsByBlockCall {
+func (c *MockINodeGetContractsByBlockCall) Return(arg0 []string, arg1 error) *MockINodeGetContractsByBlockCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetContractsByBlockCall) Do(f func(context.Context, int64) ([]string, error)) *INodeGetContractsByBlockCall {
+func (c *MockINodeGetContractsByBlockCall) Do(f func(context.Context, int64) ([]string, error)) *MockINodeGetContractsByBlockCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetContractsByBlockCall) DoAndReturn(f func(context.Context, int64) ([]string, error)) *INodeGetContractsByBlockCall {
+func (c *MockINodeGetContractsByBlockCall) DoAndReturn(f func(context.Context, int64) ([]string, error)) *MockINodeGetContractsByBlockCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -321,31 +323,31 @@ func (m *MockINode) GetCounter(arg0 context.Context, arg1 string) (int64, error)
 }
 
 // GetCounter indicates an expected call of GetCounter.
-func (mr *MockINodeMockRecorder) GetCounter(arg0, arg1 any) *INodeGetCounterCall {
+func (mr *MockINodeMockRecorder) GetCounter(arg0, arg1 any) *MockINodeGetCounterCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCounter", reflect.TypeOf((*MockINode)(nil).GetCounter), arg0, arg1)
-	return &INodeGetCounterCall{Call: call}
+	return &MockINodeGetCounterCall{Call: call}
 }
 
-// INodeGetCounterCall wrap *gomock.Call
-type INodeGetCounterCall struct {
+// MockINodeGetCounterCall wrap *gomock.Call
+type MockINodeGetCounterCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetCounterCall) Return(arg0 int64, arg1 error) *INodeGetCounterCall {
+func (c *MockINodeGetCounterCall) Return(arg0 int64, arg1 error) *MockINodeGetCounterCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetCounterCall) Do(f func(context.Context, string) (int64, error)) *INodeGetCounterCall {
+func (c *MockINodeGetCounterCall) Do(f func(context.Context, string) (int64, error)) *MockINodeGetCounterCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetCounterCall) DoAndReturn(f func(context.Context, string) (int64, error)) *INodeGetCounterCall {
+func (c *MockINodeGetCounterCall) DoAndReturn(f func(context.Context, string) (int64, error)) *MockINodeGetCounterCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -360,31 +362,31 @@ func (m *MockINode) GetHead(arg0 context.Context) (Header, error) {
 }
 
 // GetHead indicates an expected call of GetHead.
-func (mr *MockINodeMockRecorder) GetHead(arg0 any) *INodeGetHeadCall {
+func (mr *MockINodeMockRecorder) GetHead(arg0 any) *MockINodeGetHeadCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHead", reflect.TypeOf((*MockINode)(nil).GetHead), arg0)
-	return &INodeGetHeadCall{Call: call}
+	return &MockINodeGetHeadCall{Call: call}
 }
 
-// INodeGetHeadCall wrap *gomock.Call
-type INodeGetHeadCall struct {
+// MockINodeGetHeadCall wrap *gomock.Call
+type MockINodeGetHeadCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetHeadCall) Return(arg0 Header, arg1 error) *INodeGetHeadCall {
+func (c *MockINodeGetHeadCall) Return(arg0 Header, arg1 error) *MockINodeGetHeadCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetHeadCall) Do(f func(context.Context) (Header, error)) *INodeGetHeadCall {
+func (c *MockINodeGetHeadCall) Do(f func(context.Context) (Header, error)) *MockINodeGetHeadCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetHeadCall) DoAndReturn(f func(context.Context) (Header, error)) *INodeGetHeadCall {
+func (c *MockINodeGetHeadCall) DoAndReturn(f func(context.Context) (Header, error)) *MockINodeGetHeadCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -399,31 +401,31 @@ func (m *MockINode) GetHeader(arg0 context.Context, arg1 int64) (Header, error) 
 }
 
 // GetHeader indicates an expected call of GetHeader.
-func (mr *MockINodeMockRecorder) GetHeader(arg0, arg1 any) *INodeGetHeaderCall {
+func (mr *MockINodeMockRecorder) GetHeader(arg0, arg1 any) *MockINodeGetHeaderCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHeader", reflect.TypeOf((*MockINode)(nil).GetHeader), arg0, arg1)
-	return &INodeGetHeaderCall{Call: call}
+	return &MockINodeGetHeaderCall{Call: call}
 }
 
-// INodeGetHeaderCall wrap *gomock.Call
-type INodeGetHeaderCall struct {
+// MockINodeGetHeaderCall wrap *gomock.Call
+type MockINodeGetHeaderCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetHeaderCall) Return(arg0 Header, arg1 error) *INodeGetHeaderCall {
+func (c *MockINodeGetHeaderCall) Return(arg0 Header, arg1 error) *MockINodeGetHeaderCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetHeaderCall) Do(f func(context.Context, int64) (Header, error)) *INodeGetHeaderCall {
+func (c *MockINodeGetHeaderCall) Do(f func(context.Context, int64) (Header, error)) *MockINodeGetHeaderCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetHeaderCall) DoAndReturn(f func(context.Context, int64) (Header, error)) *INodeGetHeaderCall {
+func (c *MockINodeGetHeaderCall) DoAndReturn(f func(context.Context, int64) (Header, error)) *MockINodeGetHeaderCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -438,31 +440,31 @@ func (m *MockINode) GetLevel(ctx context.Context) (int64, error) {
 }
 
 // GetLevel indicates an expected call of GetLevel.
-func (mr *MockINodeMockRecorder) GetLevel(ctx any) *INodeGetLevelCall {
+func (mr *MockINodeMockRecorder) GetLevel(ctx any) *MockINodeGetLevelCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLevel", reflect.TypeOf((*MockINode)(nil).GetLevel), ctx)
-	return &INodeGetLevelCall{Call: call}
+	return &MockINodeGetLevelCall{Call: call}
 }
 
-// INodeGetLevelCall wrap *gomock.Call
-type INodeGetLevelCall struct {
+// MockINodeGetLevelCall wrap *gomock.Call
+type MockINodeGetLevelCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetLevelCall) Return(arg0 int64, arg1 error) *INodeGetLevelCall {
+func (c *MockINodeGetLevelCall) Return(arg0 int64, arg1 error) *MockINodeGetLevelCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetLevelCall) Do(f func(context.Context) (int64, error)) *INodeGetLevelCall {
+func (c *MockINodeGetLevelCall) Do(f func(context.Context) (int64, error)) *MockINodeGetLevelCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetLevelCall) DoAndReturn(f func(context.Context) (int64, error)) *INodeGetLevelCall {
+func (c *MockINodeGetLevelCall) DoAndReturn(f func(context.Context) (int64, error)) *MockINodeGetLevelCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -477,31 +479,31 @@ func (m *MockINode) GetLightOPG(ctx context.Context, block int64) ([]LightOperat
 }
 
 // GetLightOPG indicates an expected call of GetLightOPG.
-func (mr *MockINodeMockRecorder) GetLightOPG(ctx, block any) *INodeGetLightOPGCall {
+func (mr *MockINodeMockRecorder) GetLightOPG(ctx, block any) *MockINodeGetLightOPGCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLightOPG", reflect.TypeOf((*MockINode)(nil).GetLightOPG), ctx, block)
-	return &INodeGetLightOPGCall{Call: call}
+	return &MockINodeGetLightOPGCall{Call: call}
 }
 
-// INodeGetLightOPGCall wrap *gomock.Call
-type INodeGetLightOPGCall struct {
+// MockINodeGetLightOPGCall wrap *gomock.Call
+type MockINodeGetLightOPGCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetLightOPGCall) Return(arg0 []LightOperationGroup, arg1 error) *INodeGetLightOPGCall {
+func (c *MockINodeGetLightOPGCall) Return(arg0 []LightOperationGroup, arg1 error) *MockINodeGetLightOPGCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetLightOPGCall) Do(f func(context.Context, int64) ([]LightOperationGroup, error)) *INodeGetLightOPGCall {
+func (c *MockINodeGetLightOPGCall) Do(f func(context.Context, int64) ([]LightOperationGroup, error)) *MockINodeGetLightOPGCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetLightOPGCall) DoAndReturn(f func(context.Context, int64) ([]LightOperationGroup, error)) *INodeGetLightOPGCall {
+func (c *MockINodeGetLightOPGCall) DoAndReturn(f func(context.Context, int64) ([]LightOperationGroup, error)) *MockINodeGetLightOPGCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -516,31 +518,31 @@ func (m *MockINode) GetNetworkConstants(arg0 context.Context, arg1 int64) (Const
 }
 
 // GetNetworkConstants indicates an expected call of GetNetworkConstants.
-func (mr *MockINodeMockRecorder) GetNetworkConstants(arg0, arg1 any) *INodeGetNetworkConstantsCall {
+func (mr *MockINodeMockRecorder) GetNetworkConstants(arg0, arg1 any) *MockINodeGetNetworkConstantsCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNetworkConstants", reflect.TypeOf((*MockINode)(nil).GetNetworkConstants), arg0, arg1)
-	return &INodeGetNetworkConstantsCall{Call: call}
+	return &MockINodeGetNetworkConstantsCall{Call: call}
 }
 
-// INodeGetNetworkConstantsCall wrap *gomock.Call
-type INodeGetNetworkConstantsCall struct {
+// MockINodeGetNetworkConstantsCall wrap *gomock.Call
+type MockINodeGetNetworkConstantsCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetNetworkConstantsCall) Return(arg0 Constants, arg1 error) *INodeGetNetworkConstantsCall {
+func (c *MockINodeGetNetworkConstantsCall) Return(arg0 Constants, arg1 error) *MockINodeGetNetworkConstantsCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetNetworkConstantsCall) Do(f func(context.Context, int64) (Constants, error)) *INodeGetNetworkConstantsCall {
+func (c *MockINodeGetNetworkConstantsCall) Do(f func(context.Context, int64) (Constants, error)) *MockINodeGetNetworkConstantsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetNetworkConstantsCall) DoAndReturn(f func(context.Context, int64) (Constants, error)) *INodeGetNetworkConstantsCall {
+func (c *MockINodeGetNetworkConstantsCall) DoAndReturn(f func(context.Context, int64) (Constants, error)) *MockINodeGetNetworkConstantsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -555,31 +557,31 @@ func (m *MockINode) GetOPG(ctx context.Context, block int64) ([]OperationGroup, 
 }
 
 // GetOPG indicates an expected call of GetOPG.
-func (mr *MockINodeMockRecorder) GetOPG(ctx, block any) *INodeGetOPGCall {
+func (mr *MockINodeMockRecorder) GetOPG(ctx, block any) *MockINodeGetOPGCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOPG", reflect.TypeOf((*MockINode)(nil).GetOPG), ctx, block)
-	return &INodeGetOPGCall{Call: call}
+	return &MockINodeGetOPGCall{Call: call}
 }
 
-// INodeGetOPGCall wrap *gomock.Call
-type INodeGetOPGCall struct {
+// MockINodeGetOPGCall wrap *gomock.Call
+type MockINodeGetOPGCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetOPGCall) Return(arg0 []OperationGroup, arg1 error) *INodeGetOPGCall {
+func (c *MockINodeGetOPGCall) Return(arg0 []OperationGroup, arg1 error) *MockINodeGetOPGCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetOPGCall) Do(f func(context.Context, int64) ([]OperationGroup, error)) *INodeGetOPGCall {
+func (c *MockINodeGetOPGCall) Do(f func(context.Context, int64) ([]OperationGroup, error)) *MockINodeGetOPGCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetOPGCall) DoAndReturn(f func(context.Context, int64) ([]OperationGroup, error)) *INodeGetOPGCall {
+func (c *MockINodeGetOPGCall) DoAndReturn(f func(context.Context, int64) ([]OperationGroup, error)) *MockINodeGetOPGCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -594,31 +596,31 @@ func (m *MockINode) GetRawScript(ctx context.Context, address string, level int6
 }
 
 // GetRawScript indicates an expected call of GetRawScript.
-func (mr *MockINodeMockRecorder) GetRawScript(ctx, address, level any) *INodeGetRawScriptCall {
+func (mr *MockINodeMockRecorder) GetRawScript(ctx, address, level any) *MockINodeGetRawScriptCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawScript", reflect.TypeOf((*MockINode)(nil).GetRawScript), ctx, address, level)
-	return &INodeGetRawScriptCall{Call: call}
+	return &MockINodeGetRawScriptCall{Call: call}
 }
 
-// INodeGetRawScriptCall wrap *gomock.Call
-type INodeGetRawScriptCall struct {
+// MockINodeGetRawScriptCall wrap *gomock.Call
+type MockINodeGetRawScriptCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetRawScriptCall) Return(arg0 []byte, arg1 error) *INodeGetRawScriptCall {
+func (c *MockINodeGetRawScriptCall) Return(arg0 []byte, arg1 error) *MockINodeGetRawScriptCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetRawScriptCall) Do(f func(context.Context, string, int64) ([]byte, error)) *INodeGetRawScriptCall {
+func (c *MockINodeGetRawScriptCall) Do(f func(context.Context, string, int64) ([]byte, error)) *MockINodeGetRawScriptCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetRawScriptCall) DoAndReturn(f func(context.Context, string, int64) ([]byte, error)) *INodeGetRawScriptCall {
+func (c *MockINodeGetRawScriptCall) DoAndReturn(f func(context.Context, string, int64) ([]byte, error)) *MockINodeGetRawScriptCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -633,31 +635,31 @@ func (m *MockINode) GetScriptJSON(arg0 context.Context, arg1 string, arg2 int64)
 }
 
 // GetScriptJSON indicates an expected call of GetScriptJSON.
-func (mr *MockINodeMockRecorder) GetScriptJSON(arg0, arg1, arg2 any) *INodeGetScriptJSONCall {
+func (mr *MockINodeMockRecorder) GetScriptJSON(arg0, arg1, arg2 any) *MockINodeGetScriptJSONCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScriptJSON", reflect.TypeOf((*MockINode)(nil).GetScriptJSON), arg0, arg1, arg2)
-	return &INodeGetScriptJSONCall{Call: call}
+	return &MockINodeGetScriptJSONCall{Call: call}
 }
 
-// INodeGetScriptJSONCall wrap *gomock.Call
-type INodeGetScriptJSONCall struct {
+// MockINodeGetScriptJSONCall wrap *gomock.Call
+type MockINodeGetScriptJSONCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetScriptJSONCall) Return(arg0 Script, arg1 error) *INodeGetScriptJSONCall {
+func (c *MockINodeGetScriptJSONCall) Return(arg0 Script, arg1 error) *MockINodeGetScriptJSONCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetScriptJSONCall) Do(f func(context.Context, string, int64) (Script, error)) *INodeGetScriptJSONCall {
+func (c *MockINodeGetScriptJSONCall) Do(f func(context.Context, string, int64) (Script, error)) *MockINodeGetScriptJSONCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetScriptJSONCall) DoAndReturn(f func(context.Context, string, int64) (Script, error)) *INodeGetScriptJSONCall {
+func (c *MockINodeGetScriptJSONCall) DoAndReturn(f func(context.Context, string, int64) (Script, error)) *MockINodeGetScriptJSONCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -672,31 +674,70 @@ func (m *MockINode) GetScriptStorageRaw(arg0 context.Context, arg1 string, arg2 
 }
 
 // GetScriptStorageRaw indicates an expected call of GetScriptStorageRaw.
-func (mr *MockINodeMockRecorder) GetScriptStorageRaw(arg0, arg1, arg2 any) *INodeGetScriptStorageRawCall {
+func (mr *MockINodeMockRecorder) GetScriptStorageRaw(arg0, arg1, arg2 any) *MockINodeGetScriptStorageRawCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScriptStorageRaw", reflect.TypeOf((*MockINode)(nil).GetScriptStorageRaw), arg0, arg1, arg2)
-	return &INodeGetScriptStorageRawCall{Call: call}
+	return &MockINodeGetScriptStorageRawCall{Call: call}
 }
 
-// INodeGetScriptStorageRawCall wrap *gomock.Call
-type INodeGetScriptStorageRawCall struct {
+// MockINodeGetScriptStorageRawCall wrap *gomock.Call
+type MockINodeGetScriptStorageRawCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeGetScriptStorageRawCall) Return(arg0 []byte, arg1 error) *INodeGetScriptStorageRawCall {
+func (c *MockINodeGetScriptStorageRawCall) Return(arg0 []byte, arg1 error) *MockINodeGetScriptStorageRawCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeGetScriptStorageRawCall) Do(f func(context.Context, string, int64) ([]byte, error)) *INodeGetScriptStorageRawCall {
+func (c *MockINodeGetScriptStorageRawCall) Do(f func(context.Context, string, int64) ([]byte, error)) *MockINodeGetScriptStorageRawCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeGetScriptStorageRawCall) DoAndReturn(f func(context.Context, string, int64) ([]byte, error)) *INodeGetScriptStorageRawCall {
+func (c *MockINodeGetScriptStorageRawCall) DoAndReturn(f func(context.Context, string, int64) ([]byte, error)) *MockINodeGetScriptStorageRawCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetStorage mocks base method.
+func (m *MockINode) GetStorage(ctx context.Context, level int64, address string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStorage", ctx, level, address)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStorage indicates an expected call of GetStorage.
+func (mr *MockINodeMockRecorder) GetStorage(ctx, level, address any) *MockINodeGetStorageCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorage", reflect.TypeOf((*MockINode)(nil).GetStorage), ctx, level, address)
+	return &MockINodeGetStorageCall{Call: call}
+}
+
+// MockINodeGetStorageCall wrap *gomock.Call
+type MockINodeGetStorageCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockINodeGetStorageCall) Return(arg0 []byte, arg1 error) *MockINodeGetStorageCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockINodeGetStorageCall) Do(f func(context.Context, int64, string) ([]byte, error)) *MockINodeGetStorageCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockINodeGetStorageCall) DoAndReturn(f func(context.Context, int64, string) ([]byte, error)) *MockINodeGetStorageCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -711,31 +752,31 @@ func (m *MockINode) RunCode(arg0 context.Context, arg1, arg2, arg3 []byte, arg4,
 }
 
 // RunCode indicates an expected call of RunCode.
-func (mr *MockINodeMockRecorder) RunCode(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 any) *INodeRunCodeCall {
+func (mr *MockINodeMockRecorder) RunCode(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 any) *MockINodeRunCodeCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunCode", reflect.TypeOf((*MockINode)(nil).RunCode), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
-	return &INodeRunCodeCall{Call: call}
+	return &MockINodeRunCodeCall{Call: call}
 }
 
-// INodeRunCodeCall wrap *gomock.Call
-type INodeRunCodeCall struct {
+// MockINodeRunCodeCall wrap *gomock.Call
+type MockINodeRunCodeCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeRunCodeCall) Return(arg0 RunCodeResponse, arg1 error) *INodeRunCodeCall {
+func (c *MockINodeRunCodeCall) Return(arg0 RunCodeResponse, arg1 error) *MockINodeRunCodeCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeRunCodeCall) Do(f func(context.Context, []byte, []byte, []byte, string, string, string, string, string, int64, int64) (RunCodeResponse, error)) *INodeRunCodeCall {
+func (c *MockINodeRunCodeCall) Do(f func(context.Context, []byte, []byte, []byte, string, string, string, string, string, int64, int64) (RunCodeResponse, error)) *MockINodeRunCodeCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeRunCodeCall) DoAndReturn(f func(context.Context, []byte, []byte, []byte, string, string, string, string, string, int64, int64) (RunCodeResponse, error)) *INodeRunCodeCall {
+func (c *MockINodeRunCodeCall) DoAndReturn(f func(context.Context, []byte, []byte, []byte, string, string, string, string, string, int64, int64) (RunCodeResponse, error)) *MockINodeRunCodeCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -750,31 +791,31 @@ func (m *MockINode) RunOperation(arg0 context.Context, arg1, arg2, arg3, arg4 st
 }
 
 // RunOperation indicates an expected call of RunOperation.
-func (mr *MockINodeMockRecorder) RunOperation(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 any) *INodeRunOperationCall {
+func (mr *MockINodeMockRecorder) RunOperation(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 any) *MockINodeRunOperationCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunOperation", reflect.TypeOf((*MockINode)(nil).RunOperation), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
-	return &INodeRunOperationCall{Call: call}
+	return &MockINodeRunOperationCall{Call: call}
 }
 
-// INodeRunOperationCall wrap *gomock.Call
-type INodeRunOperationCall struct {
+// MockINodeRunOperationCall wrap *gomock.Call
+type MockINodeRunOperationCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeRunOperationCall) Return(arg0 OperationGroup, arg1 error) *INodeRunOperationCall {
+func (c *MockINodeRunOperationCall) Return(arg0 OperationGroup, arg1 error) *MockINodeRunOperationCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeRunOperationCall) Do(f func(context.Context, string, string, string, string, int64, int64, int64, int64, int64, []byte) (OperationGroup, error)) *INodeRunOperationCall {
+func (c *MockINodeRunOperationCall) Do(f func(context.Context, string, string, string, string, int64, int64, int64, int64, int64, []byte) (OperationGroup, error)) *MockINodeRunOperationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeRunOperationCall) DoAndReturn(f func(context.Context, string, string, string, string, int64, int64, int64, int64, int64, []byte) (OperationGroup, error)) *INodeRunOperationCall {
+func (c *MockINodeRunOperationCall) DoAndReturn(f func(context.Context, string, string, string, string, int64, int64, int64, int64, int64, []byte) (OperationGroup, error)) *MockINodeRunOperationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -789,31 +830,31 @@ func (m *MockINode) RunOperationLight(arg0 context.Context, arg1, arg2, arg3, ar
 }
 
 // RunOperationLight indicates an expected call of RunOperationLight.
-func (mr *MockINodeMockRecorder) RunOperationLight(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 any) *INodeRunOperationLightCall {
+func (mr *MockINodeMockRecorder) RunOperationLight(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 any) *MockINodeRunOperationLightCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunOperationLight", reflect.TypeOf((*MockINode)(nil).RunOperationLight), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
-	return &INodeRunOperationLightCall{Call: call}
+	return &MockINodeRunOperationLightCall{Call: call}
 }
 
-// INodeRunOperationLightCall wrap *gomock.Call
-type INodeRunOperationLightCall struct {
+// MockINodeRunOperationLightCall wrap *gomock.Call
+type MockINodeRunOperationLightCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeRunOperationLightCall) Return(arg0 LightOperationGroup, arg1 error) *INodeRunOperationLightCall {
+func (c *MockINodeRunOperationLightCall) Return(arg0 LightOperationGroup, arg1 error) *MockINodeRunOperationLightCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeRunOperationLightCall) Do(f func(context.Context, string, string, string, string, int64, int64, int64, int64, int64, []byte) (LightOperationGroup, error)) *INodeRunOperationLightCall {
+func (c *MockINodeRunOperationLightCall) Do(f func(context.Context, string, string, string, string, int64, int64, int64, int64, int64, []byte) (LightOperationGroup, error)) *MockINodeRunOperationLightCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeRunOperationLightCall) DoAndReturn(f func(context.Context, string, string, string, string, int64, int64, int64, int64, int64, []byte) (LightOperationGroup, error)) *INodeRunOperationLightCall {
+func (c *MockINodeRunOperationLightCall) DoAndReturn(f func(context.Context, string, string, string, string, int64, int64, int64, int64, int64, []byte) (LightOperationGroup, error)) *MockINodeRunOperationLightCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -828,31 +869,31 @@ func (m *MockINode) RunScriptView(ctx context.Context, request RunScriptViewRequ
 }
 
 // RunScriptView indicates an expected call of RunScriptView.
-func (mr *MockINodeMockRecorder) RunScriptView(ctx, request any) *INodeRunScriptViewCall {
+func (mr *MockINodeMockRecorder) RunScriptView(ctx, request any) *MockINodeRunScriptViewCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunScriptView", reflect.TypeOf((*MockINode)(nil).RunScriptView), ctx, request)
-	return &INodeRunScriptViewCall{Call: call}
+	return &MockINodeRunScriptViewCall{Call: call}
 }
 
-// INodeRunScriptViewCall wrap *gomock.Call
-type INodeRunScriptViewCall struct {
+// MockINodeRunScriptViewCall wrap *gomock.Call
+type MockINodeRunScriptViewCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *INodeRunScriptViewCall) Return(arg0 []byte, arg1 error) *INodeRunScriptViewCall {
+func (c *MockINodeRunScriptViewCall) Return(arg0 []byte, arg1 error) *MockINodeRunScriptViewCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *INodeRunScriptViewCall) Do(f func(context.Context, RunScriptViewRequest) ([]byte, error)) *INodeRunScriptViewCall {
+func (c *MockINodeRunScriptViewCall) Do(f func(context.Context, RunScriptViewRequest) ([]byte, error)) *MockINodeRunScriptViewCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *INodeRunScriptViewCall) DoAndReturn(f func(context.Context, RunScriptViewRequest) ([]byte, error)) *INodeRunScriptViewCall {
+func (c *MockINodeRunScriptViewCall) DoAndReturn(f func(context.Context, RunScriptViewRequest) ([]byte, error)) *MockINodeRunScriptViewCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
