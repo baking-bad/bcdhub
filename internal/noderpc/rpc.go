@@ -443,3 +443,12 @@ func (rpc *NodeRPC) GetBlockMetadata(ctx context.Context, level int64) (metadata
 	err = rpc.get(ctx, fmt.Sprintf("chains/main/blocks/%s/metadata", getBlockString(level)), &metadata)
 	return
 }
+
+// GetStorage -
+func (rpc *NodeRPC) GetStorage(ctx context.Context, level int64, address string) (response []byte, err error) {
+	response, err = rpc.getRaw(
+		ctx,
+		fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/storage", getBlockString(level), address),
+	)
+	return
+}

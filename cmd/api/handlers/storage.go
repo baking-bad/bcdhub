@@ -254,20 +254,30 @@ func GetContractStorageSchema() gin.HandlerFunc {
 			schema.DefaultModel = make(ast.JSONModel)
 			storageType.GetJSONModel(schema.DefaultModel)
 		case "initial":
-			operation, err := getInitialOperation(c, ctx, req.Address)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
+			if ok, level := isImplicit(c, ctx, req.Address); ok {
+				nodeStorage, err := ctx.RPC.GetStorage(c, level, req.Address)
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
 
-			bmd, err := ctx.BigMapDiffs.GetForOperation(c.Request.Context(), operation.ID)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
+				if err := storageType.SettleFromBytes(nodeStorage); handleError(c, ctx.Storage, err, 0) {
+					return
+				}
+			} else {
+				operation, err := getInitialOperation(c, ctx, req.Address)
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
 
-			if err := prepareStorage(storageType, operation.DeffatedStorage, bmd); handleError(c, ctx.Storage, err, 0) {
-				return
-			}
+				bmd, err := ctx.BigMapDiffs.GetForOperation(c.Request.Context(), operation.ID)
+				if handleError(c, ctx.Storage, err, 0) {
+					return
+				}
 
+				if err := prepareStorage(storageType, operation.DeffatedStorage, bmd); handleError(c, ctx.Storage, err, 0) {
+					return
+				}
+			}
 			schema.DefaultModel = make(ast.JSONModel)
 			storageType.GetJSONModel(schema.DefaultModel)
 		default:
@@ -323,4 +333,19 @@ func getInitialOperation(c context.Context, ctx *config.Context, address string)
 
 	return ctx.Operations.Origination(c, destination.ID)
 
+}
+
+func isImplicit(_ context.Context, ctx *config.Context, address string) (bool, int64) {
+	contracts, ok := ctx.Config.ImplicitContracts[ctx.Network.String()]
+	if !ok {
+		return false, 0
+	}
+
+	for i := range contracts {
+		if contracts[i].Address == address {
+			return true, contracts[i].Level
+		}
+	}
+
+	return false, 0
 }

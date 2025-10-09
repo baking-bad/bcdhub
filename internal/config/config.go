@@ -41,6 +41,14 @@ type Config struct {
 	Scripts struct {
 		Networks []string `yaml:"networks"`
 	} `yaml:"scripts"`
+
+	ImplicitContracts map[string][]Contract `yaml:"implicit_contracts"`
+}
+
+// Contract -
+type Contract struct {
+	Address string `yaml:"address"`
+	Level   int64  `yaml:"level"`
 }
 
 // Profiler -

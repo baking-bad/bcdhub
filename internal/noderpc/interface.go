@@ -27,4 +27,5 @@ type INode interface {
 	GetBigMapType(ctx context.Context, ptr, level int64) (BigMap, error)
 	GetBlockMetadata(ctx context.Context, level int64) (metadata Metadata, err error)
 	GetLevel(ctx context.Context) (int64, error)
+	GetStorage(ctx context.Context, level int64, address string) ([]byte, error)
 }
