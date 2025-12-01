@@ -49,6 +49,7 @@ var symLinks = map[string]string{
 	"PsQuebecnLByd3JwTiGadoG4nGWi3HYiLXUjkibeFV8dCFeVMUg": SymLinkJakarta, // Quebec
 	"PsRiotumaAMotcRoDWW1bysEhQy2n1M5fy8JgRp8jjRfHGmfeA7": SymLinkJakarta, // Rionet
 	"PtSeouLouXkxhg39oWzjxDWaCydNfR3RxCUrNe4Q9Ro8BTehcbh": SymLinkJakarta, // Seoulnet
+	"PtTALLiNtPec7mE7yY4m3k26J8Qukef3E3ehzhfXgFZKGtDdAXu": SymLinkJakarta, // Tallinnnet
 }
 
 // GetProtoSymLink -
