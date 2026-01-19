@@ -19,10 +19,6 @@ rpc:
     uri: https://rpc.tzkt.io/tallinnnet
     timeout: 20
     requests_per_second: 20
-  tezlink:
-    uri: https://rpc.tzkt.io/tezlink
-    timeout: 20
-    requests_per_second: 20
 
 log_level: ${LOG_LEVEL:-info}
 
@@ -36,8 +32,6 @@ services:
   shadownet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   tallinnnet:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
-  tezlink:
     mempool: https://mempool.test.dipdup.net/v1/graphql
 
 storage:
@@ -78,14 +72,12 @@ api:
       seoulnet: https://rpc.tzkt.io/seoulnet
       shadownet: https://rpc.tzkt.io/shadownet
       tallinnnet: https://rpc.tzkt.io/tallinnnet
-      tezlink: https://rpc.tzkt.io/tezlink
   networks:
     - mainnet
     - ghostnet
     - seoulnet
     - shadownet
     - tallinnnet
-    - tezlink
 
 indexer:
   project_name: indexer
@@ -101,8 +93,6 @@ indexer:
       receiver_threads: 10
     tallinnnet:
       receiver_threads: 10
-    tezlink:
-      receiver_threads: 10
 
 scripts:
   networks:
@@ -111,7 +101,6 @@ scripts:
     - seoulnet
     - shadownet
     - tallinnnet
-    - tezlink
 
 implicit_contracts:
   mainnet:
@@ -141,13 +130,6 @@ implicit_contracts:
     - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
       level: 1
   tallinnnet:
-    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
-      level: 1
-    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
-      level: 1
-    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
-      level: 1
-  tezlink:
     - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
       level: 1
     - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
