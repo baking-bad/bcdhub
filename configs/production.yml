@@ -7,10 +7,6 @@ rpc:
     uri: https://rpc.tzkt.io/ghostnet
     timeout: 20
     requests_per_second: 10
-  seoulnet:
-    uri: https://rpc.tzkt.io/seoulnet
-    timeout: 20
-    requests_per_second: 20
   shadownet:
     uri: https://rpc.tzkt.io/shadownet
     timeout: 20
@@ -26,8 +22,6 @@ services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
   ghostnet:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
-  seoulnet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   shadownet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
@@ -72,13 +66,11 @@ api:
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
       ghostnet: https://rpc.tzkt.io/ghostnet
-      seoulnet: https://rpc.tzkt.io/seoulnet
       shadownet: https://rpc.tzkt.io/shadownet
       tallinnnet: https://rpc.tzkt.io/tallinnnet
   networks:
     - mainnet
     - ghostnet
-    - seoulnet
     - shadownet
     - tallinnnet
 
@@ -89,8 +81,6 @@ indexer:
     mainnet:
       receiver_threads: ${MAINNET_THREADS:-10}
     ghostnet:
-      receiver_threads: ${TESTNET_THREADS:-10}
-    seoulnet:
       receiver_threads: ${TESTNET_THREADS:-10}
     shadownet:
       receiver_threads: ${TESTNET_THREADS:-10}
@@ -106,7 +96,6 @@ scripts:
   networks:
     - mainnet
     - ghostnet
-    - seoulnet
     - shadownet
     - tallinnnet
       
@@ -117,13 +106,6 @@ implicit_contracts:
     - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
       level: 1589247
   ghostnet:
-    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
-      level: 1
-    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
-      level: 1
-    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
-      level: 1
-  seoulnet:
     - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
       level: 1
     - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
