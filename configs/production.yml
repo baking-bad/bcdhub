@@ -3,10 +3,6 @@ rpc:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
     requests_per_second: 10
-  ghostnet:
-    uri: https://rpc.tzkt.io/ghostnet
-    timeout: 20
-    requests_per_second: 10
   shadownet:
     uri: https://rpc.tzkt.io/shadownet
     timeout: 20
@@ -19,19 +15,23 @@ rpc:
     uri: https://rpc.tzkt.io/ushuaianet
     timeout: 20
     requests_per_second: 20
+  tezosx:
+    uri: https://rpc.shadownet.tezlink.nomadic-labs.com
+    timeout: 20
+    requests_per_second: 20
 
 log_level: ${LOG_LEVEL:-info}
 
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-  ghostnet:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
   shadownet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   tallinnnet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   ushuaianet:
+    mempool: https://mempool.test.dipdup.net/v1/graphql
+  tezosx:
     mempool: https://mempool.test.dipdup.net/v1/graphql
 
 storage:
@@ -71,16 +71,16 @@ api:
     sandbox_mode: false
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
-      ghostnet: https://rpc.tzkt.io/ghostnet
       shadownet: https://rpc.tzkt.io/shadownet
       tallinnnet: https://rpc.tzkt.io/tallinnnet
       ushuaianet: https://rpc.tzkt.io/ushuaianet
+      tezosx: https://rpc.shadownet.tezlink.nomadic-labs.com
   networks:
     - mainnet
-    - ghostnet
     - shadownet
     - tallinnnet
     - ushuaianet
+    - tezosx
 
 indexer:
   project_name: indexer
@@ -88,13 +88,13 @@ indexer:
   networks:
     mainnet:
       receiver_threads: ${MAINNET_THREADS:-10}
-    ghostnet:
-      receiver_threads: ${TESTNET_THREADS:-10}
     shadownet:
       receiver_threads: ${TESTNET_THREADS:-10}
     tallinnnet:
       receiver_threads: ${TESTNET_THREADS:-10}
     ushuaianet:
+      receiver_threads: ${TESTNET_THREADS:-10}
+    tezosx:
       receiver_threads: ${TESTNET_THREADS:-10}
 
 scripts:
@@ -105,24 +105,17 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - ghostnet
     - shadownet
     - tallinnnet
     - ushuaianet
-      
+    - tezosx
+
 implicit_contracts:
   mainnet:
     - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
       level: 1589247
     - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
       level: 1589247
-  ghostnet:
-    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
-      level: 1
-    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
-      level: 1
-    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
-      level: 1
   shadownet:
     - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
       level: 1
@@ -138,6 +131,13 @@ implicit_contracts:
     - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
       level: 1
   ushuaianet:
+    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
+      level: 1
+    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
+      level: 1
+    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
+      level: 1
+  tezosx:
     - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
       level: 1
     - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
