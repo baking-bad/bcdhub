@@ -16,7 +16,7 @@ rpc:
     timeout: 20
     requests_per_second: 20
   tezosx:
-    uri: https://rpc.shadownet.tezlink.nomadic-labs.com
+    uri: https://michelson.previewnet.tezosx.nomadic-labs.com
     timeout: 20
     requests_per_second: 20
 
@@ -74,7 +74,7 @@ api:
       shadownet: https://rpc.tzkt.io/shadownet
       tallinnnet: https://rpc.tzkt.io/tallinnnet
       ushuaianet: https://rpc.tzkt.io/ushuaianet
-      tezosx: https://rpc.shadownet.tezlink.nomadic-labs.com
+      tezosx: https://michelson.previewnet.tezosx.nomadic-labs.com
   networks:
     - mainnet
     - shadownet
