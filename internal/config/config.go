@@ -59,6 +59,7 @@ type Profiler struct {
 // IndexerConfig -
 type IndexerConfig struct {
 	ReceiverThreads int64            `yaml:"receiver_threads"`
+	StartLevel      int64            `yaml:"start_level"`
 	Periodic        *periodic.Config `yaml:"periodic"`
 }
 
@@ -236,4 +237,13 @@ func expandEnv(data string) string {
 
 	data = os.ExpandEnv(data)
 	return data
+}
+
+// ResolveStartLevel returns the configured starting block level for the
+// network, defaulting to 1 when no explicit value is provided.
+func (c IndexerConfig) ResolveStartLevel() int64 {
+	if c.StartLevel < 1 {
+		return 1
+	}
+	return c.StartLevel
 }

@@ -96,6 +96,7 @@ indexer:
       receiver_threads: ${TESTNET_THREADS:-10}
     tezosx:
       receiver_threads: ${TESTNET_THREADS:-10}
+      start_level: 10
 
 scripts:
   aws:

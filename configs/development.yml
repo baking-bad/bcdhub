@@ -93,6 +93,7 @@ indexer:
       receiver_threads: 10
     tezosx:
       receiver_threads: 10
+      start_level: 10
 
 scripts:
   networks:

@@ -43,6 +43,7 @@ type BlockchainIndexer struct {
 
 	refreshTimer chan struct{}
 
+	startLevel  int64
 	isPeriodic  bool
 	indicesInit sync.Once
 
@@ -69,6 +70,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 		receiver:     NewReceiver(internalCtx.RPC, 20, indexerConfig.ReceiverThreads),
 		blocks:       make(map[int64]*Block),
 		Network:      networkType,
+		startLevel:   indexerConfig.ResolveStartLevel(),
 		isPeriodic:   indexerConfig.Periodic != nil,
 		refreshTimer: make(chan struct{}, 10),
 		g:            workerpool.NewGroup(),
@@ -110,7 +112,7 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 			return err
 		}
 
-		header, err := bi.RPC.GetHeader(ctx, helpers.Max(1, currentState.Level))
+		header, err := bi.RPC.GetHeader(ctx, helpers.Max(bi.startLevel, currentState.Level))
 		if err != nil {
 			return err
 		}
@@ -227,7 +229,8 @@ func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
 		case newBlock := <-bi.receiver.Blocks():
 			bi.blocks[newBlock.Header.Level] = newBlock
 
-			block, ok := bi.blocks[bi.state.Level+1]
+			nextLevel := helpers.Max(bi.state.Level+1, bi.startLevel)
+			block, ok := bi.blocks[nextLevel]
 			for ok {
 				if bi.state.Level > 0 && block.Header.Predecessor != bi.state.Hash {
 					if err := bi.Rollback(ctx); err != nil {
@@ -244,7 +247,8 @@ func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
 				}
 
 				delete(bi.blocks, block.Header.Level)
-				block, ok = bi.blocks[bi.state.Level+1]
+				nextLevel = helpers.Max(bi.state.Level+1, bi.startLevel)
+				block, ok = bi.blocks[nextLevel]
 			}
 		}
 	}
@@ -252,7 +256,7 @@ func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
 
 // Index -
 func (bi *BlockchainIndexer) Index(ctx context.Context, head noderpc.Header) error {
-	for level := bi.state.Level + 1; level <= head.Level; level++ {
+	for level := helpers.Max(bi.state.Level+1, bi.startLevel); level <= head.Level; level++ {
 		helpers.SetTagSentry("block", fmt.Sprintf("%d", level))
 
 		select {
@@ -494,6 +498,7 @@ func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, inde
 	)
 	log.Info().Str("network", bi.Context.Network.String()).Msg("Creating indexer object...")
 	bi.receiver = NewReceiver(bi.Context.RPC, 20, indexerConfig.ReceiverThreads)
+	bi.startLevel = indexerConfig.ResolveStartLevel()
 
 	bi.refreshTimer = make(chan struct{}, 10)
 	return bi.init(ctx, bi.Context.StorageDB)
