@@ -130,3 +130,6 @@ implicit_contracts:
       level: 1
     - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
       level: 1
+  tezosx:
+    - address: "KT18oDJJKXMKhfE1bSuAPGp92pYcwVDiqsPw"
+      level: 10

@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -139,6 +140,12 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 		if err := tx.Commit(); err != nil {
 			return err
 		}
+
+		if currentState.Level == 0 && bi.startLevel > 1 {
+			if err := bi.bootstrapImplicitContracts(ctx, header, currentProtocol); err != nil {
+				return err
+			}
+		}
 	}
 
 	bi.currentProtocol = currentProtocol
@@ -153,6 +160,36 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 	}
 
 	return nil
+}
+
+func (bi *BlockchainIndexer) bootstrapImplicitContracts(ctx context.Context, head noderpc.Header, currentProtocol protocol.Protocol) error {
+	configured := bi.Config.ImplicitContracts[bi.Network.String()]
+	if len(configured) == 0 {
+		return nil
+	}
+
+	specific, err := protocols.Get(bi.Context, currentProtocol.Hash)
+	if err != nil {
+		return err
+	}
+
+	parser := migrations.NewVestingParser(bi.Context, specific.ContractParser, currentProtocol)
+	s := store.NewStore(bi.StorageDB.DB, bi.Stats)
+
+	for _, c := range configured {
+		if !bcd.IsContract(c.Address) {
+			continue
+		}
+		data, err := bi.RPC.GetContractData(ctx, c.Address, head.Level)
+		if err != nil {
+			return err
+		}
+		if err := parser.Parse(ctx, data, head, c.Address, s); err != nil {
+			return err
+		}
+	}
+
+	return s.Save(ctx)
 }
 
 // Start -
