@@ -103,14 +103,14 @@ type OPGRequest struct {
 type OperationGroupContentRequest struct {
 	OPGRequest
 
-	Counter int64 `binding:"required" example:"123456" uri:"counter"`
+	Counter int64 `example:"123456" uri:"counter"`
 }
 
 // ImplicitOperationRequest -
 type ImplicitOperationRequest struct {
 	getByNetwork
 
-	Counter int64 `binding:"required" example:"123456" uri:"counter"`
+	Counter int64 `example:"123456" uri:"counter"`
 }
 
 // FormatterRequest -
