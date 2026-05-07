@@ -2,6 +2,7 @@ package operations
 
 import (
 	"context"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -107,7 +108,11 @@ func (p Transaction) parseSmartRollupParams(_ noderpc.Operation, tx *operation.O
 
 func (p Transaction) parseContractParams(ctx context.Context, data noderpc.Operation, store parsers.Store, tx *operation.Operation) error {
 	for i := range tx.Errors {
-		if tx.Errors[i].Is("contract.non_existing_contract") {
+		if tx.Errors[i].Is(consts.NonExistingContractError) {
+			return nil
+		}
+		if tx.Errors[i].Is(consts.TezlinkError) &&
+			strings.Contains(tx.Errors[i].ErrorMessage, consts.TezlinkContractDoesNotExistMarker) {
 			return nil
 		}
 	}
