@@ -287,6 +287,19 @@ func TestInvalidSyntacticConstantError_Parse(t *testing.T) {
 	}
 }
 
+func TestError_TezlinkUnmarshal(t *testing.T) {
+	const raw = `{"kind":"permanent","id":"tezlink_error","error_message":"Transfer(ContractDoesNotExist(Originated(ContractKt1Hash(\"KT1Dj2B1Wmz3vqaBzHhEZpjAhXu7CrQBEiy1\"))))"}`
+
+	var e Error
+	require.NoError(t, json.Unmarshal([]byte(raw), &e))
+
+	require.Equal(t, "tezlink_error", e.ID)
+	require.Equal(t, "permanent", e.Kind)
+	require.Contains(t, e.ErrorMessage, "ContractDoesNotExist")
+	require.True(t, e.Is("tezlink_error"))
+	require.False(t, e.Is("contract.non_existing_contract"))
+}
+
 func TestErrors_Scan(t *testing.T) {
 	tests := []struct {
 		name  string

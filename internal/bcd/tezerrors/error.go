@@ -80,10 +80,11 @@ type IError interface {
 
 // Error -
 type Error struct {
-	ID          string `json:"id"`
-	Kind        string `json:"kind"`
-	Title       string `json:"title,omitempty"`
-	Description string `json:"descr,omitempty"`
+	ID           string `json:"id"`
+	Kind         string `json:"kind"`
+	Title        string `json:"title,omitempty"`
+	Description  string `json:"descr,omitempty"`
+	ErrorMessage string `json:"error_message,omitempty"`
 
 	IError `json:"-"`
 }
@@ -114,14 +115,16 @@ func (e *Error) String() string {
 // UnmarshalJSON -
 func (e *Error) UnmarshalJSON(data []byte) error {
 	var typ struct {
-		ID   string `json:"id"`
-		Kind string `json:"kind"`
+		ID           string `json:"id"`
+		Kind         string `json:"kind"`
+		ErrorMessage string `json:"error_message"`
 	}
 	if err := json.Unmarshal(data, &typ); err != nil {
 		return err
 	}
 	e.ID = typ.ID
 	e.Kind = typ.Kind
+	e.ErrorMessage = typ.ErrorMessage
 
 	errorID := getErrorID(e.ID)
 	var descr Description

@@ -23,6 +23,13 @@ const (
 	ScriptRejectedError           = "michelson_v1.script_rejected"
 	BalanceTooLowError            = "contract.balance_too_low"
 	InvalidSyntacticConstantError = "invalidSyntacticConstantError"
+	NonExistingContractError      = "contract.non_existing_contract"
+	TezlinkError                  = "tezlink_error"
+)
+
+// Error message markers (substrings inside Error.ErrorMessage)
+const (
+	TezlinkContractDoesNotExistMarker = "ContractDoesNotExist"
 )
 
 // General
