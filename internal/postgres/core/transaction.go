@@ -14,6 +14,7 @@ import (
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/uptrace/bun"
 )
 
@@ -101,6 +102,7 @@ func (t Transaction) Accounts(ctx context.Context, accounts ...*account.Account)
 		Set("migrations_count = EXCLUDED.migrations_count + account.migrations_count").
 		Set("ticket_updates_count = EXCLUDED.ticket_updates_count + account.ticket_updates_count").
 		Set("last_action = EXCLUDED.last_action").
+		Set("type = CASE WHEN account.type = ? THEN EXCLUDED.type ELSE account.type END", types.AccountTypeGhost).
 		Returning("id").
 		Exec(ctx)
 	return err

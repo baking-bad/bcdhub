@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
+	accountTypes "github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Store -
@@ -27,6 +28,7 @@ type Store interface {
 	ListContracts() []*contract.Contract
 	ListOperations() []*operation.Operation
 	AddAccounts(accounts ...account.Account)
+	MarkAccountGhost(address string)
 	Save(ctx context.Context) error
 	SetBlock(block *block.Block)
 }
@@ -93,14 +95,24 @@ func (store *TestStore) AddSmartRollups(rollups ...*smartrollup.SmartRollup) {
 // AddAccounts -
 func (store *TestStore) AddAccounts(accounts ...account.Account) {
 	for i := range accounts {
-		if account, ok := store.Accounts[accounts[i].Address]; !ok {
+		if existing, ok := store.Accounts[accounts[i].Address]; !ok {
 			store.Accounts[accounts[i].Address] = &accounts[i]
 		} else {
-			account.OperationsCount += accounts[i].OperationsCount
-			account.EventsCount += accounts[i].EventsCount
-			account.MigrationsCount += accounts[i].MigrationsCount
-			account.TicketUpdatesCount += accounts[i].TicketUpdatesCount
+			existing.OperationsCount += accounts[i].OperationsCount
+			existing.EventsCount += accounts[i].EventsCount
+			existing.MigrationsCount += accounts[i].MigrationsCount
+			existing.TicketUpdatesCount += accounts[i].TicketUpdatesCount
+			if accounts[i].Type != accountTypes.AccountTypeUnknown {
+				existing.Type = accounts[i].Type
+			}
 		}
+	}
+}
+
+// MarkAccountGhost -
+func (store *TestStore) MarkAccountGhost(address string) {
+	if acc, ok := store.Accounts[address]; ok {
+		acc.Type = accountTypes.AccountTypeGhost
 	}
 }
 
