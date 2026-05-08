@@ -119,36 +119,41 @@ func (p Transaction) parseContractParams(ctx context.Context, data noderpc.Opera
 
 	scriptBytes, err := p.ctx.Cache.ScriptBytes(ctx, tx.Destination.Address, p.protocol.SymLink)
 	if err != nil {
+		notFound := p.ctx.Storage.IsRecordNotFound(err)
+
 		if !tx.Internal {
+			if !notFound {
+				return err
+			}
+			store.MarkAccountGhost(tx.Destination.Address)
 			return nil
 		}
 
 		contracts := store.ListContracts()
 		for i := range contracts {
-			if tx.Destination.Address == contracts[i].Account.Address {
-				switch p.protocol.SymLink {
-				case bcd.SymLinkAlpha:
-					tx.Script, err = contracts[i].Alpha.Full()
-					if err != nil {
-						return err
-					}
-				case bcd.SymLinkBabylon:
-					tx.Script, err = contracts[i].Babylon.Full()
-					if err != nil {
-						return err
-					}
-				case bcd.SymLinkJakarta:
-					tx.Script, err = contracts[i].Jakarta.Full()
-					if err != nil {
-						return err
-					}
-				default:
-					return errors.Errorf("unknown protocol symbolic link: %s", p.protocol.SymLink)
-				}
+			if tx.Destination.Address != contracts[i].Account.Address {
+				continue
+			}
+			switch p.protocol.SymLink {
+			case bcd.SymLinkAlpha:
+				tx.Script, err = contracts[i].Alpha.Full()
+			case bcd.SymLinkBabylon:
+				tx.Script, err = contracts[i].Babylon.Full()
+			case bcd.SymLinkJakarta:
+				tx.Script, err = contracts[i].Jakarta.Full()
+			default:
+				return errors.Errorf("unknown protocol symbolic link: %s", p.protocol.SymLink)
+			}
+			if err != nil {
+				return err
 			}
 		}
 		if tx.Script == nil {
-			return err
+			if !notFound {
+				return err
+			}
+			store.MarkAccountGhost(tx.Destination.Address)
+			return p.getEntrypoint(tx)
 		}
 	} else {
 		tx.Script = scriptBytes

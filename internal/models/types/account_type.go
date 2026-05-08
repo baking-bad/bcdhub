@@ -12,6 +12,7 @@ const (
 	AccountTypeTz
 	AccountTypeRollup
 	AccountTypeSmartRollup
+	AccountTypeGhost
 )
 
 // NewAccountType -
@@ -41,6 +42,8 @@ func (typ AccountType) String() string {
 		return "smart_rollup"
 	case AccountTypeTz:
 		return "account"
+	case AccountTypeGhost:
+		return "ghost"
 	default:
 		return "unknown"
 	}

@@ -12,6 +12,7 @@ import (
 	smartrollup "github.com/baking-bad/bcdhub/internal/models/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/uptrace/bun"
 )
 
@@ -120,14 +121,26 @@ func (store *Store) AddSmartRollups(rollups ...*smartrollup.SmartRollup) {
 // AddAccounts -
 func (store *Store) AddAccounts(accounts ...account.Account) {
 	for i := range accounts {
-		if account, ok := store.Accounts[accounts[i].Address]; !ok {
+		if existing, ok := store.Accounts[accounts[i].Address]; !ok {
 			store.Accounts[accounts[i].Address] = &accounts[i]
 		} else {
-			account.OperationsCount += accounts[i].OperationsCount
-			account.EventsCount += accounts[i].EventsCount
-			account.MigrationsCount += accounts[i].MigrationsCount
-			account.TicketUpdatesCount += accounts[i].TicketUpdatesCount
+			existing.OperationsCount += accounts[i].OperationsCount
+			existing.EventsCount += accounts[i].EventsCount
+			existing.MigrationsCount += accounts[i].MigrationsCount
+			existing.TicketUpdatesCount += accounts[i].TicketUpdatesCount
+			if existing.Type == types.AccountTypeGhost &&
+				accounts[i].Type != types.AccountTypeUnknown &&
+				accounts[i].Type != types.AccountTypeGhost {
+				existing.Type = accounts[i].Type
+			}
 		}
+	}
+}
+
+// MarkAccountGhost -
+func (store *Store) MarkAccountGhost(address string) {
+	if acc, ok := store.Accounts[address]; ok {
+		acc.Type = types.AccountTypeGhost
 	}
 }
 
