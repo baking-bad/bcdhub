@@ -128,9 +128,7 @@ func (store *Store) AddAccounts(accounts ...account.Account) {
 			existing.EventsCount += accounts[i].EventsCount
 			existing.MigrationsCount += accounts[i].MigrationsCount
 			existing.TicketUpdatesCount += accounts[i].TicketUpdatesCount
-			if existing.Type == types.AccountTypeGhost &&
-				accounts[i].Type != types.AccountTypeUnknown &&
-				accounts[i].Type != types.AccountTypeGhost {
+			if accounts[i].Type != types.AccountTypeUnknown {
 				existing.Type = accounts[i].Type
 			}
 		}
