@@ -84,6 +84,10 @@ func (p Transaction) Parse(ctx context.Context, data noderpc.Operation, store pa
 		tx.Destination,
 	)
 
+	if err := p.markGhostReferences(ctx, &tx, store); err != nil {
+		return err
+	}
+
 	switch tx.Destination.Type {
 	case modelsTypes.AccountTypeContract:
 		return p.parseContractParams(ctx, data, store, &tx)
@@ -177,6 +181,25 @@ func (p Transaction) parseContractParams(ctx context.Context, data noderpc.Opera
 		if err := p.appliedHandler(ctx, data, tx, store); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (p Transaction) markGhostReferences(ctx context.Context, tx *operation.Operation, store parsers.Store) error {
+	addr := tx.Source.Address
+	if !bcd.IsContract(addr) || addr == tx.Destination.Address {
+		return nil
+	}
+	for _, c := range store.ListContracts() {
+		if c.Account.Address == addr {
+			return nil
+		}
+	}
+	if _, err := p.ctx.Cache.ScriptBytes(ctx, addr, p.protocol.SymLink); err != nil {
+		if !p.ctx.Storage.IsRecordNotFound(err) {
+			return err
+		}
+		store.MarkAccountGhost(addr)
 	}
 	return nil
 }
