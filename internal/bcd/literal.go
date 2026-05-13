@@ -62,6 +62,11 @@ func IsContract(str string) bool {
 	return contractRegex.MatchString(str)
 }
 
+// FindContract -
+func FindContract(str string) string {
+	return contractRegex.FindString(str)
+}
+
 // IsBakerHash -
 func IsBakerHash(str string) bool {
 	return bakerHashRegex.MatchString(str)

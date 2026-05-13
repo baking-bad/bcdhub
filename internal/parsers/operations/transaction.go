@@ -117,7 +117,10 @@ func (p Transaction) parseContractParams(ctx context.Context, data noderpc.Opera
 		}
 		if tx.Errors[i].Is(consts.TezlinkError) &&
 			strings.Contains(tx.Errors[i].ErrorMessage, consts.TezlinkContractDoesNotExistMarker) {
-			return nil
+			if bcd.FindContract(tx.Errors[i].ErrorMessage) == tx.Destination.Address {
+				store.MarkAccountGhost(tx.Destination.Address)
+			}
+			return p.getEntrypoint(tx)
 		}
 	}
 
