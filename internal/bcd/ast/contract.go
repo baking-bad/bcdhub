@@ -156,7 +156,11 @@ func (c *Contract) FindByName(name string, isEntrypoint bool) Node {
 
 // FromJSONSchema -
 func (c *Contract) FromJSONSchema(data map[string]interface{}) error {
-	return setOptimizedJSONSchema(&c.Default, data, forge.UnforgeContract, ContractValidator)
+	validator := ContractValidator
+	if _, ok := c.Type.(*Unit); ok {
+		validator = AddressValidator
+	}
+	return setOptimizedJSONSchema(&c.Default, data, forge.UnforgeContract, validator)
 }
 
 // ToParameters -
