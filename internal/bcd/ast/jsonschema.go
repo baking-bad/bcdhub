@@ -73,19 +73,31 @@ func getAddressJSONSchema(d Default) *JSONSchema {
 	})
 }
 
-func setIntJSONSchema(d *Default, data map[string]interface{}) {
+func setIntJSONSchema(d *Default, data map[string]interface{}) error {
 	key := d.GetName()
-	if value, ok := data[key]; ok {
-		switch v := value.(type) {
-		case float64:
-			i := big.NewInt(0)
-			i, _ = big.NewFloat(v).Int(i)
-			d.Value = &types.BigInt{Int: i}
-		case string:
-			d.Value = types.NewBigIntFromString(v)
-		}
-		d.ValueKind = valueKindInt
+	value, ok := data[key]
+	if !ok {
+		return nil
 	}
+
+	switch v := value.(type) {
+	case float64:
+		i := big.NewInt(0)
+		i, _ = big.NewFloat(v).Int(i)
+		d.Value = &types.BigInt{Int: i}
+	case string:
+		value, err := types.NewBigIntFromString(v)
+		if err != nil {
+			return errors.Wrapf(ErrValidation, "invalid integer value: %s=%s", key, v)
+		}
+		d.Value = value
+	case nil:
+		d.Value = &types.BigInt{}
+	default:
+		return errors.Wrapf(ErrValidation, "expected an integer value: %s=%v", key, value)
+	}
+	d.ValueKind = valueKindInt
+	return nil
 }
 
 func setBytesJSONSchema(d *Default, data map[string]interface{}) error {

@@ -79,7 +79,6 @@ func (t *Timestamp) ToBaseNode(optimized bool) (*base.Node, error) {
 func (t *Timestamp) FromJSONSchema(data map[string]interface{}) error {
 	key := t.GetName()
 	if value, ok := data[key]; ok {
-		t.ValueKind = valueKindInt
 		switch val := value.(type) {
 		case string:
 			ts, err := time.Parse(time.RFC3339, val)
@@ -89,8 +88,12 @@ func (t *Timestamp) FromJSONSchema(data map[string]interface{}) error {
 			t.Value = types.NewBigInt(ts.UTC().Unix())
 		case float64:
 			t.Value = types.NewBigInt(int64(val))
+		case nil:
+			t.Value = &types.BigInt{}
+		default:
+			return errors.Wrapf(ErrValidation, "expected a timestamp value: %s=%v", key, value)
 		}
-
+		t.ValueKind = valueKindInt
 	}
 	return nil
 }
@@ -101,6 +104,9 @@ func (t *Timestamp) ToParameters() ([]byte, error) {
 	case time.Time:
 		return []byte(fmt.Sprintf(`{"int":"%d"}`, ts.UTC().Unix())), nil
 	case *types.BigInt:
+		if ts.Int == nil {
+			return []byte(`{"int":null}`), nil
+		}
 		return []byte(fmt.Sprintf(`{"int":"%d"}`, ts.Int64())), nil
 	default:
 		return nil, errors.Wrapf(consts.ErrInvalidType, "Timestamp.ToParameters: %T", t.Value)

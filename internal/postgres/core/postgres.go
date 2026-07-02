@@ -4,15 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
-	"github.com/uptrace/bun/driver/pgdriver"
 )
 
 // Postgres -
@@ -22,57 +25,41 @@ type Postgres struct {
 
 	PageSize int64
 
-	schema string
+	schema    string
+	timeout   time.Duration
+	hasLogger bool
 }
 
-func connectionOptions(cfg Config, schema string, appName string) ([]pgdriver.Option, error) {
-	opts := make([]pgdriver.Option, 0)
-
-	if cfg.DBName != "" {
-		opts = append(opts, pgdriver.WithDatabase(cfg.DBName))
-	} else {
-		return nil, errors.New("empty database name")
+func buildDSN(cfg Config) (string, error) {
+	if cfg.Host == "" || cfg.Port == 0 {
+		return "", errors.Errorf("empty host or zero port: host=%s port=%d", cfg.Host, cfg.Port)
 	}
 
-	if cfg.Host != "" && cfg.Port > 0 {
-		opts = append(opts, pgdriver.WithAddr(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)))
-	} else {
-		return nil, errors.Errorf("empty host or zero port: host=%s port=%d", cfg.Host, cfg.Port)
+	if cfg.DBName == "" {
+		return "", errors.New("empty database name")
 	}
 
-	if cfg.User != "" {
-		opts = append(opts, pgdriver.WithUser(cfg.User))
-	} else {
-		return nil, errors.New("empty database user")
+	if cfg.User == "" {
+		return "", errors.New("empty database user")
 	}
 
-	if cfg.Password != "" {
-		opts = append(opts, pgdriver.WithPassword(cfg.Password))
-	} else {
-		return nil, errors.New("empty database password")
+	if cfg.Password == "" {
+		return "", errors.New("empty database password")
 	}
 
-	if appName != "" {
-		opts = append(opts, pgdriver.WithApplicationName(appName))
+	u := url.URL{
+		Scheme: "postgres",
+		User:   url.UserPassword(cfg.User, cfg.Password),
+		Host:   fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Path:   cfg.DBName,
 	}
 
+	q := u.Query()
 	if cfg.SslMode != "" {
-		switch cfg.SslMode {
-		case "disable":
-			opts = append(opts, pgdriver.WithInsecure(true))
-		default:
-		}
+		q.Set("sslmode", cfg.SslMode)
 	}
-
-	if schema != "" {
-		opts = append(opts, pgdriver.WithConnParams(map[string]interface{}{
-			"search_path": schema,
-		}))
-	}
-
-	opts = append(opts, pgdriver.WithTimeout(time.Minute*10))
-
-	return opts, nil
+	u.RawQuery = q.Encode()
+	return u.String(), nil
 }
 
 // New -
@@ -80,22 +67,39 @@ func New(cfg Config, schemaName, appName string, opts ...PostgresOption) (*Postg
 	postgres := Postgres{
 		schema: schemaName,
 	}
+	for _, opt := range opts {
+		opt(&postgres)
+	}
 
-	connectionOptions, err := connectionOptions(cfg, schemaName, appName)
+	dsn, err := buildDSN(cfg)
+	if err != nil {
+		return nil, errors.Wrap(err, "buildDSN")
+	}
+	pgxConfig, err := pgx.ParseConfig(dsn)
 	if err != nil {
 		return nil, err
 	}
+	pgxConfig.RuntimeParams["application_name"] = appName
+	if schemaName != "" {
+		pgxConfig.RuntimeParams["search_path"] = schemaName
+	}
+	pgxConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	if postgres.timeout == 0 {
+		postgres.timeout = 60 * time.Second
+	}
 
-	pgconn := pgdriver.NewConnector(connectionOptions...)
-	postgres.conn = sql.OpenDB(pgconn)
+	pgxConfig.ConnectTimeout = postgres.timeout
+	pgxConfig.RuntimeParams["statement_timeout"] = strconv.Itoa(int(postgres.timeout / time.Millisecond))
+
+	postgres.conn = stdlib.OpenDB(*pgxConfig)
 	postgres.DB = bun.NewDB(postgres.conn, pgdialect.New())
 
 	maxOpenConns := 4 * runtime.GOMAXPROCS(0)
 	postgres.conn.SetMaxOpenConns(maxOpenConns)
 	postgres.conn.SetMaxIdleConns(maxOpenConns)
 
-	for _, opt := range opts {
-		opt(&postgres)
+	if postgres.hasLogger {
+		postgres.DB.AddQueryHook(&logQueryHook{})
 	}
 
 	// register many-to-many relationships
@@ -151,9 +155,6 @@ func (p *Postgres) InitDatabase(ctx context.Context) error {
 
 // Close -
 func (p *Postgres) Close() error {
-	if err := p.conn.Close(); err != nil {
-		return err
-	}
 	return p.conn.Close()
 }
 

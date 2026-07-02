@@ -3,6 +3,8 @@ package types
 import (
 	"fmt"
 	"math/big"
+
+	"github.com/pkg/errors"
 )
 
 // BigInt -
@@ -18,16 +20,22 @@ func NewBigInt(val int64) *BigInt {
 }
 
 // NewBigIntFromString -
-func NewBigIntFromString(val string) *BigInt {
+func NewBigIntFromString(val string) (*BigInt, error) {
 	b := big.NewInt(0)
-	b, _ = b.SetString(val, 10)
+	b, ok := b.SetString(val, 10)
+	if !ok {
+		return nil, errors.Errorf("not a valid big integer: %s", val)
+	}
 	return &BigInt{
 		Int: b,
-	}
+	}, nil
 }
 
 // MarshalJSON -
 func (b *BigInt) MarshalJSON() ([]byte, error) {
+	if b == nil || b.Int == nil {
+		return []byte("null"), nil
+	}
 	return []byte(fmt.Sprintf(`"%s"`, b.String())), nil
 }
 

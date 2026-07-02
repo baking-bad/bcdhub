@@ -43,8 +43,7 @@ func (n *Nat) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (n *Nat) FromJSONSchema(data map[string]interface{}) error {
-	setIntJSONSchema(&n.Default, data)
-	return nil
+	return setIntJSONSchema(&n.Default, data)
 }
 
 // FindByName -

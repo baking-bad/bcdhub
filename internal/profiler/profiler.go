@@ -2,7 +2,8 @@ package profiler
 
 import (
 	"fmt"
-	"os"
+	"runtime"
+	"time"
 
 	"github.com/grafana/pyroscope-go"
 )
@@ -11,15 +12,18 @@ func New(server, service string) (*pyroscope.Profiler, error) {
 	if server == "" {
 		return nil, nil
 	}
+
+	runtime.SetMutexProfileFraction(5)
+	runtime.SetBlockProfileRate(5)
+
 	return pyroscope.Start(pyroscope.Config{
-		ApplicationName: fmt.Sprintf("bcdhub.%s", service),
+		ApplicationName: fmt.Sprintf("bcd-%s", service),
 		ServerAddress:   server,
 		Tags: map[string]string{
-			"hostname": os.Getenv("BCDHUB_SERVICE"),
-			"project":  "bcdhub",
-			"service":  service,
+			"project": "bcdhub",
+			"service": service,
 		},
-
+		UploadRate: time.Minute,
 		ProfileTypes: []pyroscope.ProfileType{
 			pyroscope.ProfileCPU,
 			pyroscope.ProfileAllocObjects,
@@ -28,9 +32,7 @@ func New(server, service string) (*pyroscope.Profiler, error) {
 			pyroscope.ProfileInuseSpace,
 			pyroscope.ProfileGoroutines,
 			pyroscope.ProfileMutexCount,
-			pyroscope.ProfileMutexDuration,
 			pyroscope.ProfileBlockCount,
-			pyroscope.ProfileBlockDuration,
 		},
 	})
 }

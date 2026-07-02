@@ -69,7 +69,7 @@ func WithWaitRPC(rpcConfig map[string]RPCConfig) ContextOption {
 }
 
 // WithStorage -
-func WithStorage(cctx context.Context, cfg StorageConfig, appName string, maxPageSize int64) ContextOption {
+func WithStorage(cctx context.Context, cfg StorageConfig, appName string, maxPageSize int64, timeout time.Duration) ContextOption {
 	return func(ctx *Context) {
 		if len(cfg.Postgres.Host) == 0 {
 			panic("Please set connection strings to storage in config")
@@ -77,6 +77,7 @@ func WithStorage(cctx context.Context, cfg StorageConfig, appName string, maxPag
 
 		opts := []pgCore.PostgresOption{
 			pgCore.WithPageSize(maxPageSize),
+			pgCore.WithTimeout(timeout),
 		}
 
 		if cfg.LogQueries {

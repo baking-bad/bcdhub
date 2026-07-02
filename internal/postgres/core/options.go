@@ -1,6 +1,8 @@
 package core
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 )
 
@@ -20,9 +22,12 @@ func WithPageSize(pageSize int64) PostgresOption {
 // WithQueryLogging -
 func WithQueryLogging() PostgresOption {
 	return func(pg *Postgres) {
-		if pg.DB == nil {
-			return
-		}
-		pg.DB.AddQueryHook(&logQueryHook{})
+		pg.hasLogger = true
+	}
+}
+
+func WithTimeout(timeout time.Duration) PostgresOption {
+	return func(pg *Postgres) {
+		pg.timeout = timeout
 	}
 }

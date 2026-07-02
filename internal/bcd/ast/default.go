@@ -175,7 +175,10 @@ func (d *Default) ToBaseNode(optimized bool) (*base.Node, error) {
 		val := d.Value.(string)
 		node.BytesValue = &val
 	case valueKindInt:
-		val := d.Value.(*types.BigInt)
+		val, ok := d.Value.(*types.BigInt)
+		if !ok {
+			return nil, errors.Errorf("expected big int value for %s: got %v", d.GetName(), d.Value)
+		}
 		node.IntValue = val
 	default:
 		node.Prim = d.Prim
@@ -216,8 +219,15 @@ func (d *Default) ToParameters() ([]byte, error) {
 	case valueKindBytes:
 		return []byte(fmt.Sprintf(`{"bytes":"%s"}`, d.Value)), nil
 	case valueKindInt:
-		i := d.Value.(*types.BigInt)
-		return []byte(fmt.Sprintf(`{"int":"%s"}`, i.String())), nil
+		i, ok := d.Value.(*types.BigInt)
+		if !ok {
+			return nil, errors.Errorf("expected big int value for %s: got %v", d.GetName(), d.Value)
+		}
+		value, err := i.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		return []byte(fmt.Sprintf(`{"int":%s}`, value)), nil
 	}
 	return nil, nil
 }

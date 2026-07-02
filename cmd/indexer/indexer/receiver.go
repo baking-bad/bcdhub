@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/cenkalti/backoff/v7"
 	"github.com/dipdup-io/workerpool"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -93,18 +94,26 @@ func (r *Receiver) get(ctx context.Context, level int64) (Block, error) {
 }
 
 func (r *Receiver) job(ctx context.Context, level int64) {
-	for {
-		block, err := r.get(ctx, level)
-		if err == nil {
-			r.blocks <- &block
-			r.inProcess.Delete(level)
-			break
-		}
+	_, err := backoff.Retry(
+		ctx,
+		func() (string, error) {
+			block, err := r.get(ctx, level)
+			if err == nil {
+				r.blocks <- &block
+				r.inProcess.Delete(level)
+				return "ok", nil
+			}
 
-		if errors.Is(err, context.Canceled) {
-			return
-		}
+			if errors.Is(err, context.Canceled) {
+				return "ok", nil
+			}
 
+			return "", errors.Wrapf(err, "Receiver.get: %d", level)
+		},
+		backoff.WithBackOff(backoff.NewExponentialBackOff()),
+		backoff.WithMaxElapsedTime(0),
+	)
+	if err != nil {
 		log.Err(err).Int64("block", level).Msg("Receiver.get")
 	}
 }

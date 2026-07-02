@@ -23,6 +23,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/store"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 	"github.com/dipdup-io/workerpool"
+	"github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
@@ -61,7 +62,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 	internalCtx := config.NewContext(
 		networkType,
 		config.WithConfigCopy(cfg),
-		config.WithStorage(ctx, cfg.Storage, "indexer", 10),
+		config.WithStorage(ctx, cfg.Storage, "indexer", 10, time.Minute*10),
 		config.WithRPC(cfg.RPC),
 	)
 	log.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
@@ -204,8 +205,7 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 	// First tick
 	if err := bi.process(ctx); err != nil {
 		if !errors.Is(err, errSameLevel) {
-			log.Err(err).Msg("processing")
-			helpers.LocalCatchErrorSentry(localSentry, err)
+			bi.reportProcessError(localSentry, err)
 		}
 	}
 
@@ -224,8 +224,7 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 					}
 					continue
 				}
-				log.Err(err).Msg("processing")
-				helpers.LocalCatchErrorSentry(localSentry, err)
+				bi.reportProcessError(localSentry, err)
 			}
 
 			if everySecond {
@@ -237,6 +236,17 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 			// https://go.dev/ref/spec#Select_statements
 		}
 	}
+}
+
+// reportProcessError logs a process loop error and sends it to Sentry,
+// except transient network failures: the next tick retries them anyway.
+func (bi *BlockchainIndexer) reportProcessError(hub *sentry.Hub, err error) {
+	if helpers.IsTransientError(err) {
+		log.Warn().Err(err).Str("network", bi.Network.String()).Msg("processing: transient network error")
+		return
+	}
+	log.Err(err).Str("network", bi.Network.String()).Msg("processing")
+	helpers.LocalCatchErrorSentry(hub, err)
 }
 
 func (bi *BlockchainIndexer) setUpdateTicker(seconds int) {
@@ -530,7 +540,7 @@ func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, inde
 	bi.Context = config.NewContext(
 		bi.Network,
 		config.WithConfigCopy(cfg),
-		config.WithStorage(ctx, cfg.Storage, "indexer", 10),
+		config.WithStorage(ctx, cfg.Storage, "indexer", 10, time.Minute*10),
 		config.WithRPC(cfg.RPC),
 	)
 	log.Info().Str("network", bi.Network.String()).Msg("Creating indexer object...")
