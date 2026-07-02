@@ -43,8 +43,7 @@ func (m *Mutez) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (m *Mutez) FromJSONSchema(data map[string]interface{}) error {
-	setIntJSONSchema(&m.Default, data)
-	return nil
+	return setIntJSONSchema(&m.Default, data)
 }
 
 // FindByName -

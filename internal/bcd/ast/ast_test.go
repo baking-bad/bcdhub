@@ -1360,10 +1360,11 @@ func TestTypedAst_ToBaseNode(t *testing.T) {
 
 func TestTypedAst_FromJSONSchema(t *testing.T) {
 	tests := []struct {
-		name string
-		tree string
-		data string
-		want string
+		name    string
+		tree    string
+		data    string
+		want    string
+		wantErr bool
 	}{
 		{
 			name: "atomex initiate",
@@ -1425,6 +1426,36 @@ func TestTypedAst_FromJSONSchema(t *testing.T) {
 			tree: `{"prim":"map","args":[{"prim":"string"},{"prim":"string"}]}`,
 			data: `{"@map_1": null}`,
 			want: `[]`,
+		}, {
+			name: "nil nat",
+			tree: `{"prim":"nat","annots":["%next_token_id"]}`,
+			data: `{"next_token_id": null}`,
+			want: `{"int":null}`,
+		}, {
+			name: "nil int",
+			tree: `{"prim":"int"}`,
+			data: `{"@int_1": null}`,
+			want: `{"int":null}`,
+		}, {
+			name: "nil mutez",
+			tree: `{"prim":"mutez"}`,
+			data: `{"@mutez_1": null}`,
+			want: `{"int":null}`,
+		}, {
+			name: "nil timestamp",
+			tree: `{"prim":"timestamp"}`,
+			data: `{"@timestamp_1": null}`,
+			want: `{"int":null}`,
+		}, {
+			name: "nil nat and bool in pair",
+			tree: `{"prim":"pair","args":[{"prim":"nat","annots":["%next_token_id"]},{"prim":"bool","annots":["%paused"]}]}`,
+			data: `{"@pair_1":{"next_token_id": null, "paused": null}}`,
+			want: `{"prim":"Pair","args":[{"int":null},{"prim":"False"}]}`,
+		}, {
+			name:    "non-numeric string nat",
+			tree:    `{"prim":"nat"}`,
+			data:    `{"@nat_1": "abc"}`,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -1441,6 +1472,11 @@ func TestTypedAst_FromJSONSchema(t *testing.T) {
 			require.NoError(t, err)
 
 			err = a.FromJSONSchema(m)
+			if tt.wantErr {
+				require.Error(t, err)
+				require.ErrorIs(t, err, ErrValidation)
+				return
+			}
 			require.NoError(t, err)
 
 			b, err := a.ToParameters("")
