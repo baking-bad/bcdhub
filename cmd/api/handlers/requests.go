@@ -84,8 +84,8 @@ type OauthParams struct {
 }
 
 type opgForAddressRequest struct {
-	LastID int64 `binding:"omitempty" form:"last_id"`
-	Size   int64 `binding:"min=0"     form:"size"`
+	LastID int64 `binding:"omitempty"             form:"last_id"`
+	Size   int64 `binding:"min=0,bcd_max_size=10" form:"size"`
 }
 
 type pageableRequest struct {
