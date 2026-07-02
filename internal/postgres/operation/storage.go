@@ -212,7 +212,7 @@ func (storage *Storage) OPG(ctx context.Context, address string, size, lastID in
 			return nil, err
 		}
 
-		count := int(size) - len(result)
+		count := limit - len(result)
 		if count < len(opg) {
 			opg = opg[:count]
 		}
