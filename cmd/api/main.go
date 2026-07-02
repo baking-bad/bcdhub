@@ -37,7 +37,7 @@ type app struct {
 	profiler *pyroscope.Profiler
 }
 
-func newApp() *app {
+func newApp(ctx context.Context) *app {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		panic(err)
@@ -84,7 +84,7 @@ func newApp() *app {
 	}
 
 	app.Contexts = config.NewContexts(cfg, cfg.API.Networks,
-		config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize)),
+		config.WithStorage(ctx, cfg.Storage, cfg.API.ProjectName, cfg.API.PageSize),
 		config.WithRPC(cfg.RPC),
 		config.WithMempool(cfg.Services),
 		config.WithLoadErrorDescriptions(),
@@ -294,7 +294,10 @@ func (api *app) Run() {
 
 // @query.collection.format multi
 func main() {
-	api := newApp()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	api := newApp(ctx)
 	defer api.Close()
 
 	api.Run()

@@ -28,7 +28,7 @@ func (s Set) Len() int {
 
 // Values - return keys
 func (s Set) Values() []string {
-	r := make([]string, 0)
+	r := make([]string, 0, len(s))
 	for k := range s {
 		r = append(r, k)
 	}

@@ -27,7 +27,7 @@ func NewConstant(depth int) *Constant {
 func (c *Constant) MarshalJSON() ([]byte, error) {
 	var builder bytes.Buffer
 	builder.WriteString(`{"prim": "constant", "args":[`)
-	builder.WriteString(fmt.Sprintf(`{"string": "%s"}`, c.KeyHash))
+	fmt.Fprintf(&builder, `{"string": "%s"}`, c.KeyHash)
 	builder.WriteByte(']')
 	builder.WriteByte('}')
 	return builder.Bytes(), nil
@@ -36,7 +36,7 @@ func (c *Constant) MarshalJSON() ([]byte, error) {
 // String -
 func (c *Constant) String() string {
 	var s strings.Builder
-	s.WriteString(fmt.Sprintf("[%d] %s key_hash=%s", c.ID, c.Prim, c.KeyHash))
+	fmt.Fprintf(&s, "[%d] %s key_hash=%s", c.ID, c.Prim, c.KeyHash)
 	return s.String()
 }
 

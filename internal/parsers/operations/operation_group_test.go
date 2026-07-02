@@ -16,7 +16,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	modelContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
 	mock_accounts "github.com/baking-bad/bcdhub/internal/models/mock/account"
@@ -132,13 +131,13 @@ func TestGroup_Parse(t *testing.T) {
 	scriptRepo.
 		EXPECT().
 		ByHash(gomock.Any(), gomock.Any()).
-		Return(modelContract.Script{}, sql.ErrNoRows).
+		Return(contract.Script{}, sql.ErrNoRows).
 		AnyTimes()
 
 	globalConstantRepo.
 		EXPECT().
 		All(gomock.Any(), gomock.Eq("exprv5uiw7xXoEgRahR3YBn4iAVwfkNCMsrkneutuBZCGG5sS64kRw")).
-		Return([]modelContract.GlobalConstant{
+		Return([]contract.GlobalConstant{
 			{
 				ID:        1,
 				Timestamp: timestamp,
@@ -936,7 +935,7 @@ func TestGroup_Parse(t *testing.T) {
 						LastAction:      timestamp,
 					},
 				},
-				Contracts: []*modelContract.Contract{
+				Contracts: []*contract.Contract{
 					{
 						Level:     86142,
 						Timestamp: timestamp,
@@ -955,7 +954,7 @@ func TestGroup_Parse(t *testing.T) {
 							LastAction:      timestamp,
 						},
 						Delegate: account.Account{},
-						Babylon: modelContract.Script{
+						Babylon: contract.Script{
 							Entrypoints: []string{"decrement", "increment"},
 							Annotations: []string{"%decrement", "%increment"},
 							Hash:        "97a40c7ff3bad5edb92c8e1dcfd4bfc778da8166a7632c1bcecbf8d8f9e4490b",
@@ -1045,7 +1044,7 @@ func TestGroup_Parse(t *testing.T) {
 						AllocatedDestinationContractBurned: 257000,
 					},
 				},
-				Contracts: []*modelContract.Contract{
+				Contracts: []*contract.Contract{
 					{
 
 						Level:     301436,
@@ -1065,7 +1064,7 @@ func TestGroup_Parse(t *testing.T) {
 							LastAction:      timestamp,
 						},
 						Delegate: account.Account{},
-						Alpha: modelContract.Script{
+						Alpha: contract.Script{
 							Hash:        "c4915a55dbe0a3dfc8feb77e46f3e32828f80730a506fab277d8d6c0d5e2f1ec",
 							Tags:        types.Tags(0),
 							Entrypoints: []string{"default"},
@@ -1254,7 +1253,7 @@ func TestGroup_Parse(t *testing.T) {
 						},
 					},
 				},
-				Contracts: []*modelContract.Contract{
+				Contracts: []*contract.Contract{
 					{
 						Level:     72207,
 						Timestamp: timestamp,
@@ -1273,7 +1272,7 @@ func TestGroup_Parse(t *testing.T) {
 							LastAction:      timestamp,
 						},
 						Delegate: account.Account{},
-						Babylon: modelContract.Script{
+						Babylon: contract.Script{
 							Hash:        "b82a20d0647f5ec74ef2daf404cd365a894f6868da0cd623ed07c6b85977b8db",
 							Tags:        types.LedgerTag | types.FA2Tag,
 							FailStrings: []string{"FA2_INSUFFICIENT_BALANCE"},
@@ -2111,7 +2110,7 @@ func TestGroup_Parse(t *testing.T) {
 						LastAction:      timestamp,
 					},
 				},
-				Contracts: []*modelContract.Contract{
+				Contracts: []*contract.Contract{
 					{
 						Timestamp: timestamp,
 						Level:     381735,
@@ -2130,7 +2129,7 @@ func TestGroup_Parse(t *testing.T) {
 							LastAction:      timestamp,
 						},
 						Tags: 16640,
-						Babylon: modelContract.Script{
+						Babylon: contract.Script{
 							Hash: "c52584fb0678ae8b5f7e8021899b7c96060bbbe15c26cc52a3fa122f25262105",
 							FailStrings: []string{
 								"failed assertion",
@@ -2346,7 +2345,7 @@ func TestGroup_Parse(t *testing.T) {
 						DeffatedStorage: []byte(`[[{"string":"tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb"},{"prim":"None"}],{"string":"KT1LnwXLwrH3ejammJ1CJFgezpsehXFDNREU"}]`),
 					},
 				},
-				Contracts: []*modelContract.Contract{
+				Contracts: []*contract.Contract{
 					{
 						Account: account.Account{
 							Address:         "KT1KRzp5hckBwLLswCreweLMdueL3jJhTN1S",
@@ -2365,7 +2364,7 @@ func TestGroup_Parse(t *testing.T) {
 							LastAction:      timestamp,
 						},
 						Delegate: account.Account{},
-						Babylon: modelContract.Script{
+						Babylon: contract.Script{
 							Hash:        "32819b8ddb086cf164e0020cfc23bddfbb202e15fd3113d79ae0850f6f594f7f",
 							Annotations: []string{"%pending", "%whitelist_contract", "%lambda", "%update_admin", "%admin", "%current"},
 							FailStrings: []string{"NOT_PENDING_ADMIN", "ADDRESS_NOT_WHITELISTED", "SENDER_NOT_ADMIN", "CALL_ARE_WHITELISED_VIEW_FAILED", "NO_PENDING_ADMIN"},
@@ -2373,7 +2372,7 @@ func TestGroup_Parse(t *testing.T) {
 							Parameter:   []byte(`[{"prim":"or","args":[{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%lambda"]},{"prim":"option","args":[{"prim":"address"}],"annots":["%update_admin"]}]}]`),
 							Storage:     []byte(`[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%current"]},{"prim":"option","args":[{"prim":"address"}],"annots":["%pending"]}],"annots":["%admin"]},{"prim":"address","annots":["%whitelist_contract"]}]}]`),
 							Code:        []byte(`[[{"prim":"UNPAIR"},{"prim":"IF_LEFT","args":[[{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"CAR"},{"prim":"SENDER"},{"prim":"COMPARE"},{"prim":"NEQ"},{"prim":"IF","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"SENDER_NOT_ADMIN"}]},{"prim":"FAILWITH"}],[]]},{"prim":"SWAP"},{"prim":"UNIT"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"SWAP"},{"prim":"EXEC"},{"prim":"PAIR"}],[{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CDR"},{"prim":"NIL","args":[{"prim":"address"}]},{"prim":"SENDER"},{"prim":"CONS"},{"prim":"VIEW","args":[{"string":"are_whitelisted"},{"prim":"bool"}]},{"prim":"IF_NONE","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"CALL_ARE_WHITELISED_VIEW_FAILED"}]},{"prim":"FAILWITH"}],[]]},{"prim":"IF","args":[[{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"SWAP"},{"prim":"IF_NONE","args":[[{"prim":"CDR"},{"prim":"IF_NONE","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"NO_PENDING_ADMIN"}]},{"prim":"FAILWITH"}],[{"prim":"DUP"},{"prim":"SENDER"},{"prim":"COMPARE"},{"prim":"NEQ"},{"prim":"IF","args":[[{"prim":"DROP"},{"prim":"PUSH","args":[{"prim":"string"},{"string":"NOT_PENDING_ADMIN"}]},{"prim":"FAILWITH"}],[{"prim":"NONE","args":[{"prim":"address"}]},{"prim":"SWAP"},{"prim":"PAIR"}]]}]]}],[{"prim":"SWAP"},{"prim":"DUP"},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"CAR"},{"prim":"SENDER"},{"prim":"COMPARE"},{"prim":"NEQ"},{"prim":"IF","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"SENDER_NOT_ADMIN"}]},{"prim":"FAILWITH"}],[]]},{"prim":"SOME"},{"prim":"UPDATE","args":[{"int":"2"}]}]]},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"DUG","args":[{"int":"2"}]},{"prim":"UPDATE","args":[{"int":"1"}]},{"prim":"SWAP"},{"prim":"PAIR"}],[{"prim":"DROP","args":[{"int":"2"}]},{"prim":"PUSH","args":[{"prim":"string"},{"string":"ADDRESS_NOT_WHITELISTED"}]},{"prim":"FAILWITH"}]]}]]}]]`),
-							Constants: []modelContract.GlobalConstant{
+							Constants: []contract.GlobalConstant{
 								{
 									ID:        1,
 									Timestamp: timestamp,

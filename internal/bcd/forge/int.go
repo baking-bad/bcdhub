@@ -23,7 +23,7 @@ func NewInt() *Int {
 }
 
 // Unforge -
-func (val *Int) Unforge(data []byte) (int, error) {
+func (val *Int) Unforge(data []byte) (uint32, error) {
 	buffer := new(bytes.Buffer)
 	for i := range data {
 		buffer.WriteByte(data[i])
@@ -49,7 +49,7 @@ func (val *Int) Unforge(data []byte) (int, error) {
 		}
 	}
 
-	return buffer.Len(), nil
+	return uint32(buffer.Len()), nil // #nosec G115 -- buffer holds a single forged int, bounded by protocol operation size limits, never close to uint32 max
 }
 
 // Forge -

@@ -31,19 +31,19 @@ func (node *MiguelNode) print(depth int) string {
 	if node.Value == nil {
 		s.WriteString("option=nil")
 	} else {
-		s.WriteString(fmt.Sprintf("prim=%s", node.Prim))
+		fmt.Fprintf(&s, "prim=%s", node.Prim)
 	}
 	if node.Name != nil {
-		s.WriteString(fmt.Sprintf(" name=%s", *node.Name))
+		fmt.Fprintf(&s, " name=%s", *node.Name)
 	}
 	if node.Type != "" {
-		s.WriteString(fmt.Sprintf(" type=%s", node.Type))
+		fmt.Fprintf(&s, " type=%s", node.Type)
 	}
 	if node.Value != nil {
-		s.WriteString(fmt.Sprintf(" value=%v", node.Value))
+		fmt.Fprintf(&s, " value=%v", node.Value)
 	}
 	if node.DiffType != "" {
-		s.WriteString(fmt.Sprintf(" diff_type=%v", node.DiffType))
+		fmt.Fprintf(&s, " diff_type=%v", node.DiffType)
 	}
 	s.WriteByte('\n')
 	for i := range node.Children {

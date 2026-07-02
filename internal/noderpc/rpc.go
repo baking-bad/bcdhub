@@ -118,7 +118,7 @@ func (rpc *NodeRPC) parseResponse(r io.Reader, statusCode int, checkStatusCode b
 
 func (rpc *NodeRPC) makeRequest(req *http.Request) (*http.Response, error) {
 	req.Header.Set("User-Agent", rpc.userAgent)
-	return rpc.client.Do(req)
+	return rpc.client.Do(req) // #nosec G704 -- destination host is the operator-configured Tezos RPC node (internal/config), never derived from user input
 }
 
 func (rpc *NodeRPC) makeGetRequest(ctx context.Context, uri string) (*http.Response, error) {

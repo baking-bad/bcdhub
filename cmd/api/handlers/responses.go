@@ -246,8 +246,8 @@ type GetBigMapResponse struct {
 	Address    string        `json:"address"`
 	Network    string        `json:"network"`
 	Ptr        int64         `json:"ptr"`
-	ActiveKeys uint          `json:"active_keys"`
-	TotalKeys  uint          `json:"total_keys"`
+	ActiveKeys int64         `json:"active_keys"`
+	TotalKeys  int64         `json:"total_keys"`
 	Typedef    []ast.Typedef `extensions:"x-nullable" json:"typedef,omitempty"`
 }
 

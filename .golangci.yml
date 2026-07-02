@@ -1,28 +1,40 @@
+version: "2"
+run:
+  go: "1.26"
 linters:
   enable:
+    - containedctx
+    - copyloopvar
     - goconst
     - gocritic
-    - gofmt
-    - govet
-    - prealloc
-    - unconvert
-    - unused
-    - errcheck
-    - ineffassign
-    - containedctx
-    - tenv
-    - musttag
-    - mirror
-    - tagalign
-    - zerologlint
-    - copyloopvar
     - gosec
+    - makezero
+    - mirror
     - misspell
+    - musttag
     - noctx
     - prealloc
     - protogetter
-    - makezero
-
-run:
-  go: '1.22'
-  timeout: 3m
+    - tagalign
+    - unconvert
+    - zerologlint
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

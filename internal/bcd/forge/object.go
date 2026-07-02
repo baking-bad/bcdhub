@@ -19,8 +19,8 @@ func NewObject(argsCount int, hasAnnots bool) *Object {
 }
 
 // Unforge -
-func (obj *Object) Unforge(data []byte) (int, error) {
-	var length int
+func (obj *Object) Unforge(data []byte) (uint32, error) {
+	var length uint32
 
 	primUnforger := new(prim)
 	n, err := primUnforger.Unforge(data)

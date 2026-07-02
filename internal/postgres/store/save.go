@@ -264,7 +264,7 @@ func (store *Store) setOperationAccountsId(operation *operation.Operation) error
 		return errors.Errorf("unknown source account: %s", operation.Source.Address)
 	}
 
-	if !(operation.IsOrigination() && !operation.IsApplied()) {
+	if !operation.IsOrigination() || operation.IsApplied() {
 		if id, ok := store.getAccountId(operation.Destination); ok {
 			operation.DestinationID = id
 		} else {

@@ -109,7 +109,7 @@ const (
 )
 
 // WaitNew - waiting for db up and creating connection
-func WaitNew(cfg Config, schemaName, appName string, timeout int, opts ...PostgresOption) *Postgres {
+func WaitNew(ctx context.Context, cfg Config, schemaName, appName string, timeout int, opts ...PostgresOption) *Postgres {
 	var db *Postgres
 	var err error
 
@@ -125,7 +125,7 @@ func WaitNew(cfg Config, schemaName, appName string, timeout int, opts ...Postgr
 		}
 	}
 
-	for err := db.DB.Ping(); err != nil; err = db.DB.Ping() {
+	for err := db.DB.PingContext(ctx); err != nil; err = db.DB.PingContext(ctx) {
 		log.Warn().Msgf("Waiting postgres up %d seconds...", timeout)
 		time.Sleep(time.Second * time.Duration(timeout))
 	}

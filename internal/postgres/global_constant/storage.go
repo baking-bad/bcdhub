@@ -36,7 +36,7 @@ func (storage *Storage) All(ctx context.Context, addresses ...string) (response 
 		return
 	}
 
-	err = storage.DB.NewSelect().Model(&response).Where("address IN (?)", bun.In(addresses)).Scan(ctx)
+	err = storage.DB.NewSelect().Model(&response).Where("address IN (?)", bun.List(addresses)).Scan(ctx)
 	return
 }
 
@@ -128,7 +128,7 @@ func (storage *Storage) ForContract(ctx context.Context, address string, size, o
 		ColumnExpr("global_constants.*").
 		Join("LEFT JOIN global_constants on global_constant_id = global_constants.id").
 		Where("global_constant_id is not null").
-		Where("script_id IN (?)", bun.In(ids)).
+		Where("script_id IN (?)", bun.List(ids)).
 		Limit(int(size)).
 		Offset(int(offset)).
 		Order("global_constants.id desc").
@@ -169,8 +169,8 @@ func (storage *Storage) ContractList(ctx context.Context, address string, size, 
 	if err := storage.DB.NewSelect().Model(&contracts).
 		ColumnExpr("contract.*").
 		ColumnExpr("accounts.address as account__address").
-		Where("contract.babylon_id IN (?)", bun.In(scriptIDs)).
-		WhereOr("contract.jakarta_id IN (?)", bun.In(scriptIDs)).
+		Where("contract.babylon_id IN (?)", bun.List(scriptIDs)).
+		WhereOr("contract.jakarta_id IN (?)", bun.List(scriptIDs)).
 		Join("LEFT JOIN accounts on contract.account_id = accounts.id").
 		Order("contract.id desc").
 		Limit(int(size)).

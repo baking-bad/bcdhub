@@ -23,7 +23,7 @@ func GetStats() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxs := c.MustGet("contexts").(config.Contexts)
 
-		networks := make(types.Networks, 0)
+		networks := make(types.Networks, 0, len(ctxs))
 		for n := range ctxs {
 			networks = append(networks, n)
 		}

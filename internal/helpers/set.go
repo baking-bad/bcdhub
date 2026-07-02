@@ -33,7 +33,7 @@ func (s Set[T]) Len() int {
 
 // Values - return keys
 func (s Set[T]) Values() []T {
-	r := make([]T, 0)
+	r := make([]T, 0, len(s))
 	for k := range s {
 		r = append(r, k)
 	}

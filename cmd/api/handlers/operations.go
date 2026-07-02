@@ -250,7 +250,7 @@ func GetOperationGroups() gin.HandlerFunc {
 			return
 		}
 
-		opg, err := ctx.Operations.OPG(c.Request.Context(), req.Address, int64(args.Size), args.LastID)
+		opg, err := ctx.Operations.OPG(c.Request.Context(), req.Address, args.Size, args.LastID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

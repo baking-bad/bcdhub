@@ -29,15 +29,18 @@ func (node *Node) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
 		return consts.ErrInvalidJSON
 	}
-	if data[0] == '[' {
+
+	switch data[0] {
+	case '[':
 		node.Prim = consts.PrimArray
 		node.Args = make([]*Node, 0)
 		return json.Unmarshal(data, &node.Args)
-	} else if data[0] == '{' {
+	case '{':
 		type buf Node
 		return json.Unmarshal(data, (*buf)(node))
+	default:
+		return consts.ErrInvalidJSON
 	}
-	return consts.ErrInvalidJSON
 }
 
 // MarshalJSON -
@@ -101,11 +104,11 @@ func (node *Node) print(depth int) string {
 			s.WriteString(node.Args[i].print(depth + 1))
 		}
 	case node.IntValue != nil:
-		s.WriteString(fmt.Sprintf("Int=%d", *node.IntValue))
+		fmt.Fprintf(&s, "Int=%d", *node.IntValue)
 	case node.BytesValue != nil:
-		s.WriteString(fmt.Sprintf("Bytes=%s", *node.BytesValue))
+		fmt.Fprintf(&s, "Bytes=%s", *node.BytesValue)
 	case node.StringValue != nil:
-		s.WriteString(fmt.Sprintf("String=%s", *node.StringValue))
+		fmt.Fprintf(&s, "String=%s", *node.StringValue)
 	}
 	return s.String()
 }

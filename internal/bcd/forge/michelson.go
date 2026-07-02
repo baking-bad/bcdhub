@@ -27,7 +27,7 @@ func NewMichelson() *Michelson {
 }
 
 // UnforgeString -
-func (m *Michelson) UnforgeString(s string) (int, error) {
+func (m *Michelson) UnforgeString(s string) (uint32, error) {
 	b, err := hex.DecodeString(s)
 	if err != nil {
 		return 0, err
@@ -36,7 +36,7 @@ func (m *Michelson) UnforgeString(s string) (int, error) {
 }
 
 // Unforge -
-func (m *Michelson) Unforge(b []byte) (n int, err error) {
+func (m *Michelson) Unforge(b []byte) (n uint32, err error) {
 	if len(b) == 0 {
 		return 0, nil
 	}

@@ -64,9 +64,9 @@ func (t *MichelineTranslator) exprTranslate(ast *peg.Ast) (string, error) {
 				s.WriteByte(',')
 			}
 			if strings.HasPrefix(data, "[") || strings.HasPrefix(data, "{") {
-				s.WriteString(fmt.Sprintf(`"%s":%s`, ast.Nodes[i].Name, data))
+				fmt.Fprintf(&s, `"%s":%s`, ast.Nodes[i].Name, data)
 			} else {
-				s.WriteString(fmt.Sprintf(`"%s":"%s"`, ast.Nodes[i].Name, data))
+				fmt.Fprintf(&s, `"%s":"%s"`, ast.Nodes[i].Name, data)
 			}
 		}
 	}
@@ -98,7 +98,7 @@ func (t *MichelineTranslator) arrayTranslate(ast *peg.Ast) (string, error) {
 				s.WriteByte(',')
 			}
 			if ast.Nodes[i].Name == "annot" {
-				s.WriteString(fmt.Sprintf(`"%s"`, arg))
+				fmt.Fprintf(&s, `"%s"`, arg)
 			} else {
 				s.WriteString(arg)
 			}

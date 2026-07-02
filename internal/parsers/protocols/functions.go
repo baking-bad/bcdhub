@@ -30,10 +30,10 @@ func setProtocolConstants(ctx context.Context, rpc noderpc.INode, proto *protoco
 			return err
 		}
 		proto.Constants = new(protocol.Constants)
-		proto.Constants.CostPerByte = resp.CostPerByte
-		proto.Constants.HardGasLimitPerOperation = resp.HardGasLimitPerOperation
-		proto.Constants.HardStorageLimitPerOperation = resp.HardStorageLimitPerOperation
-		proto.Constants.TimeBetweenBlocks = resp.BlockDelay()
+		proto.CostPerByte = resp.CostPerByte
+		proto.HardGasLimitPerOperation = resp.HardGasLimitPerOperation
+		proto.HardStorageLimitPerOperation = resp.HardStorageLimitPerOperation
+		proto.TimeBetweenBlocks = resp.BlockDelay()
 	}
 
 	return nil

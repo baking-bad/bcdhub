@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 #  The first stage container, for building the application
 # ---------------------------------------------------------------------
-FROM golang:1.22-alpine as builder
+FROM golang:1.26.4-alpine AS builder
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on
@@ -20,20 +20,20 @@ COPY cmd/api cmd/api
 COPY internal internal
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/api/
-RUN go build -tags=jsoniter -a -installsuffix cgo -o /go/bin/api .
+RUN go build -tags=jsoniter -o /go/bin/api .
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub
 COPY scripts scripts
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/scripts/
-RUN cd bcdctl && go build -a -installsuffix cgo -o /go/bin/bcdctl .
-RUN cd migration && go build -a -installsuffix cgo -o /go/bin/migration .
-RUN cd nginx && go build -a -installsuffix cgo -o /go/bin/seo .
+RUN cd bcdctl && go build -o /go/bin/bcdctl .
+RUN cd migration && go build -o /go/bin/migration .
+RUN cd nginx && go build -o /go/bin/seo .
 
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
-FROM alpine:3.16
+FROM alpine:3.22
 RUN apk add curl jq
 
 ENV PATH="/go/bin/:$PATH"
