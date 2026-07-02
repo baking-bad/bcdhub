@@ -7,10 +7,6 @@ rpc:
     uri: https://rpc.tzkt.io/shadownet
     timeout: 20
     requests_per_second: 20
-  tallinnnet:
-    uri: https://rpc.tzkt.io/tallinnnet
-    timeout: 20
-    requests_per_second: 20
   ushuaianet:
     uri: https://rpc.tzkt.io/ushuaianet
     timeout: 20
@@ -26,8 +22,6 @@ services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
   shadownet:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
-  tallinnnet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
   ushuaianet:
     mempool: https://mempool.test.dipdup.net/v1/graphql
@@ -69,13 +63,11 @@ api:
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
       shadownet: https://rpc.tzkt.io/shadownet
-      tallinnnet: https://rpc.tzkt.io/tallinnnet
       ushuaianet: https://rpc.tzkt.io/ushuaianet
       tezosx: https://michelson.previewnet.tezosx.nomadic-labs.com
   networks:
     - mainnet
     - shadownet
-    - tallinnnet
     - ushuaianet
     - tezosx
 
@@ -87,8 +79,6 @@ indexer:
       receiver_threads: 5
     shadownet:
       receiver_threads: 10
-    tallinnnet:
-      receiver_threads: 10
     ushuaianet:
       receiver_threads: 10
     tezosx:
@@ -99,7 +89,6 @@ scripts:
   networks:
     - mainnet
     - shadownet
-    - tallinnnet
     - ushuaianet
     - tezosx
 
@@ -110,13 +99,6 @@ implicit_contracts:
     - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
       level: 1589247
   shadownet:
-    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
-      level: 1
-    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
-      level: 1
-    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
-      level: 1
-  tallinnnet:
     - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
       level: 1
     - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
