@@ -40,6 +40,7 @@ func (Script) TableName() string {
 // Full -
 func (s *Script) Full() ([]byte, error) {
 	var buf bytes.Buffer
+	buf.Grow(len(s.Parameter) + len(s.Storage) + len(s.Code) + len(s.Views) + 96)
 	buf.WriteString(`[{"prim":"parameter","args":`)
 	if _, err := buf.Write(s.Parameter); err != nil {
 		return nil, err

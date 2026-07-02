@@ -16,7 +16,7 @@ Optional third-party dependency: [TzKT](https://github.com/baking-bad/tzkt) for 
 ```bash
 # Run services locally (spins up `db` via docker-compose first)
 make api        # cd cmd/api && go run -tags=jsoniter .
-make indexer    # cd cmd/indexer && go run .
+make indexer    # cd cmd/indexer && go run -tags=jsoniter_sloppy .
 
 # Tests
 go test ./...                       # unit tests

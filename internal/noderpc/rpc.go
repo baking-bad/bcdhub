@@ -168,14 +168,9 @@ func (rpc *NodeRPC) get(ctx context.Context, uri string, response interface{}) e
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer closeWithLogError(resp.Body)
 
-	buffer := new(bytes.Buffer)
-	if _, err = io.Copy(buffer, resp.Body); err != nil {
-		return err
-	}
-
-	return rpc.parseResponse(buffer, resp.StatusCode, true, resp.Request.URL.String(), response)
+	return rpc.parseResponse(resp.Body, resp.StatusCode, true, resp.Request.URL.String(), response)
 }
 
 func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
@@ -196,7 +191,7 @@ func (rpc *NodeRPC) getRaw(ctx context.Context, uri string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeWithLogError(resp.Body)
 
 	if err := rpc.checkStatusCode(resp.Body, resp.StatusCode, true, uri); err != nil {
 		return nil, fmt.Errorf("%w (%s): %w", ErrNodeRPCError, uri, err)
@@ -222,14 +217,18 @@ func (rpc *NodeRPC) post(ctx context.Context, uri string, data interface{}, chec
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer closeWithLogError(resp.Body)
 
-	buffer := new(bytes.Buffer)
-	if _, err = io.Copy(buffer, resp.Body); err != nil {
-		return err
+	return rpc.parseResponse(resp.Body, resp.StatusCode, checkStatusCode, resp.Request.URL.String(), response)
+}
+
+func closeWithLogError(stream io.ReadCloser) {
+	if _, err := io.Copy(io.Discard, stream); err != nil {
+		log.Err(err).Msg("noderpc: drain response body")
 	}
-
-	return rpc.parseResponse(buffer, resp.StatusCode, checkStatusCode, resp.Request.URL.String(), response)
+	if err := stream.Close(); err != nil {
+		log.Err(err).Msg("noderpc: close response body")
+	}
 }
 
 // Block - returns block

@@ -12,7 +12,7 @@ api:
 
 indexer:
 	docker-compose up -d db
-	cd cmd/indexer && go run .
+	cd cmd/indexer && go run -tags=jsoniter_sloppy .
 
 seo:
 ifeq ($(BCD_ENV), development)
@@ -56,7 +56,7 @@ s3-list:
 	aws s3 ls --profile bcd s3://bcd-db-snaps
 
 test:
-	go test ./...
+	go test -tags=jsoniter_sloppy ./...
 
 lint:
 	golangci-lint run
