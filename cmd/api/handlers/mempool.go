@@ -38,6 +38,11 @@ func GetMempool() gin.HandlerFunc {
 			return
 		}
 
+		if ctx.Mempool == nil {
+			c.SecureJSON(http.StatusOK, []Operation{})
+			return
+		}
+
 		res, err := ctx.Mempool.Get(c.Request.Context(), req.Address)
 		if handleError(c, ctx.Storage, err, 0) {
 			return

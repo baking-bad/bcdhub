@@ -26,7 +26,6 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/karlseguin/ccache/v3 v3.0.8
 	github.com/lib/pq v1.11.2
-	github.com/machinebox/graphql v0.2.2
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron/v3 v3.0.1
@@ -88,7 +87,6 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.10 // indirect
-	github.com/matryer/is v1.4.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/memcachier/mc/v3 v3.0.3 // indirect

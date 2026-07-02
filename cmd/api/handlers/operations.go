@@ -325,6 +325,10 @@ func GetByHashAndCounter() gin.HandlerFunc {
 }
 
 func getOperationFromMempool(c context.Context, ctx *config.Context, hash string) (*Operation, error) {
+	if ctx.Mempool == nil {
+		return nil, nil
+	}
+
 	res, err := ctx.Mempool.GetByHash(c, hash)
 	if err != nil {
 		return nil, err

@@ -1,6 +1,6 @@
 package mempool
 
-import "encoding/json"
+import stdJSON "encoding/json"
 
 // PendingOperations -
 type PendingOperations struct {
@@ -10,50 +10,50 @@ type PendingOperations struct {
 
 // PendingOrigination -
 type PendingOrigination struct {
-	Balance         string          `json:"balance"`
-	Branch          string          `json:"branch"`
-	CreatedAt       int64           `json:"created_at"`
-	Delegate        string          `json:"delegate"`
-	Errors          json.RawMessage `json:"errors"`
-	ExpirationLevel *int64          `json:"expiration_level,omitempty"`
-	Fee             int64           `json:"fee"`
-	GasLimit        int64           `json:"gas_limit"`
-	Kind            string          `json:"kind"`
-	Level           *int64          `json:"level,omitempty"`
-	Signature       string          `json:"signature"`
-	Source          string          `json:"source"`
-	Status          string          `json:"status"`
-	Storage         json.RawMessage `json:"storage"`
-	StorageLimit    int64           `json:"storage_limit"`
-	UpdatedAt       int64           `json:"updated_at"`
-	Network         string          `json:"network"`
-	Hash            string          `json:"hash"`
-	Counter         int64           `json:"counter"`
-	Raw             json.RawMessage `json:"raw"`
-	Protocol        string          `json:"protocol"`
+	Balance         string             `json:"balance"`
+	Branch          string             `json:"branch"`
+	CreatedAt       int64              `json:"created_at"`
+	Delegate        string             `json:"delegate"`
+	Errors          stdJSON.RawMessage `json:"errors"`
+	ExpirationLevel *int64             `json:"expiration_level,omitempty"`
+	Fee             int64              `json:"fee"`
+	GasLimit        int64              `json:"gas_limit"`
+	Kind            string             `json:"kind"`
+	Level           *int64             `json:"level,omitempty"`
+	Signature       string             `json:"signature"`
+	Source          string             `json:"source"`
+	Status          string             `json:"status"`
+	Storage         stdJSON.RawMessage `json:"storage"`
+	StorageLimit    int64              `json:"storage_limit"`
+	UpdatedAt       int64              `json:"updated_at"`
+	Network         string             `json:"network"`
+	Hash            string             `json:"hash"`
+	Counter         int64              `json:"counter"`
+	Raw             stdJSON.RawMessage `json:"raw"`
+	Protocol        string             `json:"protocol"`
 }
 
 // PendingTransaction -
 type PendingTransaction struct {
-	Amount          json.Number     `json:"amount"`
-	Branch          string          `json:"branch"`
-	CreatedAt       int64           `json:"created_at"`
-	Errors          json.RawMessage `json:"errors"`
-	ExpirationLevel *int64          `json:"expiration_level,omitempty"`
-	Fee             int64           `json:"fee"`
-	GasLimit        int64           `json:"gas_limit"`
-	Kind            string          `json:"kind"`
-	Level           *int64          `json:"level,omitempty"`
-	Parameters      json.RawMessage `json:"parameters"`
-	Signature       string          `json:"signature"`
-	Source          string          `json:"source"`
-	Status          string          `json:"status"`
-	StorageLimit    int64           `json:"storage_limit"`
-	UpdatedAt       int64           `json:"updated_at"`
-	Destination     string          `json:"destination"`
-	Network         string          `json:"network"`
-	Hash            string          `json:"hash"`
-	Counter         int64           `json:"counter"`
-	Raw             json.RawMessage `json:"raw"`
-	Protocol        string          `json:"protocol"`
+	Amount          stdJSON.Number     `json:"amount"`
+	Branch          string             `json:"branch"`
+	CreatedAt       int64              `json:"created_at"`
+	Errors          stdJSON.RawMessage `json:"errors"`
+	ExpirationLevel *int64             `json:"expiration_level,omitempty"`
+	Fee             int64              `json:"fee"`
+	GasLimit        int64              `json:"gas_limit"`
+	Kind            string             `json:"kind"`
+	Level           *int64             `json:"level,omitempty"`
+	Parameters      stdJSON.RawMessage `json:"parameters"`
+	Signature       string             `json:"signature"`
+	Source          string             `json:"source"`
+	Status          string             `json:"status"`
+	StorageLimit    int64              `json:"storage_limit"`
+	UpdatedAt       int64              `json:"updated_at"`
+	Destination     string             `json:"destination"`
+	Network         string             `json:"network"`
+	Hash            string             `json:"hash"`
+	Counter         int64              `json:"counter"`
+	Raw             stdJSON.RawMessage `json:"raw"`
+	Protocol        string             `json:"protocol"`
 }
