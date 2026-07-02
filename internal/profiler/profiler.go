@@ -13,8 +13,8 @@ func New(server, service string) (*pyroscope.Profiler, error) {
 		return nil, nil
 	}
 
-	runtime.SetMutexProfileFraction(5)
-	runtime.SetBlockProfileRate(5)
+	runtime.SetMutexProfileFraction(0)
+	runtime.SetBlockProfileRate(0)
 
 	return pyroscope.Start(pyroscope.Config{
 		ApplicationName: fmt.Sprintf("bcd-%s", service),
@@ -30,9 +30,6 @@ func New(server, service string) (*pyroscope.Profiler, error) {
 			pyroscope.ProfileAllocSpace,
 			pyroscope.ProfileInuseObjects,
 			pyroscope.ProfileInuseSpace,
-			pyroscope.ProfileGoroutines,
-			pyroscope.ProfileMutexCount,
-			pyroscope.ProfileBlockCount,
 		},
 	})
 }

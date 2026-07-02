@@ -20,7 +20,7 @@ COPY cmd/indexer cmd/indexer
 COPY internal internal
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/indexer/
-RUN go build -o /go/bin/indexer .
+RUN go build -tags=jsoniter_sloppy -o /go/bin/indexer .
 
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
