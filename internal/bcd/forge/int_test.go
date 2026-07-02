@@ -11,7 +11,7 @@ func TestInt_Unforge(t *testing.T) {
 	tests := []struct {
 		name    string
 		data    []byte
-		want    int
+		want    uint32
 		val     *big.Int
 		wantErr bool
 	}{
@@ -65,7 +65,7 @@ func TestInt_Unforge(t *testing.T) {
 			if err != nil {
 				return
 			}
-			require.Equal(t, tt.want, got)
+			require.EqualValues(t, tt.want, got)
 			require.EqualValues(t, val.IntValue.Cmp(tt.val), 0)
 		})
 	}

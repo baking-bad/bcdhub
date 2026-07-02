@@ -61,7 +61,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 	internalCtx := config.NewContext(
 		networkType,
 		config.WithConfigCopy(cfg),
-		config.WithStorage(cfg.Storage, "indexer", 10),
+		config.WithStorage(ctx, cfg.Storage, "indexer", 10),
 		config.WithRPC(cfg.RPC),
 	)
 	log.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
@@ -77,7 +77,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 		g:            workerpool.NewGroup(),
 	}
 
-	if err := bi.init(ctx, bi.Context.StorageDB); err != nil {
+	if err := bi.init(ctx, bi.StorageDB); err != nil {
 		return nil, err
 	}
 
@@ -152,7 +152,7 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 	log.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", currentProtocol.Hash)
 
 	for {
-		if _, err := bi.Context.RPC.GetLevel(ctx); err == nil {
+		if _, err := bi.RPC.GetLevel(ctx); err == nil {
 			break
 		}
 		log.Warn().Str("network", bi.Network.String()).Msg("waiting node rpc...")
@@ -242,7 +242,7 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 func (bi *BlockchainIndexer) setUpdateTicker(seconds int) {
 	var duration time.Duration
 	if seconds == 0 {
-		duration = time.Duration(bi.currentProtocol.Constants.TimeBetweenBlocks) * time.Second
+		duration = time.Duration(bi.currentProtocol.TimeBetweenBlocks) * time.Second
 		if duration.Microseconds() <= 0 {
 			duration = 10 * time.Second
 		}
@@ -530,13 +530,13 @@ func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, inde
 	bi.Context = config.NewContext(
 		bi.Network,
 		config.WithConfigCopy(cfg),
-		config.WithStorage(cfg.Storage, "indexer", 10),
+		config.WithStorage(ctx, cfg.Storage, "indexer", 10),
 		config.WithRPC(cfg.RPC),
 	)
-	log.Info().Str("network", bi.Context.Network.String()).Msg("Creating indexer object...")
-	bi.receiver = NewReceiver(bi.Context.RPC, 20, indexerConfig.ReceiverThreads)
+	log.Info().Str("network", bi.Network.String()).Msg("Creating indexer object...")
+	bi.receiver = NewReceiver(bi.RPC, 20, indexerConfig.ReceiverThreads)
 	bi.startLevel = indexerConfig.ResolveStartLevel()
 
 	bi.refreshTimer = make(chan struct{}, 10)
-	return bi.init(ctx, bi.Context.StorageDB)
+	return bi.init(ctx, bi.StorageDB)
 }

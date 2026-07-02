@@ -222,7 +222,7 @@ func GetEntrypointSchema() gin.HandlerFunc {
 					return
 				}
 
-				opg, err := ctx.Operations.GetByHashAndCounter(c.Request.Context(), hash, int64(*esReq.Counter))
+				opg, err := ctx.Operations.GetByHashAndCounter(c.Request.Context(), hash, *esReq.Counter)
 				if handleError(c, ctx.Storage, err, 0) {
 					return
 				}

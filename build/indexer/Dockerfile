@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 #  The first stage container, for building the application
 # ---------------------------------------------------------------------
-FROM golang:1.22-alpine as builder
+FROM golang:1.26.4-alpine AS builder
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on
@@ -20,12 +20,12 @@ COPY cmd/indexer cmd/indexer
 COPY internal internal
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/indexer/
-RUN go build -a -installsuffix cgo -o /go/bin/indexer .
+RUN go build -o /go/bin/indexer .
 
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
-FROM alpine:3.16
+FROM alpine:3.22
 RUN apk add curl jq
 
 WORKDIR /app/indexer

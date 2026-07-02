@@ -145,7 +145,8 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 		if length < formatter.DefLineSize {
 			expr = fmt.Sprintf("%v %v", expr, strings.Join(items, " "))
 		} else {
-			res := []string{expr}
+			res := make([]string, 0, len(items)+1)
+			res = append(res, expr)
 			res = append(res, items...)
 			expr = strings.Join(res, fmt.Sprintf("\n%v", argIndent))
 		}

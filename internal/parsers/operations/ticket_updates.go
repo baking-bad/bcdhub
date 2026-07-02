@@ -48,7 +48,7 @@ func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *opera
 	tckt.Hash = tckt.GetHash()
 	store.AddTickets(tckt)
 
-	updates := make([]*ticket.TicketUpdate, 0)
+	updates := make([]*ticket.TicketUpdate, len(data.Updates))
 	for i := range data.Updates {
 		update := ticket.TicketUpdate{
 			Level:     operation.Level,
@@ -62,7 +62,7 @@ func (p *TicketUpdateParser) toModel(data noderpc.TicketUpdate, operation *opera
 			},
 			Amount: decimal.RequireFromString(data.Updates[i].Amount),
 		}
-		updates = append(updates, &update)
+		updates[i] = &update
 		store.AddAccounts(update.Account, tckt.Ticketer)
 		store.AddTicketBalances(ticket.Balance{
 			Account: update.Account,

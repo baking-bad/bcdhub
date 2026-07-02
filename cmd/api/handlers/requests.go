@@ -84,8 +84,8 @@ type OauthParams struct {
 }
 
 type opgForAddressRequest struct {
-	LastID int64  `binding:"omitempty" form:"last_id"`
-	Size   uint64 `binding:"min=0"     form:"size"`
+	LastID int64 `binding:"omitempty" form:"last_id"`
+	Size   int64 `binding:"min=0"     form:"size"`
 }
 
 type pageableRequest struct {
@@ -171,10 +171,10 @@ type storageSchemaRequest struct {
 }
 
 type entrypointSchemaRequest struct {
-	FillType       string  `binding:"omitempty" form:"fill_type,omitempty"`
-	EntrypointName string  `binding:"required"  form:"entrypoint"`
-	Hash           string  `binding:"omitempty" form:"hash,omitempty"`
-	Counter        *uint64 `binding:"omitempty" form:"counter,omitempty"`
+	FillType       string `binding:"omitempty"       form:"fill_type,omitempty"`
+	EntrypointName string `binding:"required"        form:"entrypoint"`
+	Hash           string `binding:"omitempty"       form:"hash,omitempty"`
+	Counter        *int64 `binding:"omitempty,min=0" form:"counter,omitempty"`
 }
 
 type forkRequest struct {

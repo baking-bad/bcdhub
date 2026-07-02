@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"os"
 	"strings"
 
@@ -13,6 +14,9 @@ import (
 var ctxs config.Contexts
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		log.Err(err).Msg("load config")
@@ -20,7 +24,7 @@ func main() {
 	}
 
 	ctxs = config.NewContexts(cfg, cfg.Scripts.Networks,
-		config.WithStorage(cfg.Storage, "bcdctl", 0),
+		config.WithStorage(ctx, cfg.Storage, "bcdctl", 0),
 		config.WithConfigCopy(cfg),
 		config.WithRPC(cfg.RPC),
 	)

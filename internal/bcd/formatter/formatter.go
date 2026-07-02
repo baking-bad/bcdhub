@@ -180,7 +180,8 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 		if inline || length < lineSize {
 			expr = fmt.Sprintf("%v %v", expr, strings.Join(items, " "))
 		} else {
-			res := []string{expr}
+			res := make([]string, 0, len(items)+1)
+			res = append(res, expr)
 			res = append(res, items...)
 			expr = strings.Join(res, fmt.Sprintf("\n%v", argIndent))
 		}

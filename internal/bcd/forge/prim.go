@@ -17,7 +17,7 @@ func newPrim(p string) *prim {
 }
 
 // Unforge -
-func (p *prim) Unforge(data []byte) (int, error) {
+func (p *prim) Unforge(data []byte) (uint32, error) {
 	if len(data) == 0 {
 		return 0, errors.Wrap(ErrTooFewBytes, "prim.Unforge: 0")
 	}

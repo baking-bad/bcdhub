@@ -149,8 +149,8 @@ func (r Rollback) DeleteScriptsConstants(ctx context.Context, scriptIds []int64,
 
 	query := r.tx.NewDelete().
 		Model((*contract.ScriptConstants)(nil)).
-		Where("script_id IN (?)", bun.In(scriptIds)).
-		WhereOr("global_constant_id IN (?)", bun.In(constantsIds))
+		Where("script_id IN (?)", bun.List(scriptIds)).
+		WhereOr("global_constant_id IN (?)", bun.List(constantsIds))
 
 	_, err := query.Exec(ctx)
 	return err
@@ -247,7 +247,7 @@ func (r Rollback) DeleteTickets(ctx context.Context, level int64) (ids []int64, 
 func (r Rollback) DeleteTicketBalances(ctx context.Context, ticketIds []int64) (err error) {
 	_, err = r.tx.NewDelete().
 		Model((*ticket.Balance)(nil)).
-		Where("ticket_id IN (?)", bun.In(ticketIds)).
+		Where("ticket_id IN (?)", bun.List(ticketIds)).
 		Exec(ctx)
 	return
 }

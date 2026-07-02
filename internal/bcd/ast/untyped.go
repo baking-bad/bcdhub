@@ -47,7 +47,9 @@ func (u *UntypedAST) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
 		return consts.ErrInvalidJSON
 	}
-	if data[0] == '[' {
+
+	switch data[0] {
+	case '[':
 		node := base.Node{
 			Prim: consts.PrimArray,
 		}
@@ -58,15 +60,16 @@ func (u *UntypedAST) UnmarshalJSON(data []byte) error {
 		node.Args = args
 		*u = append(*u, &node)
 		return nil
-	} else if data[0] == '{' {
+	case '{':
 		var node base.Node
 		if err := json.Unmarshal(data, &node); err != nil {
 			return err
 		}
 		*u = append(*u, &node)
 		return nil
+	default:
+		return consts.ErrInvalidJSON
 	}
-	return consts.ErrInvalidJSON
 }
 
 // ToTypedAST -

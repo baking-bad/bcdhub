@@ -94,8 +94,8 @@ func TestLazyStorageDiff_UnmarshalJSON(t *testing.T) {
 				t.Errorf("LazyStorageDiff.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			assert.Equal(t, tt.lsd.Diff, got.Diff)
-			assert.Equal(t, tt.lsd.LazyStorageDiffKind.ID, got.LazyStorageDiffKind.ID)
-			assert.Equal(t, tt.lsd.LazyStorageDiffKind.Kind, got.LazyStorageDiffKind.Kind)
+			assert.Equal(t, tt.lsd.ID, got.ID)
+			assert.Equal(t, tt.lsd.Kind, got.Kind)
 		})
 	}
 }

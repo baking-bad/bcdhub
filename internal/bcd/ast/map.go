@@ -264,7 +264,8 @@ func (m *Map) Docs(inferredName string) ([]Typedef, string, error) {
 	}
 
 	typedef.Type = fmt.Sprintf("map(%s, %s)", keyVarName, valVarName)
-	result := []Typedef{typedef}
+	result := make([]Typedef, 0, len(keyDocs)+len(valDocs)+1)
+	result = append(result, typedef)
 	result = append(result, keyDocs...)
 	result = append(result, valDocs...)
 

@@ -24,8 +24,8 @@ func newArgsFromNodes(nodes []*base.Node) *args {
 }
 
 // Unforge -
-func (a *args) Unforge(data []byte) (int, error) {
-	var length int
+func (a *args) Unforge(data []byte) (uint32, error) {
+	var length uint32
 	for i := 0; i < a.count; i++ {
 		unforger := NewMichelson()
 

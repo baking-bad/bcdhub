@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"strconv"
@@ -16,6 +17,9 @@ import (
 var migrationsList = []migrations.Migration{}
 
 func main() {
+	cctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	migration, err := chooseMigration()
 	if err != nil {
 		log.Err(err).Msg("choose migration")
@@ -32,7 +36,7 @@ func main() {
 
 	ctxs := config.NewContexts(
 		cfg, cfg.Scripts.Networks,
-		config.WithStorage(cfg.Storage, "migrations", 0),
+		config.WithStorage(cctx, cfg.Storage, "migrations", 0),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions(),
@@ -61,7 +65,10 @@ func chooseMigration() (migrations.Migration, error) {
 
 	var input string
 	fmt.Println("\nEnter migration #:")
-	fmt.Scanln(&input)
+	_, err := fmt.Scanln(&input)
+	if err != nil {
+		return nil, errors.Wrap(err, "scan input")
+	}
 
 	index, err := strconv.Atoi(input)
 	if err != nil {

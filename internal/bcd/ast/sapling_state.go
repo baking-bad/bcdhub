@@ -29,10 +29,10 @@ func NewSaplingState(depth int) *SaplingState {
 func (ss *SaplingState) MarshalJSON() ([]byte, error) {
 	var builder bytes.Buffer
 	builder.WriteString(`{"prim": "sapling_state", "args":[`)
-	builder.WriteString(fmt.Sprintf(`{"int": "%d"}`, ss.MemoSize))
+	fmt.Fprintf(&builder, `{"int": "%d"}`, ss.MemoSize)
 	builder.WriteByte(']')
 	if len(ss.Annots) > 0 {
-		if _, err := builder.WriteString(fmt.Sprintf(`, "annots": ["%s"]`, strings.Join(ss.Annots, `","`))); err != nil {
+		if _, err := fmt.Fprintf(&builder, `, "annots": ["%s"]`, strings.Join(ss.Annots, `","`)); err != nil {
 			return nil, err
 		}
 	}
@@ -43,10 +43,10 @@ func (ss *SaplingState) MarshalJSON() ([]byte, error) {
 // String -
 func (ss *SaplingState) String() string {
 	var s strings.Builder
-	s.WriteString(fmt.Sprintf("[%d] %s memo_size=%d\n", ss.ID, ss.Prim, ss.MemoSize))
+	fmt.Fprintf(&s, "[%d] %s memo_size=%d\n", ss.ID, ss.Prim, ss.MemoSize)
 	if ss.Type.Value != nil {
 		s.WriteString(strings.Repeat(consts.DefaultIndent, ss.Depth))
-		s.WriteString(fmt.Sprintf("Int=%d", ss.Type.Value))
+		fmt.Fprintf(&s, "Int=%d", ss.Type.Value)
 	}
 	return s.String()
 }

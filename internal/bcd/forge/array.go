@@ -26,7 +26,7 @@ func newArrayFromNodes(nodes []*base.Node) *Array {
 }
 
 // Unforge -
-func (a *Array) Unforge(data []byte) (int, error) {
+func (a *Array) Unforge(data []byte) (uint32, error) {
 	a.Prim = PrimArray
 
 	l := new(length)
@@ -40,11 +40,11 @@ func (a *Array) Unforge(data []byte) (int, error) {
 	}
 	data = data[n:]
 
-	if len(data) < l.Value {
+	if uint32(len(data)) < l.Value { // #nosec G115 -- unforged data is bounded by protocol operation size limits, never close to uint32 max
 		return 4, errors.Wrap(ErrTooFewBytes, fmt.Sprintf("String.Unforge: %d < %d", len(data), l.Value))
 	}
 
-	var count int
+	var count uint32
 	for count < l.Value {
 		unforger := NewMichelson()
 		n, err := unforger.Unforge(data)
@@ -68,7 +68,7 @@ func (a *Array) Forge() ([]byte, error) {
 		return nil, err
 	}
 	l := new(length)
-	l.Value = len(args)
+	l.Value = uint32(len(args)) // #nosec G115 -- forged args are bounded by protocol operation size limits, never close to uint32 max
 	data, err := l.Forge()
 	if err != nil {
 		return nil, err

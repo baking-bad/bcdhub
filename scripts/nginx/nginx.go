@@ -26,11 +26,11 @@ const defaultConfTemplate = `server {
 	}
 }`
 
-func makeNginxConfig(filepath, baseURL string) error {
+func makeNginxConfig(filepath string) error {
 	var locations strings.Builder
 
 	defaultConf := fmt.Sprintf(defaultConfTemplate, locations.String())
-	file, err := os.Create(filepath)
+	file, err := os.Create(filepath) // #nosec G703 -- path is built from trusted config (share_path) and BCD_ENV, never from external input
 	if err != nil {
 		return err
 	}

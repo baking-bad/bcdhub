@@ -53,9 +53,9 @@ func prepareBigMapStatesToEnrich(bmd []bigmapdiff.BigMapState, skipEmpty bool) [
 }
 
 func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmapdiff.BigMapDiff {
-	res := make([]bigmapdiff.BigMapDiff, 0)
+	res := make([]bigmapdiff.BigMapDiff, len(bmd))
 	for i := range bmd {
-		res = append(res, bigmapdiff.BigMapDiff{
+		res[i] = bigmapdiff.BigMapDiff{
 			Ptr:         bmd[i].Ptr,
 			Key:         bmd[i].Key,
 			Value:       bmd[i].Value,
@@ -66,7 +66,7 @@ func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmapdiff.BigMapDiff {
 			Contract:    bmd[i].Address,
 			Timestamp:   bmd[i].Timestamp,
 			ProtocolID:  bmd[i].Protocol,
-		})
+		}
 	}
 	return res
 }

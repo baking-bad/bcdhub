@@ -12,7 +12,7 @@ import (
 type Bytes base.Node
 
 // Unforge -
-func (b *Bytes) Unforge(data []byte) (int, error) {
+func (b *Bytes) Unforge(data []byte) (uint32, error) {
 	l := new(length)
 	n, err := l.Unforge(data)
 	if err != nil {
@@ -21,7 +21,7 @@ func (b *Bytes) Unforge(data []byte) (int, error) {
 
 	data = data[n:]
 
-	if len(data) < l.Value {
+	if uint32(len(data)) < l.Value { // #nosec G115 -- unforged data is bounded by protocol operation size limits, never close to uint32 max
 		return 4, errors.Wrap(ErrTooFewBytes, fmt.Sprintf("Bytes.Unforge: %d < %d", len(data), l.Value))
 	}
 
@@ -38,7 +38,7 @@ func (b *Bytes) Forge() ([]byte, error) {
 	}
 
 	l := new(length)
-	l.Value = len(body)
+	l.Value = uint32(len(body)) // #nosec G115 -- forged bytes are bounded by protocol operation size limits, never close to uint32 max
 	data, err := l.Forge()
 	if err != nil {
 		return nil, err

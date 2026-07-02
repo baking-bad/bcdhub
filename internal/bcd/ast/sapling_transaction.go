@@ -28,10 +28,10 @@ func NewSaplingTransaction(depth int) *SaplingTransaction {
 func (st *SaplingTransaction) MarshalJSON() ([]byte, error) {
 	var builder bytes.Buffer
 	builder.WriteString(`{"prim": "sapling_transaction", "args":[`)
-	builder.WriteString(fmt.Sprintf(`{"int": "%d"}`, st.MemoSize))
+	fmt.Fprintf(&builder, `{"int": "%d"}`, st.MemoSize)
 	builder.WriteByte(']')
 	if len(st.Annots) > 0 {
-		if _, err := builder.WriteString(fmt.Sprintf(`, "annots": ["%s"]`, strings.Join(st.Annots, `","`))); err != nil {
+		if _, err := fmt.Fprintf(&builder, `, "annots": ["%s"]`, strings.Join(st.Annots, `","`)); err != nil {
 			return nil, err
 		}
 	}
@@ -42,10 +42,10 @@ func (st *SaplingTransaction) MarshalJSON() ([]byte, error) {
 // String -
 func (st *SaplingTransaction) String() string {
 	var s strings.Builder
-	s.WriteString(fmt.Sprintf("[%d] %s memo_size=%d\n", st.ID, st.Prim, st.MemoSize))
+	fmt.Fprintf(&s, "[%d] %s memo_size=%d\n", st.ID, st.Prim, st.MemoSize)
 	if st.Data.Value != nil {
 		s.WriteString(strings.Repeat(consts.DefaultIndent, st.Depth))
-		s.WriteString(fmt.Sprintf("Int=%d", st.Data.Value))
+		fmt.Fprintf(&s, "Int=%d", st.Data.Value)
 	}
 	return s.String()
 }

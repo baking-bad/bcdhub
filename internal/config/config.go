@@ -168,7 +168,7 @@ type APIConfig struct {
 	Frontend      FrontendConfig   `yaml:"frontend"`
 	Seed          SeedConfig       `yaml:"seed"`
 	Networks      []string         `yaml:"networks"`
-	PageSize      uint64           `yaml:"page_size"`
+	PageSize      int64            `yaml:"page_size"`
 	Periodic      *periodic.Config `yaml:"periodic"`
 }
 

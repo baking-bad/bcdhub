@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
@@ -68,7 +69,7 @@ func WithWaitRPC(rpcConfig map[string]RPCConfig) ContextOption {
 }
 
 // WithStorage -
-func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOption {
+func WithStorage(cctx context.Context, cfg StorageConfig, appName string, maxPageSize int64) ContextOption {
 	return func(ctx *Context) {
 		if len(cfg.Postgres.Host) == 0 {
 			panic("Please set connection strings to storage in config")
@@ -83,6 +84,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOp
 		}
 
 		conn := pgCore.WaitNew(
+			cctx,
 			cfg.Postgres, ctx.Network.String(),
 			appName, cfg.Timeout, opts...,
 		)

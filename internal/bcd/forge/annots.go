@@ -15,7 +15,7 @@ func newAnnots() *annots {
 }
 
 // Unforge -
-func (a *annots) Unforge(data []byte) (int, error) {
+func (a *annots) Unforge(data []byte) (uint32, error) {
 	s := new(String)
 	n, err := s.Unforge(data)
 	if err != nil {
@@ -34,7 +34,7 @@ func (a *annots) Forge() ([]byte, error) {
 	val := strings.Join(a.Value, " ")
 	data := []byte(val)
 	l := new(length)
-	l.Value = len(data)
+	l.Value = uint32(len(data)) // #nosec G115 -- annotation strings are bounded by protocol operation size limits, never close to uint32 max
 	lData, err := l.Forge()
 	if err != nil {
 		return nil, err

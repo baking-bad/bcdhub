@@ -59,10 +59,8 @@ func NewWaitPool(urls []string, opts ...NodeOption) Pool {
 }
 
 func (p Pool) getNode() (*poolItem, error) {
-	nodes := make([]*poolItem, 0)
-	for i := range p {
-		nodes = append(nodes, p[i])
-	}
+	nodes := make([]*poolItem, len(p))
+	copy(nodes, p)
 
 	switch len(nodes) {
 	case 0:

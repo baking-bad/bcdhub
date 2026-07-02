@@ -39,7 +39,7 @@ func GetInfo() gin.HandlerFunc {
 		}
 
 		var balance int64
-		if !(bcd.IsRollupAddressLazy(acc.Address) || bcd.IsSmartRollupAddressLazy(acc.Address)) {
+		if !bcd.IsRollupAddressLazy(acc.Address) && !bcd.IsSmartRollupAddressLazy(acc.Address) {
 			block, err := ctx.Blocks.Last(c.Request.Context())
 			if handleError(c, ctx.Storage, err, 0) {
 				return

@@ -48,8 +48,8 @@ func GetBigMap() gin.HandlerFunc {
 			Network:    req.Network,
 			Ptr:        req.Ptr,
 			Address:    stats.Contract,
-			TotalKeys:  uint(stats.Total),
-			ActiveKeys: uint(stats.Active),
+			TotalKeys:  stats.Total,
+			ActiveKeys: stats.Active,
 		}
 
 		if stats.Total == 0 {

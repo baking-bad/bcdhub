@@ -151,7 +151,7 @@ func searchStringValidator() validator.Func {
 	}
 }
 
-func maxSizeValidator(maxSize uint64) validator.Func {
+func maxSizeValidator(maxSize int64) validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		if maxSize == 0 {
 			maxSize = defaultMaxSize
@@ -160,7 +160,7 @@ func maxSizeValidator(maxSize uint64) validator.Func {
 		if fieldValue < 0 {
 			return false
 		}
-		return uint64(fieldValue) <= maxSize
+		return fieldValue <= maxSize
 	}
 }
 

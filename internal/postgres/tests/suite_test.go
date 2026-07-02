@@ -20,7 +20,7 @@ import (
 	smartrollup "github.com/baking-bad/bcdhub/internal/postgres/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/postgres/stats"
 	"github.com/baking-bad/bcdhub/internal/postgres/ticket"
-	"github.com/dipdup-net/go-lib/database"
+	"github.com/dipdup-io/go-lib/testhelpers"
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/stretchr/testify/suite"
 )
@@ -28,7 +28,7 @@ import (
 // StorageTestSuite -
 type StorageTestSuite struct {
 	suite.Suite
-	psqlContainer *database.PostgreSQLContainer
+	psqlContainer *testhelpers.PostgreSQLContainer
 	storage       *core.Postgres
 
 	accounts        *account.Storage
@@ -51,7 +51,7 @@ func (s *StorageTestSuite) SetupSuite() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer ctxCancel()
 
-	psqlContainer, err := database.NewPostgreSQLContainer(ctx, database.PostgreSQLContainerConfig{
+	psqlContainer, err := testhelpers.NewPostgreSQLContainer(ctx, testhelpers.PostgreSQLContainerConfig{
 		User:     "user",
 		Password: "password",
 		Database: "db_test",

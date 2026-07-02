@@ -40,7 +40,7 @@ func (m *BigMap) String() string {
 	switch {
 	case m.Ptr != nil:
 		s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
-		s.WriteString(fmt.Sprintf("Ptr=%d\n", *m.Ptr))
+		fmt.Fprintf(&s, "Ptr=%d\n", *m.Ptr)
 	case m.Data.Len() > 0:
 		_ = m.Data.Range(func(key, val Comparable) (bool, error) {
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))

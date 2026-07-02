@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -10,6 +11,9 @@ import (
 )
 
 func main() {
+	cctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		log.Err(err).Msg("load config")
@@ -18,7 +22,7 @@ func main() {
 
 	ctx := config.NewContext(
 		types.Mainnet,
-		config.WithStorage(cfg.Storage, "nginx", 0),
+		config.WithStorage(cctx, cfg.Storage, "nginx", 0),
 		config.WithConfigCopy(cfg),
 	)
 	defer ctx.Close()
@@ -33,7 +37,7 @@ func main() {
 	}
 
 	nginxConfigFilename := fmt.Sprintf("%s/default.%s.conf", outputDir, env)
-	if err := makeNginxConfig(nginxConfigFilename, ctx.Config.BaseURL); err != nil {
+	if err := makeNginxConfig(nginxConfigFilename); err != nil {
 		log.Err(err).Msg("make nginx config")
 		return
 	}

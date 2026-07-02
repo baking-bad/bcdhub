@@ -66,8 +66,8 @@ func RunOperation() gin.HandlerFunc {
 			reqRunOp.Source,
 			req.Address,
 			0, // fee
-			state.Protocol.Constants.HardGasLimitPerOperation,
-			state.Protocol.Constants.HardStorageLimitPerOperation,
+			state.Protocol.HardGasLimitPerOperation,
+			state.Protocol.HardStorageLimitPerOperation,
 			counter+1,
 			reqRunOp.Amount,
 			params,

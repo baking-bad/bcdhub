@@ -11,7 +11,7 @@ func TestString_Unforge(t *testing.T) {
 	tests := []struct {
 		name    string
 		data    string
-		want    int
+		want    uint32
 		wantErr bool
 		val     string
 	}{

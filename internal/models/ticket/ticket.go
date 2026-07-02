@@ -33,7 +33,7 @@ func (Ticket) TableName() string {
 func (t Ticket) GetHash() string {
 	ct := make([]byte, len(t.ContentType))
 	copy(ct, t.ContentType)
-	data := make([]byte, 0)
+	data := make([]byte, 0, len(ct)+len(t.Content)+len(t.Ticketer.Address))
 	data = append(data, ct...)
 	data = append(data, t.Content...)
 	data = append(data, []byte(t.Ticketer.Address)...)
