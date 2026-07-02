@@ -83,7 +83,7 @@ func (t *Timestamp) FromJSONSchema(data map[string]interface{}) error {
 		case string:
 			ts, err := time.Parse(time.RFC3339, val)
 			if err != nil {
-				return errors.Wrapf(ErrValidation, "time should be in RFC3339  %s=%s", key, val)
+				return errors.Wrapf(consts.ErrValidation, "time should be in RFC3339  %s=%s", key, val)
 			}
 			t.Value = types.NewBigInt(ts.UTC().Unix())
 		case float64:
@@ -91,7 +91,7 @@ func (t *Timestamp) FromJSONSchema(data map[string]interface{}) error {
 		case nil:
 			t.Value = &types.BigInt{}
 		default:
-			return errors.Wrapf(ErrValidation, "expected a timestamp value: %s=%v", key, value)
+			return errors.Wrapf(consts.ErrValidation, "expected a timestamp value: %s=%v", key, value)
 		}
 		t.ValueKind = valueKindInt
 	}

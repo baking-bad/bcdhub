@@ -1474,7 +1474,7 @@ func TestTypedAst_FromJSONSchema(t *testing.T) {
 			err = a.FromJSONSchema(m)
 			if tt.wantErr {
 				require.Error(t, err)
-				require.ErrorIs(t, err, ErrValidation)
+				require.ErrorIs(t, err, consts.ErrValidation)
 				return
 			}
 			require.NoError(t, err)

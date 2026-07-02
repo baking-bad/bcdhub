@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
 )
@@ -88,13 +89,13 @@ func setIntJSONSchema(d *Default, data map[string]interface{}) error {
 	case string:
 		value, err := types.NewBigIntFromString(v)
 		if err != nil {
-			return errors.Wrapf(ErrValidation, "invalid integer value: %s=%s", key, v)
+			return errors.Wrapf(consts.ErrValidation, "invalid integer value: %s=%s", key, v)
 		}
 		d.Value = value
 	case nil:
 		d.Value = &types.BigInt{}
 	default:
-		return errors.Wrapf(ErrValidation, "expected an integer value: %s=%v", key, value)
+		return errors.Wrapf(consts.ErrValidation, "expected an integer value: %s=%v", key, value)
 	}
 	d.ValueKind = valueKindInt
 	return nil
