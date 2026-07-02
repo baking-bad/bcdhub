@@ -230,9 +230,13 @@ func parseAppliedRunCode(c context.Context, ctx *config.Context, response noderp
 	for i := range response.Operations {
 		var op Operation
 		op.Kind = response.Operations[i].Kind
-		op.Amount = *response.Operations[i].Amount
+		if response.Operations[i].Amount != nil {
+			op.Amount = *response.Operations[i].Amount
+		}
 		op.Source = response.Operations[i].Source
-		op.Destination = *response.Operations[i].Destination
+		if response.Operations[i].Destination != nil {
+			op.Destination = *response.Operations[i].Destination
+		}
 		op.Status = consts.Applied
 		op.Network = main.Network
 		op.Timestamp = main.Timestamp

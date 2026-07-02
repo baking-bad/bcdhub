@@ -84,7 +84,7 @@ func newApp(ctx context.Context) *app {
 	}
 
 	app.Contexts = config.NewContexts(cfg, cfg.API.Networks,
-		config.WithStorage(ctx, cfg.Storage, cfg.API.ProjectName, cfg.API.PageSize),
+		config.WithStorage(ctx, cfg.Storage, cfg.API.ProjectName, cfg.API.PageSize, time.Minute),
 		config.WithRPC(cfg.RPC),
 		config.WithMempool(cfg.Services),
 		config.WithLoadErrorDescriptions(),

@@ -4,6 +4,7 @@ go 1.26.4
 
 require (
 	github.com/btcsuite/btcutil v1.0.2
+	github.com/cenkalti/backoff/v7 v7.0.0
 	github.com/dipdup-io/go-lib/testhelpers v1.0.0
 	github.com/dipdup-io/workerpool v0.0.4
 	github.com/ebellocchia/go-base58 v0.1.0
@@ -20,6 +21,7 @@ require (
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/iancoleman/strcase v0.3.0
 	github.com/ipfs/go-cid v0.4.1
+	github.com/jackc/pgx/v5 v5.10.0
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/json-iterator/go v1.1.12
 	github.com/karlseguin/ccache/v3 v3.0.8
@@ -35,7 +37,6 @@ require (
 	github.com/tidwall/gjson v1.19.0
 	github.com/uptrace/bun v1.2.18
 	github.com/uptrace/bun/dialect/pgdialect v1.2.18
-	github.com/uptrace/bun/driver/pgdriver v1.2.18
 	github.com/yhirose/go-peg v0.0.0-20210804202551-de25d6753cf1
 	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.53.0
@@ -78,6 +79,9 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.9 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/klauspost/compress v1.18.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
@@ -145,5 +149,4 @@ require (
 	golang.org/x/text v0.38.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
-	mellium.im/sasl v0.3.2 // indirect
 )

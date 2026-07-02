@@ -34,6 +34,7 @@ type Store struct {
 	db        *bun.DB
 	accIds    map[string]int64
 	ticketIds map[string]int64
+	statsId   int64
 }
 
 // NewStore -
@@ -53,6 +54,7 @@ func NewStore(db *bun.DB, statsRepo stats.Repository) *Store {
 		db:              db,
 		accIds:          make(map[string]int64),
 		ticketIds:       make(map[string]int64),
+		statsId:         0,
 	}
 }
 

@@ -36,7 +36,7 @@ func main() {
 
 	ctxs := config.NewContexts(
 		cfg, cfg.Scripts.Networks,
-		config.WithStorage(cctx, cfg.Storage, "migrations", 0),
+		config.WithStorage(cctx, cfg.Storage, "migrations", 0, time.Minute*10),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions(),

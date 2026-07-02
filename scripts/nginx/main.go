@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -22,7 +23,7 @@ func main() {
 
 	ctx := config.NewContext(
 		types.Mainnet,
-		config.WithStorage(cctx, cfg.Storage, "nginx", 0),
+		config.WithStorage(cctx, cfg.Storage, "nginx", 0, time.Second*10),
 		config.WithConfigCopy(cfg),
 	)
 	defer ctx.Close()

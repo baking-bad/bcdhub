@@ -5,6 +5,7 @@ import (
 	"context"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/jessevdk/go-flags"
@@ -24,7 +25,7 @@ func main() {
 	}
 
 	ctxs = config.NewContexts(cfg, cfg.Scripts.Networks,
-		config.WithStorage(ctx, cfg.Storage, "bcdctl", 0),
+		config.WithStorage(ctx, cfg.Storage, "bcdctl", 0, time.Minute*10),
 		config.WithConfigCopy(cfg),
 		config.WithRPC(cfg.RPC),
 	)

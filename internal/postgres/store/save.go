@@ -16,11 +16,14 @@ import (
 
 // Save -
 func (store *Store) Save(ctx context.Context) error {
-	stats, err := store.stats.Get(ctx)
-	if err != nil {
-		return err
+	if store.statsId == 0 {
+		stats, err := store.stats.Get(ctx)
+		if err != nil {
+			return err
+		}
+		store.statsId = stats.ID
 	}
-	store.Stats.ID = stats.ID
+	store.Stats.ID = store.statsId
 
 	tx, err := core.NewTransaction(ctx, store.db)
 	if err != nil {
@@ -300,6 +303,7 @@ func (store *Store) saveContracts(ctx context.Context, tx models.Transaction) er
 		return nil
 	}
 
+	relations := make([]*contract.ScriptConstants, 0)
 	for i := range store.Contracts {
 		if store.Contracts[i].Alpha.Code != nil {
 			if err := tx.Scripts(ctx, &store.Contracts[i].Alpha); err != nil {
@@ -320,9 +324,7 @@ func (store *Store) saveContracts(ctx context.Context, tx models.Transaction) er
 							ScriptId:         store.Contracts[i].BabylonID,
 							GlobalConstantId: store.Contracts[i].Babylon.Constants[j].ID,
 						}
-						if err := tx.ScriptConstant(ctx, &relation); err != nil {
-							return err
-						}
+						relations = append(relations, &relation)
 					}
 				}
 
@@ -343,9 +345,7 @@ func (store *Store) saveContracts(ctx context.Context, tx models.Transaction) er
 							ScriptId:         store.Contracts[i].JakartaID,
 							GlobalConstantId: store.Contracts[i].Jakarta.Constants[j].ID,
 						}
-						if err := tx.ScriptConstant(ctx, &relation); err != nil {
-							return err
-						}
+						relations = append(relations, &relation)
 					}
 				}
 
@@ -375,6 +375,10 @@ func (store *Store) saveContracts(ctx context.Context, tx models.Transaction) er
 
 	if err := tx.Contracts(ctx, store.Contracts...); err != nil {
 		return err
+	}
+
+	if err := tx.ScriptConstant(ctx, relations...); err != nil {
+		return errors.Wrap(err, "saving script constant relation")
 	}
 
 	return nil
