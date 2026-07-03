@@ -22,6 +22,13 @@ func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
 }
 
+func (storage *Storage) scriptIDs(schema bun.Safe, hash string) *bun.SelectQuery {
+	return storage.DB.NewSelect().
+		TableExpr("?.scripts", schema).
+		Column("id").
+		Where("hash = ?", hash)
+}
+
 // Same -
 func (storage *Storage) Same(ctx context.Context, network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]domains.Same, error) {
 	if limit < 1 || limit > 10 {
@@ -51,14 +58,11 @@ func (storage *Storage) Same(ctx context.Context, network string, c contract.Con
 			ColumnExpr("contracts.*").
 			ColumnExpr("accounts.address as account__address, accounts.last_action as account__last_action").
 			Join("LEFT JOIN ?.accounts on contracts.account_id = accounts.id", schema).
-			Join("LEFT JOIN ?.scripts as alpha on alpha.id = contracts.alpha_id", schema).
-			Join("LEFT JOIN ?.scripts as babylon on babylon.id = contracts.babylon_id", schema).
-			Join("LEFT JOIN ?.scripts as jakarta on jakarta.id = contracts.jakarta_id", schema).
 			WhereGroup(" AND ", func(sq *bun.SelectQuery) *bun.SelectQuery {
 				return sq.
-					Where("alpha.hash = ?", script.Hash).
-					WhereOr("babylon.hash = ?", script.Hash).
-					WhereOr("jakarta.hash = ?", script.Hash)
+					Where("alpha_id IN (?)", storage.scriptIDs(schema, script.Hash)).
+					WhereOr("babylon_id IN (?)", storage.scriptIDs(schema, script.Hash)).
+					WhereOr("jakarta_id IN (?)", storage.scriptIDs(schema, script.Hash))
 			})
 
 		if value == network {
@@ -99,12 +103,9 @@ func (storage *Storage) SameCount(ctx context.Context, c contract.Contract, avai
 		query := storage.DB.NewSelect().
 			TableExpr("?.contracts", schema).
 			ColumnExpr("count(*) as c").
-			Join("LEFT JOIN ?.scripts as alpha on alpha.id = contracts.alpha_id", schema).
-			Join("LEFT JOIN ?.scripts as babylon on babylon.id = contracts.babylon_id", schema).
-			Join("LEFT JOIN ?.scripts as jakarta on jakarta.id = contracts.jakarta_id", schema).
-			Where("alpha.hash = ?", script.Hash).
-			WhereOr("babylon.hash = ?", script.Hash).
-			WhereOr("jakarta.hash = ?", script.Hash)
+			Where("alpha_id IN (?)", storage.scriptIDs(schema, script.Hash)).
+			WhereOr("babylon_id IN (?)", storage.scriptIDs(schema, script.Hash)).
+			WhereOr("jakarta_id IN (?)", storage.scriptIDs(schema, script.Hash))
 
 		if i == 0 {
 			union = query

@@ -64,7 +64,7 @@ func NewContext(network types.Network, opts ...ContextOption) *Context {
 	}
 
 	ctx.Cache = cache.NewCache(
-		ctx.RPC, ctx.Accounts, ctx.Contracts, ctx.Protocols,
+		ctx.RPC, ctx.Accounts, ctx.Contracts, ctx.Protocols, ctx.Domains,
 	)
 	return ctx
 }
