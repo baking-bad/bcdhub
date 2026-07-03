@@ -58,7 +58,11 @@ func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState
 
 		if err := rm.rollbackBlock(ctx, level); err != nil {
 			log.Err(err).Str("network", network.String()).Msg("rollback error")
-			return rm.rollback.Rollback()
+			if rollbackErr := rm.rollback.Rollback(); rollbackErr != nil {
+				log.Err(rollbackErr).Str("network", network.String()).Msg("failed to rollback")
+				return errors.Wrapf(err, "tx rollback also failed: %v", rollbackErr)
+			}
+			return err
 		}
 
 		log.Info().Str("network", network.String()).Msgf("rolled back to %d", level)
@@ -104,7 +108,7 @@ func (rm Manager) rollbackBlock(ctx context.Context, level int64) error {
 func (rm Manager) rollbackMigrations(ctx context.Context, level int64, rCtx *rollbackContext) error {
 	migrations, err := rm.rollback.GetMigrations(ctx, level)
 	if err != nil {
-		return nil
+		return errors.Wrap(err, "get migrations")
 	}
 	if len(migrations) == 0 {
 		return nil
@@ -115,7 +119,7 @@ func (rm Manager) rollbackMigrations(ctx context.Context, level int64, rCtx *rol
 	}
 
 	if _, err := rm.rollback.DeleteAll(ctx, (*migration.Migration)(nil), level); err != nil {
-		return err
+		return errors.Wrap(err, "delete migrations")
 	}
 	log.Info().Msg("rollback migrations")
 	return nil

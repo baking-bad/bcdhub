@@ -145,7 +145,7 @@ func (b *Babylon) handleBigMapDiff(ctx context.Context, result *noderpc.Operatio
 	}
 
 	if err := b.initPointersTypes(ctx, result, op, storageData); err != nil {
-		return nil
+		return errors.Wrap(err, "Babylon.initPointersTypes")
 	}
 
 	handlers := map[string]func(context.Context, noderpc.BigMapDiff, string, *operation.Operation, parsers.Store) error{

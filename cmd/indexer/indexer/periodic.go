@@ -51,12 +51,17 @@ func NewPeriodicIndexer(
 	p.worker.Start(ctx)
 
 	for worker.URL() == "" {
-		time.Sleep(time.Second)
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			time.Sleep(time.Second)
+		}
 	}
 
 	setUrlToConfig(&p.cfg, worker.URL(), network)
 
-	bi, err := NewBlockchainIndexer(ctx, cfg, network, indexerCfg)
+	bi, err := NewBlockchainIndexer(ctx, p.cfg, network, indexerCfg)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +97,12 @@ func (p *PeriodicIndexer) Rollback(ctx context.Context) error {
 
 func (p *PeriodicIndexer) handleUrlChanged(ctx context.Context, network, url string) error {
 	log.Warn().Str("network", network).Str("url", url).Msg("cancelling indexer due to URL changing...")
+	if p.indexerCancel == nil {
+		return errors.New("indexer cancel func is nil")
+	}
+	if p.indexer == nil {
+		return errors.New("indexer is nil")
+	}
 	p.indexerCancel()
 
 	if err := p.indexer.Close(); err != nil {
