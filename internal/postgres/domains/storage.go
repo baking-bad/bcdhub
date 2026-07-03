@@ -69,6 +69,9 @@ func (storage *Storage) Same(ctx context.Context, network string, c contract.Con
 			query.Where("contracts.id != ?", c.ID)
 		}
 
+		// the outer query takes at most limit+offset rows, no need to pull more from any network
+		query.Limit(limit + offset)
+
 		if i == 0 {
 			union = query
 		} else {
@@ -77,11 +80,13 @@ func (storage *Storage) Same(ctx context.Context, network string, c contract.Con
 	}
 
 	var same []domains.Same
-	err := storage.DB.NewSelect().
-		TableExpr("(?) as same", union).
-		Limit(limit).
-		Offset(offset).
-		Scan(ctx, &same)
+	err := storage.runWithoutParallelism(ctx, func(tx bun.Tx) error {
+		return tx.NewSelect().
+			TableExpr("(?) as same", union).
+			Limit(limit).
+			Offset(offset).
+			Scan(ctx, &same)
+	})
 	return same, err
 }
 
@@ -115,7 +120,10 @@ func (storage *Storage) SameCount(ctx context.Context, c contract.Contract, avai
 	}
 
 	var count int
-	if err := storage.DB.NewSelect().ColumnExpr("sum(c)").TableExpr("(?) as same", union).Scan(ctx, &count); err != nil {
+	err := storage.runWithoutParallelism(ctx, func(tx bun.Tx) error {
+		return tx.NewSelect().ColumnExpr("sum(c)").TableExpr("(?) as same", union).Scan(ctx, &count)
+	})
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, nil
 		}
@@ -123,4 +131,15 @@ func (storage *Storage) SameCount(ctx context.Context, c contract.Contract, avai
 	}
 
 	return count - 1, nil
+}
+
+// runWithoutParallelism - parallel plans allocate DSM segments in /dev/shm, which is limited
+// inside a container; bitmap scans over popular script hashes are cheap enough single-threaded
+func (storage *Storage) runWithoutParallelism(ctx context.Context, fn func(tx bun.Tx) error) error {
+	return storage.DB.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		if _, err := tx.ExecContext(ctx, "SET LOCAL max_parallel_workers_per_gather = 0"); err != nil {
+			return err
+		}
+		return fn(tx)
+	})
 }
