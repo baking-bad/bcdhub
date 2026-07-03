@@ -45,6 +45,9 @@ func preparePayloadOperation(ctx context.Context, cfgCtx *config.Context, operat
 	if err != nil {
 		return response, err
 	}
+	if len(operation.PayloadType) == 0 || len(operation.Payload) == 0 {
+		return response, nil
+	}
 	payloadType, err := ast.NewTypedAstFromBytes(operation.PayloadType)
 	if err != nil {
 		return response, err
