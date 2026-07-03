@@ -91,9 +91,12 @@ func (bi *BlockchainIndexer) Close() error {
 
 	close(bi.refreshTimer)
 	if err := bi.receiver.Close(); err != nil {
-		return nil
+		log.Err(err).Msg("closing receiver")
 	}
-	return bi.Context.Close()
+	if err := bi.Context.Close(); err != nil {
+		log.Err(err).Msg("closing context")
+	}
+	return nil
 }
 
 func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error {

@@ -129,7 +129,9 @@ func (storage *Storage) SameCount(ctx context.Context, c contract.Contract, avai
 		}
 		return 0, err
 	}
-
+	if count == 0 {
+		return 0, nil
+	}
 	return count - 1, nil
 }
 

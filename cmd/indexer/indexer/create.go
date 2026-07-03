@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"maps"
 	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
@@ -19,12 +20,19 @@ func CreateIndexers(ctx context.Context, cfg config.Config, g workerpool.Group) 
 	var (
 		mx       sync.Mutex
 		indexers = make([]Indexer, 0)
+		wg       = new(sync.WaitGroup)
 	)
 
 	for network, indexerCfg := range cfg.Indexer.Networks {
+		networkCfg := cfg
+		networkCfg.RPC = maps.Clone(cfg.RPC)
+
+		wg.Add(1)
 		go func(network string, indexerCfg config.IndexerConfig) {
+			defer wg.Done()
+
 			if indexerCfg.Periodic != nil {
-				periodicIndexer, err := NewPeriodicIndexer(ctx, network, cfg, indexerCfg, g)
+				periodicIndexer, err := NewPeriodicIndexer(ctx, network, networkCfg, indexerCfg, g)
 				if err != nil {
 					log.Err(err).Msg("NewPeriodicIndexer")
 					return
@@ -35,7 +43,7 @@ func CreateIndexers(ctx context.Context, cfg config.Config, g workerpool.Group) 
 
 				g.GoCtx(ctx, periodicIndexer.Start)
 			} else {
-				bi, err := NewBlockchainIndexer(ctx, cfg, network, indexerCfg)
+				bi, err := NewBlockchainIndexer(ctx, networkCfg, network, indexerCfg)
 				if err != nil {
 					log.Err(err).Msg("NewBlockchainIndexer")
 					return
@@ -49,5 +57,6 @@ func CreateIndexers(ctx context.Context, cfg config.Config, g workerpool.Group) 
 		}(network, indexerCfg)
 	}
 
+	wg.Wait()
 	return indexers, nil
 }

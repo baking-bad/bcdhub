@@ -106,23 +106,22 @@ func (storage *Storage) GetByID(ctx context.Context, id int64) (result operation
 
 // OPG -
 func (storage *Storage) OPG(ctx context.Context, address string, size, lastID int64) ([]operation.OPG, error) {
-	var accountID int64
+	var acc account.Account
 	if err := storage.DB.NewSelect().
-		Model((*account.Account)(nil)).
-		Column("id").
+		Model(&acc).
+		Column("id", "last_action").
 		Where("address = ?", address).
-		Scan(ctx, &accountID); err != nil {
+		Scan(ctx); err != nil {
 		return nil, err
 	}
 
 	var (
 		end        bool
 		result     = make([]operation.OPG, 0)
-		lastAction = time.Now().UTC()
+		lastAction = acc.LastAction
 		limit      = storage.GetPageSize(size)
 	)
 
-	lastActionSet := false
 	if lastID > 0 {
 		op, err := storage.GetByID(ctx, lastID)
 		if err != nil {
@@ -131,16 +130,6 @@ func (storage *Storage) OPG(ctx context.Context, address string, size, lastID in
 			}
 		} else {
 			lastAction = op.Timestamp
-			lastActionSet = true
-		}
-	}
-	if !lastActionSet {
-		if err := storage.DB.NewSelect().
-			Model((*account.Account)(nil)).
-			Column("last_action").
-			Where("id = ?", accountID).
-			Scan(ctx, &lastAction); err != nil {
-			return nil, err
 		}
 	}
 
@@ -154,7 +143,7 @@ func (storage *Storage) OPG(ctx context.Context, address string, size, lastID in
 			Column("id", "hash", "counter", "status", "kind", "level", "timestamp", "content_index", "entrypoint").
 			WhereGroup(" AND ",
 				func(q *bun.SelectQuery) *bun.SelectQuery {
-					return q.Where("destination_id = ?", accountID).WhereOr("source_id = ?", accountID)
+					return q.Where("destination_id = ?", acc.ID).WhereOr("source_id = ?", acc.ID)
 				},
 			).
 			Where("timestamp < ?", endTime).
@@ -208,7 +197,7 @@ func (storage *Storage) OPG(ctx context.Context, address string, size, lastID in
 			limit ?2
 		) as ta
 		order by last_id desc
-	`, subQuery, accountID, limit, startTime, endTime).Scan(ctx, &opg); err != nil {
+	`, subQuery, acc.ID, limit, startTime, endTime).Scan(ctx, &opg); err != nil {
 			return nil, err
 		}
 
@@ -218,15 +207,9 @@ func (storage *Storage) OPG(ctx context.Context, address string, size, lastID in
 		}
 
 		result = append(result, opg...)
+		lastAction = lastAction.AddDate(0, -3, 0)
 
-		if len(result) < limit {
-			lastAction = lastAction.AddDate(0, -3, 0)
-			if lastAction.Before(consts.BeginningOfTime) {
-				break
-			}
-		}
-
-		end = len(result) == limit
+		end = len(result) == limit || lastAction.Before(consts.BeginningOfTime)
 	}
 
 	return result, nil

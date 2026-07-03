@@ -169,9 +169,19 @@ func (r Rollback) Protocols(ctx context.Context, level int64) error {
 		return nil
 	}
 
+	var lastProtocol int64
+	if err := r.tx.NewSelect().
+		Model((*protocol.Protocol)(nil)).
+		Column("id").
+		Order("start_level DESC").
+		Limit(1).
+		Scan(ctx, &lastProtocol); err != nil {
+		return err
+	}
+
 	_, err = r.tx.NewUpdate().
 		Model((*protocol.Protocol)(nil)).
-		Where("start_level < ?", level).
+		Where("id = (?)", lastProtocol).
 		Set("end_level = 0").
 		Exec(ctx)
 	return err

@@ -45,6 +45,9 @@ func main() {
 	g := workerpool.NewGroup()
 	ctx, cancel := context.WithCancel(context.Background())
 
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+
 	indexers, err := indexer.CreateIndexers(ctx, cfg, g)
 	if err != nil {
 		cancel()
@@ -52,9 +55,6 @@ func main() {
 		helpers.CatchErrorSentry(err)
 		return
 	}
-
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 	<-sigChan
 	cancel()

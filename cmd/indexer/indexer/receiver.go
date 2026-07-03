@@ -99,7 +99,11 @@ func (r *Receiver) job(ctx context.Context, level int64) {
 		func() (string, error) {
 			block, err := r.get(ctx, level)
 			if err == nil {
-				r.blocks <- &block
+				select {
+				case <-ctx.Done():
+					return "ok", nil
+				case r.blocks <- &block:
+				}
 				r.inProcess.Delete(level)
 				return "ok", nil
 			}

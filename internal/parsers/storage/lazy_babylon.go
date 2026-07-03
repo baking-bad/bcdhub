@@ -157,7 +157,7 @@ func (b *LazyBabylon) handleBigMapDiff(ctx context.Context, result *noderpc.Oper
 	}
 
 	if err := b.initPointersTypes(ctx, result, op, storageData); err != nil {
-		return nil
+		return errors.Wrap(err, "LazyBabylon.initPointersTypes")
 	}
 
 	handlers := map[string]func(context.Context, *noderpc.LazyBigMapDiff, int64, string, *operation.Operation, parsers.Store) error{
