@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -61,33 +59,14 @@ func GetBigMap() gin.HandlerFunc {
 				res.Address = actions[0].Address
 			}
 		} else {
-			destination, err := ctx.Accounts.Get(c.Request.Context(), res.Address)
+			symLink, err := getCurrentSymLink(c.Request.Context(), ctx.Blocks)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
 
-			operation, err := ctx.Operations.Last(
-				c.Request.Context(),
-				map[string]interface{}{
-					"status":         types.OperationStatusApplied,
-					"destination_id": destination.ID,
-				}, 0)
+			deffatedStorage, err := getDeffattedStorage(c, ctx, res.Address, 0)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
-			}
-			proto, err := ctx.Cache.ProtocolByID(c.Request.Context(), operation.ProtocolID)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-
-			var deffatedStorage []byte
-			if proto.SymLink == bcd.SymLinkAlpha {
-				deffatedStorage, err = ctx.RPC.GetScriptStorageRaw(c, res.Address, 0)
-				if handleError(c, ctx.Storage, err, 0) {
-					return
-				}
-			} else {
-				deffatedStorage = operation.DeffatedStorage
 			}
 
 			var data ast.UntypedAST
@@ -95,11 +74,7 @@ func GetBigMap() gin.HandlerFunc {
 				return
 			}
 
-			script, err := ctx.Contracts.ScriptPart(c.Request.Context(), res.Address, proto.SymLink, consts.STORAGE)
-			if handleError(c, ctx.Storage, err, 0) {
-				return
-			}
-			storage, err := ast.NewTypedAstFromBytes(script)
+			storage, err := getStorageType(c.Request.Context(), ctx.Contracts, res.Address, symLink)
 			if handleError(c, ctx.Storage, err, 0) {
 				return
 			}
@@ -450,19 +425,11 @@ func getBigMapType(c context.Context, ctx *config.Context, contract string, ptr 
 		}
 		deffatedStorage = operation.DeffatedStorage
 	} else {
-		contract, err := ctx.Accounts.Get(c, contract)
+		storage, err := getDeffattedStorage(c, ctx, contract, 0)
 		if err != nil {
 			return nil, err
 		}
-
-		operation, err := ctx.Operations.Last(c, map[string]interface{}{
-			"destination_id": contract.ID,
-			"status":         types.OperationStatusApplied,
-		}, 0)
-		if err != nil {
-			return nil, err
-		}
-		deffatedStorage = operation.DeffatedStorage
+		deffatedStorage = storage
 	}
 
 	if err := storageType.SettleFromBytes(deffatedStorage); err != nil {
