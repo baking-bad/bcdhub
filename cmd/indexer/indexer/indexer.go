@@ -244,6 +244,9 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 // reportProcessError logs a process loop error and sends it to Sentry,
 // except transient network failures: the next tick retries them anyway.
 func (bi *BlockchainIndexer) reportProcessError(hub *sentry.Hub, err error) {
+	if errors.Is(err, context.Canceled) {
+		return
+	}
 	if helpers.IsTransientError(err) {
 		log.Warn().Err(err).Str("network", bi.Network.String()).Msg("processing: transient network error")
 		return
