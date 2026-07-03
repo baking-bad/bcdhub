@@ -2,14 +2,17 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -24,6 +27,7 @@ type Cache struct {
 	accounts  account.Repository
 	contracts contract.Repository
 	protocols protocol.Repository
+	domains   domains.Repository
 	sanitizer *bluemonday.Policy
 
 	contractTags *ccache.Cache[types.Tags]
@@ -32,10 +36,11 @@ type Cache struct {
 	scriptBytes  *ccache.Cache[[]byte]
 	scripts      *ccache.Cache[contract.Script]
 	protocolById *ccache.Cache[protocol.Protocol]
+	sameCounts   *ccache.Cache[int]
 }
 
 // NewCache -
-func NewCache(rpc noderpc.INode, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository) *Cache {
+func NewCache(rpc noderpc.INode, accounts account.Repository, contracts contract.Repository, protocols protocol.Repository, domains domains.Repository) *Cache {
 	sanitizer := bluemonday.UGCPolicy()
 	sanitizer.AllowAttrs("em")
 	return &Cache{
@@ -45,10 +50,12 @@ func NewCache(rpc noderpc.INode, accounts account.Repository, contracts contract
 		scriptBytes:  ccache.New(ccache.Configure[[]byte]().MaxSize(1000)),
 		scripts:      ccache.New(ccache.Configure[contract.Script]().MaxSize(1000)),
 		protocolById: ccache.New(ccache.Configure[protocol.Protocol]().MaxSize(1000)),
+		sameCounts:   ccache.New(ccache.Configure[int]().MaxSize(1000)),
 		rpc:          rpc,
 		accounts:     accounts,
 		contracts:    contracts,
 		protocols:    protocols,
+		domains:      domains,
 		sanitizer:    sanitizer,
 	}
 }
@@ -122,6 +129,24 @@ func (cache *Cache) Script(ctx context.Context, address, symLink string) (contra
 	if err != nil {
 		cache.scripts.Delete(key)
 		return contract.Script{}, err
+	}
+	return item.Value(), nil
+}
+
+// SameCount - the result depends only on script hash and networks set, so it is cached by that key
+func (cache *Cache) SameCount(ctx context.Context, c contract.Contract, availiableNetworks ...string) (int, error) {
+	script := c.CurrentScript()
+	if script == nil {
+		return 0, errors.New("invalid contract script")
+	}
+
+	key := fmt.Sprintf("same:%s:%s", script.Hash, strings.Join(availiableNetworks, ","))
+	item, err := cache.sameCounts.Fetch(key, 10*time.Minute, func() (int, error) {
+		return cache.domains.SameCount(ctx, c, availiableNetworks...)
+	})
+	if err != nil {
+		cache.sameCounts.Delete(key)
+		return 0, err
 	}
 	return item.Value(), nil
 }

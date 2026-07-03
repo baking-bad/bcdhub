@@ -22,6 +22,7 @@ import (
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
 	mock_contract "github.com/baking-bad/bcdhub/internal/models/mock/contract"
+	mock_domains "github.com/baking-bad/bcdhub/internal/models/mock/domains"
 	mock_operations "github.com/baking-bad/bcdhub/internal/models/mock/operation"
 	mock_proto "github.com/baking-bad/bcdhub/internal/models/mock/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -74,6 +75,10 @@ func TestGroup_Parse(t *testing.T) {
 	ctrlOperationsRepo := gomock.NewController(t)
 	defer ctrlOperationsRepo.Finish()
 	operaitonsRepo := mock_operations.NewMockRepository(ctrlOperationsRepo)
+
+	ctrlDomainsRepo := gomock.NewController(t)
+	defer ctrlDomainsRepo.Finish()
+	domainsRepo := mock_domains.NewMockRepository(ctrlDomainsRepo)
 
 	ctrlRPC := gomock.NewController(t)
 	defer ctrlRPC.Finish()
@@ -405,7 +410,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -441,7 +446,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -652,7 +657,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -858,7 +863,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -977,7 +982,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1088,7 +1093,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1298,7 +1303,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1403,7 +1408,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1552,7 +1557,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -1627,7 +1632,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations:  operaitonsRepo,
 				Scripts:     scriptRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			storage: map[string]int64{
@@ -2279,7 +2284,7 @@ func TestGroup_Parse(t *testing.T) {
 				Scripts:         scriptRepo,
 				GlobalConstants: globalConstantRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{
@@ -2398,7 +2403,7 @@ func TestGroup_Parse(t *testing.T) {
 				Scripts:         scriptRepo,
 				GlobalConstants: globalConstantRepo,
 				Cache: cache.NewCache(
-					rpc, accountsRepo, contractRepo, protoRepo,
+					rpc, accountsRepo, contractRepo, protoRepo, domainsRepo,
 				),
 			},
 			paramsOpts: []ParseParamsOption{

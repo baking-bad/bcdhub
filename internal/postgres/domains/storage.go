@@ -22,6 +22,13 @@ func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
 }
 
+func (storage *Storage) scriptIDs(schema bun.Safe, hash string) *bun.SelectQuery {
+	return storage.DB.NewSelect().
+		TableExpr("?.scripts", schema).
+		Column("id").
+		Where("hash = ?", hash)
+}
+
 // Same -
 func (storage *Storage) Same(ctx context.Context, network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]domains.Same, error) {
 	if limit < 1 || limit > 10 {
@@ -51,19 +58,19 @@ func (storage *Storage) Same(ctx context.Context, network string, c contract.Con
 			ColumnExpr("contracts.*").
 			ColumnExpr("accounts.address as account__address, accounts.last_action as account__last_action").
 			Join("LEFT JOIN ?.accounts on contracts.account_id = accounts.id", schema).
-			Join("LEFT JOIN ?.scripts as alpha on alpha.id = contracts.alpha_id", schema).
-			Join("LEFT JOIN ?.scripts as babylon on babylon.id = contracts.babylon_id", schema).
-			Join("LEFT JOIN ?.scripts as jakarta on jakarta.id = contracts.jakarta_id", schema).
 			WhereGroup(" AND ", func(sq *bun.SelectQuery) *bun.SelectQuery {
 				return sq.
-					Where("alpha.hash = ?", script.Hash).
-					WhereOr("babylon.hash = ?", script.Hash).
-					WhereOr("jakarta.hash = ?", script.Hash)
+					Where("alpha_id IN (?)", storage.scriptIDs(schema, script.Hash)).
+					WhereOr("babylon_id IN (?)", storage.scriptIDs(schema, script.Hash)).
+					WhereOr("jakarta_id IN (?)", storage.scriptIDs(schema, script.Hash))
 			})
 
 		if value == network {
 			query.Where("contracts.id != ?", c.ID)
 		}
+
+		// the outer query takes at most limit+offset rows, no need to pull more from any network
+		query.Limit(limit + offset)
 
 		if i == 0 {
 			union = query
@@ -73,11 +80,13 @@ func (storage *Storage) Same(ctx context.Context, network string, c contract.Con
 	}
 
 	var same []domains.Same
-	err := storage.DB.NewSelect().
-		TableExpr("(?) as same", union).
-		Limit(limit).
-		Offset(offset).
-		Scan(ctx, &same)
+	err := storage.runWithoutParallelism(ctx, func(tx bun.Tx) error {
+		return tx.NewSelect().
+			TableExpr("(?) as same", union).
+			Limit(limit).
+			Offset(offset).
+			Scan(ctx, &same)
+	})
 	return same, err
 }
 
@@ -99,12 +108,9 @@ func (storage *Storage) SameCount(ctx context.Context, c contract.Contract, avai
 		query := storage.DB.NewSelect().
 			TableExpr("?.contracts", schema).
 			ColumnExpr("count(*) as c").
-			Join("LEFT JOIN ?.scripts as alpha on alpha.id = contracts.alpha_id", schema).
-			Join("LEFT JOIN ?.scripts as babylon on babylon.id = contracts.babylon_id", schema).
-			Join("LEFT JOIN ?.scripts as jakarta on jakarta.id = contracts.jakarta_id", schema).
-			Where("alpha.hash = ?", script.Hash).
-			WhereOr("babylon.hash = ?", script.Hash).
-			WhereOr("jakarta.hash = ?", script.Hash)
+			Where("alpha_id IN (?)", storage.scriptIDs(schema, script.Hash)).
+			WhereOr("babylon_id IN (?)", storage.scriptIDs(schema, script.Hash)).
+			WhereOr("jakarta_id IN (?)", storage.scriptIDs(schema, script.Hash))
 
 		if i == 0 {
 			union = query
@@ -114,7 +120,10 @@ func (storage *Storage) SameCount(ctx context.Context, c contract.Contract, avai
 	}
 
 	var count int
-	if err := storage.DB.NewSelect().ColumnExpr("sum(c)").TableExpr("(?) as same", union).Scan(ctx, &count); err != nil {
+	err := storage.runWithoutParallelism(ctx, func(tx bun.Tx) error {
+		return tx.NewSelect().ColumnExpr("sum(c)").TableExpr("(?) as same", union).Scan(ctx, &count)
+	})
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, nil
 		}
@@ -122,4 +131,15 @@ func (storage *Storage) SameCount(ctx context.Context, c contract.Contract, avai
 	}
 
 	return count - 1, nil
+}
+
+// runWithoutParallelism - parallel plans allocate DSM segments in /dev/shm, which is limited
+// inside a container; bitmap scans over popular script hashes are cheap enough single-threaded
+func (storage *Storage) runWithoutParallelism(ctx context.Context, fn func(tx bun.Tx) error) error {
+	return storage.DB.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		if _, err := tx.ExecContext(ctx, "SET LOCAL max_parallel_workers_per_gather = 0"); err != nil {
+			return err
+		}
+		return fn(tx)
+	})
 }

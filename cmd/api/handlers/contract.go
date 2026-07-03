@@ -99,7 +99,7 @@ func GetSameContracts() gin.HandlerFunc {
 			return
 		}
 
-		count, err := ctx.Domains.SameCount(c.Request.Context(), contract, ctx.Config.API.Networks...)
+		count, err := ctx.Cache.SameCount(c.Request.Context(), contract, ctx.Config.API.Networks...)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -146,7 +146,7 @@ func contractWithStatsPostprocessing(c context.Context, ctx *config.Context, con
 	}
 	res := ContractWithStats{contract, 0}
 
-	stats, err := ctx.Domains.SameCount(c, contractModel, ctx.Config.API.Networks...)
+	stats, err := ctx.Cache.SameCount(c, contractModel, ctx.Config.API.Networks...)
 	if err != nil {
 		return res, err
 	}

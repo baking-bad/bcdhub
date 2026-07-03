@@ -44,12 +44,11 @@ func createBaseIndices(ctx context.Context, db bun.IDB) error {
 		if _, err := db.NewCreateIndex().
 			Model((*bigmapdiff.BigMapDiff)(nil)).
 			IfNotExists().
-			Index("big_map_diff_key_hash_idx").
-			ColumnExpr("key_hash, ptr").
+			Index("big_map_diff_key_hash_id_idx").
+			ColumnExpr("key_hash, ptr, id").
 			Exec(ctx); err != nil {
 			return err
 		}
-
 		// Big map state
 		if _, err := db.NewCreateIndex().
 			Model((*bigmapdiff.BigMapState)(nil)).
@@ -135,6 +134,14 @@ func createBaseIndices(ctx context.Context, db bun.IDB) error {
 			IfNotExists().
 			Index("operations_status_idx").
 			Column("status").
+			Exec(ctx); err != nil {
+			return err
+		}
+		if _, err := db.NewCreateIndex().
+			Model((*operation.Operation)(nil)).
+			IfNotExists().
+			Index("operations_source_id_kind_idx").
+			ColumnExpr("source_id, kind, id").
 			Exec(ctx); err != nil {
 			return err
 		}
