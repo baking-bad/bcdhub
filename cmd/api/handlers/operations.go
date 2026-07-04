@@ -82,7 +82,6 @@ func GetOperation() gin.HandlerFunc {
 		}
 
 		c.SecureJSON(http.StatusNoContent, []gin.H{})
-		return
 	}
 }
 
