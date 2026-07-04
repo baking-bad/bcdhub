@@ -72,13 +72,6 @@ type RPCConfig struct {
 	Log               bool   `yaml:"log"`
 }
 
-// TzKTConfig -
-type TzKTConfig struct {
-	URI     string `yaml:"uri"`
-	BaseURI string `yaml:"base_uri"`
-	Timeout int    `yaml:"timeout"`
-}
-
 // ServiceConfig -
 type ServiceConfig struct {
 }
@@ -136,10 +129,9 @@ type OAuthConfig struct {
 
 // FrontendConfig -
 type FrontendConfig struct {
-	GaEnabled      bool              `yaml:"ga_enabled"`
-	MempoolEnabled bool              `yaml:"mempool_enabled"`
-	SandboxMode    bool              `yaml:"sandbox_mode"`
-	RPC            map[string]string `yaml:"rpc"`
+	GaEnabled   bool              `yaml:"ga_enabled"`
+	SandboxMode bool              `yaml:"sandbox_mode"`
+	RPC         map[string]string `yaml:"rpc"`
 }
 
 // SeedConfig -

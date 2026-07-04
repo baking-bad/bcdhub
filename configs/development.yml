@@ -54,7 +54,6 @@ api:
   page_size: ${PAGE_SIZE:-10}
   frontend:
     ga_enabled: false
-    mempool_enabled: true
     sandbox_mode: false
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet

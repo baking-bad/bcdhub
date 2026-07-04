@@ -442,13 +442,12 @@ type BigMapHistoryItem struct {
 
 // ConfigResponse -
 type ConfigResponse struct {
-	Networks       []string          `json:"networks"`
-	RPCEndpoints   map[string]string `json:"rpc_endpoints"`
-	SentryDSN      string            `json:"sentry_dsn"`
-	OauthEnabled   bool              `json:"oauth_enabled"`
-	GaEnabled      bool              `json:"ga_enabled"`
-	MempoolEnabled bool              `json:"mempool_enabled"`
-	SandboxMode    bool              `json:"sandbox_mode"`
+	Networks     []string          `json:"networks"`
+	RPCEndpoints map[string]string `json:"rpc_endpoints"`
+	SentryDSN    string            `json:"sentry_dsn"`
+	OauthEnabled bool              `json:"oauth_enabled"`
+	GaEnabled    bool              `json:"ga_enabled"`
+	SandboxMode  bool              `json:"sandbox_mode"`
 }
 
 // Screenshot -

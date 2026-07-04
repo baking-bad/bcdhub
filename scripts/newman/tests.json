@@ -119,7 +119,6 @@
 									"    pm.expect(contract).to.have.property('sentry_dsn');",
 									"    pm.expect(contract).to.have.property('oauth_enabled');",
 									"    pm.expect(contract).to.have.property('ga_enabled');",
-									"    pm.expect(contract).to.have.property('mempool_enabled');",
 									"    pm.expect(contract).to.have.property('sandbox_mode');",
 									"});"
 								],
