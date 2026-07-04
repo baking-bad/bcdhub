@@ -5,6 +5,7 @@
 //
 //	mockgen -source=repository.go -destination=../mock/protocol/mock.go -package=protocol -typed
 //
+
 // Package protocol is a generated GoMock package.
 package protocol
 
@@ -20,6 +21,7 @@ import (
 type MockRepository struct {
 	ctrl     *gomock.Controller
 	recorder *MockRepositoryMockRecorder
+	isgomock struct{}
 }
 
 // MockRepositoryMockRecorder is the mock recorder for MockRepository.
@@ -49,31 +51,31 @@ func (m *MockRepository) Get(ctx context.Context, hash string, level int64) (pro
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(ctx, hash, level any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, hash, level any) *MockRepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, hash, level)
-	return &RepositoryGetCall{Call: call}
+	return &MockRepositoryGetCall{Call: call}
 }
 
-// RepositoryGetCall wrap *gomock.Call
-type RepositoryGetCall struct {
+// MockRepositoryGetCall wrap *gomock.Call
+type MockRepositoryGetCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetCall) Return(arg0 protocol.Protocol, arg1 error) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) Return(arg0 protocol.Protocol, arg1 error) *MockRepositoryGetCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(context.Context, string, int64) (protocol.Protocol, error)) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) Do(f func(context.Context, string, int64) (protocol.Protocol, error)) *MockRepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, string, int64) (protocol.Protocol, error)) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) DoAndReturn(f func(context.Context, string, int64) (protocol.Protocol, error)) *MockRepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -88,31 +90,31 @@ func (m *MockRepository) GetByID(ctx context.Context, id int64) (protocol.Protoc
 }
 
 // GetByID indicates an expected call of GetByID.
-func (mr *MockRepositoryMockRecorder) GetByID(ctx, id any) *RepositoryGetByIDCall {
+func (mr *MockRepositoryMockRecorder) GetByID(ctx, id any) *MockRepositoryGetByIDCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), ctx, id)
-	return &RepositoryGetByIDCall{Call: call}
+	return &MockRepositoryGetByIDCall{Call: call}
 }
 
-// RepositoryGetByIDCall wrap *gomock.Call
-type RepositoryGetByIDCall struct {
+// MockRepositoryGetByIDCall wrap *gomock.Call
+type MockRepositoryGetByIDCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetByIDCall) Return(response protocol.Protocol, err error) *RepositoryGetByIDCall {
+func (c *MockRepositoryGetByIDCall) Return(response protocol.Protocol, err error) *MockRepositoryGetByIDCall {
 	c.Call = c.Call.Return(response, err)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetByIDCall) Do(f func(context.Context, int64) (protocol.Protocol, error)) *RepositoryGetByIDCall {
+func (c *MockRepositoryGetByIDCall) Do(f func(context.Context, int64) (protocol.Protocol, error)) *MockRepositoryGetByIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetByIDCall) DoAndReturn(f func(context.Context, int64) (protocol.Protocol, error)) *RepositoryGetByIDCall {
+func (c *MockRepositoryGetByIDCall) DoAndReturn(f func(context.Context, int64) (protocol.Protocol, error)) *MockRepositoryGetByIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

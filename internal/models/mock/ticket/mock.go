@@ -5,6 +5,7 @@
 //
 //	mockgen -source=repository.go -destination=../mock/ticket/mock.go -package=ticket -typed
 //
+
 // Package ticket is a generated GoMock package.
 package ticket
 
@@ -20,6 +21,7 @@ import (
 type MockRepository struct {
 	ctrl     *gomock.Controller
 	recorder *MockRepositoryMockRecorder
+	isgomock struct{}
 }
 
 // MockRepositoryMockRecorder is the mock recorder for MockRepository.
@@ -49,31 +51,31 @@ func (m *MockRepository) BalancesForAccount(ctx context.Context, accountId int64
 }
 
 // BalancesForAccount indicates an expected call of BalancesForAccount.
-func (mr *MockRepositoryMockRecorder) BalancesForAccount(ctx, accountId, req any) *RepositoryBalancesForAccountCall {
+func (mr *MockRepositoryMockRecorder) BalancesForAccount(ctx, accountId, req any) *MockRepositoryBalancesForAccountCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BalancesForAccount", reflect.TypeOf((*MockRepository)(nil).BalancesForAccount), ctx, accountId, req)
-	return &RepositoryBalancesForAccountCall{Call: call}
+	return &MockRepositoryBalancesForAccountCall{Call: call}
 }
 
-// RepositoryBalancesForAccountCall wrap *gomock.Call
-type RepositoryBalancesForAccountCall struct {
+// MockRepositoryBalancesForAccountCall wrap *gomock.Call
+type MockRepositoryBalancesForAccountCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryBalancesForAccountCall) Return(arg0 []ticket.Balance, arg1 error) *RepositoryBalancesForAccountCall {
+func (c *MockRepositoryBalancesForAccountCall) Return(arg0 []ticket.Balance, arg1 error) *MockRepositoryBalancesForAccountCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryBalancesForAccountCall) Do(f func(context.Context, int64, ticket.BalanceRequest) ([]ticket.Balance, error)) *RepositoryBalancesForAccountCall {
+func (c *MockRepositoryBalancesForAccountCall) Do(f func(context.Context, int64, ticket.BalanceRequest) ([]ticket.Balance, error)) *MockRepositoryBalancesForAccountCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryBalancesForAccountCall) DoAndReturn(f func(context.Context, int64, ticket.BalanceRequest) ([]ticket.Balance, error)) *RepositoryBalancesForAccountCall {
+func (c *MockRepositoryBalancesForAccountCall) DoAndReturn(f func(context.Context, int64, ticket.BalanceRequest) ([]ticket.Balance, error)) *MockRepositoryBalancesForAccountCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -88,31 +90,31 @@ func (m *MockRepository) List(ctx context.Context, ticketer string, limit, offse
 }
 
 // List indicates an expected call of List.
-func (mr *MockRepositoryMockRecorder) List(ctx, ticketer, limit, offset any) *RepositoryListCall {
+func (mr *MockRepositoryMockRecorder) List(ctx, ticketer, limit, offset any) *MockRepositoryListCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRepository)(nil).List), ctx, ticketer, limit, offset)
-	return &RepositoryListCall{Call: call}
+	return &MockRepositoryListCall{Call: call}
 }
 
-// RepositoryListCall wrap *gomock.Call
-type RepositoryListCall struct {
+// MockRepositoryListCall wrap *gomock.Call
+type MockRepositoryListCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryListCall) Return(arg0 []ticket.Ticket, arg1 error) *RepositoryListCall {
+func (c *MockRepositoryListCall) Return(arg0 []ticket.Ticket, arg1 error) *MockRepositoryListCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryListCall) Do(f func(context.Context, string, int64, int64) ([]ticket.Ticket, error)) *RepositoryListCall {
+func (c *MockRepositoryListCall) Do(f func(context.Context, string, int64, int64) ([]ticket.Ticket, error)) *MockRepositoryListCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryListCall) DoAndReturn(f func(context.Context, string, int64, int64) ([]ticket.Ticket, error)) *RepositoryListCall {
+func (c *MockRepositoryListCall) DoAndReturn(f func(context.Context, string, int64, int64) ([]ticket.Ticket, error)) *MockRepositoryListCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -127,31 +129,31 @@ func (m *MockRepository) Updates(ctx context.Context, req ticket.UpdatesRequest)
 }
 
 // Updates indicates an expected call of Updates.
-func (mr *MockRepositoryMockRecorder) Updates(ctx, req any) *RepositoryUpdatesCall {
+func (mr *MockRepositoryMockRecorder) Updates(ctx, req any) *MockRepositoryUpdatesCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockRepository)(nil).Updates), ctx, req)
-	return &RepositoryUpdatesCall{Call: call}
+	return &MockRepositoryUpdatesCall{Call: call}
 }
 
-// RepositoryUpdatesCall wrap *gomock.Call
-type RepositoryUpdatesCall struct {
+// MockRepositoryUpdatesCall wrap *gomock.Call
+type MockRepositoryUpdatesCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryUpdatesCall) Return(arg0 []ticket.TicketUpdate, arg1 error) *RepositoryUpdatesCall {
+func (c *MockRepositoryUpdatesCall) Return(arg0 []ticket.TicketUpdate, arg1 error) *MockRepositoryUpdatesCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryUpdatesCall) Do(f func(context.Context, ticket.UpdatesRequest) ([]ticket.TicketUpdate, error)) *RepositoryUpdatesCall {
+func (c *MockRepositoryUpdatesCall) Do(f func(context.Context, ticket.UpdatesRequest) ([]ticket.TicketUpdate, error)) *MockRepositoryUpdatesCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryUpdatesCall) DoAndReturn(f func(context.Context, ticket.UpdatesRequest) ([]ticket.TicketUpdate, error)) *RepositoryUpdatesCall {
+func (c *MockRepositoryUpdatesCall) DoAndReturn(f func(context.Context, ticket.UpdatesRequest) ([]ticket.TicketUpdate, error)) *MockRepositoryUpdatesCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -166,31 +168,31 @@ func (m *MockRepository) UpdatesForOperation(ctx context.Context, operationId in
 }
 
 // UpdatesForOperation indicates an expected call of UpdatesForOperation.
-func (mr *MockRepositoryMockRecorder) UpdatesForOperation(ctx, operationId any) *RepositoryUpdatesForOperationCall {
+func (mr *MockRepositoryMockRecorder) UpdatesForOperation(ctx, operationId any) *MockRepositoryUpdatesForOperationCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesForOperation", reflect.TypeOf((*MockRepository)(nil).UpdatesForOperation), ctx, operationId)
-	return &RepositoryUpdatesForOperationCall{Call: call}
+	return &MockRepositoryUpdatesForOperationCall{Call: call}
 }
 
-// RepositoryUpdatesForOperationCall wrap *gomock.Call
-type RepositoryUpdatesForOperationCall struct {
+// MockRepositoryUpdatesForOperationCall wrap *gomock.Call
+type MockRepositoryUpdatesForOperationCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryUpdatesForOperationCall) Return(arg0 []ticket.TicketUpdate, arg1 error) *RepositoryUpdatesForOperationCall {
+func (c *MockRepositoryUpdatesForOperationCall) Return(arg0 []ticket.TicketUpdate, arg1 error) *MockRepositoryUpdatesForOperationCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryUpdatesForOperationCall) Do(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *RepositoryUpdatesForOperationCall {
+func (c *MockRepositoryUpdatesForOperationCall) Do(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *MockRepositoryUpdatesForOperationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryUpdatesForOperationCall) DoAndReturn(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *RepositoryUpdatesForOperationCall {
+func (c *MockRepositoryUpdatesForOperationCall) DoAndReturn(f func(context.Context, int64) ([]ticket.TicketUpdate, error)) *MockRepositoryUpdatesForOperationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

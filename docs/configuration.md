@@ -51,7 +51,6 @@ Some third-party services
 ```yml
   services:
     mainnet:
-        mempool: https://mempool.dipdup.net/v1/graphql
 ```
 
 #### `api`

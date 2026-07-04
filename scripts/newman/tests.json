@@ -28,7 +28,6 @@
 									"        pm.expect(operation).to.have.property('kind');",
 									"        pm.expect(operation).to.have.property('status');",
 									"        pm.expect(operation).to.have.property('internal');",
-									"        pm.expect(operation).to.have.property('mempool');",
 									"    }",
 									"});"
 								],
@@ -73,7 +72,6 @@
 									"        pm.expect(operation).to.have.property('kind');",
 									"        pm.expect(operation).to.have.property('status');",
 									"        pm.expect(operation).to.have.property('internal');",
-									"        pm.expect(operation).to.have.property('mempool');",
 									"    }",
 									"});"
 								],
@@ -1185,7 +1183,6 @@
 									"        pm.expect(operation).to.have.property('kind');",
 									"        pm.expect(operation).to.have.property('status');",
 									"        pm.expect(operation).to.have.property('internal');",
-									"        pm.expect(operation).to.have.property('mempool');",
 									"    }",
 									"});"
 								],

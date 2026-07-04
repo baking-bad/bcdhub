@@ -5,6 +5,7 @@
 //
 //	mockgen -source=repository.go -destination=../mock/smart_rollup/mock.go -package=smart_rollup -typed
 //
+
 // Package smart_rollup is a generated GoMock package.
 package smart_rollup
 
@@ -20,6 +21,7 @@ import (
 type MockRepository struct {
 	ctrl     *gomock.Controller
 	recorder *MockRepositoryMockRecorder
+	isgomock struct{}
 }
 
 // MockRepositoryMockRecorder is the mock recorder for MockRepository.
@@ -49,31 +51,31 @@ func (m *MockRepository) Get(ctx context.Context, address string) (smartrollup.S
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(ctx, address any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, address any) *MockRepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, address)
-	return &RepositoryGetCall{Call: call}
+	return &MockRepositoryGetCall{Call: call}
 }
 
-// RepositoryGetCall wrap *gomock.Call
-type RepositoryGetCall struct {
+// MockRepositoryGetCall wrap *gomock.Call
+type MockRepositoryGetCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetCall) Return(arg0 smartrollup.SmartRollup, arg1 error) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) Return(arg0 smartrollup.SmartRollup, arg1 error) *MockRepositoryGetCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(context.Context, string) (smartrollup.SmartRollup, error)) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) Do(f func(context.Context, string) (smartrollup.SmartRollup, error)) *MockRepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, string) (smartrollup.SmartRollup, error)) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) DoAndReturn(f func(context.Context, string) (smartrollup.SmartRollup, error)) *MockRepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -88,31 +90,31 @@ func (m *MockRepository) List(ctx context.Context, limit, offset int64, sort str
 }
 
 // List indicates an expected call of List.
-func (mr *MockRepositoryMockRecorder) List(ctx, limit, offset, sort any) *RepositoryListCall {
+func (mr *MockRepositoryMockRecorder) List(ctx, limit, offset, sort any) *MockRepositoryListCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRepository)(nil).List), ctx, limit, offset, sort)
-	return &RepositoryListCall{Call: call}
+	return &MockRepositoryListCall{Call: call}
 }
 
-// RepositoryListCall wrap *gomock.Call
-type RepositoryListCall struct {
+// MockRepositoryListCall wrap *gomock.Call
+type MockRepositoryListCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryListCall) Return(arg0 []smartrollup.SmartRollup, arg1 error) *RepositoryListCall {
+func (c *MockRepositoryListCall) Return(arg0 []smartrollup.SmartRollup, arg1 error) *MockRepositoryListCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryListCall) Do(f func(context.Context, int64, int64, string) ([]smartrollup.SmartRollup, error)) *RepositoryListCall {
+func (c *MockRepositoryListCall) Do(f func(context.Context, int64, int64, string) ([]smartrollup.SmartRollup, error)) *MockRepositoryListCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryListCall) DoAndReturn(f func(context.Context, int64, int64, string) ([]smartrollup.SmartRollup, error)) *RepositoryListCall {
+func (c *MockRepositoryListCall) DoAndReturn(f func(context.Context, int64, int64, string) ([]smartrollup.SmartRollup, error)) *MockRepositoryListCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

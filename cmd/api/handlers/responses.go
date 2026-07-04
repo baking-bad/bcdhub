@@ -48,7 +48,6 @@ type Operation struct {
 	Parameters                         interface{}        `extensions:"x-nullable"     json:"parameters,omitempty"`
 	StorageDiff                        *ast.MiguelNode    `extensions:"x-nullable"     json:"storage_diff,omitempty"`
 	Payload                            []*ast.MiguelNode  `extensions:"x-nullable"     json:"payload,omitempty"`
-	RawMempool                         interface{}        `extensions:"x-nullable"     json:"rawMempool,omitempty"`
 	Timestamp                          time.Time          `json:"timestamp"`
 	Protocol                           string             `json:"protocol"`
 	Hash                               string             `extensions:"x-nullable"     json:"hash,omitempty"`
@@ -64,7 +63,6 @@ type Operation struct {
 	Tag                                string             `extensions:"x-nullable"     json:"tag,omitempty"`
 	AllocatedDestinationContract       bool               `example:"true"              extensions:"x-nullable"                                json:"allocated_destination_contract,omitempty"`
 	Internal                           bool               `json:"internal"`
-	Mempool                            bool               `json:"mempool"`
 	Storage                            stdJSON.RawMessage `json:"-"`
 }
 

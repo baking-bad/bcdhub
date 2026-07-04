@@ -92,3 +92,6 @@ sandbox-clear:
 
 generate:
 	go generate ./...
+
+api-docs:
+	cd cmd/api && swag init --md markdown -parseDependency --parseInternal --parseDepth 1 --outputTypes json

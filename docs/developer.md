@@ -14,7 +14,6 @@ Those microservices are sharing access to databases and communicating via databa
 BCDHub also depends on several API endpoints exposed by [TzKT](https://github.com/baking-bad/tzkt) although they are optional:
 
 * List of blocks containing smart contract operations, used for boosting the indexing process (allows to skip blocks with no contract calls)
-* Mempool operations
 * Contract aliases and other metadata
 
 Those services obviously make sense for public networks only and not used for sandbox or other private environments.

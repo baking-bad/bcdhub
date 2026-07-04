@@ -5,6 +5,7 @@
 //
 //	mockgen -source=model.go -destination=mock/model.go -package=mock -typed
 //
+
 // Package mock is a generated GoMock package.
 package mock
 
@@ -18,6 +19,7 @@ import (
 type MockModel struct {
 	ctrl     *gomock.Controller
 	recorder *MockModelMockRecorder
+	isgomock struct{}
 }
 
 // MockModelMockRecorder is the mock recorder for MockModel.
@@ -46,31 +48,31 @@ func (m *MockModel) GetID() int64 {
 }
 
 // GetID indicates an expected call of GetID.
-func (mr *MockModelMockRecorder) GetID() *ModelGetIDCall {
+func (mr *MockModelMockRecorder) GetID() *MockModelGetIDCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockModel)(nil).GetID))
-	return &ModelGetIDCall{Call: call}
+	return &MockModelGetIDCall{Call: call}
 }
 
-// ModelGetIDCall wrap *gomock.Call
-type ModelGetIDCall struct {
+// MockModelGetIDCall wrap *gomock.Call
+type MockModelGetIDCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *ModelGetIDCall) Return(arg0 int64) *ModelGetIDCall {
+func (c *MockModelGetIDCall) Return(arg0 int64) *MockModelGetIDCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ModelGetIDCall) Do(f func() int64) *ModelGetIDCall {
+func (c *MockModelGetIDCall) Do(f func() int64) *MockModelGetIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ModelGetIDCall) DoAndReturn(f func() int64) *ModelGetIDCall {
+func (c *MockModelGetIDCall) DoAndReturn(f func() int64) *MockModelGetIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -84,31 +86,31 @@ func (m *MockModel) TableName() string {
 }
 
 // TableName indicates an expected call of TableName.
-func (mr *MockModelMockRecorder) TableName() *ModelTableNameCall {
+func (mr *MockModelMockRecorder) TableName() *MockModelTableNameCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TableName", reflect.TypeOf((*MockModel)(nil).TableName))
-	return &ModelTableNameCall{Call: call}
+	return &MockModelTableNameCall{Call: call}
 }
 
-// ModelTableNameCall wrap *gomock.Call
-type ModelTableNameCall struct {
+// MockModelTableNameCall wrap *gomock.Call
+type MockModelTableNameCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *ModelTableNameCall) Return(arg0 string) *ModelTableNameCall {
+func (c *MockModelTableNameCall) Return(arg0 string) *MockModelTableNameCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *ModelTableNameCall) Do(f func() string) *ModelTableNameCall {
+func (c *MockModelTableNameCall) Do(f func() string) *MockModelTableNameCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *ModelTableNameCall) DoAndReturn(f func() string) *ModelTableNameCall {
+func (c *MockModelTableNameCall) DoAndReturn(f func() string) *MockModelTableNameCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
