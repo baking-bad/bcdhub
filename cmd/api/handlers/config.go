@@ -14,11 +14,10 @@ func GetConfig() gin.HandlerFunc {
 		ctx := ctxs.Any()
 
 		cfg := ConfigResponse{
-			Networks:       ctx.Config.API.Networks,
-			RPCEndpoints:   ctx.Config.API.Frontend.RPC,
-			GaEnabled:      ctx.Config.API.Frontend.GaEnabled,
-			MempoolEnabled: ctx.Config.API.Frontend.MempoolEnabled,
-			SandboxMode:    ctx.Config.API.Frontend.SandboxMode,
+			Networks:     ctx.Config.API.Networks,
+			RPCEndpoints: ctx.Config.API.Frontend.RPC,
+			GaEnabled:    ctx.Config.API.Frontend.GaEnabled,
+			SandboxMode:  ctx.Config.API.Frontend.SandboxMode,
 		}
 
 		if ctx.Config.API.SentryEnabled {
