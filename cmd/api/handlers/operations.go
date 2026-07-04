@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
@@ -19,7 +18,6 @@ import (
 // @ID get-opg
 // @Param network path string true "Network"
 // @Param hash path string true "Operation group hash"  minlength(51) maxlength(51)
-// @Param with_mempool query bool false "Search operation in mempool or not"
 // @Param with_storage_diff query bool false "Include storage diff to operations or not"
 // @Accept  json
 // @Produce  json
@@ -83,20 +81,8 @@ func GetOperation() gin.HandlerFunc {
 			}
 		}
 
-		if !queryReq.WithMempool {
-			c.SecureJSON(http.StatusNoContent, []gin.H{})
-			return
-		}
-
-		operation, err := getOperationFromMempool(c, ctxs.Any(), req.Hash)
-		if handleError(c, ctxs.Any().Storage, err, 0) {
-			return
-		}
-		if operation != nil {
-			c.SecureJSON(http.StatusOK, []Operation{*operation})
-		} else {
-			c.SecureJSON(http.StatusNoContent, []gin.H{})
-		}
+		c.SecureJSON(http.StatusNoContent, []gin.H{})
+		return
 	}
 }
 
@@ -321,25 +307,5 @@ func GetByHashAndCounter() gin.HandlerFunc {
 		}
 
 		c.SecureJSON(http.StatusOK, resp)
-	}
-}
-
-func getOperationFromMempool(c context.Context, ctx *config.Context, hash string) (*Operation, error) {
-	if ctx.Mempool == nil {
-		return nil, nil
-	}
-
-	res, err := ctx.Mempool.GetByHash(c, hash)
-	if err != nil {
-		return nil, err
-	}
-
-	switch {
-	case len(res.Originations) > 0:
-		return prepareMempoolOrigination(ctx, res.Originations[0]), nil
-	case len(res.Transactions) > 0:
-		return prepareMempoolTransaction(c, ctx, res.Transactions[0]), nil
-	default:
-		return nil, nil
 	}
 }

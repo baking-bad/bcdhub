@@ -81,7 +81,6 @@ type TzKTConfig struct {
 
 // ServiceConfig -
 type ServiceConfig struct {
-	MempoolURI string `yaml:"mempool"`
 }
 
 // StorageConfig -

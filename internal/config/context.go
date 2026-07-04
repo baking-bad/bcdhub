@@ -18,7 +18,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"github.com/baking-bad/bcdhub/internal/services/mempool"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
@@ -27,7 +26,6 @@ import (
 type Context struct {
 	Network types.Network
 	RPC     noderpc.INode
-	Mempool *mempool.Mempool
 
 	StorageDB *core.Postgres
 
