@@ -29,7 +29,6 @@ api:
   page_size: ${PAGE_SIZE:-10}
   frontend:
     ga_enabled: false
-    mempool_enabled: false
     sandbox_mode: true
     rpc:
       sandboxnet: ${SANDBOX_NODE_URI:-http://127.0.0.1:20000}

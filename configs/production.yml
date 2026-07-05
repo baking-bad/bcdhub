@@ -20,13 +20,9 @@ log_level: ${LOG_LEVEL:-info}
 
 services:
   mainnet:
-    mempool: https://mempool.dipdup.net/v1/graphql
   shadownet:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
   ushuaianet:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
   tezosx:
-    mempool: https://mempool.test.dipdup.net/v1/graphql
 
 storage:
   pg:
@@ -61,7 +57,6 @@ api:
   page_size: ${PAGE_SIZE:-10}
   frontend:
     ga_enabled: true
-    mempool_enabled: true
     sandbox_mode: false
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet

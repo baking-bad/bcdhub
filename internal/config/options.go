@@ -16,7 +16,6 @@ import (
 	smartrollup "github.com/baking-bad/bcdhub/internal/postgres/smart_rollup"
 	"github.com/baking-bad/bcdhub/internal/postgres/stats"
 	"github.com/baking-bad/bcdhub/internal/postgres/ticket"
-	"github.com/baking-bad/bcdhub/internal/services/mempool"
 
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/postgres/block"
@@ -114,18 +113,6 @@ func WithStorage(cctx context.Context, cfg StorageConfig, appName string, maxPag
 func WithConfigCopy(cfg Config) ContextOption {
 	return func(ctx *Context) {
 		ctx.Config = cfg
-	}
-}
-
-// WithMempool -
-func WithMempool(cfg map[string]ServiceConfig) ContextOption {
-	return func(ctx *Context) {
-		if svcCfg, ok := cfg[ctx.Network.String()]; ok {
-			if svcCfg.MempoolURI == "" {
-				return
-			}
-			ctx.Mempool = mempool.NewMempool(svcCfg.MempoolURI)
-		}
 	}
 }
 

@@ -51,7 +51,6 @@ Some third-party services
 ```yml
   services:
     mainnet:
-        mempool: https://mempool.dipdup.net/v1/graphql
 ```
 
 #### `api`
@@ -67,7 +66,6 @@ api:
   page_size: ${PAGE_SIZE:-10}
   frontend:
     ga_enabled: true
-    mempool_enabled: true
     sandbox_mode: false
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet

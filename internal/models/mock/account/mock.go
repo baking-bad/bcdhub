@@ -5,6 +5,7 @@
 //
 //	mockgen -source=repository.go -destination=../mock/account/mock.go -package=account -typed
 //
+
 // Package account is a generated GoMock package.
 package account
 
@@ -20,6 +21,7 @@ import (
 type MockRepository struct {
 	ctrl     *gomock.Controller
 	recorder *MockRepositoryMockRecorder
+	isgomock struct{}
 }
 
 // MockRepositoryMockRecorder is the mock recorder for MockRepository.
@@ -49,31 +51,31 @@ func (m *MockRepository) Get(ctx context.Context, address string) (account.Accou
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(ctx, address any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, address any) *MockRepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, address)
-	return &RepositoryGetCall{Call: call}
+	return &MockRepositoryGetCall{Call: call}
 }
 
-// RepositoryGetCall wrap *gomock.Call
-type RepositoryGetCall struct {
+// MockRepositoryGetCall wrap *gomock.Call
+type MockRepositoryGetCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetCall) Return(arg0 account.Account, arg1 error) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) Return(arg0 account.Account, arg1 error) *MockRepositoryGetCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(context.Context, string) (account.Account, error)) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) Do(f func(context.Context, string) (account.Account, error)) *MockRepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, string) (account.Account, error)) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) DoAndReturn(f func(context.Context, string) (account.Account, error)) *MockRepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -88,31 +90,31 @@ func (m *MockRepository) RecentlyCalledContracts(ctx context.Context, offset, si
 }
 
 // RecentlyCalledContracts indicates an expected call of RecentlyCalledContracts.
-func (mr *MockRepositoryMockRecorder) RecentlyCalledContracts(ctx, offset, size any) *RepositoryRecentlyCalledContractsCall {
+func (mr *MockRepositoryMockRecorder) RecentlyCalledContracts(ctx, offset, size any) *MockRepositoryRecentlyCalledContractsCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecentlyCalledContracts", reflect.TypeOf((*MockRepository)(nil).RecentlyCalledContracts), ctx, offset, size)
-	return &RepositoryRecentlyCalledContractsCall{Call: call}
+	return &MockRepositoryRecentlyCalledContractsCall{Call: call}
 }
 
-// RepositoryRecentlyCalledContractsCall wrap *gomock.Call
-type RepositoryRecentlyCalledContractsCall struct {
+// MockRepositoryRecentlyCalledContractsCall wrap *gomock.Call
+type MockRepositoryRecentlyCalledContractsCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryRecentlyCalledContractsCall) Return(accounts []account.Account, err error) *RepositoryRecentlyCalledContractsCall {
+func (c *MockRepositoryRecentlyCalledContractsCall) Return(accounts []account.Account, err error) *MockRepositoryRecentlyCalledContractsCall {
 	c.Call = c.Call.Return(accounts, err)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryRecentlyCalledContractsCall) Do(f func(context.Context, int64, int64) ([]account.Account, error)) *RepositoryRecentlyCalledContractsCall {
+func (c *MockRepositoryRecentlyCalledContractsCall) Do(f func(context.Context, int64, int64) ([]account.Account, error)) *MockRepositoryRecentlyCalledContractsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryRecentlyCalledContractsCall) DoAndReturn(f func(context.Context, int64, int64) ([]account.Account, error)) *RepositoryRecentlyCalledContractsCall {
+func (c *MockRepositoryRecentlyCalledContractsCall) DoAndReturn(f func(context.Context, int64, int64) ([]account.Account, error)) *MockRepositoryRecentlyCalledContractsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

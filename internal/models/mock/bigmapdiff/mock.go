@@ -5,6 +5,7 @@
 //
 //	mockgen -source=repository.go -destination=../mock/bigmapdiff/mock.go -package=bigmapdiff -typed
 //
+
 // Package bigmapdiff is a generated GoMock package.
 package bigmapdiff
 
@@ -20,6 +21,7 @@ import (
 type MockRepository struct {
 	ctrl     *gomock.Controller
 	recorder *MockRepositoryMockRecorder
+	isgomock struct{}
 }
 
 // MockRepositoryMockRecorder is the mock recorder for MockRepository.
@@ -49,31 +51,31 @@ func (m *MockRepository) Count(ctx context.Context, ptr int64) (int, error) {
 }
 
 // Count indicates an expected call of Count.
-func (mr *MockRepositoryMockRecorder) Count(ctx, ptr any) *RepositoryCountCall {
+func (mr *MockRepositoryMockRecorder) Count(ctx, ptr any) *MockRepositoryCountCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockRepository)(nil).Count), ctx, ptr)
-	return &RepositoryCountCall{Call: call}
+	return &MockRepositoryCountCall{Call: call}
 }
 
-// RepositoryCountCall wrap *gomock.Call
-type RepositoryCountCall struct {
+// MockRepositoryCountCall wrap *gomock.Call
+type MockRepositoryCountCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryCountCall) Return(arg0 int, arg1 error) *RepositoryCountCall {
+func (c *MockRepositoryCountCall) Return(arg0 int, arg1 error) *MockRepositoryCountCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryCountCall) Do(f func(context.Context, int64) (int, error)) *RepositoryCountCall {
+func (c *MockRepositoryCountCall) Do(f func(context.Context, int64) (int, error)) *MockRepositoryCountCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryCountCall) DoAndReturn(f func(context.Context, int64) (int, error)) *RepositoryCountCall {
+func (c *MockRepositoryCountCall) DoAndReturn(f func(context.Context, int64) (int, error)) *MockRepositoryCountCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -88,31 +90,31 @@ func (m *MockRepository) Current(ctx context.Context, keyHash string, ptr int64)
 }
 
 // Current indicates an expected call of Current.
-func (mr *MockRepositoryMockRecorder) Current(ctx, keyHash, ptr any) *RepositoryCurrentCall {
+func (mr *MockRepositoryMockRecorder) Current(ctx, keyHash, ptr any) *MockRepositoryCurrentCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Current", reflect.TypeOf((*MockRepository)(nil).Current), ctx, keyHash, ptr)
-	return &RepositoryCurrentCall{Call: call}
+	return &MockRepositoryCurrentCall{Call: call}
 }
 
-// RepositoryCurrentCall wrap *gomock.Call
-type RepositoryCurrentCall struct {
+// MockRepositoryCurrentCall wrap *gomock.Call
+type MockRepositoryCurrentCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryCurrentCall) Return(arg0 bigmapdiff.BigMapState, arg1 error) *RepositoryCurrentCall {
+func (c *MockRepositoryCurrentCall) Return(arg0 bigmapdiff.BigMapState, arg1 error) *MockRepositoryCurrentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryCurrentCall) Do(f func(context.Context, string, int64) (bigmapdiff.BigMapState, error)) *RepositoryCurrentCall {
+func (c *MockRepositoryCurrentCall) Do(f func(context.Context, string, int64) (bigmapdiff.BigMapState, error)) *MockRepositoryCurrentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryCurrentCall) DoAndReturn(f func(context.Context, string, int64) (bigmapdiff.BigMapState, error)) *RepositoryCurrentCall {
+func (c *MockRepositoryCurrentCall) DoAndReturn(f func(context.Context, string, int64) (bigmapdiff.BigMapState, error)) *MockRepositoryCurrentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -127,31 +129,31 @@ func (m *MockRepository) Get(ctx context.Context, reqCtx bigmapdiff.GetContext) 
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(ctx, reqCtx any) *RepositoryGetCall {
+func (mr *MockRepositoryMockRecorder) Get(ctx, reqCtx any) *MockRepositoryGetCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, reqCtx)
-	return &RepositoryGetCall{Call: call}
+	return &MockRepositoryGetCall{Call: call}
 }
 
-// RepositoryGetCall wrap *gomock.Call
-type RepositoryGetCall struct {
+// MockRepositoryGetCall wrap *gomock.Call
+type MockRepositoryGetCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetCall) Return(arg0 []bigmapdiff.Bucket, arg1 error) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) Return(arg0 []bigmapdiff.Bucket, arg1 error) *MockRepositoryGetCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetCall) Do(f func(context.Context, bigmapdiff.GetContext) ([]bigmapdiff.Bucket, error)) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) Do(f func(context.Context, bigmapdiff.GetContext) ([]bigmapdiff.Bucket, error)) *MockRepositoryGetCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetCall) DoAndReturn(f func(context.Context, bigmapdiff.GetContext) ([]bigmapdiff.Bucket, error)) *RepositoryGetCall {
+func (c *MockRepositoryGetCall) DoAndReturn(f func(context.Context, bigmapdiff.GetContext) ([]bigmapdiff.Bucket, error)) *MockRepositoryGetCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -166,31 +168,31 @@ func (m *MockRepository) GetByPtr(ctx context.Context, contract string, ptr int6
 }
 
 // GetByPtr indicates an expected call of GetByPtr.
-func (mr *MockRepositoryMockRecorder) GetByPtr(ctx, contract, ptr any) *RepositoryGetByPtrCall {
+func (mr *MockRepositoryMockRecorder) GetByPtr(ctx, contract, ptr any) *MockRepositoryGetByPtrCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPtr", reflect.TypeOf((*MockRepository)(nil).GetByPtr), ctx, contract, ptr)
-	return &RepositoryGetByPtrCall{Call: call}
+	return &MockRepositoryGetByPtrCall{Call: call}
 }
 
-// RepositoryGetByPtrCall wrap *gomock.Call
-type RepositoryGetByPtrCall struct {
+// MockRepositoryGetByPtrCall wrap *gomock.Call
+type MockRepositoryGetByPtrCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetByPtrCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *RepositoryGetByPtrCall {
+func (c *MockRepositoryGetByPtrCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *MockRepositoryGetByPtrCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetByPtrCall) Do(f func(context.Context, string, int64) ([]bigmapdiff.BigMapState, error)) *RepositoryGetByPtrCall {
+func (c *MockRepositoryGetByPtrCall) Do(f func(context.Context, string, int64) ([]bigmapdiff.BigMapState, error)) *MockRepositoryGetByPtrCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetByPtrCall) DoAndReturn(f func(context.Context, string, int64) ([]bigmapdiff.BigMapState, error)) *RepositoryGetByPtrCall {
+func (c *MockRepositoryGetByPtrCall) DoAndReturn(f func(context.Context, string, int64) ([]bigmapdiff.BigMapState, error)) *MockRepositoryGetByPtrCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -206,31 +208,31 @@ func (m *MockRepository) GetByPtrAndKeyHash(ctx context.Context, ptr int64, keyH
 }
 
 // GetByPtrAndKeyHash indicates an expected call of GetByPtrAndKeyHash.
-func (mr *MockRepositoryMockRecorder) GetByPtrAndKeyHash(ctx, ptr, keyHash, size, offset any) *RepositoryGetByPtrAndKeyHashCall {
+func (mr *MockRepositoryMockRecorder) GetByPtrAndKeyHash(ctx, ptr, keyHash, size, offset any) *MockRepositoryGetByPtrAndKeyHashCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPtrAndKeyHash", reflect.TypeOf((*MockRepository)(nil).GetByPtrAndKeyHash), ctx, ptr, keyHash, size, offset)
-	return &RepositoryGetByPtrAndKeyHashCall{Call: call}
+	return &MockRepositoryGetByPtrAndKeyHashCall{Call: call}
 }
 
-// RepositoryGetByPtrAndKeyHashCall wrap *gomock.Call
-type RepositoryGetByPtrAndKeyHashCall struct {
+// MockRepositoryGetByPtrAndKeyHashCall wrap *gomock.Call
+type MockRepositoryGetByPtrAndKeyHashCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetByPtrAndKeyHashCall) Return(arg0 []bigmapdiff.BigMapDiff, arg1 int64, arg2 error) *RepositoryGetByPtrAndKeyHashCall {
+func (c *MockRepositoryGetByPtrAndKeyHashCall) Return(arg0 []bigmapdiff.BigMapDiff, arg1 int64, arg2 error) *MockRepositoryGetByPtrAndKeyHashCall {
 	c.Call = c.Call.Return(arg0, arg1, arg2)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetByPtrAndKeyHashCall) Do(f func(context.Context, int64, string, int64, int64) ([]bigmapdiff.BigMapDiff, int64, error)) *RepositoryGetByPtrAndKeyHashCall {
+func (c *MockRepositoryGetByPtrAndKeyHashCall) Do(f func(context.Context, int64, string, int64, int64) ([]bigmapdiff.BigMapDiff, int64, error)) *MockRepositoryGetByPtrAndKeyHashCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetByPtrAndKeyHashCall) DoAndReturn(f func(context.Context, int64, string, int64, int64) ([]bigmapdiff.BigMapDiff, int64, error)) *RepositoryGetByPtrAndKeyHashCall {
+func (c *MockRepositoryGetByPtrAndKeyHashCall) DoAndReturn(f func(context.Context, int64, string, int64, int64) ([]bigmapdiff.BigMapDiff, int64, error)) *MockRepositoryGetByPtrAndKeyHashCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -245,31 +247,31 @@ func (m *MockRepository) GetForAddress(ctx context.Context, address string) ([]b
 }
 
 // GetForAddress indicates an expected call of GetForAddress.
-func (mr *MockRepositoryMockRecorder) GetForAddress(ctx, address any) *RepositoryGetForAddressCall {
+func (mr *MockRepositoryMockRecorder) GetForAddress(ctx, address any) *MockRepositoryGetForAddressCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForAddress", reflect.TypeOf((*MockRepository)(nil).GetForAddress), ctx, address)
-	return &RepositoryGetForAddressCall{Call: call}
+	return &MockRepositoryGetForAddressCall{Call: call}
 }
 
-// RepositoryGetForAddressCall wrap *gomock.Call
-type RepositoryGetForAddressCall struct {
+// MockRepositoryGetForAddressCall wrap *gomock.Call
+type MockRepositoryGetForAddressCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetForAddressCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *RepositoryGetForAddressCall {
+func (c *MockRepositoryGetForAddressCall) Return(arg0 []bigmapdiff.BigMapState, arg1 error) *MockRepositoryGetForAddressCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetForAddressCall) Do(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *RepositoryGetForAddressCall {
+func (c *MockRepositoryGetForAddressCall) Do(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *MockRepositoryGetForAddressCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetForAddressCall) DoAndReturn(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *RepositoryGetForAddressCall {
+func (c *MockRepositoryGetForAddressCall) DoAndReturn(f func(context.Context, string) ([]bigmapdiff.BigMapState, error)) *MockRepositoryGetForAddressCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -284,31 +286,31 @@ func (m *MockRepository) GetForOperation(ctx context.Context, id int64) ([]bigma
 }
 
 // GetForOperation indicates an expected call of GetForOperation.
-func (mr *MockRepositoryMockRecorder) GetForOperation(ctx, id any) *RepositoryGetForOperationCall {
+func (mr *MockRepositoryMockRecorder) GetForOperation(ctx, id any) *MockRepositoryGetForOperationCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForOperation", reflect.TypeOf((*MockRepository)(nil).GetForOperation), ctx, id)
-	return &RepositoryGetForOperationCall{Call: call}
+	return &MockRepositoryGetForOperationCall{Call: call}
 }
 
-// RepositoryGetForOperationCall wrap *gomock.Call
-type RepositoryGetForOperationCall struct {
+// MockRepositoryGetForOperationCall wrap *gomock.Call
+type MockRepositoryGetForOperationCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetForOperationCall) Return(arg0 []bigmapdiff.BigMapDiff, arg1 error) *RepositoryGetForOperationCall {
+func (c *MockRepositoryGetForOperationCall) Return(arg0 []bigmapdiff.BigMapDiff, arg1 error) *MockRepositoryGetForOperationCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetForOperationCall) Do(f func(context.Context, int64) ([]bigmapdiff.BigMapDiff, error)) *RepositoryGetForOperationCall {
+func (c *MockRepositoryGetForOperationCall) Do(f func(context.Context, int64) ([]bigmapdiff.BigMapDiff, error)) *MockRepositoryGetForOperationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetForOperationCall) DoAndReturn(f func(context.Context, int64) ([]bigmapdiff.BigMapDiff, error)) *RepositoryGetForOperationCall {
+func (c *MockRepositoryGetForOperationCall) DoAndReturn(f func(context.Context, int64) ([]bigmapdiff.BigMapDiff, error)) *MockRepositoryGetForOperationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -323,31 +325,31 @@ func (m *MockRepository) GetStats(ctx context.Context, ptr int64) (bigmapdiff.St
 }
 
 // GetStats indicates an expected call of GetStats.
-func (mr *MockRepositoryMockRecorder) GetStats(ctx, ptr any) *RepositoryGetStatsCall {
+func (mr *MockRepositoryMockRecorder) GetStats(ctx, ptr any) *MockRepositoryGetStatsCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStats", reflect.TypeOf((*MockRepository)(nil).GetStats), ctx, ptr)
-	return &RepositoryGetStatsCall{Call: call}
+	return &MockRepositoryGetStatsCall{Call: call}
 }
 
-// RepositoryGetStatsCall wrap *gomock.Call
-type RepositoryGetStatsCall struct {
+// MockRepositoryGetStatsCall wrap *gomock.Call
+type MockRepositoryGetStatsCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryGetStatsCall) Return(arg0 bigmapdiff.Stats, arg1 error) *RepositoryGetStatsCall {
+func (c *MockRepositoryGetStatsCall) Return(arg0 bigmapdiff.Stats, arg1 error) *MockRepositoryGetStatsCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryGetStatsCall) Do(f func(context.Context, int64) (bigmapdiff.Stats, error)) *RepositoryGetStatsCall {
+func (c *MockRepositoryGetStatsCall) Do(f func(context.Context, int64) (bigmapdiff.Stats, error)) *MockRepositoryGetStatsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryGetStatsCall) DoAndReturn(f func(context.Context, int64) (bigmapdiff.Stats, error)) *RepositoryGetStatsCall {
+func (c *MockRepositoryGetStatsCall) DoAndReturn(f func(context.Context, int64) (bigmapdiff.Stats, error)) *MockRepositoryGetStatsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -362,31 +364,31 @@ func (m *MockRepository) Keys(ctx context.Context, reqCtx bigmapdiff.GetContext)
 }
 
 // Keys indicates an expected call of Keys.
-func (mr *MockRepositoryMockRecorder) Keys(ctx, reqCtx any) *RepositoryKeysCall {
+func (mr *MockRepositoryMockRecorder) Keys(ctx, reqCtx any) *MockRepositoryKeysCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Keys", reflect.TypeOf((*MockRepository)(nil).Keys), ctx, reqCtx)
-	return &RepositoryKeysCall{Call: call}
+	return &MockRepositoryKeysCall{Call: call}
 }
 
-// RepositoryKeysCall wrap *gomock.Call
-type RepositoryKeysCall struct {
+// MockRepositoryKeysCall wrap *gomock.Call
+type MockRepositoryKeysCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryKeysCall) Return(states []bigmapdiff.BigMapState, err error) *RepositoryKeysCall {
+func (c *MockRepositoryKeysCall) Return(states []bigmapdiff.BigMapState, err error) *MockRepositoryKeysCall {
 	c.Call = c.Call.Return(states, err)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryKeysCall) Do(f func(context.Context, bigmapdiff.GetContext) ([]bigmapdiff.BigMapState, error)) *RepositoryKeysCall {
+func (c *MockRepositoryKeysCall) Do(f func(context.Context, bigmapdiff.GetContext) ([]bigmapdiff.BigMapState, error)) *MockRepositoryKeysCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryKeysCall) DoAndReturn(f func(context.Context, bigmapdiff.GetContext) ([]bigmapdiff.BigMapState, error)) *RepositoryKeysCall {
+func (c *MockRepositoryKeysCall) DoAndReturn(f func(context.Context, bigmapdiff.GetContext) ([]bigmapdiff.BigMapState, error)) *MockRepositoryKeysCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -401,31 +403,31 @@ func (m *MockRepository) Previous(ctx context.Context, diffs []bigmapdiff.BigMap
 }
 
 // Previous indicates an expected call of Previous.
-func (mr *MockRepositoryMockRecorder) Previous(ctx, diffs any) *RepositoryPreviousCall {
+func (mr *MockRepositoryMockRecorder) Previous(ctx, diffs any) *MockRepositoryPreviousCall {
 	mr.mock.ctrl.T.Helper()
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Previous", reflect.TypeOf((*MockRepository)(nil).Previous), ctx, diffs)
-	return &RepositoryPreviousCall{Call: call}
+	return &MockRepositoryPreviousCall{Call: call}
 }
 
-// RepositoryPreviousCall wrap *gomock.Call
-type RepositoryPreviousCall struct {
+// MockRepositoryPreviousCall wrap *gomock.Call
+type MockRepositoryPreviousCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *RepositoryPreviousCall) Return(arg0 []bigmapdiff.BigMapDiff, arg1 error) *RepositoryPreviousCall {
+func (c *MockRepositoryPreviousCall) Return(arg0 []bigmapdiff.BigMapDiff, arg1 error) *MockRepositoryPreviousCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *RepositoryPreviousCall) Do(f func(context.Context, []bigmapdiff.BigMapDiff) ([]bigmapdiff.BigMapDiff, error)) *RepositoryPreviousCall {
+func (c *MockRepositoryPreviousCall) Do(f func(context.Context, []bigmapdiff.BigMapDiff) ([]bigmapdiff.BigMapDiff, error)) *MockRepositoryPreviousCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *RepositoryPreviousCall) DoAndReturn(f func(context.Context, []bigmapdiff.BigMapDiff) ([]bigmapdiff.BigMapDiff, error)) *RepositoryPreviousCall {
+func (c *MockRepositoryPreviousCall) DoAndReturn(f func(context.Context, []bigmapdiff.BigMapDiff) ([]bigmapdiff.BigMapDiff, error)) *MockRepositoryPreviousCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -28,7 +28,6 @@
 									"        pm.expect(operation).to.have.property('kind');",
 									"        pm.expect(operation).to.have.property('status');",
 									"        pm.expect(operation).to.have.property('internal');",
-									"        pm.expect(operation).to.have.property('mempool');",
 									"    }",
 									"});"
 								],
@@ -73,7 +72,6 @@
 									"        pm.expect(operation).to.have.property('kind');",
 									"        pm.expect(operation).to.have.property('status');",
 									"        pm.expect(operation).to.have.property('internal');",
-									"        pm.expect(operation).to.have.property('mempool');",
 									"    }",
 									"});"
 								],
@@ -119,7 +117,6 @@
 									"    pm.expect(contract).to.have.property('sentry_dsn');",
 									"    pm.expect(contract).to.have.property('oauth_enabled');",
 									"    pm.expect(contract).to.have.property('ga_enabled');",
-									"    pm.expect(contract).to.have.property('mempool_enabled');",
 									"    pm.expect(contract).to.have.property('sandbox_mode');",
 									"});"
 								],
@@ -1186,7 +1183,6 @@
 									"        pm.expect(operation).to.have.property('kind');",
 									"        pm.expect(operation).to.have.property('status');",
 									"        pm.expect(operation).to.have.property('internal');",
-									"        pm.expect(operation).to.have.property('mempool');",
 									"    }",
 									"});"
 								],

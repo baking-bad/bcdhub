@@ -136,7 +136,6 @@ type bigMapSearchRequest struct {
 }
 
 type opgRequest struct {
-	WithMempool     bool `binding:"omitempty" form:"with_mempool"`
 	WithStorageDiff bool `binding:"omitempty" form:"with_storage_diff"`
 }
 

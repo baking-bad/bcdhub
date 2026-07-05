@@ -9,8 +9,6 @@ BCDHub is the Golang backend for [Better Call Dev](https://better-call.dev), a T
 * **`indexer`** (`cmd/indexer`) — pulls blocks/operations from a Tezos RPC node, decodes contract calls, storage, big-maps, tickets, etc., and writes them to Postgres. Tracks protocol upgrades and can index multiple networks concurrently.
 * **`api`** (`cmd/api`) — a Gin-based JSON REST API that serves indexed data, decoding Michelson on the fly, plus account/contract/bigmap/entrypoint endpoints.
 
-Optional third-party dependency: [TzKT](https://github.com/baking-bad/tzkt) for block lists / mempool / metadata (only relevant for public networks, not sandbox).
-
 ## Common commands
 
 ```bash
@@ -49,7 +47,7 @@ Service selection at runtime is controlled by the `BCD_ENV` env var (`developmen
 
 ### Context / dependency injection (`internal/config`)
 
-Both services build a `config.Context` (per-network) via `config.NewContext(network, ...ContextOption)`. Options in `internal/config/options.go` (`WithStorage`, `WithRPC`, `WithMempool`, `WithConfigCopy`, ...) wire up concrete Postgres-backed repositories, the RPC client, etc. onto the context. The API additionally builds a `config.Contexts` map keyed by network (one context per configured network) in `cmd/api/main.go`; handlers pull the right one out of the Gin context via a middleware (`c.MustGet("context").(*config.Context)`).
+Both services build a `config.Context` (per-network) via `config.NewContext(network, ...ContextOption)`. Options in `internal/config/options.go` (`WithStorage`, `WithRPC`, `WithConfigCopy`, ...) wire up concrete Postgres-backed repositories, the RPC client, etc. onto the context. The API additionally builds a `config.Contexts` map keyed by network (one context per configured network) in `cmd/api/main.go`; handlers pull the right one out of the Gin context via a middleware (`c.MustGet("context").(*config.Context)`).
 
 When adding a new piece of infrastructure (a new repository, a new external client), wire it through a `ContextOption` here rather than constructing it ad hoc in handlers/indexer code.
 

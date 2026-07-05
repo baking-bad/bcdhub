@@ -5,6 +5,7 @@
 //
 //	mockgen -source=repository.go -destination=../mock/domains/mock.go -package=domains -typed
 //
+
 // Package domains is a generated GoMock package.
 package domains
 
@@ -21,6 +22,7 @@ import (
 type MockRepository struct {
 	ctrl     *gomock.Controller
 	recorder *MockRepositoryMockRecorder
+	isgomock struct{}
 }
 
 // MockRepositoryMockRecorder is the mock recorder for MockRepository.
@@ -54,32 +56,32 @@ func (m *MockRepository) Same(ctx context.Context, network string, c contract.Co
 }
 
 // Same indicates an expected call of Same.
-func (mr *MockRepositoryMockRecorder) Same(ctx, network, c, limit, offset any, availiableNetworks ...any) *RepositorySameCall {
+func (mr *MockRepositoryMockRecorder) Same(ctx, network, c, limit, offset any, availiableNetworks ...any) *MockRepositorySameCall {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, network, c, limit, offset}, availiableNetworks...)
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Same", reflect.TypeOf((*MockRepository)(nil).Same), varargs...)
-	return &RepositorySameCall{Call: call}
+	return &MockRepositorySameCall{Call: call}
 }
 
-// RepositorySameCall wrap *gomock.Call
-type RepositorySameCall struct {
+// MockRepositorySameCall wrap *gomock.Call
+type MockRepositorySameCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c_2 *RepositorySameCall) Return(arg0 []domains.Same, arg1 error) *RepositorySameCall {
+func (c_2 *MockRepositorySameCall) Return(arg0 []domains.Same, arg1 error) *MockRepositorySameCall {
 	c_2.Call = c_2.Call.Return(arg0, arg1)
 	return c_2
 }
 
 // Do rewrite *gomock.Call.Do
-func (c_2 *RepositorySameCall) Do(f func(context.Context, string, contract.Contract, int, int, ...string) ([]domains.Same, error)) *RepositorySameCall {
+func (c_2 *MockRepositorySameCall) Do(f func(context.Context, string, contract.Contract, int, int, ...string) ([]domains.Same, error)) *MockRepositorySameCall {
 	c_2.Call = c_2.Call.Do(f)
 	return c_2
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c_2 *RepositorySameCall) DoAndReturn(f func(context.Context, string, contract.Contract, int, int, ...string) ([]domains.Same, error)) *RepositorySameCall {
+func (c_2 *MockRepositorySameCall) DoAndReturn(f func(context.Context, string, contract.Contract, int, int, ...string) ([]domains.Same, error)) *MockRepositorySameCall {
 	c_2.Call = c_2.Call.DoAndReturn(f)
 	return c_2
 }
@@ -98,32 +100,32 @@ func (m *MockRepository) SameCount(ctx context.Context, c contract.Contract, ava
 }
 
 // SameCount indicates an expected call of SameCount.
-func (mr *MockRepositoryMockRecorder) SameCount(ctx, c any, availiableNetworks ...any) *RepositorySameCountCall {
+func (mr *MockRepositoryMockRecorder) SameCount(ctx, c any, availiableNetworks ...any) *MockRepositorySameCountCall {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, c}, availiableNetworks...)
 	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SameCount", reflect.TypeOf((*MockRepository)(nil).SameCount), varargs...)
-	return &RepositorySameCountCall{Call: call}
+	return &MockRepositorySameCountCall{Call: call}
 }
 
-// RepositorySameCountCall wrap *gomock.Call
-type RepositorySameCountCall struct {
+// MockRepositorySameCountCall wrap *gomock.Call
+type MockRepositorySameCountCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c_2 *RepositorySameCountCall) Return(arg0 int, arg1 error) *RepositorySameCountCall {
+func (c_2 *MockRepositorySameCountCall) Return(arg0 int, arg1 error) *MockRepositorySameCountCall {
 	c_2.Call = c_2.Call.Return(arg0, arg1)
 	return c_2
 }
 
 // Do rewrite *gomock.Call.Do
-func (c_2 *RepositorySameCountCall) Do(f func(context.Context, contract.Contract, ...string) (int, error)) *RepositorySameCountCall {
+func (c_2 *MockRepositorySameCountCall) Do(f func(context.Context, contract.Contract, ...string) (int, error)) *MockRepositorySameCountCall {
 	c_2.Call = c_2.Call.Do(f)
 	return c_2
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c_2 *RepositorySameCountCall) DoAndReturn(f func(context.Context, contract.Contract, ...string) (int, error)) *RepositorySameCountCall {
+func (c_2 *MockRepositorySameCountCall) DoAndReturn(f func(context.Context, contract.Contract, ...string) (int, error)) *MockRepositorySameCountCall {
 	c_2.Call = c_2.Call.DoAndReturn(f)
 	return c_2
 }
