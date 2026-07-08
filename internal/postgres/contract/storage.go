@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
+	"github.com/uptrace/bun"
 )
 
 // Storage -
@@ -22,7 +23,8 @@ func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
 }
 
-// Get -
+// Get - returns contract with script relations loaded without michelson
+// columns (code, parameter, storage, views). Use Script or ScriptPart to get them.
 func (storage *Storage) Get(ctx context.Context, address string) (response contract.Contract, err error) {
 	var accountID int64
 	if err = storage.DB.NewSelect().
@@ -33,12 +35,18 @@ func (storage *Storage) Get(ctx context.Context, address string) (response contr
 		return
 	}
 
+	withoutMichelson := func(q *bun.SelectQuery) *bun.SelectQuery {
+		return q.ExcludeColumn("code", "parameter", "storage", "views")
+	}
+
 	err = storage.DB.NewSelect().
 		Model(&response).
 		Where("contract.account_id = ?", accountID).
 		Relation("Account").Relation("Manager").
-		Relation("Delegate").Relation("Alpha").
-		Relation("Babylon").Relation("Jakarta").
+		Relation("Delegate").
+		Relation("Alpha", withoutMichelson).
+		Relation("Babylon", withoutMichelson).
+		Relation("Jakarta", withoutMichelson).
 		Scan(ctx)
 	return
 }

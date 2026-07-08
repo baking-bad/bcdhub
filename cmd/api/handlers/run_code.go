@@ -185,7 +185,9 @@ func RunCode() gin.HandlerFunc {
 				main.Status = consts.Failed
 				errs, err := tezerrors.ParseArray(e.Raw)
 				if err != nil {
-					handleError(c, ctx.Storage, e, 0)
+					// not a Michelson errors array: the node rejected the request
+					// itself, so answer with a client error instead of 500
+					handleError(c, ctx.Storage, e, http.StatusBadRequest)
 					return
 				}
 				main.Errors = errs

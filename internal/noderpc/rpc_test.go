@@ -1,6 +1,8 @@
 package noderpc
 
 import (
+	"context"
+	stdJSON "encoding/json"
 	"io"
 	"strings"
 	"testing"
@@ -63,4 +65,19 @@ func TestNodeRPC_checkStatusCode(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNodeRPC_makePostRequest_invalidRawMessage(t *testing.T) {
+	rpc := NewNodeRPC("http://127.0.0.1:1")
+
+	request := runCodeRequest{
+		Script:  stdJSON.RawMessage(`{"prim":"unit"}`),
+		Storage: stdJSON.RawMessage(`{"prim":"Unit"}`),
+		Input:   stdJSON.RawMessage(`{"prim":"Pair","args":[{"prim":"False"},]}`),
+		ChainID: "NetXdQprcVkpaWU",
+	}
+
+	_, err := rpc.makePostRequest(context.Background(), "chains/main/blocks/head/helpers/scripts/run_code", request)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "json.Marshal")
 }

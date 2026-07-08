@@ -138,7 +138,9 @@ func (rpc *NodeRPC) makePostRequest(ctx context.Context, uri string, data interf
 	if err != nil {
 		return nil, errors.Wrap(ErrNodeRPCError, err.Error())
 	}
-	bData, err := json.Marshal(data)
+	// marshal with the standard library: jsoniter silently encodes an invalid
+	// json.RawMessage as null, while stdlib fails fast
+	bData, err := stdJSON.Marshal(data)
 	if err != nil {
 		return nil, errors.Errorf("makePostRequest.json.Marshal: %v", err)
 	}
