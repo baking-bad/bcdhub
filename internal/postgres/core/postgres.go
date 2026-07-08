@@ -84,6 +84,8 @@ func New(cfg Config, schemaName, appName string, opts ...PostgresOption) (*Postg
 		pgxConfig.RuntimeParams["search_path"] = schemaName
 	}
 	pgxConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	pgxConfig.StatementCacheCapacity = 0
+	pgxConfig.DescriptionCacheCapacity = 0
 	if postgres.timeout == 0 {
 		postgres.timeout = 60 * time.Second
 	}

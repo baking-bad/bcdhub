@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	stdJSON "encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -448,6 +449,9 @@ func (a *TypedAst) ParametersForExecution(entrypoint string, data map[string]int
 
 	if strings.HasPrefix(entrypoint, "entrypoint_") {
 		if params := wrapForExecution(a.Nodes[0], data, entrypoint); params != nil {
+			if err := validateForExecution(params.Value); err != nil {
+				return nil, err
+			}
 			return params, nil
 		}
 	}
@@ -456,6 +460,15 @@ func (a *TypedAst) ParametersForExecution(entrypoint string, data map[string]int
 		return settleForExecution(node, data, entrypoint)
 	}
 	return nil, consts.ErrEmptyTree
+}
+
+// validateForExecution guards against partially filled trees: an unfilled leaf
+// serializes to nothing, leaving a hole that makes the whole JSON invalid.
+func validateForExecution(params []byte) error {
+	if !stdJSON.Valid(params) {
+		return errors.Wrap(consts.ErrValidation, "some required fields are not filled")
+	}
+	return nil
 }
 
 func settleForExecution(node Node, data map[string]interface{}, entrypoint string) (*types.Parameters, error) {
@@ -469,6 +482,9 @@ func settleForExecution(node Node, data map[string]interface{}, entrypoint strin
 	}
 	params, err := node.ToParameters()
 	if err != nil {
+		return nil, err
+	}
+	if err := validateForExecution(params); err != nil {
 		return nil, err
 	}
 	return &types.Parameters{
