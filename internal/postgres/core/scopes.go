@@ -54,7 +54,7 @@ func (tf TimestampFilter) Apply(q *bun.SelectQuery) *bun.SelectQuery {
 		q = q.Where("timestamp > ?", tf.Gt)
 	}
 	if !tf.Gte.IsZero() {
-		q = q.Where("timestamp >- ?", tf.Gte)
+		q = q.Where("timestamp >= ?", tf.Gte)
 	}
 	if !tf.Lt.IsZero() {
 		q = q.Where("timestamp < ?", tf.Lt)

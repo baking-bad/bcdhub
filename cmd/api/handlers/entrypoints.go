@@ -211,6 +211,7 @@ func GetEntrypointSchema() gin.HandlerFunc {
 						"kind":           modelTypes.OperationKindTransaction,
 						"entrypoint":     esReq.EntrypointName,
 						"status":         modelTypes.OperationStatusApplied,
+						"last_action":    account.LastAction,
 					}, 0)
 				if handleError(c, ctx.Storage, err, 0) {
 					return

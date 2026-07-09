@@ -23,12 +23,20 @@ func NewStorage(es *core.Postgres) *Storage {
 	return &Storage{es}
 }
 
-// Last - get last operation by `filters` with not empty deffated_storage
+// Last - get last operation by `filters` with not empty deffated_storage.
 func (storage *Storage) Last(ctx context.Context, filters map[string]interface{}, lastID int64) (operation.Operation, error) {
 	var (
 		current = time.Now()
 		endTime = consts.BeginningOfTime
 	)
+
+	var lastAction time.Time
+	if val, ok := filters["last_action"]; ok {
+		delete(filters, "last_action")
+		if ts, ok := val.(time.Time); ok {
+			lastAction = ts
+		}
+	}
 
 	if val, ok := filters["timestamp"]; ok {
 		if tf, ok := val.(core.TimestampFilter); ok {
@@ -48,6 +56,12 @@ func (storage *Storage) Last(ctx context.Context, filters map[string]interface{}
 		}
 	}
 
+	var tryEquality bool
+	if !lastAction.IsZero() {
+		current = lastAction
+		tryEquality = true
+	}
+
 	for current.After(endTime) {
 		query := storage.DB.NewSelect().Model((*operation.Operation)(nil)).
 			Where("deffated_storage is not null").
@@ -62,10 +76,15 @@ func (storage *Storage) Last(ctx context.Context, filters map[string]interface{}
 			}
 		}
 
-		lowCurrent := current.AddDate(0, -3, 0)
-		query.
-			Where("timestamp >= ?", lowCurrent).
-			Where("timestamp < ?", current)
+		next := current
+		if tryEquality {
+			query.Where("timestamp = ?", current)
+		} else {
+			next = current.AddDate(0, -3, 0)
+			query.
+				Where("timestamp >= ?", next).
+				Where("timestamp < ?", current)
+		}
 
 		if lastID > 0 {
 			query.Where("operation.id < ?", lastID)
@@ -87,7 +106,10 @@ func (storage *Storage) Last(ctx context.Context, filters map[string]interface{}
 			return ops[0], nil
 		}
 
-		current = lowCurrent
+		// on equality miss `next == current`: the loop re-runs the same
+		// upper bound as a regular window
+		tryEquality = false
+		current = next
 	}
 
 	return operation.Operation{}, sql.ErrNoRows
