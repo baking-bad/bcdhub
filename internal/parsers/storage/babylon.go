@@ -84,6 +84,7 @@ func (b *Babylon) initPointersTypes(ctx context.Context, result *noderpc.Operati
 	operaiton, err := b.operations.Last(ctx, map[string]interface{}{
 		"destination_id": account.ID,
 		"status":         types.OperationStatusApplied,
+		"last_action":    account.LastAction,
 	}, 0)
 	if err != nil {
 		return err

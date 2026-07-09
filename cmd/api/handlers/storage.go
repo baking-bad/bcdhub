@@ -296,6 +296,7 @@ func getDeffattedStorage(c context.Context, ctx *config.Context, address string,
 	filters := map[string]interface{}{
 		"destination_id": destination.ID,
 		"status":         types.OperationStatusApplied,
+		"last_action":    destination.LastAction,
 	}
 	if level > 0 {
 		filters["level"] = level
