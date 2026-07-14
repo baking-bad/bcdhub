@@ -116,11 +116,7 @@ func (m *BigMap) ToMiguel() (*MiguelNode, error) {
 	case len(m.Data.keys) > 0:
 		node.Children = make([]*MiguelNode, 0)
 
-		for key, value := range m.Data.All() {
-			if value == nil {
-				return nil, nil
-			}
-
+		for key, value := range m.Data.AllNotNil() {
 			keyNode := key.(Node)
 			keyChild, err := keyNode.ToMiguel()
 			if err != nil {

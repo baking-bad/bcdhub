@@ -23,8 +23,8 @@ func NewOrderedMap() *OrderedMap {
 
 // Get -
 func (m *OrderedMap) Get(key Comparable) (Comparable, bool) {
-	defer m.lock.Unlock()
 	m.lock.Lock()
+	defer m.lock.Unlock()
 
 	for k, v := range m.values {
 		ok, err := key.Compare(k)
@@ -40,8 +40,8 @@ func (m *OrderedMap) Get(key Comparable) (Comparable, bool) {
 }
 
 func (m *OrderedMap) set(key, value Comparable) bool {
-	defer m.lock.Unlock()
 	m.lock.Lock()
+	defer m.lock.Unlock()
 
 	for k := range m.values {
 		ok, err := key.Compare(k)
@@ -63,8 +63,9 @@ func (m *OrderedMap) Add(key, value Comparable) error {
 		return nil
 	}
 
-	defer m.lock.Unlock()
 	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	m.values[key] = value
 	idx := -1
 	for i := range m.keys {
@@ -94,8 +95,8 @@ func (m *OrderedMap) Remove(key Comparable) (Comparable, bool) {
 		return nil, false
 	}
 
-	defer m.lock.Unlock()
 	m.lock.Lock()
+	defer m.lock.Unlock()
 
 	for i := range m.keys {
 		res, err := m.keys[i].Compare(key)
@@ -114,6 +115,9 @@ func (m *OrderedMap) Remove(key Comparable) (Comparable, bool) {
 // All -
 func (m *OrderedMap) All() iter.Seq2[Comparable, Comparable] {
 	return func(yield func(x Comparable, y Comparable) bool) {
+		m.lock.Lock()
+		defer m.lock.Unlock()
+
 		for i := range m.keys {
 			if !yield(m.keys[i], m.values[m.keys[i]]) {
 				return
@@ -125,6 +129,9 @@ func (m *OrderedMap) All() iter.Seq2[Comparable, Comparable] {
 // AllNotNil -
 func (m *OrderedMap) AllNotNil() iter.Seq2[Comparable, Comparable] {
 	return func(yield func(x Comparable, y Comparable) bool) {
+		m.lock.Lock()
+		defer m.lock.Unlock()
+
 		for i := range m.keys {
 			if m.values[m.keys[i]] == nil {
 				continue
