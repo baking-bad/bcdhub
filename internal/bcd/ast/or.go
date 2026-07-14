@@ -475,14 +475,6 @@ func (or *Or) FindPointers() map[int64]*BigMap {
 	return nil
 }
 
-// Range -
-func (or *Or) Range(handler func(node Node) error) error {
-	if err := or.LeftType.Range(handler); err != nil {
-		return err
-	}
-	return or.RightType.Range(handler)
-}
-
 // GetJSONModel -
 func (or *Or) GetJSONModel(model JSONModel) {
 	if model == nil {

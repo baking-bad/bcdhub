@@ -2,12 +2,12 @@ package validations
 
 import (
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/go-playground/validator/v10"
 )
@@ -90,7 +90,7 @@ func contractValidator() validator.Func {
 func networkValidator(networks []string) validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		network := fl.Field().String()
-		return helpers.StringInArray(network, networks)
+		return slices.Contains(networks, network)
 	}
 }
 
@@ -110,12 +110,12 @@ func statusValidator() validator.Func {
 		status := fl.Field().String()
 		data := strings.Split(status, ",")
 		for i := range data {
-			if !helpers.StringInArray(data[i], []string{
+			if !slices.Contains([]string{
 				consts.Applied,
 				consts.Backtracked,
 				consts.Failed,
 				consts.Skipped,
-			}) {
+			}, data[i]) {
 				return false
 			}
 		}
@@ -126,22 +126,22 @@ func statusValidator() validator.Func {
 func faVersionValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		version := fl.Field().String()
-		return helpers.StringInArray(version, []string{
+		return slices.Contains([]string{
 			consts.FA1Tag,
 			"fa12",
 			consts.FA2Tag,
-		})
+		}, version)
 	}
 }
 
 func fillTypeValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		fillType := fl.Field().String()
-		return helpers.StringInArray(fillType, []string{
+		return slices.Contains([]string{
 			"empty",
 			"current",
 			"initial",
-		})
+		}, fillType)
 	}
 }
 

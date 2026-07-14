@@ -63,15 +63,15 @@ func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation,
 
 			operation.BigMapDiffs = make([]*bigmapdiff.BigMapDiff, 0)
 
-			if err := bigMap.Data.Range(func(key, value ast.Comparable) (bool, error) {
+			for key, value := range bigMap.Data.All() {
 				k := key.(ast.Node)
 				keyHash, err := ast.BigMapKeyHashFromNode(k)
 				if err != nil {
-					return false, err
+					return err
 				}
 				keyBytes, err := k.ToParameters()
 				if err != nil {
-					return false, err
+					return err
 				}
 
 				var valBytes []byte
@@ -79,7 +79,7 @@ func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation,
 					v := value.(ast.Node)
 					valBytes, err = v.ToParameters()
 					if err != nil {
-						return false, err
+						return err
 					}
 				}
 
@@ -98,9 +98,6 @@ func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation,
 				state := b.ToState()
 				state.Ptr = -1
 				store.AddBigMapStates(state)
-				return false, nil
-			}); err != nil {
-				return err
 			}
 
 			if len(operation.BigMapDiffs) > 0 {

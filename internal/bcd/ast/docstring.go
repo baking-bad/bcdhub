@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -69,13 +70,7 @@ func buildArrayDocs(nodes []Node) ([]Typedef, error) {
 }
 
 func isSimpleDocType(prim string) bool {
-	for _, t := range simpleTypes {
-		if prim == t {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(simpleTypes, prim)
 }
 
 func makeVarDocString(name string) string {

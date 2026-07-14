@@ -102,16 +102,16 @@ func mapToBaseNodes(data *OrderedMap, optimized bool) (*base.Node, error) {
 	node.Prim = consts.PrimArray
 	node.Args = make([]*base.Node, 0)
 
-	err := data.Range(func(key, value Comparable) (bool, error) {
+	for key, value := range data.All() {
 		keyNode, err := key.(Node).ToBaseNode(optimized)
 		if err != nil {
-			return true, err
+			return nil, err
 		}
 		var valueNode *base.Node
 		if value != nil {
 			valueNode, err = value.(Node).ToBaseNode(optimized)
 			if err != nil {
-				return true, err
+				return nil, err
 			}
 		}
 		node.Args = append(node.Args, &base.Node{
@@ -120,9 +120,8 @@ func mapToBaseNodes(data *OrderedMap, optimized bool) (*base.Node, error) {
 				keyNode, valueNode,
 			},
 		})
-		return false, nil
-	})
-	return node, err
+	}
+	return node, nil
 }
 
 func arrayToBaseNode(data []Node, optimized bool) (*base.Node, error) {

@@ -1,6 +1,10 @@
 package ast
 
 import (
+	"iter"
+	"maps"
+	"slices"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast/interfaces"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 )
@@ -22,32 +26,32 @@ type contractInterface struct {
 
 var interfaceTrees = map[string]contractInterface{}
 
+func collectMatchingTags(tree *TypedAst, tags iter.Seq[string]) []string {
+	return slices.Collect(func(yield func(string) bool) {
+		for tag := range tags {
+			if FindContractInterface(tree, tag) && !yield(tag) {
+				return
+			}
+		}
+	})
+}
+
 // FindContractInterfaces -
 func FindContractInterfaces(tree *TypedAst) []string {
 	if initInterfaceTrees() != nil {
 		return nil
 	}
-	tags := make([]string, 0)
-	for tag := range interfaceTrees {
-		if FindContractInterface(tree, tag) {
-			tags = append(tags, tag)
-		}
-	}
-	return tags
+	return collectMatchingTags(tree, maps.Keys(interfaceTrees))
 }
 
 func findViewContractInterfaces(tree *TypedAst) []string {
 	if initInterfaceTrees() != nil {
 		return nil
 	}
-	tags := make([]string, 0)
-	for _, tag := range []string{ContractTagViewNat, ContractTagViewAddress, ContractTagViewBalanceOf} {
-		if FindContractInterface(tree, tag) {
-			tags = append(tags, tag)
-		}
-	}
-
-	return tags
+	return collectMatchingTags(
+		tree,
+		slices.Values([]string{ContractTagViewNat, ContractTagViewAddress, ContractTagViewBalanceOf}),
+	)
 }
 
 // FindContractInterface -

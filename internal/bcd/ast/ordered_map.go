@@ -1,6 +1,9 @@
 package ast
 
-import "sync"
+import (
+	"iter"
+	"sync"
+)
 
 // OrderedMap -
 type OrderedMap struct {
@@ -108,18 +111,29 @@ func (m *OrderedMap) Remove(key Comparable) (Comparable, bool) {
 	return nil, false
 }
 
-// Range -
-func (m *OrderedMap) Range(handler func(key, value Comparable) (bool, error)) error {
-	defer m.lock.Unlock()
-	m.lock.Lock()
-
-	for i := range m.keys {
-		isBreak, err := handler(m.keys[i], m.values[m.keys[i]])
-		if err != nil || isBreak {
-			return err
+// All -
+func (m *OrderedMap) All() iter.Seq2[Comparable, Comparable] {
+	return func(yield func(x Comparable, y Comparable) bool) {
+		for i := range m.keys {
+			if !yield(m.keys[i], m.values[m.keys[i]]) {
+				return
+			}
 		}
 	}
-	return nil
+}
+
+// AllNotNil -
+func (m *OrderedMap) AllNotNil() iter.Seq2[Comparable, Comparable] {
+	return func(yield func(x Comparable, y Comparable) bool) {
+		for i := range m.keys {
+			if m.values[m.keys[i]] == nil {
+				continue
+			}
+			if !yield(m.keys[i], m.values[m.keys[i]]) {
+				return
+			}
+		}
+	}
 }
 
 // Len -
