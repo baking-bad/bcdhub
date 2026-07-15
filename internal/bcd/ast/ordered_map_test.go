@@ -81,9 +81,9 @@ func TestOrderedMap_Add(t *testing.T) {
 
 			require.Equal(t, tt.lengthAfterRemove, m.Len())
 
-			_ = m.Range(func(key, value Comparable) (bool, error) {
-				return false, nil
-			})
+			for key := range m.All() {
+				require.NotNil(t, key)
+			}
 		})
 	}
 }

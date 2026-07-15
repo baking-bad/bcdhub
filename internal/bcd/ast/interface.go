@@ -28,7 +28,6 @@ type Type interface {
 	IsNamed() bool
 	IsPrim(prim string) bool
 	ParseType(node *base.Node, id *int) error
-	Range(handler func(node Node) error) error
 	ToJSONSchema() (*JSONSchema, error)
 }
 

@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -42,7 +43,7 @@ func (m *BigMap) String() string {
 		s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 		fmt.Fprintf(&s, "Ptr=%d\n", *m.Ptr)
 	case m.Data.Len() > 0:
-		_ = m.Data.Range(func(key, val Comparable) (bool, error) {
+		for key, val := range m.Data.All() {
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
@@ -53,8 +54,7 @@ func (m *BigMap) String() string {
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
-			return false, nil
-		})
+		}
 	default:
 		s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 		s.WriteString(m.KeyType.String())
@@ -115,32 +115,28 @@ func (m *BigMap) ToMiguel() (*MiguelNode, error) {
 	switch {
 	case len(m.Data.keys) > 0:
 		node.Children = make([]*MiguelNode, 0)
-		handler := func(key, value Comparable) (bool, error) {
+
+		for key, value := range m.Data.AllNotNil() {
 			keyNode := key.(Node)
 			keyChild, err := keyNode.ToMiguel()
 			if err != nil {
-				return true, err
-			}
-			if value == nil {
-				return false, nil
+				return nil, err
 			}
 
 			child, err := value.(Node).ToMiguel()
 			if err != nil {
-				return true, err
+				return nil, err
 			}
 
 			name, err := getMapKeyName(keyChild, keyNode)
 			if err != nil {
-				return true, err
+				return nil, err
 			}
 			child.Name = &name
 			node.Children = append(node.Children, child)
-
-			return false, nil
 		}
 
-		return node, m.Data.Range(handler)
+		return node, nil
 
 	case m.Ptr != nil:
 		node.Value = *m.Ptr
@@ -337,78 +333,71 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	}
 	node.Children = make([]*MiguelNode, 0)
 
-	err := m.Data.Range(func(key, value Comparable) (bool, error) {
+	for key, value := range m.Data.All() {
 		keyNode := key.(Node)
 		keyChild, err := keyNode.ToMiguel()
 		if err != nil {
-			return true, err
+			return nil, err
 		}
 		name, err := getMapKeyName(keyChild, keyNode)
 		if err != nil {
-			return true, err
+			return nil, err
 		}
 
 		val, ok := second.Data.Get(key)
 		switch {
 		case val == nil && value == nil:
-			return false, nil
+			continue
 		case val == nil || !ok:
 			child, err := value.(Node).ToMiguel()
 			if err != nil {
-				return true, err
+				return nil, err
 			}
 			child.setDiffType(MiguelKindCreate)
 			child.Name = &name
 			node.Children = append(node.Children, child)
-			return false, nil
+
 		case value == nil && val != nil:
 			child, err := val.(Node).ToMiguel()
 			if err != nil {
-				return true, err
+				return nil, err
 			}
 			child.setDiffType(MiguelKindDelete)
 			child.Name = &name
 			node.Children = append(node.Children, child)
-			return false, nil
+
 		default:
 			child, err := value.(Node).Distinguish(val.(Node))
 			if err != nil {
-				return true, err
+				return nil, err
 			}
 
 			child.Name = &name
 			node.Children = append(node.Children, child)
-			return false, nil
 		}
-
-	})
-	if err != nil {
-		return nil, err
 	}
 
-	err = second.Data.Range(func(key, value Comparable) (bool, error) {
-		if _, ok := m.Data.Get(key); !ok {
-			child, err := value.(Node).ToMiguel()
-			if err != nil {
-				return true, err
-			}
-			keyNode := key.(Node)
-			keyChild, err := keyNode.ToMiguel()
-			if err != nil {
-				return true, err
-			}
-			child.setDiffType(MiguelKindDelete)
-			name, err := getMapKeyName(keyChild, keyNode)
-			if err != nil {
-				return true, err
-			}
-			child.Name = &name
-			node.Children = append(node.Children, child)
+	for key, value := range second.Data.All() {
+		if _, ok := m.Data.Get(key); ok {
+			continue
 		}
-		return false, nil
-	})
-	if err != nil {
-		return nil, err
+
+		child, err := value.(Node).ToMiguel()
+		if err != nil {
+			return nil, err
+		}
+		keyNode := key.(Node)
+		keyChild, err := keyNode.ToMiguel()
+		if err != nil {
+			return nil, err
+		}
+		child.setDiffType(MiguelKindDelete)
+		name, err := getMapKeyName(keyChild, keyNode)
+		if err != nil {
+			return nil, err
+		}
+		child.Name = &name
+		node.Children = append(node.Children, child)
 	}
 
 	return node, nil
@@ -476,32 +465,13 @@ func (m *BigMap) FindPointers() map[int64]*BigMap {
 		res[*m.Ptr] = m
 	}
 
-	if err := m.Data.Range(func(_, value Comparable) (bool, error) {
-		if value == nil {
-			return false, nil
-		}
+	for _, value := range m.Data.AllNotNil() {
 		node := value.(Node)
-		if m := node.FindPointers(); m != nil {
-			for k, v := range m {
-				res[k] = v
-			}
+		if ptrs := node.FindPointers(); ptrs != nil {
+			maps.Copy(res, ptrs)
 		}
-		return false, nil
-	}); err != nil {
-		return nil
 	}
 	return res
-}
-
-// Range -
-func (m *BigMap) Range(handler func(node Node) error) error {
-	if err := handler(m); err != nil {
-		return err
-	}
-	if err := m.KeyType.Range(handler); err != nil {
-		return err
-	}
-	return m.ValueType.Range(handler)
 }
 
 // GetJSONModel -
@@ -510,12 +480,11 @@ func (m *BigMap) GetJSONModel(model JSONModel) {
 		return
 	}
 	arr := make([]JSONModel, 0)
-	_ = m.Data.Range(func(key, value Comparable) (bool, error) {
+	for key, value := range m.Data.All() {
 		item := make(JSONModel)
 		key.(Node).GetJSONModel(item)
 		value.(Node).GetJSONModel(item)
 		arr = append(arr, item)
-		return false, nil
-	})
+	}
 	model[m.GetName()] = arr
 }

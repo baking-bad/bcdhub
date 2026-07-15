@@ -373,14 +373,6 @@ func (opt *Option) FindPointers() map[int64]*BigMap {
 	return nil
 }
 
-// Range -
-func (opt *Option) Range(handler func(node Node) error) error {
-	if opt.Value == consts.Some {
-		return opt.Type.Range(handler)
-	}
-	return nil
-}
-
 // GetJSONModel -
 func (opt *Option) GetJSONModel(model JSONModel) {
 	if model == nil {

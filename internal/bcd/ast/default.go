@@ -393,11 +393,6 @@ func (d *Default) FindPointers() map[int64]*BigMap {
 	return nil
 }
 
-// Range -
-func (d *Default) Range(handler func(node Node) error) error {
-	return handler(d)
-}
-
 // GetJSONModel -
 func (d *Default) GetJSONModel(model JSONModel) {
 	if model == nil {

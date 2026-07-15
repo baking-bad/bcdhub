@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"maps"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -386,25 +387,10 @@ func (p *Pair) FindPointers() map[int64]*BigMap {
 	res := make(map[int64]*BigMap)
 	for i := range p.Args {
 		if b := p.Args[i].FindPointers(); b != nil {
-			for k, v := range b {
-				res[k] = v
-			}
+			maps.Copy(res, b)
 		}
 	}
 	return res
-}
-
-// Range -
-func (p *Pair) Range(handler func(node Node) error) error {
-	if err := handler(p); err != nil {
-		return err
-	}
-	for i := range p.Args {
-		if err := p.Args[i].Range(handler); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // GetJSONModel -

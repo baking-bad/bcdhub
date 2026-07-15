@@ -4,6 +4,7 @@ import (
 	"bytes"
 	stdJSON "encoding/json"
 	"fmt"
+	"maps"
 	"strconv"
 	"strings"
 
@@ -401,10 +402,8 @@ func (a *TypedAst) EqualType(b *TypedAst) bool {
 func (a *TypedAst) FindBigMapByPtr() map[int64]*BigMap {
 	res := make(map[int64]*BigMap)
 	for i := range a.Nodes {
-		if m := a.Nodes[i].FindPointers(); m != nil {
-			for p, bm := range m {
-				res[p] = bm
-			}
+		if ptrs := a.Nodes[i].FindPointers(); ptrs != nil {
+			maps.Copy(res, ptrs)
 		}
 	}
 	return res

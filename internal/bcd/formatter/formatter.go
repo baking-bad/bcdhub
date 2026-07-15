@@ -2,12 +2,11 @@ package formatter
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
-
-	"github.com/baking-bad/bcdhub/internal/helpers"
 )
 
 // DefLineSize -
@@ -16,18 +15,18 @@ const DefLineSize = 88
 // IsFramed -
 func IsFramed(n gjson.Result) bool {
 	prim := n.Get("prim").String()
-	if helpers.StringInArray(prim, []string{
+	if slices.Contains([]string{
 		"Pair", "Left", "Right", "Some",
 		"pair", "or", "option", "map", "big_map", "list", "set", "contract", "lambda",
 		"ticket", "sapling_state", "sapling_transaction",
-	}) {
+	}, prim) {
 		return true
-	} else if helpers.StringInArray(prim, []string{
+	} else if slices.Contains([]string{
 		"key", "unit", "signature", "operation",
 		"int", "nat", "string", "bytes", "mutez", "bool", "key_hash", "timestamp", "address",
 		"bls12_381_g1", "bls12_381_g2", "bls12_381_fr", "chain_id", "never",
 		"chest", "chest_key", "tx_rollup_l2_address",
-	}) {
+	}, prim) {
 		return n.Get("annots").Exists()
 	}
 	return false
@@ -52,9 +51,9 @@ func IsScript(n gjson.Result) bool {
 	}
 	for _, item := range n.Array() {
 		prim := item.Get("prim").String()
-		if !helpers.StringInArray(prim, []string{
+		if !slices.Contains([]string{
 			"parameter", "storage", "code",
-		}) {
+		}, prim) {
 			return false
 		}
 	}

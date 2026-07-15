@@ -44,23 +44,19 @@ func buildMapParameters(data *OrderedMap) ([]byte, error) {
 		return nil, err
 	}
 
-	err := data.Range(func(key, value Comparable) (bool, error) {
+	for key, value := range data.All() {
 		if builder.Len() != 1 {
 			if err := builder.WriteByte(','); err != nil {
-				return true, err
+				return nil, err
 			}
 		}
 		b, err := buildMapItemParameters(key.(Node), value.(Node))
 		if err != nil {
-			return true, err
+			return nil, err
 		}
 		if _, err := builder.Write(b); err != nil {
-			return true, err
+			return nil, err
 		}
-		return false, nil
-	})
-	if err != nil {
-		return nil, err
 	}
 	if err := builder.WriteByte(']'); err != nil {
 		return nil, err
