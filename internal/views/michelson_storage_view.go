@@ -3,9 +3,11 @@ package views
 import (
 	"bytes"
 	"context"
+	stdJSON "encoding/json"
 
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/pkg/errors"
 )
 
 // MichelsonStorageView -
@@ -38,7 +40,29 @@ func NewMichelsonStorageView(impl contract.ViewImplementation, name string, stor
 	}
 }
 
+func validateJSONFragment(name string, data []byte) error {
+	if !stdJSON.Valid(data) {
+		return errors.Errorf("invalid michelson storage view: %s is not valid JSON", name)
+	}
+	return nil
+}
+
 func (msv *MichelsonStorageView) buildCode() ([]byte, error) {
+	if msv.Parameter != nil {
+		if err := validateJSONFragment("parameter", msv.Parameter); err != nil {
+			return nil, err
+		}
+	}
+	if err := validateJSONFragment("storageType", msv.storageType); err != nil {
+		return nil, err
+	}
+	if err := validateJSONFragment("returnType", msv.ReturnType); err != nil {
+		return nil, err
+	}
+	if err := validateJSONFragment("code", msv.Code); err != nil {
+		return nil, err
+	}
+
 	var script bytes.Buffer
 	script.WriteString(`[{"prim":"parameter","args":[`)
 	if msv.Parameter != nil {
@@ -61,6 +85,18 @@ func (msv *MichelsonStorageView) buildCode() ([]byte, error) {
 }
 
 func (msv *MichelsonStorageView) buildParameter(_, parameter string) ([]byte, error) {
+	if msv.Parameter != nil {
+		if err := validateJSONFragment("parameter", msv.Parameter); err != nil {
+			return nil, err
+		}
+	}
+	if err := validateJSONFragment("parameter value", []byte(parameter)); err != nil {
+		return nil, err
+	}
+	if err := validateJSONFragment("storageValue", msv.storageValue); err != nil {
+		return nil, err
+	}
+
 	var script bytes.Buffer
 	if msv.Parameter != nil {
 		script.WriteString(`{"prim":"Pair","args":[`)
