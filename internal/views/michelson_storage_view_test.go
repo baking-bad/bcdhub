@@ -37,6 +37,14 @@ func TestMichelsonStorageView_GetCode(t *testing.T) {
 			},
 			storageType: []byte(`{"prim":"unit"}`),
 			want:        `[{"prim":"parameter","args":[{"prim":"unit"}]},{"prim":"storage","args":[{"prim":"option","args":[{"prim":"unit"}]}]},{"prim":"code","args":[[{"prim":"CAR"},{"prim":"unit"},{"prim":"SOME"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]`,
+		}, {
+			name: "test 3: code is invalid JSON",
+			fields: fields{
+				Code:       []byte(`{"prim":"False"},`),
+				ReturnType: []byte(`{"prim":"unit"}`),
+			},
+			storageType: []byte(`{"prim":"unit"}`),
+			wantErr:     true,
 		},
 	}
 	for _, tt := range tests {
