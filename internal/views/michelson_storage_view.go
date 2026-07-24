@@ -5,6 +5,7 @@ import (
 	"context"
 	stdJSON "encoding/json"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
@@ -42,7 +43,7 @@ func NewMichelsonStorageView(impl contract.ViewImplementation, name string, stor
 
 func validateJSONFragment(name string, data []byte) error {
 	if !stdJSON.Valid(data) {
-		return errors.Errorf("invalid michelson storage view: %s is not valid JSON", name)
+		return errors.Wrapf(consts.ErrValidation, "invalid michelson storage view: %s is not valid JSON", name)
 	}
 	return nil
 }

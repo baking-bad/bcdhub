@@ -229,7 +229,7 @@ func (d *Default) ToParameters() ([]byte, error) {
 		}
 		return []byte(fmt.Sprintf(`{"int":%s}`, value)), nil
 	}
-	return nil, nil
+	return nil, errors.Wrapf(consts.ErrValidation, "missing value for parameter %s", d.GetName())
 }
 
 // Docs -
