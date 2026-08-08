@@ -49,7 +49,8 @@ type BlockchainIndexer struct {
 	isPeriodic  bool
 	indicesInit sync.Once
 
-	g workerpool.Group
+	g   workerpool.Group
+	hub *sentry.Hub
 }
 
 // NewBlockchainIndexer -
@@ -67,6 +68,9 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 	)
 	log.Info().Str("network", internalCtx.Network.String()).Msg("Creating indexer object...")
 
+	hub := helpers.GetLocalSentry()
+	helpers.SetLocalTagSentry(hub, "network", networkType.String())
+
 	bi := &BlockchainIndexer{
 		Context:      internalCtx,
 		receiver:     NewReceiver(internalCtx.RPC, 20, indexerConfig.ReceiverThreads),
@@ -76,6 +80,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 		isPeriodic:   indexerConfig.Periodic != nil,
 		refreshTimer: make(chan struct{}, 10),
 		g:            workerpool.NewGroup(),
+		hub:          hub,
 	}
 
 	if err := bi.init(ctx, bi.StorageDB); err != nil {
@@ -198,8 +203,8 @@ func (bi *BlockchainIndexer) bootstrapImplicitContracts(ctx context.Context, hea
 
 // Start -
 func (bi *BlockchainIndexer) Start(ctx context.Context) {
-	localSentry := helpers.GetLocalSentry()
-	helpers.SetLocalTagSentry(localSentry, "network", bi.Network.String())
+	defer helpers.LocalCatchPanicSentry(bi.hub)
+	localSentry := bi.hub
 
 	bi.g.GoCtx(ctx, bi.indexBlock)
 
@@ -274,6 +279,8 @@ func (bi *BlockchainIndexer) setUpdateTicker(seconds int) {
 }
 
 func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
+	defer helpers.LocalCatchPanicSentry(bi.hub)
+
 	for {
 		select {
 		case <-ctx.Done():
