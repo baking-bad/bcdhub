@@ -14,7 +14,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var migrationsList = []migrations.Migration{}
+var migrationsList = []migrations.Migration{
+	&migrations.FixManagerContractStorage{},
+}
 
 func main() {
 	cctx, cancel := context.WithCancel(context.Background())
