@@ -103,3 +103,23 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 		})
 	}
 }
+
+func TestAlpha_ParseOrigination_ManagerContract(t *testing.T) {
+	// mainnet block 741: pre-Babylon "manager.tz" origination with no
+	// explicit script, only managerPubkey/delegate/balance fields.
+	content := `{"kind":"origination","source":"tz1NBryW1hGM6r5B9GpvC9sf4ZEUFSKHKoYT","fee":"0","counter":"187","gas_limit":"0","storage_limit":"0","managerPubkey":"tz1NBryW1hGM6r5B9GpvC9sf4ZEUFSKHKoYT","balance":"0","delegate":"tz1NBryW1hGM6r5B9GpvC9sf4ZEUFSKHKoYT","metadata":{"balance_updates":[],"operation_result":{"status":"applied","balance_updates":[{"kind":"contract","contract":"tz1NBryW1hGM6r5B9GpvC9sf4ZEUFSKHKoYT","change":"-257000"}],"originated_contracts":["KT1VYYwnsZaAcz1KRnNqskYacRL6hgh7SSXi"]}}}`
+
+	var op noderpc.Operation
+	require.NoError(t, json.UnmarshalFromString(content, &op))
+	require.Nil(t, op.Script)
+	require.Equal(t, "tz1NBryW1hGM6r5B9GpvC9sf4ZEUFSKHKoYT", op.ManagerPubkey)
+
+	a := NewAlpha()
+	store := parsers.NewTestStore()
+	result := &operation.Operation{}
+
+	err := a.ParseOrigination(context.Background(), op, result, store)
+	require.NoError(t, err)
+
+	require.Equal(t, []byte(`{"bytes":"001bf5735680ffc2b75437732293f41c5ea550e72b"}`), result.DeffatedStorage)
+}

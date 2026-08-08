@@ -2,8 +2,11 @@ package storage
 
 import (
 	"context"
+	"encoding/hex"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -33,7 +36,7 @@ func (a *Alpha) ParseTransaction(ctx context.Context, content noderpc.Operation,
 // ParseOrigination -
 func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation, operation *operation.Operation, store parsers.Store) error {
 	if content.Script == nil {
-		return nil
+		return a.parseManagerOrigination(content, operation)
 	}
 	storage, err := operation.AST.StorageType()
 	if err != nil {
@@ -112,6 +115,30 @@ func (a *Alpha) ParseOrigination(ctx context.Context, content noderpc.Operation,
 	}
 	operation.DeffatedStorage = b
 	operation.BigMapDiffsCount = len(operation.BigMapDiffs)
+	return nil
+}
+
+// parseManagerOrigination handles the pre-Babylon "manager.tz" origination
+// format: no explicit script, just managerPubkey/delegate/balance fields.
+// The originated contract's storage is simply the manager's key_hash.
+func (a *Alpha) parseManagerOrigination(content noderpc.Operation, operation *operation.Operation) error {
+	if content.ManagerPubkey == "" {
+		return nil
+	}
+
+	value, err := forge.Address(content.ManagerPubkey, true)
+	if err != nil {
+		return err
+	}
+
+	hexValue := hex.EncodeToString(value)
+	node := base.Node{BytesValue: &hexValue}
+	b, err := json.Marshal(&node)
+	if err != nil {
+		return err
+	}
+
+	operation.DeffatedStorage = b
 	return nil
 }
 

@@ -100,6 +100,7 @@ type Operation struct {
 	Destination        *string            `json:"destination,omitempty"`
 	Rollup             *string            `json:"rollup,omitempty"`
 	Delegate           string             `json:"delegate,omitempty"`
+	ManagerPubkey      string             `json:"managerPubkey,omitempty"`
 	Fee                int64              `json:"fee,string"`
 	Counter            int64              `json:"counter,string"`
 	Balance            *int64             `json:"balance,omitempty,string"`
