@@ -239,7 +239,7 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 		return err
 	}
 
-	if !tx.IsApplied() {
+	if !tx.IsApplied() || tx.AST == nil {
 		return nil
 	}
 

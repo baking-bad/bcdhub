@@ -62,6 +62,30 @@ func CatchPanicSentry() {
 	}
 }
 
+// LocalCatchPanicSentry recovers from a panic on the goroutine it's deferred
+// on, reports it to the given hub (so per-goroutine scope/tags, e.g. network,
+// are preserved) and logs it. Unlike CatchPanicSentry it must be deferred
+// directly in every goroutine that should be protected: recover() only
+// catches panics on its own goroutine's stack.
+func LocalCatchPanicSentry(hub *sentry.Hub) {
+	err := recover()
+	if err == nil {
+		return
+	}
+
+	log.Error().Interface("panic", err).Msg("recovered from panic")
+
+	if hub == nil {
+		return
+	}
+	hub.WithScope(func(scope *sentry.Scope) {
+		scope.SetLevel(sentry.LevelError)
+	})
+	if eventId := hub.Recover(err); eventId != nil {
+		hub.Flush(time.Second * 5)
+	}
+}
+
 // CatchErrorSentry -
 func CatchErrorSentry(err error) {
 	sentry.CaptureEvent(&sentry.Event{

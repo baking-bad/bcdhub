@@ -883,6 +883,46 @@ func TestTypedAst_Settle(t *testing.T) {
 	}
 }
 
+func TestTypedAst_SettleFromBytes(t *testing.T) {
+	tests := []struct {
+		name    string
+		tree    string
+		data    []byte
+		wantErr error
+	}{
+		{
+			name:    "nil data",
+			tree:    `[{"prim":"string"}]`,
+			data:    nil,
+			wantErr: consts.ErrJSONDataIsAbsent,
+		}, {
+			name:    "empty data",
+			tree:    `[{"prim":"string"}]`,
+			data:    []byte{},
+			wantErr: consts.ErrJSONDataIsAbsent,
+		}, {
+			name: "valid data",
+			tree: `[{"prim":"string"}]`,
+			data: []byte(`{"string":"test"}`),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			typ, err := NewTypedAstFromString(tt.tree)
+			require.NoError(t, err)
+
+			err = typ.SettleFromBytes(tt.data)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				require.False(t, typ.IsSettled())
+				return
+			}
+			require.NoError(t, err)
+			require.True(t, typ.IsSettled())
+		})
+	}
+}
+
 func TestTypedAst_GetEntrypoints(t *testing.T) {
 	tests := []struct {
 		name string

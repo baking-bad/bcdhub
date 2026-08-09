@@ -117,6 +117,9 @@ func (a *TypedAst) Settle(untyped UntypedAST) error {
 
 // SettleFromBytes -
 func (a *TypedAst) SettleFromBytes(data []byte) error {
+	if len(data) == 0 {
+		return consts.ErrJSONDataIsAbsent
+	}
 	var tree UntypedAST
 	if err := json.Unmarshal(data, &tree); err != nil {
 		return err
