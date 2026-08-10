@@ -75,4 +75,5 @@ func (e InvalidNodeResponse) Is(target error) bool {
 var (
 	ErrInvalidStatusCode = errors.New("invalid status code")
 	ErrNodeRPCError      = errors.New("node RPC error")
+	ErrNotFound          = errors.New("not found")
 )

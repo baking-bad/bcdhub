@@ -3,6 +3,7 @@ package noderpc
 import (
 	"context"
 	stdJSON "encoding/json"
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -26,6 +27,13 @@ func TestNodeRPC_checkStatusCode(t *testing.T) {
 			checkStatusCode: true,
 			wantErr:         true,
 			errString:       "404 page not found",
+		}, {
+			name:            "404 not found",
+			r:               strings.NewReader(""),
+			statusCode:      404,
+			checkStatusCode: true,
+			wantErr:         true,
+			errString:       "not found",
 		}, {
 			name:            "200",
 			r:               strings.NewReader(""),
@@ -63,6 +71,7 @@ func TestNodeRPC_checkStatusCode(t *testing.T) {
 			if err != nil {
 				require.ErrorContains(t, err, tt.errString)
 			}
+			require.Equal(t, tt.statusCode == 404, errors.Is(err, ErrNotFound))
 		})
 	}
 }
