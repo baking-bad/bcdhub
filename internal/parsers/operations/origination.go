@@ -2,13 +2,18 @@ package operations
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/rs/zerolog/log"
 )
+
+var errContractNotOriginated = errors.New("contract is not originated")
 
 // Origination -
 type Origination struct {
@@ -65,16 +70,30 @@ func (p Origination) Parse(ctx context.Context, data noderpc.Operation, store pa
 
 	parseOperationResult(data, &origination, store)
 
+	if origination.IsApplied() {
+		switch err := p.appliedHandler(ctx, data, &origination, store); {
+		case err == nil:
+			store.AddAccounts(origination.Destination)
+		case errors.Is(err, errContractNotOriginated):
+			if len(origination.TicketUpdates) > 0 {
+				return fmt.Errorf("%w: %s, but its result contains %d ticket updates",
+					err, origination.Destination.Address, len(origination.TicketUpdates))
+			}
+
+			log.Warn().
+				Str("address", origination.Destination.Address).
+				Int64("block", origination.Level).
+				Msg("origination is applied but contract does not exist, marking as failed")
+			origination.Status = types.OperationStatusFailed
+			origination.AllocatedDestinationContract = false
+		default:
+			return err
+		}
+	}
+
 	origination.SetBurned(*p.protocol.Constants)
 
 	p.stackTrace.Add(origination)
-
-	if origination.IsApplied() {
-		if err := p.appliedHandler(ctx, data, &origination, store); err != nil {
-			return err
-		}
-		store.AddAccounts(origination.Destination)
-	}
 
 	store.AddOperations(&origination)
 	store.AddAccounts(
@@ -92,10 +111,16 @@ func (p Origination) appliedHandler(ctx context.Context, item noderpc.Operation,
 
 	if p.specific.NeedReceiveRawStorage {
 		rawStorage, err := p.ctx.RPC.GetScriptStorageRaw(ctx, origination.Destination.Address, origination.Level)
-		if err != nil {
+		switch {
+		case err == nil:
+			origination.DeffatedStorage = rawStorage
+		case errors.Is(err, noderpc.ErrNotFound) &&
+			len(item.Script) > 0 &&
+			origination.Destination.Address != "":
+			return errContractNotOriginated
+		default:
 			return err
 		}
-		origination.DeffatedStorage = rawStorage
 	}
 
 	if err := p.specific.ContractParser.Parse(ctx, origination, store); err != nil {

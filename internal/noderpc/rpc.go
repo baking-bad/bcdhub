@@ -91,7 +91,7 @@ func (rpc *NodeRPC) checkStatusCode(r io.Reader, statusCode int, checkStatusCode
 	case statusCode == http.StatusOK:
 		return nil
 	case statusCode == http.StatusNotFound:
-		return errors.Errorf("%s: not found", uri)
+		return fmt.Errorf("%w: %s", ErrNotFound, uri)
 	case statusCode > http.StatusInternalServerError:
 		return NewNodeUnavailiableError(rpc.baseURL, statusCode)
 	case checkStatusCode:
