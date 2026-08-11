@@ -85,10 +85,17 @@ indexer:
   networks:
     mainnet:
       receiver_threads: ${MAINNET_THREADS:-1}
+    tezosx:
+      receiver_threads: ${TESTNET_THREADS:-10}
+      start_level: ${TEZOSX_START_LEVEL:-1}
   connections:
     max: 5
     idle: 5
 ```
+
+`start_level` is the block the indexer starts from on an empty database. It only works as a lower bound: on a database which already has blocks indexing continues from the last one, so lowering the value requires wiping the network data first.
+
+Starting above level 1 means contracts originated earlier are unknown to the indexer and are stored as ghost accounts, with their calls indexed without parameter and storage decoding. Note that bootstrap contracts listed in `implicit_contracts` are only picked up when `start_level` is greater than 1 — with the default value of 1 they are never indexed.
 
 #### `scripts`
 Scripts settings for data migrations and [AWS S3](https://aws.amazon.com/s3/) snapshot registry

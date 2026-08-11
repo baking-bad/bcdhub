@@ -78,7 +78,7 @@ indexer:
       receiver_threads: 10
     tezosx:
       receiver_threads: 10
-      start_level: 171555
+      start_level: ${TEZOSX_START_LEVEL:-1}
 
 scripts:
   networks:
