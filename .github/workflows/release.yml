@@ -14,17 +14,18 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set env
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        id: set_env
+        run: echo "release_version=${GITHUB_REF#refs/*/}" >> "$GITHUB_OUTPUT"
       - uses: marvinpinto/action-automatic-releases@919008cf3f741b179569b7a6fb4d8860689ab7f0 # v1.2.1
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
       - name: Telegram notification
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@78e5f2ccac7c07db6afc0e8a0f9055f8f6aef7b1 # master
         continue-on-error: true
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            BCD ${{ env.RELEASE_VERSION }} has been released 🚀
-            More info at https://github.com/baking-bad/bcdhub/releases/tag/${{ env.RELEASE_VERSION }}
+            BCD ${{ steps.set_env.outputs.release_version }} has been released 🚀
+            More info at https://github.com/baking-bad/bcdhub/releases/tag/${{ steps.set_env.outputs.release_version }}
