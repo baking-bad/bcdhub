@@ -25,7 +25,7 @@ RUN go build -tags=jsoniter_sloppy -o /go/bin/indexer .
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
-FROM alpine:3.22
+FROM alpine:3.24
 RUN apk add curl jq
 
 WORKDIR /app/indexer
