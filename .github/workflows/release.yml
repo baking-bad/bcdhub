@@ -21,7 +21,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
       - name: Telegram notification
-        uses: appleboy/telegram-action@78e5f2ccac7c07db6afc0e8a0f9055f8f6aef7b1 # master
+        uses: appleboy/telegram-action@390cf7345777cd821dba28c72f436a78bce19cc5 # master
         continue-on-error: true
         with:
           to: ${{ secrets.TELEGRAM_TO }}
