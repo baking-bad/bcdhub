@@ -1791,6 +1791,20 @@ func TestTypedAst_ParametersForExecution(t *testing.T) {
 			data:       `{"run":42}`,
 			wantErr:    true,
 			wantErrIs:  consts.ErrValidation,
+		}, {
+			name:       "test 9: empty data for lambda entrypoint",
+			tree:       `{"prim":"or","args":[{"prim":"nat","annots":["%counter"]},{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%run"]}]}`,
+			entrypoint: lambdaEntrypoint,
+			data:       `{}`,
+			wantErr:    true,
+			wantErrIs:  consts.ErrValidation,
+		}, {
+			name:       "test 10: unknown key instead of lambda entrypoint",
+			tree:       `{"prim":"or","args":[{"prim":"nat","annots":["%counter"]},{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%run"]}]}`,
+			entrypoint: lambdaEntrypoint,
+			data:       `{"foo":"bar"}`,
+			wantErr:    true,
+			wantErrIs:  consts.ErrValidation,
 		},
 	}
 	for _, tt := range tests {

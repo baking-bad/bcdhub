@@ -71,8 +71,12 @@ func (l *Lambda) ParseValue(node *base.Node) error {
 
 // ToBaseNode -
 func (l *Lambda) ToBaseNode(optimized bool) (*base.Node, error) {
+	value, err := l.getValue()
+	if err != nil {
+		return nil, err
+	}
 	var lambda base.Node
-	if err := json.UnmarshalFromString(l.Value.(string), &lambda); err != nil {
+	if err := json.UnmarshalFromString(value, &lambda); err != nil {
 		return nil, err
 	}
 	return &lambda, nil
@@ -133,12 +137,9 @@ func (l *Lambda) ToJSONSchema() (*JSONSchema, error) {
 
 // ToParameters -
 func (l *Lambda) ToParameters() ([]byte, error) {
-	str, ok := l.Value.(string)
-	if !ok {
-		return nil, errors.Wrapf(consts.ErrValidation, "expected string value for lambda: got %v", l.Value)
-	}
-	if strings.TrimSpace(str) == "" {
-		return nil, errors.Wrap(consts.ErrValidation, "empty lambda code")
+	str, err := l.getValue()
+	if err != nil {
+		return nil, err
 	}
 	return []byte(str), nil
 }
@@ -231,7 +232,11 @@ func (l *Lambda) GetJSONModel(model JSONModel) {
 	if model == nil {
 		return
 	}
-	s, err := formatter.MichelineToMichelsonInline(l.Value.(string))
+	value, err := l.getValue()
+	if err != nil {
+		return
+	}
+	s, err := formatter.MichelineToMichelsonInline(value)
 	if err != nil {
 		return
 	}
@@ -244,4 +249,15 @@ func (l *Lambda) FindByName(name string, isEntrypoint bool) Node {
 		return l
 	}
 	return nil
+}
+
+func (l *Lambda) getValue() (string, error) {
+	str, ok := l.Value.(string)
+	if !ok {
+		return "", errors.Wrapf(consts.ErrValidation, "expected string value for lambda: got %v", l.Value)
+	}
+	if strings.TrimSpace(str) == "" {
+		return "", errors.Wrap(consts.ErrValidation, "empty lambda code")
+	}
+	return str, nil
 }
