@@ -99,30 +99,30 @@ func (l *Lambda) ToMiguel() (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (l *Lambda) FromJSONSchema(data map[string]interface{}) error {
-	for key := range data {
-		if l.GetTypeName() != key {
-			continue
-		}
-
-		code, ok := data[key].(string)
-		if !ok {
-			return errors.Wrapf(consts.ErrValidation, "expected michelson code string in '%s': got %v", key, data[key])
-		}
-		if strings.TrimSpace(code) == "" {
-			return errors.Wrapf(consts.ErrValidation, "empty lambda code in '%s'", key)
-		}
-
-		t, err := translator.NewConverter()
-		if err != nil {
-			return err
-		}
-		jsonLambda, err := t.FromString(code)
-		if err != nil {
-			return errors.Wrapf(consts.ErrValidation, "invalid michelson code in '%s': %s", key, err)
-		}
-		l.Value = jsonLambda
-		l.ValueKind = valueKindString
+	key := l.GetTypeName()
+	value, ok := data[key]
+	if !ok {
+		return nil
 	}
+
+	code, ok := value.(string)
+	if !ok {
+		return errors.Wrapf(consts.ErrValidation, "expected michelson code string in '%s': got %v", key, value)
+	}
+	if strings.TrimSpace(code) == "" {
+		return errors.Wrapf(consts.ErrValidation, "empty lambda code in '%s'", key)
+	}
+
+	t, err := translator.NewConverter()
+	if err != nil {
+		return err
+	}
+	jsonLambda, err := t.FromString(code)
+	if err != nil {
+		return errors.Wrapf(consts.ErrValidation, "invalid michelson code in '%s': %s", key, err)
+	}
+	l.Value = jsonLambda
+	l.ValueKind = valueKindString
 	return nil
 }
 
@@ -133,7 +133,14 @@ func (l *Lambda) ToJSONSchema() (*JSONSchema, error) {
 
 // ToParameters -
 func (l *Lambda) ToParameters() ([]byte, error) {
-	return []byte(l.Value.(string)), nil
+	str, ok := l.Value.(string)
+	if !ok {
+		return nil, errors.Wrapf(consts.ErrValidation, "expected string value for lambda: got %v", l.Value)
+	}
+	if strings.TrimSpace(str) == "" {
+		return nil, errors.Wrap(consts.ErrValidation, "empty lambda code")
+	}
+	return []byte(str), nil
 }
 
 // Docs -
