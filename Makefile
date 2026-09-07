@@ -18,7 +18,7 @@ seo:
 ifeq ($(BCD_ENV), development)
 	cd scripts/nginx && go run .
 else
-	docker-compose exec api seo
+	docker-compose exec -u 0 api seo
 	docker-compose restart gui
 endif
 

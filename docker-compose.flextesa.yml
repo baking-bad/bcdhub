@@ -39,6 +39,13 @@ services:
     networks:
       - internal-network
     logging: *bcd-logging
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
 
   indexer:
     restart: always
@@ -56,6 +63,13 @@ services:
     volumes:
       - bcdshare:/etc/bcd
     logging: *bcd-logging
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
 
   flextesa:
     restart: always

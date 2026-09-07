@@ -106,6 +106,16 @@ There are several predefined configurations serving different purposes.
 It takes around 20-30 seconds to initialize all services, API endpoints might return errors until then.  
 **NOTE** that if you specified local RPC node that's not running, BCDHub will wait for it indefinitely.
 
+### SEO files (nginx config & sitemap)
+The `seo` command generates `default.${BCD_ENV}.conf` and `sitemap.${BCD_ENV}.xml` into the `nginx` folder inside the shared volume (`SHARE_PATH`, mounted as `/etc/bcd` in the `api` container).
+
+**NOTE** it has to be run as root (`-u 0`): the `api` image runs as an unprivileged user (uid `10001`), while the shared volume is owned by `root` on the host, so without the flag the command fails with a permission error while creating the output files.
+```
+docker-compose exec -u 0 api seo
+docker-compose restart gui
+```
+For the development environment (`BCD_ENV=development`) `make seo` runs the script directly on the host (`cd scripts/nginx && go run .`), so no `-u 0` is needed there.
+
 ## Snapshots
 Full indexing process requires about 2 hours, however there are cases when you cannot afford that
 

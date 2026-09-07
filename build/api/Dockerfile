@@ -34,7 +34,6 @@ RUN cd nginx && go build -o /go/bin/seo .
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
 FROM alpine:3.24
-RUN apk add curl jq
 
 ENV PATH="/go/bin/:$PATH"
 
@@ -48,7 +47,7 @@ COPY --from=builder /go/bin/bcdctl /go/bin/bcdctl
 COPY --from=builder /go/bin/migration /go/bin/migration
 COPY --from=builder /go/bin/seo /go/bin/seo
 
-COPY build/api/entrypoint.sh /
-RUN chmod +x /entrypoint.sh
+RUN addgroup -g 10001 -S bcd && adduser -u 10001 -S -D -G bcd bcd
+USER 10001:10001
 
 ENTRYPOINT ["/go/bin/api"]

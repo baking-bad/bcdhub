@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -28,8 +29,11 @@ func main() {
 	)
 	defer ctx.Close()
 
-	outputDir := fmt.Sprintf("%s/nginx", cfg.SharePath)
-	_ = os.Mkdir(outputDir, os.ModePerm)
+	outputDir := filepath.Join(cfg.SharePath, "nginx")
+	if err := os.MkdirAll(outputDir, 0o750); err != nil {
+		log.Err(err).Msg("mkdir")
+		return
+	}
 
 	env := os.Getenv("BCD_ENV")
 	if env == "" {

@@ -41,6 +41,13 @@ services:
     volumes:
       - ${SHARE_PATH}:/etc/bcd
     logging: *bcd-logging
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
 
   indexer:
     restart: always
@@ -53,6 +60,13 @@ services:
     volumes:
       - ${SHARE_PATH}:/etc/bcd
     logging: *bcd-logging
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
 
 volumes:
   db:

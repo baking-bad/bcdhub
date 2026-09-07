@@ -26,7 +26,6 @@ RUN go build -tags=jsoniter_sloppy -o /go/bin/indexer .
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
 FROM alpine:3.24
-RUN apk add curl jq
 
 WORKDIR /app/indexer
 
@@ -34,7 +33,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/indexer /go/bin/indexer
 COPY configs/*.yml /app/indexer/
 
-COPY build/indexer/entrypoint.sh /
-RUN chmod +x /entrypoint.sh
+RUN addgroup -g 10001 -S bcd && adduser -u 10001 -S -D -G bcd bcd
+USER 10001:10001
 
 ENTRYPOINT ["/go/bin/indexer"]
