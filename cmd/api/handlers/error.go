@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -40,7 +41,10 @@ func handleError(c *gin.Context, repo models.GeneralRepository, err error, code 
 		code = getErrorCode(err, repo)
 		if code == http.StatusInternalServerError && !skipError(err) {
 			if hub := sentrygin.GetHubFromContext(c); hub != nil {
-				hub.CaptureMessage(err.Error())
+				hub.WithScope(func(scope *sentry.Scope) {
+					scope.SetTag("endpoint", c.FullPath())
+					hub.CaptureException(err)
+				})
 			}
 		}
 

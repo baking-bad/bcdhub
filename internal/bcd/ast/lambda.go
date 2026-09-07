@@ -2,12 +2,14 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/translator"
+	"github.com/pkg/errors"
 )
 
 // Lambda -
@@ -98,18 +100,28 @@ func (l *Lambda) ToMiguel() (*MiguelNode, error) {
 // FromJSONSchema -
 func (l *Lambda) FromJSONSchema(data map[string]interface{}) error {
 	for key := range data {
-		if l.GetTypeName() == key {
-			t, err := translator.NewConverter()
-			if err != nil {
-				return err
-			}
-			jsonLambda, err := t.FromString(data[key].(string))
-			if err != nil {
-				return err
-			}
-			l.Value = jsonLambda
-			l.ValueKind = valueKindString
+		if l.GetTypeName() != key {
+			continue
 		}
+
+		code, ok := data[key].(string)
+		if !ok {
+			return errors.Wrapf(consts.ErrValidation, "expected michelson code string in '%s': got %v", key, data[key])
+		}
+		if strings.TrimSpace(code) == "" {
+			return errors.Wrapf(consts.ErrValidation, "empty lambda code in '%s'", key)
+		}
+
+		t, err := translator.NewConverter()
+		if err != nil {
+			return err
+		}
+		jsonLambda, err := t.FromString(code)
+		if err != nil {
+			return errors.Wrapf(consts.ErrValidation, "invalid michelson code in '%s': %s", key, err)
+		}
+		l.Value = jsonLambda
+		l.ValueKind = valueKindString
 	}
 	return nil
 }
