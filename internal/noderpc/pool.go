@@ -83,7 +83,7 @@ func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
 		return reflect.Value{}, err
 	}
 	nodeVal := reflect.ValueOf(&node.node)
-	if nodeVal.Kind() == reflect.Ptr {
+	if nodeVal.Kind() == reflect.Pointer {
 		nodeVal = nodeVal.Elem()
 	}
 

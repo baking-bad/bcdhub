@@ -1,6 +1,7 @@
 version: "2"
 run:
-  go: "1.26"
+  go: "1.27"
+
 linters:
   enable:
     - containedctx
@@ -18,6 +19,19 @@ linters:
     - tagalign
     - unconvert
     - zerologlint
+  settings:
+    goconst:
+      match-constant: true
+      min-len: 3
+      min-occurrences: 3
+      ignore-calls: true
+      ignore-map-keys: true
+      numbers: false
+      min: 3
+      max: 3
+      find-duplicates: false
+      eval-const-expressions: false
+      ignore-tests: true
   exclusions:
     generated: lax
     presets:
