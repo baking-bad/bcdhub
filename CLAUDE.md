@@ -96,7 +96,7 @@ Wraps the Tezos node RPC (`/chains/main/...`) with rate limiting, timeouts, and 
 
 ## Notes
 
-* Module path: `github.com/baking-bad/bcdhub`, Go 1.26.
+* Module path: `github.com/baking-bad/bcdhub`, Go 1.27.
 * `api` builds with `-tags=jsoniter` to swap in `json-iterator/go` for faster JSON.
 * Versioning is `X.Y.Z`: `Y` bumps signal a breaking change requiring reindex/resync with the frontend (see `docs/developer.md` for the full release/versioning/snapshot workflow).
 * Full config reference (per-service YAML keys, required `.env` vars, docker networking for a local RPC node): `docs/configuration.md`.

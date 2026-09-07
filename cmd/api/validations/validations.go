@@ -175,11 +175,11 @@ func greatThanInt64PtrValidator() validator.Func {
 		}
 
 		switch {
-		case kind == reflect.Ptr && currentKind == reflect.Ptr:
+		case kind == reflect.Pointer && currentKind == reflect.Pointer:
 			return true
-		case kind == reflect.Ptr && currentKind == reflect.Int64:
+		case kind == reflect.Pointer && currentKind == reflect.Int64:
 			return true
-		case kind == reflect.Int64 && currentKind == reflect.Ptr:
+		case kind == reflect.Int64 && currentKind == reflect.Pointer:
 			return true
 		case kind == reflect.Int64 && currentKind == reflect.Int64:
 			return field.Int() > currentField.Int()

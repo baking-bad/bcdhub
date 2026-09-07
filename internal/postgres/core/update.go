@@ -11,7 +11,7 @@ import (
 func GetFieldsForModel(data interface{}, fields ...string) map[string]interface{} {
 	t := reflect.TypeOf(data)
 	val := reflect.ValueOf(data)
-	if val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Pointer {
 		val = val.Elem()
 	}
 

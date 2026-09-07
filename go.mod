@@ -1,6 +1,6 @@
 module github.com/baking-bad/bcdhub
 
-go 1.26.4
+go 1.27.1
 
 require (
 	github.com/btcsuite/btcutil v1.0.2
@@ -144,7 +144,7 @@ require (
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
+	golang.org/x/text v0.39.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 )

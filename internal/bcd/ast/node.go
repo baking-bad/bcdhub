@@ -15,7 +15,7 @@ func Copy(node Node) Node {
 	t := el.Type()
 
 	obj := reflect.New(t)
-	if obj.Kind() == reflect.Ptr {
+	if obj.Kind() == reflect.Pointer {
 		obj = obj.Elem()
 	}
 	for i := 0; i < t.NumField(); i++ {
@@ -38,7 +38,7 @@ func Copy(node Node) Node {
 					fv.Set(sl)
 				case reflect.Map:
 					fv.Set(reflect.MakeMap(val.Type()))
-				case reflect.Ptr:
+				case reflect.Pointer:
 					if i, ok := val.Interface().(Node); ok {
 						fv.Set(reflect.ValueOf(Copy(i)))
 					} else if _, ok := val.Interface().(*OrderedMap); ok {
