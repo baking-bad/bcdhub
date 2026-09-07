@@ -1741,6 +1741,7 @@ func TestTypedAst_ParametersForExecution(t *testing.T) {
 		entrypoint string
 		data       string
 		wantErr    bool
+		wantErrIs  error
 	}{
 		{
 			name:       "test 1",
@@ -1764,6 +1765,46 @@ func TestTypedAst_ParametersForExecution(t *testing.T) {
 			entrypoint: "do",
 			data:       `{"flag":true}`,
 			wantErr:    true,
+		}, {
+			name:       "test 5: filled lambda entrypoint",
+			tree:       `{"prim":"or","args":[{"prim":"nat","annots":["%counter"]},{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%run"]}]}`,
+			entrypoint: lambdaEntrypoint,
+			data:       `{"run":"{ DROP ; NIL operation }"}`,
+		}, {
+			name:       "test 6: empty lambda entrypoint",
+			tree:       `{"prim":"or","args":[{"prim":"nat","annots":["%counter"]},{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%run"]}]}`,
+			entrypoint: lambdaEntrypoint,
+			data:       `{"run":""}`,
+			wantErr:    true,
+			wantErrIs:  consts.ErrValidation,
+		}, {
+			name:       "test 7: unparsable michelson in lambda entrypoint",
+			tree:       `{"prim":"or","args":[{"prim":"nat","annots":["%counter"]},{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%run"]}]}`,
+			entrypoint: lambdaEntrypoint,
+			data:       `{"run":"{ DROP"}`,
+			wantErr:    true,
+			wantErrIs:  consts.ErrValidation,
+		}, {
+			name:       "test 8: lambda entrypoint filled with non-string value",
+			tree:       `{"prim":"or","args":[{"prim":"nat","annots":["%counter"]},{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%run"]}]}`,
+			entrypoint: lambdaEntrypoint,
+			data:       `{"run":42}`,
+			wantErr:    true,
+			wantErrIs:  consts.ErrValidation,
+		}, {
+			name:       "test 9: empty data for lambda entrypoint",
+			tree:       `{"prim":"or","args":[{"prim":"nat","annots":["%counter"]},{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%run"]}]}`,
+			entrypoint: lambdaEntrypoint,
+			data:       `{}`,
+			wantErr:    true,
+			wantErrIs:  consts.ErrValidation,
+		}, {
+			name:       "test 10: unknown key instead of lambda entrypoint",
+			tree:       `{"prim":"or","args":[{"prim":"nat","annots":["%counter"]},{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%run"]}]}`,
+			entrypoint: lambdaEntrypoint,
+			data:       `{"foo":"bar"}`,
+			wantErr:    true,
+			wantErrIs:  consts.ErrValidation,
 		},
 	}
 	for _, tt := range tests {
@@ -1778,6 +1819,9 @@ func TestTypedAst_ParametersForExecution(t *testing.T) {
 			_, err = a.ParametersForExecution(tt.entrypoint, data)
 			require.Equal(t, tt.wantErr, err != nil)
 			if err != nil {
+				if tt.wantErrIs != nil {
+					require.ErrorIs(t, err, tt.wantErrIs)
+				}
 				return
 			}
 		})

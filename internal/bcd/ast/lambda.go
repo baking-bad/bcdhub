@@ -2,12 +2,14 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/translator"
+	"github.com/pkg/errors"
 )
 
 // Lambda -
@@ -69,8 +71,12 @@ func (l *Lambda) ParseValue(node *base.Node) error {
 
 // ToBaseNode -
 func (l *Lambda) ToBaseNode(optimized bool) (*base.Node, error) {
+	value, err := l.getValue()
+	if err != nil {
+		return nil, err
+	}
 	var lambda base.Node
-	if err := json.UnmarshalFromString(l.Value.(string), &lambda); err != nil {
+	if err := json.UnmarshalFromString(value, &lambda); err != nil {
 		return nil, err
 	}
 	return &lambda, nil
@@ -97,20 +103,30 @@ func (l *Lambda) ToMiguel() (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (l *Lambda) FromJSONSchema(data map[string]interface{}) error {
-	for key := range data {
-		if l.GetTypeName() == key {
-			t, err := translator.NewConverter()
-			if err != nil {
-				return err
-			}
-			jsonLambda, err := t.FromString(data[key].(string))
-			if err != nil {
-				return err
-			}
-			l.Value = jsonLambda
-			l.ValueKind = valueKindString
-		}
+	key := l.GetTypeName()
+	value, ok := data[key]
+	if !ok {
+		return nil
 	}
+
+	code, ok := value.(string)
+	if !ok {
+		return errors.Wrapf(consts.ErrValidation, "expected michelson code string in '%s': got %v", key, value)
+	}
+	if strings.TrimSpace(code) == "" {
+		return errors.Wrapf(consts.ErrValidation, "empty lambda code in '%s'", key)
+	}
+
+	t, err := translator.NewConverter()
+	if err != nil {
+		return err
+	}
+	jsonLambda, err := t.FromString(code)
+	if err != nil {
+		return errors.Wrapf(consts.ErrValidation, "invalid michelson code in '%s': %s", key, err)
+	}
+	l.Value = jsonLambda
+	l.ValueKind = valueKindString
 	return nil
 }
 
@@ -121,7 +137,11 @@ func (l *Lambda) ToJSONSchema() (*JSONSchema, error) {
 
 // ToParameters -
 func (l *Lambda) ToParameters() ([]byte, error) {
-	return []byte(l.Value.(string)), nil
+	str, err := l.getValue()
+	if err != nil {
+		return nil, err
+	}
+	return []byte(str), nil
 }
 
 // Docs -
@@ -212,7 +232,11 @@ func (l *Lambda) GetJSONModel(model JSONModel) {
 	if model == nil {
 		return
 	}
-	s, err := formatter.MichelineToMichelsonInline(l.Value.(string))
+	value, err := l.getValue()
+	if err != nil {
+		return
+	}
+	s, err := formatter.MichelineToMichelsonInline(value)
 	if err != nil {
 		return
 	}
@@ -225,4 +249,15 @@ func (l *Lambda) FindByName(name string, isEntrypoint bool) Node {
 		return l
 	}
 	return nil
+}
+
+func (l *Lambda) getValue() (string, error) {
+	str, ok := l.Value.(string)
+	if !ok {
+		return "", errors.Wrapf(consts.ErrValidation, "expected string value for lambda: got %v", l.Value)
+	}
+	if strings.TrimSpace(str) == "" {
+		return "", errors.Wrap(consts.ErrValidation, "empty lambda code")
+	}
+	return str, nil
 }
