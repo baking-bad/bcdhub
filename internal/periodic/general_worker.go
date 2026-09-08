@@ -3,6 +3,7 @@ package periodic
 import (
 	"context"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/teztnets"
@@ -12,11 +13,12 @@ import (
 
 // GeneralWorker -
 type GeneralWorker struct {
-	rpc      *teztnets.RPC
-	schedule string
-	cron     *cron.Cron
-	handler  ChangedHandler
-	urls     map[string]string
+	rpc       *teztnets.RPC
+	schedule  string
+	cron      *cron.Cron
+	handler   ChangedHandler
+	urls      map[string]string
+	isRunning atomic.Bool
 }
 
 // NewGeneralWorker -
@@ -71,6 +73,12 @@ func (w *GeneralWorker) Close() error {
 
 func (w *GeneralWorker) handleScheduleEvent(ctx context.Context) func() {
 	return func() {
+		if !w.isRunning.CompareAndSwap(false, true) {
+			log.Warn().Msg("periodic worker is already running")
+			return
+		}
+		defer w.isRunning.Store(false)
+
 		log.Info().Msg("trying to receive new rpc url")
 
 		changed, err := w.checkNetwork(ctx)

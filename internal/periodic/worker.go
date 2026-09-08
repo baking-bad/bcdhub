@@ -3,6 +3,7 @@ package periodic
 import (
 	"context"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -19,6 +20,7 @@ type Worker struct {
 	cron       *cron.Cron
 	currentUrl string
 	handler    ChangedHandler
+	isRunning  atomic.Bool
 }
 
 // ChangedHandler -
@@ -76,6 +78,12 @@ func (w *Worker) Close() error {
 
 func (w *Worker) handleScheduleEvent(ctx context.Context) func() {
 	return func() {
+		if !w.isRunning.CompareAndSwap(false, true) {
+			log.Warn().Str("network", w.network.String()).Msg("periodic worker is already running")
+			return
+		}
+		defer w.isRunning.Store(false)
+
 		log.Info().Str("network", w.network.String()).Msg("trying to receive new rpc url")
 
 		changed, err := w.checkNetwork(ctx)

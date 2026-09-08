@@ -18,8 +18,9 @@ type PeriodicIndexer struct {
 	indexer       *BlockchainIndexer
 	indexerCancel context.CancelFunc
 
-	cfg        config.Config
-	indexerCfg config.IndexerConfig
+	cfg         config.Config
+	indexerCfg  config.IndexerConfig
+	indexerDone chan struct{}
 
 	worker *periodic.Worker
 	g      workerpool.Group
@@ -38,9 +39,10 @@ func NewPeriodicIndexer(
 	}
 
 	p := &PeriodicIndexer{
-		cfg:        cfg,
-		indexerCfg: indexerCfg,
-		g:          g,
+		cfg:         cfg,
+		indexerCfg:  indexerCfg,
+		g:           g,
+		indexerDone: make(chan struct{}),
 	}
 
 	worker, err := periodic.New(*indexerCfg.Periodic, types.NewNetwork(network), p.handleUrlChanged)
@@ -74,7 +76,13 @@ func NewPeriodicIndexer(
 func (p *PeriodicIndexer) Start(ctx context.Context) {
 	indexerCtx, indexerCancel := context.WithCancel(ctx)
 	p.indexerCancel = indexerCancel
-	p.indexer.Start(indexerCtx)
+	p.runIndexer(indexerCtx)
+}
+
+// runIndexer runs the indexer loop and signals its exit via indexerDone.
+func (p *PeriodicIndexer) runIndexer(ctx context.Context) {
+	defer close(p.indexerDone)
+	p.indexer.Start(ctx)
 }
 
 // Close -
@@ -105,19 +113,26 @@ func (p *PeriodicIndexer) handleUrlChanged(ctx context.Context, network, url str
 	}
 	p.indexerCancel()
 
+	select {
+	case <-p.indexerDone:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
 	if err := p.indexer.Close(); err != nil {
 		return err
 	}
 
 	setUrlToConfig(&p.cfg, url, network)
 
+	p.indexerDone = make(chan struct{})
 	if err := p.indexer.reinit(ctx, p.cfg, p.indexerCfg); err != nil {
 		return err
 	}
 
 	indexerCtx, indexerCancel := context.WithCancel(ctx)
 	p.indexerCancel = indexerCancel
-	p.g.GoCtx(indexerCtx, p.indexer.Start)
+	p.g.GoCtx(indexerCtx, p.runIndexer)
 
 	return nil
 }
