@@ -65,3 +65,91 @@ func TestReportProcessError(t *testing.T) {
 		})
 	}
 }
+
+func TestTickerDuration(t *testing.T) {
+	tests := []struct {
+		name string
+		// blockTime is the protocol's TimeBetweenBlocks in seconds, as stored by init/migrate
+		blockTime int64
+		seconds   int
+		want      time.Duration
+	}{
+		{
+			name:      "protocol time between blocks",
+			blockTime: 8,
+			seconds:   0,
+			want:      8 * time.Second,
+		},
+		{
+			name:      "explicit interval wins over protocol",
+			blockTime: 8,
+			seconds:   5,
+			want:      5 * time.Second,
+		},
+		{
+			name:      "fallback when protocol has no time between blocks",
+			blockTime: 0,
+			seconds:   0,
+			want:      10 * time.Second,
+		},
+		{
+			name:      "explicit interval without protocol",
+			blockTime: 0,
+			seconds:   5,
+			want:      5 * time.Second,
+		},
+		{
+			name:      "protocol time between blocks after migration",
+			blockTime: 15,
+			seconds:   0,
+			want:      15 * time.Second,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bi := &BlockchainIndexer{Network: types.Mainnet}
+			bi.blockTime.Store(tt.blockTime * int64(time.Second))
+
+			require.Equal(t, tt.want, bi.tickerDuration(tt.seconds))
+		})
+	}
+}
+
+func TestSetUpdateTicker(t *testing.T) {
+	t.Run("delivers the requested interval to the Start loop", func(t *testing.T) {
+		bi := &BlockchainIndexer{
+			Network:      types.Mainnet,
+			refreshTimer: make(chan time.Duration, 10),
+		}
+		bi.blockTime.Store(8 * int64(time.Second))
+
+		bi.setUpdateTicker(5)
+		bi.setUpdateTicker(0)
+
+		require.Equal(t, 5*time.Second, <-bi.refreshTimer)
+		require.Equal(t, 8*time.Second, <-bi.refreshTimer)
+	})
+
+	t.Run("drops the update instead of blocking when the queue is full", func(t *testing.T) {
+		bi := &BlockchainIndexer{
+			Network:      types.Mainnet,
+			refreshTimer: make(chan time.Duration, 1),
+		}
+
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			bi.setUpdateTicker(5)
+			bi.setUpdateTicker(5)
+		}()
+
+		select {
+		case <-done:
+		case <-time.After(time.Second):
+			t.Fatal("setUpdateTicker blocked on a full refreshTimer")
+		}
+
+		require.Len(t, bi.refreshTimer, 1)
+	})
+}

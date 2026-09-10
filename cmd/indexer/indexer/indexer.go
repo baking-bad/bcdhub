@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -40,10 +41,11 @@ type BlockchainIndexer struct {
 	currentProtocol protocol.Protocol
 	blocks          map[int64]*Block
 
-	updateTicker *time.Ticker
-	Network      types.Network
+	Network types.Network
 
-	refreshTimer chan struct{}
+	fatal        chan error
+	refreshTimer chan time.Duration
+	blockTime    atomic.Int64
 
 	startLevel  int64
 	isPeriodic  bool
@@ -78,7 +80,8 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 		Network:      networkType,
 		startLevel:   indexerConfig.ResolveStartLevel(),
 		isPeriodic:   indexerConfig.Periodic != nil,
-		refreshTimer: make(chan struct{}, 10),
+		refreshTimer: make(chan time.Duration, 10),
+		fatal:        make(chan error, 1),
 		g:            workerpool.NewGroup(),
 		hub:          hub,
 	}
@@ -94,7 +97,6 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 func (bi *BlockchainIndexer) Close() error {
 	bi.g.Wait()
 
-	close(bi.refreshTimer)
 	if err := bi.receiver.Close(); err != nil {
 		log.Err(err).Msg("closing receiver")
 	}
@@ -158,6 +160,7 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 	}
 
 	bi.currentProtocol = currentProtocol
+	bi.blockTime.Store(currentProtocol.TimeBetweenBlocks * int64(time.Second))
 	log.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", currentProtocol.Hash)
 
 	for {
@@ -206,6 +209,11 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 	defer helpers.LocalCatchPanicSentry(bi.hub)
 	localSentry := bi.hub
 
+	select {
+	case <-bi.fatal:
+	default:
+	}
+
 	bi.g.GoCtx(ctx, bi.indexBlock)
 
 	bi.receiver.Start(ctx)
@@ -218,12 +226,16 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 	}
 
 	everySecond := false
-	bi.setUpdateTicker(0)
+	duration := bi.tickerDuration(0)
+	log.Info().Str("network", bi.Network.String()).Msgf("Data will be updated every %.0f seconds", duration.Seconds())
+	ticker := time.NewTicker(duration)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-bi.updateTicker.C:
+		case <-ticker.C:
 			if err := bi.process(ctx); err != nil {
 				if errors.Is(err, errSameLevel) {
 					if !everySecond {
@@ -239,9 +251,16 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 				everySecond = false
 				bi.setUpdateTicker(0)
 			}
-		case <-bi.refreshTimer:
-			// do nothing. refreshTimer event is for update select statement after Ticker update
+		case d := <-bi.refreshTimer:
+			// the ticker is reset here, in its owning goroutine, so that the select
+			// statement picks up the new interval
 			// https://go.dev/ref/spec#Select_statements
+			log.Info().Str("network", bi.Network.String()).Msgf("Data will be updated every %.0f seconds", d.Seconds())
+			ticker.Reset(d)
+
+		case err := <-bi.fatal:
+			log.Err(err).Str("network", bi.Network.String()).Msg("indexer stopped: unrecoverable error")
+			return
 		}
 	}
 }
@@ -260,22 +279,26 @@ func (bi *BlockchainIndexer) reportProcessError(hub *sentry.Hub, err error) {
 	helpers.LocalCatchErrorSentry(hub, err)
 }
 
+// tickerDuration returns the interval between process calls: the current protocol's
+// time between blocks when seconds is 0, the given number of seconds otherwise.
+func (bi *BlockchainIndexer) tickerDuration(seconds int) time.Duration {
+	if seconds > 0 {
+		return time.Duration(seconds) * time.Second
+	}
+	if duration := time.Duration(bi.blockTime.Load()); duration > 0 {
+		return duration
+	}
+	return 10 * time.Second
+}
+
+// setUpdateTicker asks the Start loop to change its interval. It is safe to call from
+// any goroutine: the ticker itself is never touched outside of Start.
 func (bi *BlockchainIndexer) setUpdateTicker(seconds int) {
-	var duration time.Duration
-	if seconds == 0 {
-		duration = time.Duration(bi.currentProtocol.TimeBetweenBlocks) * time.Second
-		if duration.Microseconds() <= 0 {
-			duration = 10 * time.Second
-		}
-	} else {
-		duration = time.Duration(seconds) * time.Second
+	select {
+	case bi.refreshTimer <- bi.tickerDuration(seconds):
+	default:
+		log.Warn().Str("network", bi.Network.String()).Msg("ticker update is dropped: refresh queue is full")
 	}
-	if bi.updateTicker != nil {
-		bi.updateTicker.Stop()
-	}
-	log.Info().Str("network", bi.Network.String()).Msgf("Data will be updated every %.0f seconds", duration.Seconds())
-	bi.updateTicker = time.NewTicker(duration)
-	bi.refreshTimer <- struct{}{}
 }
 
 func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
@@ -294,7 +317,15 @@ func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
 			for ok {
 				if bi.state.Level > 0 && block.Header.Predecessor != bi.state.Hash {
 					if err := bi.Rollback(ctx); err != nil {
-						log.Err(err).Msg("rollback")
+						log.Err(err).Str("network", bi.Network.String()).Msg("rollback")
+						if errors.Is(err, errDeepReorg) {
+							helpers.LocalCatchErrorSentry(bi.hub, err)
+							select {
+							case bi.fatal <- err:
+							default:
+							}
+							return
+						}
 					}
 				} else {
 					if err := bi.handleBlock(ctx, block); err != nil {
@@ -404,6 +435,7 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header) e
 	}
 
 	bi.currentProtocol = newProto
+	bi.blockTime.Store(newProto.TimeBetweenBlocks * int64(time.Second))
 
 	if err := tx.Commit(); err != nil {
 		return err
@@ -445,11 +477,21 @@ func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
 	return nil
 }
 
+var errDeepReorg = errors.New("reorg is deeper than local history")
+
 func (bi *BlockchainIndexer) getLastRollbackBlock(ctx context.Context) (int64, error) {
 	var lastLevel int64
 	level := bi.state.Level
 
 	for end := false; !end; level-- {
+		if level <= bi.startLevel {
+			return 0, errors.Wrapf(
+				errDeepReorg,
+				"reached level %d, indexing starts at %d",
+				level, bi.startLevel,
+			)
+		}
+
 		headAtLevel, err := bi.RPC.GetHeader(ctx, level)
 		if err != nil {
 			return 0, err
@@ -559,7 +601,6 @@ func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, inde
 	log.Info().Str("network", bi.Network.String()).Msg("Creating indexer object...")
 	bi.receiver = NewReceiver(bi.RPC, 20, indexerConfig.ReceiverThreads)
 	bi.startLevel = indexerConfig.ResolveStartLevel()
-
-	bi.refreshTimer = make(chan struct{}, 10)
+	bi.blocks = make(map[int64]*Block)
 	return bi.init(ctx, bi.StorageDB)
 }
