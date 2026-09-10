@@ -43,6 +43,7 @@ type BlockchainIndexer struct {
 
 	Network types.Network
 
+	fatal        chan error
 	refreshTimer chan time.Duration
 	blockTime    atomic.Int64
 
@@ -80,6 +81,7 @@ func NewBlockchainIndexer(ctx context.Context, cfg config.Config, network string
 		startLevel:   indexerConfig.ResolveStartLevel(),
 		isPeriodic:   indexerConfig.Periodic != nil,
 		refreshTimer: make(chan time.Duration, 10),
+		fatal:        make(chan error, 1),
 		g:            workerpool.NewGroup(),
 		hub:          hub,
 	}
@@ -207,6 +209,11 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 	defer helpers.LocalCatchPanicSentry(bi.hub)
 	localSentry := bi.hub
 
+	select {
+	case <-bi.fatal:
+	default:
+	}
+
 	bi.g.GoCtx(ctx, bi.indexBlock)
 
 	bi.receiver.Start(ctx)
@@ -250,6 +257,10 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 			// https://go.dev/ref/spec#Select_statements
 			log.Info().Str("network", bi.Network.String()).Msgf("Data will be updated every %.0f seconds", d.Seconds())
 			ticker.Reset(d)
+
+		case err := <-bi.fatal:
+			log.Err(err).Str("network", bi.Network.String()).Msg("indexer stopped: unrecoverable error")
+			return
 		}
 	}
 }
@@ -306,7 +317,15 @@ func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
 			for ok {
 				if bi.state.Level > 0 && block.Header.Predecessor != bi.state.Hash {
 					if err := bi.Rollback(ctx); err != nil {
-						log.Err(err).Msg("rollback")
+						log.Err(err).Str("network", bi.Network.String()).Msg("rollback")
+						if errors.Is(err, errDeepReorg) {
+							helpers.LocalCatchErrorSentry(bi.hub, err)
+							select {
+							case bi.fatal <- err:
+							default:
+							}
+							return
+						}
 					}
 				} else {
 					if err := bi.handleBlock(ctx, block); err != nil {
@@ -458,14 +477,17 @@ func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
 	return nil
 }
 
+var errDeepReorg = errors.New("reorg is deeper than local history")
+
 func (bi *BlockchainIndexer) getLastRollbackBlock(ctx context.Context) (int64, error) {
 	var lastLevel int64
 	level := bi.state.Level
 
 	for end := false; !end; level-- {
 		if level <= bi.startLevel {
-			return 0, errors.Errorf(
-				"reorg is deeper than local history: reached level %d, indexing starts at %d",
+			return 0, errors.Wrapf(
+				errDeepReorg,
+				"reached level %d, indexing starts at %d",
 				level, bi.startLevel,
 			)
 		}
@@ -579,7 +601,6 @@ func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, inde
 	log.Info().Str("network", bi.Network.String()).Msg("Creating indexer object...")
 	bi.receiver = NewReceiver(bi.RPC, 20, indexerConfig.ReceiverThreads)
 	bi.startLevel = indexerConfig.ResolveStartLevel()
-
-	bi.refreshTimer = make(chan time.Duration, 10)
+	bi.blocks = make(map[int64]*Block)
 	return bi.init(ctx, bi.StorageDB)
 }

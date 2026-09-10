@@ -3,6 +3,7 @@ package periodic
 import (
 	"context"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -19,6 +20,7 @@ type Worker struct {
 	schedule   string
 	cron       *cron.Cron
 	currentUrl string
+	mx         sync.RWMutex
 	handler    ChangedHandler
 	isRunning  atomic.Bool
 }
@@ -79,7 +81,7 @@ func (w *Worker) Close() error {
 func (w *Worker) handleScheduleEvent(ctx context.Context) func() {
 	return func() {
 		if !w.isRunning.CompareAndSwap(false, true) {
-			log.Warn().Str("network", w.network.String()).Msg("periodic worker is already running")
+			log.Debug().Str("network", w.network.String()).Msg("periodic worker is already running")
 			return
 		}
 		defer w.isRunning.Store(false)
@@ -132,17 +134,28 @@ func (w *Worker) checkNetwork(ctx context.Context) (bool, error) {
 			continue
 		}
 
-		if w.currentUrl != data.RPCURL {
-			if w.currentUrl != "" {
-				if err := w.handler(ctx, w.network.String(), data.RPCURL); err != nil {
-					log.Err(err).Str("network", w.network.String()).Msg("failed to apply new rpc url")
-				}
-			}
-			w.currentUrl = data.RPCURL
-
-			log.Info().Str("network", parts[0]).Str("url", w.currentUrl).Msg("new url was found")
-			return true, nil
+		current := w.URL()
+		if current == data.RPCURL {
+			continue
 		}
+
+		// the handler tears the indexer down and re-initialises it, so it must not run
+		// while the mutex that URL() needs is held
+		if current != "" {
+			if err := w.handler(ctx, w.network.String(), data.RPCURL); err != nil {
+				// leave currentUrl untouched so that the next poll retries the switch
+				// instead of silently dropping the network
+				log.Err(err).Str("network", w.network.String()).Msg("failed to apply new rpc url")
+				return false, nil
+			}
+		}
+
+		w.mx.Lock()
+		w.currentUrl = data.RPCURL
+		w.mx.Unlock()
+
+		log.Info().Str("network", parts[0]).Str("url", data.RPCURL).Msg("new url was found")
+		return true, nil
 	}
 
 	return false, nil
@@ -150,5 +163,7 @@ func (w *Worker) checkNetwork(ctx context.Context) (bool, error) {
 
 // URL -
 func (w *Worker) URL() string {
+	w.mx.RLock()
+	defer w.mx.RUnlock()
 	return w.currentUrl
 }

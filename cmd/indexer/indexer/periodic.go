@@ -3,6 +3,7 @@ package indexer
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -19,6 +20,7 @@ type PeriodicIndexer struct {
 	indexerCancel context.CancelFunc
 
 	cfg         config.Config
+	mx          sync.Mutex
 	indexerCfg  config.IndexerConfig
 	indexerDone chan struct{}
 
@@ -39,10 +41,9 @@ func NewPeriodicIndexer(
 	}
 
 	p := &PeriodicIndexer{
-		cfg:         cfg,
-		indexerCfg:  indexerCfg,
-		g:           g,
-		indexerDone: make(chan struct{}),
+		cfg:        cfg,
+		indexerCfg: indexerCfg,
+		g:          g,
 	}
 
 	worker, err := periodic.New(*indexerCfg.Periodic, types.NewNetwork(network), p.handleUrlChanged)
@@ -74,15 +75,24 @@ func NewPeriodicIndexer(
 
 // Start -
 func (p *PeriodicIndexer) Start(ctx context.Context) {
-	indexerCtx, indexerCancel := context.WithCancel(ctx)
-	p.indexerCancel = indexerCancel
-	p.runIndexer(indexerCtx)
+	p.runIndexer(ctx)
 }
 
-// runIndexer runs the indexer loop and signals its exit via indexerDone.
+// runIndexer spawns the indexer loop in the worker group and records its cancel func
+// and exit channel, so that handleUrlChanged can stop it and wait for it to finish.
 func (p *PeriodicIndexer) runIndexer(ctx context.Context) {
-	defer close(p.indexerDone)
-	p.indexer.Start(ctx)
+	done := make(chan struct{})
+	indexerCtx, indexerCancel := context.WithCancel(ctx)
+
+	p.mx.Lock()
+	p.indexerDone = done
+	p.indexerCancel = indexerCancel
+	p.mx.Unlock()
+
+	p.g.GoCtx(indexerCtx, func(ctx context.Context) {
+		defer close(done)
+		p.indexer.Start(ctx)
+	})
 }
 
 // Close -
@@ -105,35 +115,20 @@ func (p *PeriodicIndexer) Rollback(ctx context.Context) error {
 
 func (p *PeriodicIndexer) handleUrlChanged(ctx context.Context, network, url string) error {
 	log.Warn().Str("network", network).Str("url", url).Msg("cancelling indexer due to URL changing...")
-	if p.indexerCancel == nil {
-		return errors.New("indexer cancel func is nil")
-	}
 	if p.indexer == nil {
 		return errors.New("indexer is nil")
 	}
-	p.indexerCancel()
-
-	select {
-	case <-p.indexerDone:
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-
-	if err := p.indexer.Close(); err != nil {
+	if err := p.stopIndexer(ctx); err != nil {
 		return err
 	}
 
 	setUrlToConfig(&p.cfg, url, network)
 
-	p.indexerDone = make(chan struct{})
 	if err := p.indexer.reinit(ctx, p.cfg, p.indexerCfg); err != nil {
 		return err
 	}
 
-	indexerCtx, indexerCancel := context.WithCancel(ctx)
-	p.indexerCancel = indexerCancel
-	p.g.GoCtx(indexerCtx, p.runIndexer)
-
+	p.runIndexer(ctx)
 	return nil
 }
 
@@ -141,5 +136,24 @@ func setUrlToConfig(cfg *config.Config, url string, network string) {
 	if value, ok := cfg.RPC[network]; ok {
 		value.URI = url
 		cfg.RPC[network] = value
+	}
+}
+
+// stopIndexer cancels the running indexer loop and waits for its exit.
+func (p *PeriodicIndexer) stopIndexer(ctx context.Context) error {
+	p.mx.Lock()
+	cancel, done := p.indexerCancel, p.indexerDone
+	p.mx.Unlock()
+
+	if cancel == nil {
+		return errors.New("indexer is not running")
+	}
+	cancel()
+
+	select {
+	case <-done:
+		return p.indexer.Close()
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }
