@@ -28,10 +28,14 @@ func teztnetsServer(t *testing.T, info *atomic.Value) *httptest.Server {
 	return srv
 }
 
-// mustNotBlock runs f and fails the test if it does not return in time. Every call that
-// takes the worker mutex goes through it, so a lock left held by checkNetwork surfaces
-// as a failure instead of hanging the test binary until the go test timeout.
-func mustNotBlock(t *testing.T, name string, f func()) {
+// mustNotBlock runs f and reports whether it returned in time, failing the test if it
+// did not. Every call that takes the worker mutex goes through it, so a lock left held
+// by checkNetwork surfaces as a failure instead of hanging the test binary until the go
+// test timeout. It is also called from the change handler, i.e. outside the test
+// goroutine, so it marks the failure with t.Errorf and leaves stopping to the caller:
+// t.Fatalf would only exit the goroutine it runs in. Callers must not read whatever f
+// was supposed to assign when it returns false: the stuck goroutine may still write it.
+func mustNotBlock(t *testing.T, name string, f func()) bool {
 	t.Helper()
 
 	done := make(chan struct{})
@@ -42,8 +46,10 @@ func mustNotBlock(t *testing.T, name string, f func()) {
 
 	select {
 	case <-done:
+		return true
 	case <-time.After(2 * time.Second):
-		t.Fatalf("%s blocked: the worker mutex was left locked", name)
+		t.Errorf("%s blocked: the worker mutex was left locked", name)
+		return false
 	}
 }
 
@@ -75,7 +81,7 @@ func TestWorkerCheckNetwork(t *testing.T) {
 			changed bool
 			err     error
 		)
-		mustNotBlock(t, "checkNetwork", func() { changed, err = w.checkNetwork(ctx) })
+		require.True(t, mustNotBlock(t, "checkNetwork", func() { changed, err = w.checkNetwork(ctx) }))
 		require.NoError(t, err)
 		return changed
 	}
@@ -84,7 +90,7 @@ func TestWorkerCheckNetwork(t *testing.T) {
 		t.Helper()
 
 		var url string
-		mustNotBlock(t, "URL()", func() { url = w.URL() })
+		require.True(t, mustNotBlock(t, "URL()", func() { url = w.URL() }))
 		return url
 	}
 
@@ -124,7 +130,10 @@ func TestWorkerURLDuringHandler(t *testing.T) {
 		types.Mainnet,
 		func(ctx context.Context, network, newUrl string) error {
 			var url string
-			mustNotBlock(t, "URL() inside the handler", func() { url = w.URL() })
+			if !mustNotBlock(t, "URL() inside the handler", func() { url = w.URL() }) {
+				seen <- ""
+				return nil
+			}
 			seen <- url
 			return nil
 		},
@@ -132,11 +141,11 @@ func TestWorkerURLDuringHandler(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	mustNotBlock(t, "checkNetwork", func() { _, err = w.checkNetwork(ctx) })
+	require.True(t, mustNotBlock(t, "checkNetwork", func() { _, err = w.checkNetwork(ctx) }))
 	require.NoError(t, err)
 
 	info.Store(teztnets.Info{"mainnet": {RPCURL: "https://rpc.example.com/two"}})
-	mustNotBlock(t, "checkNetwork", func() { _, err = w.checkNetwork(ctx) })
+	require.True(t, mustNotBlock(t, "checkNetwork", func() { _, err = w.checkNetwork(ctx) }))
 	require.NoError(t, err)
 
 	require.Equal(t, "https://rpc.example.com/one", <-seen)
@@ -169,7 +178,7 @@ func TestGeneralWorkerCheckNetwork(t *testing.T) {
 			changed bool
 			err     error
 		)
-		mustNotBlock(t, "checkNetwork", func() { changed, err = w.checkNetwork(ctx) })
+		require.True(t, mustNotBlock(t, "checkNetwork", func() { changed, err = w.checkNetwork(ctx) }))
 		require.NoError(t, err)
 		return changed
 	}
@@ -178,7 +187,7 @@ func TestGeneralWorkerCheckNetwork(t *testing.T) {
 		t.Helper()
 
 		var urls map[string]string
-		mustNotBlock(t, "URLs()", func() { urls = w.URLs() })
+		require.True(t, mustNotBlock(t, "URLs()", func() { urls = w.URLs() }))
 		return urls
 	}
 
@@ -263,7 +272,7 @@ func TestWorkerRetriesAfterHandlerError(t *testing.T) {
 			changed bool
 			err     error
 		)
-		mustNotBlock(t, "checkNetwork", func() { changed, err = w.checkNetwork(ctx) })
+		require.True(t, mustNotBlock(t, "checkNetwork", func() { changed, err = w.checkNetwork(ctx) }))
 		require.NoError(t, err)
 		return changed
 	}
@@ -272,7 +281,7 @@ func TestWorkerRetriesAfterHandlerError(t *testing.T) {
 		t.Helper()
 
 		var url string
-		mustNotBlock(t, "URL()", func() { url = w.URL() })
+		require.True(t, mustNotBlock(t, "URL()", func() { url = w.URL() }))
 		return url
 	}
 
@@ -328,7 +337,7 @@ func TestGeneralWorkerRetriesAfterHandlerError(t *testing.T) {
 			changed bool
 			err     error
 		)
-		mustNotBlock(t, "checkNetwork", func() { changed, err = w.checkNetwork(ctx) })
+		require.True(t, mustNotBlock(t, "checkNetwork", func() { changed, err = w.checkNetwork(ctx) }))
 		require.NoError(t, err)
 		return changed
 	}
@@ -337,7 +346,7 @@ func TestGeneralWorkerRetriesAfterHandlerError(t *testing.T) {
 		t.Helper()
 
 		var urls map[string]string
-		mustNotBlock(t, "URLs()", func() { urls = w.URLs() })
+		require.True(t, mustNotBlock(t, "URLs()", func() { urls = w.URLs() }))
 		return urls
 	}
 

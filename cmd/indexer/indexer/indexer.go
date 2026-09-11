@@ -206,6 +206,9 @@ func (bi *BlockchainIndexer) bootstrapImplicitContracts(ctx context.Context, hea
 
 // Start -
 func (bi *BlockchainIndexer) Start(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	defer helpers.LocalCatchPanicSentry(bi.hub)
 	localSentry := bi.hub
 
@@ -222,6 +225,9 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 	if err := bi.process(ctx); err != nil {
 		if !errors.Is(err, errSameLevel) {
 			bi.reportProcessError(localSentry, err)
+		}
+		if bi.isUnrecoverable(err) {
+			return
 		}
 	}
 
@@ -245,6 +251,9 @@ func (bi *BlockchainIndexer) Start(ctx context.Context) {
 					continue
 				}
 				bi.reportProcessError(localSentry, err)
+				if bi.isUnrecoverable(err) {
+					return
+				}
 			}
 
 			if everySecond {
@@ -603,4 +612,12 @@ func (bi *BlockchainIndexer) reinit(ctx context.Context, cfg config.Config, inde
 	bi.startLevel = indexerConfig.ResolveStartLevel()
 	bi.blocks = make(map[int64]*Block)
 	return bi.init(ctx, bi.StorageDB)
+}
+
+func (bi *BlockchainIndexer) isUnrecoverable(err error) bool {
+	if !errors.Is(err, errDeepReorg) {
+		return false
+	}
+	log.Err(err).Str("network", bi.Network.String()).Msg("indexer stopped: unrecoverable error")
+	return true
 }
