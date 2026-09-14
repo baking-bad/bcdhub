@@ -2,7 +2,10 @@ package periodic
 
 import (
 	"context"
+	"maps"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/teztnets"
@@ -12,11 +15,13 @@ import (
 
 // GeneralWorker -
 type GeneralWorker struct {
-	rpc      *teztnets.RPC
-	schedule string
-	cron     *cron.Cron
-	handler  ChangedHandler
-	urls     map[string]string
+	rpc       *teztnets.RPC
+	schedule  string
+	cron      *cron.Cron
+	handler   ChangedHandler
+	urls      map[string]string
+	mx        sync.RWMutex
+	isRunning atomic.Bool
 }
 
 // NewGeneralWorker -
@@ -71,6 +76,12 @@ func (w *GeneralWorker) Close() error {
 
 func (w *GeneralWorker) handleScheduleEvent(ctx context.Context) func() {
 	return func() {
+		if !w.isRunning.CompareAndSwap(false, true) {
+			log.Debug().Msg("periodic worker is already running")
+			return
+		}
+		defer w.isRunning.Store(false)
+
 		log.Info().Msg("trying to receive new rpc url")
 
 		changed, err := w.checkNetwork(ctx)
@@ -116,15 +127,30 @@ func (w *GeneralWorker) checkNetwork(ctx context.Context) (bool, error) {
 		}
 
 		network := parts[0]
-		if current := w.urls[network]; current != data.RPCURL {
-			if err := w.handler(ctx, network, data.RPCURL); err != nil {
-				log.Err(err).Str("network", network).Msg("failed to apply new rpc url")
-			}
-			w.urls[network] = data.RPCURL
 
-			log.Info().Str("network", network).Str("url", data.RPCURL).Msg("new url was found")
-			changed = true
+		w.mx.RLock()
+		current := w.urls[network]
+		w.mx.RUnlock()
+
+		if current == data.RPCURL {
+			continue
 		}
+
+		// the handler re-points the service at the new node, so it must not run while
+		// the mutex that URLs() needs is held
+		if err := w.handler(ctx, network, data.RPCURL); err != nil {
+			// leave the stored url untouched so that the next poll retries the switch
+			// instead of silently dropping the network
+			log.Err(err).Str("network", network).Msg("failed to apply new rpc url")
+			continue
+		}
+
+		w.mx.Lock()
+		w.urls[network] = data.RPCURL
+		w.mx.Unlock()
+
+		log.Info().Str("network", network).Str("url", data.RPCURL).Msg("new url was found")
+		changed = true
 	}
 
 	return changed, nil
@@ -132,5 +158,9 @@ func (w *GeneralWorker) checkNetwork(ctx context.Context) (bool, error) {
 
 // URLs -
 func (w *GeneralWorker) URLs() map[string]string {
-	return w.urls
+	w.mx.RLock()
+	defer w.mx.RUnlock()
+	urls := make(map[string]string, len(w.urls))
+	maps.Copy(urls, w.urls)
+	return urls
 }
