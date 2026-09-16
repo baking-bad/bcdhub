@@ -1,17 +1,13 @@
 rpc:
   mainnet:
-    uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
+    uri: ${MAINNET_RPC_URI:-https://michelson.etherlink.mainnet.octez.io}
     timeout: 20
     requests_per_second: 10
   shadownet:
-    uri: https://rpc.tzkt.io/shadownet
+    uri: https://michelson.etherlink.shadownet.octez.io
     timeout: 20
     requests_per_second: 20
-  ushuaianet:
-    uri: https://rpc.tzkt.io/ushuaianet
-    timeout: 20
-    requests_per_second: 20
-  tezosx:
+  previewnet:
     uri: https://michelson.previewnet.tezosx.nomadic-labs.com
     timeout: 20
     requests_per_second: 20
@@ -21,8 +17,7 @@ log_level: ${LOG_LEVEL:-info}
 services:
   mainnet:
   shadownet:
-  ushuaianet:
-  tezosx:
+  previewnet:
 
 storage:
   pg:
@@ -43,7 +38,7 @@ sentry:
 
 share_path: /etc/bcd
 
-base_url: https://better-call.dev
+base_url: https://tezosx.better-call.dev
 
 profiler:
   server: ${PROFILER_SERVER_ADDRESS:-http://127.0.0.1:4040}
@@ -59,13 +54,13 @@ api:
     ga_enabled: true
     sandbox_mode: false
     rpc:
-      mainnet: https://rpc.tzkt.io/mainnet
-      shadownet: https://rpc.tzkt.io/shadownet
-      ushuaianet: https://rpc.tzkt.io/ushuaianet
+      mainnet: https://michelson.etherlink.mainnet.octez.io
+      shadownet: https://michelson.etherlink.shadownet.octez.io
+      previewnet: https://michelson.previewnet.tezosx.nomadic-labs.com
   networks:
     - mainnet
     - shadownet
-    - ushuaianet
+    - previewnet
 
 indexer:
   project_name: indexer
@@ -73,10 +68,13 @@ indexer:
   networks:
     mainnet:
       receiver_threads: ${MAINNET_THREADS:-10}
+      start_level: ${TEZOSX_MAINNET_START_LEVEL:-51484839}
     shadownet:
       receiver_threads: ${TESTNET_THREADS:-10}
-    ushuaianet:
+      start_level: ${TEZOSX_SHADOWNET_START_LEVEL:-6038916}
+    previewnet:
       receiver_threads: ${TESTNET_THREADS:-10}
+      start_level: ${TEZOSX_PREVIEWNET_START_LEVEL:-10}
 
 scripts:
   aws:
@@ -87,25 +85,15 @@ scripts:
   networks:
     - mainnet
     - shadownet
-    - ushuaianet
+    - previewnet
 
 implicit_contracts:
   mainnet:
-    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
-      level: 1589247
-    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
-      level: 1589247
+    - address: "KT18oDJJKXMKhfE1bSuAPGp92pYcwVDiqsPw"
+      level: ${TEZOSX_MAINNET_START_LEVEL:-51484839}
   shadownet:
-    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
-      level: 1
-    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
-      level: 1
-    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
-      level: 1
-  ushuaianet:
-    - address: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5"
-      level: 1
-    - address: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
-      level: 1
-    - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
-      level: 1
+    - address: "KT18oDJJKXMKhfE1bSuAPGp92pYcwVDiqsPw"
+      level: ${TEZOSX_SHADOWNET_START_LEVEL:-6038916}
+  previewnet:
+    - address: "KT18oDJJKXMKhfE1bSuAPGp92pYcwVDiqsPw"
+      level: ${TEZOSX_PREVIEWNET_START_LEVEL:-10}

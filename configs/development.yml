@@ -11,10 +11,6 @@ rpc:
     uri: https://rpc.tzkt.io/ushuaianet
     timeout: 20
     requests_per_second: 20
-  tezosx:
-    uri: https://michelson.previewnet.tezosx.nomadic-labs.com
-    timeout: 20
-    requests_per_second: 20
 
 log_level: ${LOG_LEVEL:-info}
 
@@ -22,7 +18,6 @@ services:
   mainnet:
   shadownet:
   ushuaianet:
-  tezosx:
 
 storage:
   pg:
@@ -59,12 +54,10 @@ api:
       mainnet: https://rpc.tzkt.io/mainnet
       shadownet: https://rpc.tzkt.io/shadownet
       ushuaianet: https://rpc.tzkt.io/ushuaianet
-      tezosx: https://michelson.previewnet.tezosx.nomadic-labs.com
   networks:
     - mainnet
     - shadownet
     - ushuaianet
-    - tezosx
 
 indexer:
   project_name: indexer
@@ -76,16 +69,12 @@ indexer:
       receiver_threads: 10
     ushuaianet:
       receiver_threads: 10
-    tezosx:
-      receiver_threads: 10
-      start_level: ${TEZOSX_START_LEVEL:-1}
 
 scripts:
   networks:
     - mainnet
     - shadownet
     - ushuaianet
-    - tezosx
 
 implicit_contracts:
   mainnet:
@@ -107,6 +96,3 @@ implicit_contracts:
       level: 1
     - address: "KT1VqarPDicMFn1ejmQqqshUkUXTCTXwmkCN"
       level: 1
-  tezosx:
-    - address: "KT18oDJJKXMKhfE1bSuAPGp92pYcwVDiqsPw"
-      level: 10
