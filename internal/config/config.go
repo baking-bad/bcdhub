@@ -17,6 +17,7 @@ const (
 	EnvironmentProd     = "production"
 	EnvironmentBox      = "sandbox"
 	EnvironmentTestnets = "testnets"
+	EnvironmentTezosx   = "tezosx"
 )
 
 // Config -
@@ -181,6 +182,7 @@ func LoadDefaultConfig() (Config, error) {
 		EnvironmentBox:      "sandbox.yml",
 		EnvironmentDev:      "../../configs/development.yml",
 		EnvironmentTestnets: "testnets.yml",
+		EnvironmentTezosx:   "tezosx.yml",
 	}
 
 	env := os.Getenv(EnvironmentVar)
