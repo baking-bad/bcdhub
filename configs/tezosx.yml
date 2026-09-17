@@ -1,13 +1,13 @@
 rpc:
-  mainnet:
+  etherlink_mainnet:
     uri: ${MAINNET_RPC_URI:-https://michelson.etherlink.mainnet.octez.io}
     timeout: 20
     requests_per_second: 10
-  shadownet:
+  etherlink_shadownet:
     uri: https://michelson.etherlink.shadownet.octez.io
     timeout: 20
     requests_per_second: 20
-  previewnet:
+  tezosx_previewnet:
     uri: https://michelson.previewnet.tezosx.nomadic-labs.com
     timeout: 20
     requests_per_second: 20
@@ -15,9 +15,9 @@ rpc:
 log_level: ${LOG_LEVEL:-info}
 
 services:
-  mainnet:
-  shadownet:
-  previewnet:
+  etherlink_mainnet:
+  etherlink_shadownet:
+  tezosx_previewnet:
 
 storage:
   pg:
@@ -54,25 +54,25 @@ api:
     ga_enabled: true
     sandbox_mode: false
     rpc:
-      mainnet: https://michelson.etherlink.mainnet.octez.io
-      shadownet: https://michelson.etherlink.shadownet.octez.io
-      previewnet: https://michelson.previewnet.tezosx.nomadic-labs.com
+      etherlink_mainnet: https://michelson.etherlink.mainnet.octez.io
+      etherlink_shadownet: https://michelson.etherlink.shadownet.octez.io
+      tezosx_previewnet: https://michelson.previewnet.tezosx.nomadic-labs.com
   networks:
-    - mainnet
-    - shadownet
-    - previewnet
+    - etherlink_mainnet
+    - etherlink_shadownet
+    - tezosx_previewnet
 
 indexer:
   project_name: indexer
   sentry_enabled: true
   networks:
-    mainnet:
+    etherlink_mainnet:
       receiver_threads: ${MAINNET_THREADS:-10}
       start_level: ${TEZOSX_MAINNET_START_LEVEL:-51484839}
-    shadownet:
+    etherlink_shadownet:
       receiver_threads: ${TESTNET_THREADS:-10}
       start_level: ${TEZOSX_SHADOWNET_START_LEVEL:-6038916}
-    previewnet:
+    tezosx_previewnet:
       receiver_threads: ${TESTNET_THREADS:-10}
       start_level: ${TEZOSX_PREVIEWNET_START_LEVEL:-10}
 
@@ -83,17 +83,17 @@ scripts:
     access_key_id: ${AWS_ACCESS_KEY_ID}
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
-    - mainnet
-    - shadownet
-    - previewnet
+    - etherlink_mainnet
+    - etherlink_shadownet
+    - tezosx_previewnet
 
 implicit_contracts:
-  mainnet:
+  etherlink_mainnet:
     - address: "KT18oDJJKXMKhfE1bSuAPGp92pYcwVDiqsPw"
       level: ${TEZOSX_MAINNET_START_LEVEL:-51484839}
-  shadownet:
+  etherlink_shadownet:
     - address: "KT18oDJJKXMKhfE1bSuAPGp92pYcwVDiqsPw"
       level: ${TEZOSX_SHADOWNET_START_LEVEL:-6038916}
-  previewnet:
+  tezosx_previewnet:
     - address: "KT18oDJJKXMKhfE1bSuAPGp92pYcwVDiqsPw"
       level: ${TEZOSX_PREVIEWNET_START_LEVEL:-10}
