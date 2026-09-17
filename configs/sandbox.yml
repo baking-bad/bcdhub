@@ -30,6 +30,7 @@ api:
   frontend:
     ga_enabled: false
     sandbox_mode: true
+    tezosx_stack: false
     rpc:
       sandboxnet: ${SANDBOX_NODE_URI:-http://127.0.0.1:20000}
   networks:

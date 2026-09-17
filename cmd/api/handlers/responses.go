@@ -446,6 +446,7 @@ type ConfigResponse struct {
 	OauthEnabled bool              `json:"oauth_enabled"`
 	GaEnabled    bool              `json:"ga_enabled"`
 	SandboxMode  bool              `json:"sandbox_mode"`
+	TezosxStack  bool              `json:"tezosx_stack"`
 }
 
 // Screenshot -

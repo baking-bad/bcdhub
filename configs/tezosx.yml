@@ -53,6 +53,7 @@ api:
   frontend:
     ga_enabled: true
     sandbox_mode: false
+    tezosx_stack: true
     rpc:
       etherlink_mainnet: https://michelson.etherlink.mainnet.octez.io
       etherlink_shadownet: https://michelson.etherlink.shadownet.octez.io

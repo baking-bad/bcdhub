@@ -132,6 +132,7 @@ type OAuthConfig struct {
 type FrontendConfig struct {
 	GaEnabled   bool              `yaml:"ga_enabled"`
 	SandboxMode bool              `yaml:"sandbox_mode"`
+	TezosxStack bool              `yaml:"tezosx_stack"`
 	RPC         map[string]string `yaml:"rpc"`
 }
 
