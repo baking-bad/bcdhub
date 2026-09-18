@@ -1,7 +1,7 @@
 ## Configuration
 BCD configuration is stored in _yml_ files: you can **expand** environment variables.  
 
-Each service has its very own section in the config file and also they share several common sections. There are predefined configs for _production_, _development_, _sandbox_ and _staging_ environments.
+Each service has its very own section in the config file and also they share several common sections. There are predefined configs for _production_, _development_, _sandbox_, _testnets_ and _tezosx_ environments; the `BCD_ENV` variable picks one of them.
 
 ### Production config `./configs/production.yml`
 
@@ -84,16 +84,17 @@ indexer:
   sentry_enabled: true
   networks:
     mainnet:
-      receiver_threads: ${MAINNET_THREADS:-1}
-    tezosx:
+      receiver_threads: ${MAINNET_THREADS:-10}
+    shadownet:
       receiver_threads: ${TESTNET_THREADS:-10}
-      start_level: ${TEZOSX_START_LEVEL:-1}
+    ushuaianet:
+      receiver_threads: ${TESTNET_THREADS:-10}
   connections:
     max: 5
     idle: 5
 ```
 
-`start_level` is the block the indexer starts from on an empty database. It only works as a lower bound: on a database which already has blocks indexing continues from the last one, so lowering the value requires wiping the network data first.
+`start_level` is an optional per-network key (see the Tezos X config below for an example) — the block the indexer starts from on an empty database. It only works as a lower bound: on a database which already has blocks indexing continues from the last one, so lowering the value requires wiping the network data first.
 
 Starting above level 1 means contracts originated earlier are unknown to the indexer and are stored as ghost accounts, with their calls indexed without parameter and storage decoding. Note that bootstrap contracts listed in `implicit_contracts` are only picked up when `start_level` is greater than 1 — with the default value of 1 they are never indexed.
 
@@ -108,6 +109,39 @@ scripts:
     idle: 5
 
 ```
+
+### Tezos X config `./configs/tezosx.yml`
+
+The Tezos X / Etherlink Michelson stack is a separate deployment, selected with `BCD_ENV=tezosx`. It is not part of the _production_ and _development_ configs: those cover Tezos L1 only.
+
+The file has the same structure as `production.yml`, with three networks of its own — `etherlink_mainnet`, `etherlink_shadownet` and `tezosx_previewnet`:
+
+```yml
+indexer:
+  project_name: indexer
+  sentry_enabled: true
+  networks:
+    etherlink_mainnet:
+      receiver_threads: ${MAINNET_THREADS:-10}
+      start_level: ${TEZOSX_MAINNET_START_LEVEL:-51484839}
+    etherlink_shadownet:
+      receiver_threads: ${TESTNET_THREADS:-10}
+      start_level: ${TEZOSX_SHADOWNET_START_LEVEL:-6038916}
+    tezosx_previewnet:
+      receiver_threads: ${TESTNET_THREADS:-10}
+      start_level: ${TEZOSX_PREVIEWNET_START_LEVEL:-10}
+```
+
+Each `start_level` is the first block the network exposes, so the contract implicitly originated in it is picked up through `implicit_contracts`:
+
+```yml
+implicit_contracts:
+  etherlink_mainnet:
+    - address: "KT18oDJJKXMKhfE1bSuAPGp92pYcwVDiqsPw"
+      level: ${TEZOSX_MAINNET_START_LEVEL:-51484839}
+```
+
+Network names are also the Postgres schema names and the `:network` path segment of the API, so requests go to `/v1/opg/etherlink_mainnet/...` rather than `/v1/opg/mainnet/...`. A network used here must be registered in `internal/models/types/network.go`.
 
 ### Docker settings `docker-compose.yml`
 Connects all the services together. The compose file is pretty straightforward and universal, although there are several settings you may want to change:
@@ -139,7 +173,7 @@ A typical problem is to access service running on the host machine from inside a
 About env files: https://docs.docker.com/compose/env-file/
 
 #### System config _required_
-* `BCD_ENV` e.g. _production_ or _sandbox_
+* `BCD_ENV` e.g. _production_, _sandbox_ or _tezosx_
 * `COMPOSE_PROJECT_NAME` e.g. _bcd-prod_ or _bcd-box_
 * `GIN_MODE` _release_ for production, _debug_ otherwise
 
