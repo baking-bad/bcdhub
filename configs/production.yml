@@ -11,10 +11,6 @@ rpc:
     uri: https://rpc.tzkt.io/ushuaianet
     timeout: 20
     requests_per_second: 20
-  tezosx:
-    uri: https://michelson.previewnet.tezosx.nomadic-labs.com
-    timeout: 20
-    requests_per_second: 20
 
 log_level: ${LOG_LEVEL:-info}
 
@@ -22,7 +18,6 @@ services:
   mainnet:
   shadownet:
   ushuaianet:
-  tezosx:
 
 storage:
   pg:
