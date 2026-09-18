@@ -41,7 +41,6 @@ api:
   frontend:
     ga_enabled: false
     sandbox_mode: false
-    tezosx_stack: false
     rpc:
       weeklynet: ${WEEKLYNET_RPC}
   networks:

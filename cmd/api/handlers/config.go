@@ -18,7 +18,6 @@ func GetConfig() gin.HandlerFunc {
 			RPCEndpoints: ctx.Config.API.Frontend.RPC,
 			GaEnabled:    ctx.Config.API.Frontend.GaEnabled,
 			SandboxMode:  ctx.Config.API.Frontend.SandboxMode,
-			TezosxStack:  ctx.Config.API.Frontend.TezosxStack,
 		}
 
 		if ctx.Config.API.SentryEnabled {

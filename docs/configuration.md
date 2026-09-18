@@ -67,7 +67,6 @@ api:
   frontend:
     ga_enabled: true
     sandbox_mode: false
-    tezosx_stack: false
     rpc:
       mainnet: https://rpc.tzkt.io/mainnet
   networks:
