@@ -120,13 +120,16 @@ func (network Network) String() string {
 
 // UnmarshalJSON -
 func (network *Network) UnmarshalJSON(data []byte) error {
+	if network == nil {
+		return errors.New("nil network")
+	}
 	name, err := strconv.Unquote(string(data))
 	if err != nil {
 		return err
 	}
 	newValue, ok := namesToNetwork[name]
 	if !ok {
-		return errors.Errorf("Unknown network: %d", network)
+		return errors.Errorf("Unknown network: %d", *network)
 	}
 
 	*network = newValue

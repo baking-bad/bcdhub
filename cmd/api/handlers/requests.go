@@ -208,15 +208,15 @@ func (req GetTokenStatsRequest) Addresses() []string {
 }
 
 type executeViewRequest struct {
-	Data           map[string]interface{}       `binding:"required"                   json:"data"`
-	Name           string                       `binding:"required_if=Kind on-chain"  json:"name"`
-	Implementation *int                         `binding:"required_if=Kind on-chain"  json:"implementation"`
-	Kind           ViewSchemaKind               `binding:"required"                   json:"kind"`
+	Data           map[string]interface{}       `binding:"required"                          json:"data"`
+	Name           string                       `binding:"required_if=Kind on-chain"         json:"name"`
+	Implementation *int                         `binding:"required_if=Kind on-chain"         json:"implementation"`
+	Kind           ViewSchemaKind               `binding:"required,oneof=off-chain on-chain" json:"kind"`
 	Amount         int64                        `json:"amount,omitempty"`
 	GasLimit       int64                        `json:"gas_limit,omitempty"`
-	Source         string                       `binding:"omitempty,address"          json:"source,omitempty"`
-	Sender         string                       `binding:"omitempty,address"          json:"sender,omitempty"`
-	View           *contract.ViewImplementation `binding:"required_if=Kind off-chain" json:"view,omitempty"`
+	Source         string                       `binding:"omitempty,address"                 json:"source,omitempty"`
+	Sender         string                       `binding:"omitempty,address"                 json:"sender,omitempty"`
+	View           *contract.ViewImplementation `binding:"required_if=Kind off-chain"        json:"view,omitempty"`
 }
 
 type getGlobalConstantRequest struct {

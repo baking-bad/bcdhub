@@ -21,6 +21,7 @@ import (
 var (
 	errNoViews             = errors.New("there aren't views in the metadata")
 	errEmptyImplementation = errors.New("empty implementation")
+	errEmptyOffChainView   = errors.New("empty off-chain-view")
 )
 
 // GetViewsSchema godoc
@@ -286,7 +287,7 @@ func getViewForExecute(ctx context.Context, networkContext *config.Context, addr
 		}
 
 		if len(onChain) == 0 {
-			return nil, nil, nil
+			return nil, nil, errNoViews
 		}
 
 		for i := range onChain {
@@ -312,7 +313,7 @@ func getViewForExecute(ctx context.Context, networkContext *config.Context, addr
 
 	case OffchainView:
 		if req.View == nil {
-			return nil, nil, errors.New("empty off-chain-view")
+			return nil, nil, errEmptyOffChainView
 		}
 		if req.View.MichelsonStorageView.Empty() {
 			return nil, nil, errEmptyImplementation
