@@ -77,7 +77,9 @@ var null = []byte("null")
 
 // Empty -
 func (s Sections) Empty() bool {
-	return bytes.HasSuffix(s.Code, null) && bytes.HasSuffix(s.Parameter, null) && bytes.HasSuffix(s.ReturnType, null)
+	return (bytes.HasSuffix(s.Code, null) || len(s.Code) == 0) &&
+		(bytes.HasSuffix(s.Parameter, null) || len(s.Parameter) == 0) &&
+		(bytes.HasSuffix(s.ReturnType, null) || len(s.ReturnType) == 0)
 }
 
 // IsParameterEmpty -

@@ -25,6 +25,22 @@ const statusClientClosedRequest = 499
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
+type errorCode struct {
+	Error error
+	Code  int
+}
+
+var errorCodes = []errorCode{
+	{consts.ErrValidation, http.StatusBadRequest},
+	{consts.ErrJSONDataIsAbsent, http.StatusBadRequest},
+	{consts.ErrInvalidType, http.StatusBadRequest},
+	{errNoViews, http.StatusNotFound},
+	{errEmptyImplementation, http.StatusBadRequest},
+	{errEmptyOffChainView, http.StatusBadRequest},
+	{context.DeadlineExceeded, http.StatusGatewayTimeout},
+	{context.Canceled, statusClientClosedRequest},
+}
+
 func skipError(err error) bool {
 	return errors.Is(err, noderpc.ErrNodeRPCError)
 }
@@ -56,9 +72,6 @@ func handleError(c *gin.Context, repo models.GeneralRepository, err error, code 
 }
 
 func isTimeoutError(err error) bool {
-	if errors.Is(err, context.DeadlineExceeded) {
-		return true
-	}
 	var netErr net.Error
 	if errors.As(err, &netErr) && netErr.Timeout() {
 		return true
@@ -71,16 +84,13 @@ func getErrorCode(err error, repo models.GeneralRepository) int {
 	if repo.IsRecordNotFound(err) {
 		return http.StatusNotFound
 	}
-	if errors.Is(err, consts.ErrValidation) ||
-		errors.Is(err, consts.ErrJSONDataIsAbsent) ||
-		errors.Is(err, consts.ErrInvalidType) {
-		return http.StatusBadRequest
+	for i := range errorCodes {
+		if errors.Is(err, errorCodes[i].Error) {
+			return errorCodes[i].Code
+		}
 	}
 	if isTimeoutError(err) {
 		return http.StatusGatewayTimeout
-	}
-	if errors.Is(err, context.Canceled) {
-		return statusClientClosedRequest
 	}
 	return http.StatusInternalServerError
 }
