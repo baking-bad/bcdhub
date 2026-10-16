@@ -240,7 +240,7 @@ func typeNode(node *base.Node, depth int, id *int) (Node, error) {
 
 func getAnnotation(x []string, prefix byte) string {
 	for i := range x {
-		if x[i][0] == prefix {
+		if len(x[i]) > 0 && x[i][0] == prefix {
 			return x[i][1:]
 		}
 	}

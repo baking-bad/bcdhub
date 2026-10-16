@@ -157,6 +157,11 @@ func UnforgeBakerHash(str string) (string, error) {
 	return encoding.EncodeBase58String(str, []byte(encoding.PrefixBakerHash))
 }
 
+// UnforgeTxRollupL2Address - 20-byte BLS public key hash to `tz4` address
+func UnforgeTxRollupL2Address(str string) (string, error) {
+	return encoding.EncodeBase58String(str, []byte(encoding.PrefixPublicKeyTZ4))
+}
+
 // UnforgeOpgHash -
 func UnforgeOpgHash(input string) (string, error) {
 	if len(input) != 51 {

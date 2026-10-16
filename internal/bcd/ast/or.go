@@ -59,45 +59,46 @@ func (or *Or) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	if len(node.Args) > 2 || len(node.Args) == 0 {
-		return errors.Wrap(consts.ErrInvalidArgsCount, "Or.ParseValue")
+	if len(node.Args) != 2 {
+		return errors.Wrapf(consts.ErrInvalidArgsCount, "Or.ParseType: expects 2 args, got %d", len(node.Args))
 	}
 
-	for i := range node.Args {
-		child, err := typeNode(node.Args[i], or.Depth, id)
-		if err != nil {
-			return err
-		}
-		if i == 0 {
-			or.LeftType = child
-		} else {
-			or.RightType = child
-		}
+	left, err := typeNode(node.Args[0], or.Depth, id)
+	if err != nil {
+		return err
 	}
+	right, err := typeNode(node.Args[1], or.Depth, id)
+	if err != nil {
+		return err
+	}
+	or.LeftType = left
+	or.RightType = right
 
 	return nil
 }
 
 // ParseValue -
 func (or *Or) ParseValue(node *base.Node) error {
-	if len(node.Args) > 2 || len(node.Args) == 0 {
-		return errors.Wrap(consts.ErrInvalidArgsCount, "Or.ParseValue")
-	}
-
+	var (
+		key   byte
+		child Node
+	)
 	switch node.Prim {
 	case consts.Left:
-		or.key = leftKey
-		if err := or.LeftType.ParseValue(node.Args[0]); err != nil {
-			return err
-		}
+		key, child = leftKey, or.LeftType
 	case consts.Right:
-		or.key = rightKey
-		if err := or.RightType.ParseValue(node.Args[0]); err != nil {
-			return err
-		}
+		key, child = rightKey, or.RightType
 	default:
-		return errors.Wrap(consts.ErrInvalidPrim, "Or.ParseValue")
+		return errors.Wrapf(consts.ErrInvalidPrim, "Or.ParseValue: expected Left or Right, got '%s'", node.Prim)
 	}
+
+	if len(node.Args) != 1 {
+		return errors.Wrapf(consts.ErrInvalidArgsCount, "Or.ParseValue: %s expects 1 arg, got %d", node.Prim, len(node.Args))
+	}
+	if err := child.ParseValue(node.Args[0]); err != nil {
+		return err
+	}
+	or.key = key
 	return nil
 }
 
@@ -220,48 +221,62 @@ func (or *Or) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // FromJSONSchema -
+//
+// `schemaKey` is a path of 'L'/'R' chars: one char per nested `or`. Input `data` is not modified.
 func (or *Or) FromJSONSchema(data map[string]interface{}) error {
-	var orMap map[string]interface{}
-	for key, val := range data {
-		if key != or.GetName() {
-			continue
-		}
-		arrVal, ok := val.(map[string]interface{})
-		if !ok {
-			return errors.Wrapf(consts.ErrInvalidType, "Or.FromJSONSchema %T", val)
-		}
-		orMap = arrVal
-		break
+	value, ok := data[or.GetName()]
+	if !ok {
+		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Or.FromJSONSchema")
+	}
+	orMap, ok := value.(map[string]interface{})
+	if !ok {
+		return errors.Wrapf(consts.ErrValidation, "Or.FromJSONSchema: expected object in '%s', got %T", or.GetName(), value)
 	}
 
 	schemaKey, ok := orMap["schemaKey"]
 	if !ok {
-		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Or.FromJSONSchema")
+		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Or.FromJSONSchema: schemaKey")
 	}
-
 	sk, ok := schemaKey.(string)
 	if !ok {
-		return errors.Wrap(consts.ErrInvalidType, "Or.FromJSONSchema")
+		return errors.Wrapf(consts.ErrValidation, "Or.FromJSONSchema: schemaKey should be a string, got %T", schemaKey)
 	}
-	chr := sk[0]
-	sk = sk[1:]
-	orMap["schemaKey"] = sk
-	switch chr {
+	if sk == "" {
+		return errors.Wrapf(consts.ErrValidation, "Or.FromJSONSchema: empty schemaKey in '%s'", or.GetName())
+	}
+
+	var child Node
+	switch sk[0] {
 	case leftKey:
-		if or.LeftType.IsPrim(consts.OR) {
-			orMap[or.LeftType.GetName()] = orMap
-		}
-		or.key = leftKey
-		return or.LeftType.FromJSONSchema(orMap)
+		child = or.LeftType
 	case rightKey:
-		if or.RightType.IsPrim(consts.OR) {
-			orMap[or.RightType.GetName()] = orMap
-		}
-		or.key = rightKey
-		return or.RightType.FromJSONSchema(orMap)
+		child = or.RightType
 	default:
-		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Or.FromJSONSchema")
+		return errors.Wrapf(consts.ErrValidation, "Or.FromJSONSchema: invalid schemaKey '%s'", sk)
 	}
+
+	rest := sk[1:]
+	childData := make(map[string]interface{}, len(orMap))
+	for key, val := range orMap {
+		if key != "schemaKey" {
+			childData[key] = val
+		}
+	}
+
+	if child.IsPrim(consts.OR) {
+		if rest == "" {
+			return errors.Wrapf(consts.ErrValidation, "Or.FromJSONSchema: schemaKey '%s' is too short", sk)
+		}
+		childData["schemaKey"] = rest
+		childData = map[string]interface{}{
+			child.GetName(): childData,
+		}
+	} else if rest != "" {
+		return errors.Wrapf(consts.ErrValidation, "Or.FromJSONSchema: schemaKey '%s' is too long", sk)
+	}
+
+	or.key = sk[0]
+	return child.FromJSONSchema(childData)
 }
 
 // EnrichBigMap -
@@ -413,17 +428,21 @@ func (or *Or) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 	switch {
 	case or.key == leftKey && second.key == leftKey:
-		child, err := or.LeftType.Distinguish(second.LeftType)
+		child, err := distinguishNodes(or.LeftType, second.LeftType)
 		if err != nil {
 			return nil, err
 		}
-		node.Children = append(node.Children, child)
+		if child != nil {
+			node.Children = append(node.Children, child)
+		}
 	case or.key == rightKey && second.key == rightKey:
-		child, err := or.RightType.Distinguish(second.RightType)
+		child, err := distinguishNodes(or.RightType, second.RightType)
 		if err != nil {
 			return nil, err
 		}
-		node.Children = append(node.Children, child)
+		if child != nil {
+			node.Children = append(node.Children, child)
+		}
 	case or.key == 0 && second.key == 0:
 	default:
 		if second.key == rightKey {

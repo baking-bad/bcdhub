@@ -47,7 +47,7 @@ func (u *Unit) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	if !ok {
 		return nil, nil
 	}
-	return s.Default.Distinguish(&s.Default)
+	return u.Default.Distinguish(&s.Default)
 }
 
 // GetJSONModel -

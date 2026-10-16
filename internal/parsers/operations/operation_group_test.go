@@ -1148,7 +1148,7 @@ func TestGroup_Parse(t *testing.T) {
 						Hash:      encoding.MustDecodeBase58("op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg"),
 						Timestamp: timestamp,
 						Entrypoint: types.NullString{
-							Str:   "@entrypoint_1",
+							Str:   "entrypoint_1",
 							Valid: true,
 						},
 						Initiator: account.Account{
