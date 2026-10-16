@@ -78,7 +78,7 @@ func (k *Key) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	if !ok {
 		return nil, nil
 	}
-	return k.Default.Distinguish(&second.Default)
+	return distinguishReadable(&k.Default, &second.Default, forge.UnforgePublicKey)
 }
 
 // FromJSONSchema -

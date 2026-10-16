@@ -272,19 +272,10 @@ func (d *Default) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	case d.Value == nil && second.Value != nil:
 		node.DiffType = MiguelKindCreate
 	case d.Value != nil && second.Value != nil:
-		switch v := d.Value.(type) {
-		case *types.BigInt:
-			sv := second.Value.(*types.BigInt)
-			if sv.Cmp(v.Int) == 0 {
-				return node, nil
-			}
-			node.From = sv.String()
-		default:
-			if d.Value == second.Value {
-				return node, nil
-			}
-			node.From = second.miguelValue()
+		if valuesEqual(d.Value, second.Value) {
+			return node, nil
 		}
+		node.From = second.miguelValue()
 		node.DiffType = MiguelKindUpdate
 	}
 	return node, nil
@@ -313,24 +304,7 @@ func (d *Default) Equal(node Node) bool {
 }
 
 func (d *Default) equalValue(value interface{}) bool {
-	switch {
-	case d.Value == nil && value == nil:
-		return true
-	case d.Value == nil && value != nil:
-		return false
-	case d.Value != nil && value == nil:
-		return false
-	default:
-		switch val := d.Value.(type) {
-		case *types.BigInt:
-			if sv, ok := value.(*types.BigInt); ok {
-				return val.Cmp(sv.Int) == 0
-			}
-			return false
-		default:
-			return val == value
-		}
-	}
+	return valuesEqual(d.Value, value)
 }
 
 func (d *Default) miguelValue() interface{} {
@@ -373,19 +347,6 @@ func (d *Default) miguelValue() interface{} {
 		return d.Value
 	}
 	return formatted
-}
-
-func (d *Default) optimizeStringValue(optimizer func(string) (string, error)) error {
-	if d.ValueKind != valueKindBytes {
-		return nil
-	}
-	sv := d.Value.(string)
-	newValue, err := optimizer(sv)
-	if err != nil {
-		return err
-	}
-	d.Value = newValue
-	return nil
 }
 
 // FindPointers -

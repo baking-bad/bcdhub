@@ -1424,7 +1424,7 @@ func TestTypedAst_FromJSONSchema(t *testing.T) {
 		}, {
 			name: "tzbtc epwApplyMigration",
 			tree: `{"prim":"lambda","args":[{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"bytes"}]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"bytes"}]}],"annots":[":migrationscript","%epwApplyMigration"]}`,
-			data: `{"migrationscript":"{CDR;CAR}"}`,
+			data: `{"epwApplyMigration":"{CDR;CAR}"}`,
 			want: `[[{"prim":"CDR"},{"prim":"CAR"}]]`,
 		}, {
 			name: "delphinet/KT1GM8hwKseJjArkcuw99QyBBC9dswxXr66r/update_record",

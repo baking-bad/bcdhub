@@ -54,6 +54,10 @@ func (opt *Option) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
+	if len(node.Args) != 1 {
+		return errors.Wrapf(consts.ErrInvalidArgsCount, "Option.ParseType: expects 1 arg, got %d", len(node.Args))
+	}
+
 	child, err := typeNode(node.Args[0], opt.Depth, id)
 	if err != nil {
 		return err
@@ -65,22 +69,25 @@ func (opt *Option) ParseType(node *base.Node, id *int) error {
 
 // ParseValue -
 func (opt *Option) ParseValue(node *base.Node) error {
-	if len(node.Args) > opt.ArgsCount {
-		return errors.Wrap(consts.ErrTreesAreDifferent, "Option.ParseValue")
-	}
-
 	switch node.Prim {
 	case consts.None:
+		if len(node.Args) != 0 {
+			return errors.Wrapf(consts.ErrInvalidArgsCount, "Option.ParseValue: None expects no args, got %d", len(node.Args))
+		}
 		opt.Value = consts.None
 		return nil
 	case consts.Some:
+		if len(node.Args) != 1 {
+			return errors.Wrapf(consts.ErrInvalidArgsCount, "Option.ParseValue: Some expects 1 arg, got %d", len(node.Args))
+		}
+		if err := opt.Type.ParseValue(node.Args[0]); err != nil {
+			return err
+		}
 		opt.Value = consts.Some
-		err := opt.Type.ParseValue(node.Args[0])
-		return err
+		return nil
 	default:
-		return consts.ErrInvalidPrim
+		return errors.Wrapf(consts.ErrInvalidPrim, "Option.ParseValue: expected Some or None, got '%s'", node.Prim)
 	}
-
 }
 
 // ToMiguel -
@@ -179,44 +186,47 @@ func (opt *Option) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // FromJSONSchema -
+//
+// The option's value is taken from `data[name]`. If there is no such key, `data` itself is the
+// option's value (top-level option). Input `data` is not modified.
 func (opt *Option) FromJSONSchema(data map[string]interface{}) error {
-	var optionMap map[string]interface{}
-	for key := range data {
-		var isBreak bool
-
-		switch key {
-		case opt.GetName():
-			val := data[key]
-			arrVal, ok := val.(map[string]interface{})
-			if !ok {
-				return errors.Wrapf(consts.ErrInvalidType, "Option.FromJSONSchema %T", val)
-			}
-			optionMap = arrVal
-			isBreak = true
-		case "schemaKey":
-			optionMap = data
-			isBreak = true
+	optionMap := data
+	if val, ok := data[opt.GetName()]; ok {
+		arrVal, ok := val.(map[string]interface{})
+		if !ok {
+			return errors.Wrapf(consts.ErrValidation, "Option.FromJSONSchema: expected object in '%s', got %T", opt.GetName(), val)
 		}
-
-		if isBreak {
-			break
-		}
+		optionMap = arrVal
 	}
+
 	schemaKey, ok := optionMap["schemaKey"]
 	if !ok {
-		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
+		return errors.Wrapf(consts.ErrJSONDataIsAbsent, "Option.FromJSONSchema: schemaKey in '%s'", opt.GetName())
 	}
-	delete(optionMap, "schemaKey")
+	sk, ok := schemaKey.(string)
+	if !ok {
+		return errors.Wrapf(consts.ErrValidation, "Option.FromJSONSchema: schemaKey should be a string, got %T", schemaKey)
+	}
 
-	switch schemaKey {
+	switch sk {
 	case consts.None:
 		opt.Value = consts.None
+		return nil
 	case consts.Some:
-		return opt.Type.FromJSONSchema(optionMap)
+		childData := make(map[string]interface{}, len(optionMap))
+		for key, val := range optionMap {
+			if key != "schemaKey" {
+				childData[key] = val
+			}
+		}
+		if err := opt.Type.FromJSONSchema(childData); err != nil {
+			return err
+		}
+		opt.Value = consts.Some
+		return nil
 	default:
-		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
+		return errors.Wrapf(consts.ErrValidation, "Option.FromJSONSchema: schemaKey should be '%s' or '%s', got '%s'", consts.None, consts.Some, sk)
 	}
-	return nil
 }
 
 // EnrichBigMap -
@@ -330,7 +340,7 @@ func (opt *Option) Distinguish(x Distinguishable) (*MiguelNode, error) {
 		node.setDiffType(MiguelKindCreate)
 		return node, nil
 	case opt.Value == consts.Some && second.Value == consts.Some:
-		child, err := opt.Type.Distinguish(second.Type)
+		child, err := distinguishNodes(opt.Type, second.Type)
 		if err != nil {
 			return nil, err
 		}

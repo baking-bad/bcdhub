@@ -44,7 +44,8 @@ func buildMapParameters(data *OrderedMap) ([]byte, error) {
 		return nil, err
 	}
 
-	for key, value := range data.All() {
+	// removed big_map keys have nil values: they are not a part of the value
+	for key, value := range data.AllNotNil() {
 		if builder.Len() != 1 {
 			if err := builder.WriteByte(','); err != nil {
 				return nil, err
