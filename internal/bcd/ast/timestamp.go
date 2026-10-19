@@ -45,11 +45,13 @@ func (t *Timestamp) ParseValue(node *base.Node) error {
 		}
 		t.setSeconds(node.IntValue)
 	case node.StringValue != nil:
-		value, err := parseTimestampString(*node.StringValue)
-		if err != nil {
-			return errors.Wrap(err, "Timestamp.ParseValue")
+		if *node.StringValue == "" {
+			t.setSeconds(types.NewBigInt(0))
+			return nil
 		}
-		t.setSeconds(value)
+		if value, err := parseTimestampString(*node.StringValue); err == nil {
+			t.setSeconds(value)
+		}
 	default:
 		return errors.Wrap(consts.ErrInvalidType, "Timestamp.ParseValue: expected int or string")
 	}
@@ -224,7 +226,7 @@ func formatTimestamp(seconds *types.BigInt) (string, bool) {
 // parseTimestampString - accepts RFC3339 strings and decimal unix seconds.
 func parseTimestampString(value string) (*types.BigInt, error) {
 	value = strings.TrimSpace(value)
-	if ts, err := time.Parse(time.RFC3339, value); err == nil {
+	if ts, err := time.Parse(time.RFC3339, normalizeRFC3339(value)); err == nil {
 		return types.NewBigInt(ts.Unix()), nil
 	}
 	seconds, err := types.NewBigIntFromString(value)
@@ -232,4 +234,20 @@ func parseTimestampString(value string) (*types.BigInt, error) {
 		return nil, errors.Wrapf(consts.ErrInvalidType, "invalid timestamp: %q", value)
 	}
 	return seconds, nil
+}
+
+// normalizeRFC3339 - Tezos parses timestamps leniently and also accepts a space or a lowercase 't'
+// as the date-time separator and a lowercase 'z' as UTC offset, which time.RFC3339 rejects.
+func normalizeRFC3339(value string) string {
+	if value == "" {
+		return value
+	}
+	b := []byte(value)
+	if len(b) > 10 && (b[10] == ' ' || b[10] == 't') {
+		b[10] = 'T'
+	}
+	if b[len(b)-1] == 'z' {
+		b[len(b)-1] = 'Z'
+	}
+	return string(b)
 }

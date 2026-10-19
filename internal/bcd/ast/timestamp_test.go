@@ -85,13 +85,20 @@ func TestTimestamp_ParseValue(t *testing.T) {
 			wantSeconds: "1624101720",
 			wantDisplay: "2021-06-19T11:22:00Z",
 		}, {
-			name:    "invalid string",
-			node:    `{"string":"not-a-date"}`,
-			wantErr: true,
+			name:        "space as separator",
+			node:        `{"string":"2021-06-19 11:22:00Z"}`,
+			wantSeconds: "1624101720",
+			wantDisplay: "2021-06-19T11:22:00Z",
 		}, {
-			name:    "empty string",
-			node:    `{"string":""}`,
-			wantErr: true,
+			name:        "lowercase separator and zone",
+			node:        `{"string":"2021-06-19t11:22:00z"}`,
+			wantSeconds: "1624101720",
+			wantDisplay: "2021-06-19T11:22:00Z",
+		}, {
+			name:        "empty string is epoch",
+			node:        `{"string":""}`,
+			wantSeconds: "0",
+			wantDisplay: "1970-01-01T00:00:00Z",
 		}, {
 			name:    "bytes",
 			node:    `{"bytes":"00"}`,
@@ -366,4 +373,21 @@ func TestTimestamp_Distinguish(t *testing.T) {
 			require.Equal(t, tt.wantDiffType, diff.DiffType)
 		})
 	}
+}
+
+func TestTimestamp_ParseValueUnparseableString(t *testing.T) {
+	// values come from the node: an unparseable string must not fail indexing
+	typ := newTimestampFromString(t, `{"prim":"pair","args":[{"prim":"timestamp","annots":["%ts"]},{"prim":"nat","annots":["%n"]}]}`)
+	require.NoError(t, typ.SettleFromBytes([]byte(`{"prim":"Pair","args":[{"string":"not-a-date"},{"int":"1"}]}`)))
+
+	ts := typ.FindByName("ts", false).(*Timestamp)
+	require.Nil(t, ts.Value)
+
+	miguel, err := ts.ToMiguel()
+	require.NoError(t, err)
+	require.Nil(t, miguel.Value)
+
+	model := make(JSONModel)
+	typ.GetJSONModel(model)
+	require.Equal(t, "", model["ts"])
 }
