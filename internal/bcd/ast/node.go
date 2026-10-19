@@ -102,17 +102,15 @@ func mapToBaseNodes(data *OrderedMap, optimized bool) (*base.Node, error) {
 	node.Prim = consts.PrimArray
 	node.Args = make([]*base.Node, 0)
 
-	for key, value := range data.All() {
+	// removed big_map keys have nil values: `Elt` with an empty value is not valid Micheline
+	for key, value := range data.AllNotNil() {
 		keyNode, err := key.(Node).ToBaseNode(optimized)
 		if err != nil {
 			return nil, err
 		}
-		var valueNode *base.Node
-		if value != nil {
-			valueNode, err = value.(Node).ToBaseNode(optimized)
-			if err != nil {
-				return nil, err
-			}
+		valueNode, err := value.(Node).ToBaseNode(optimized)
+		if err != nil {
+			return nil, err
 		}
 		node.Args = append(node.Args, &base.Node{
 			Prim: consts.Elt,

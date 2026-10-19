@@ -204,6 +204,10 @@ func (a *TypedAst) FromJSONSchema(data map[string]interface{}) error {
 
 // FindByName -
 func (a *TypedAst) FindByName(name string, isEntrypoint bool) Node {
+	if len(a.Nodes) == 0 {
+		return nil
+	}
+
 	for i := range a.Nodes {
 		if node := a.Nodes[i].FindByName(name, isEntrypoint); node != nil {
 			return node
@@ -361,6 +365,9 @@ func (a *TypedAst) FromParameters(data *types.Parameters) (*TypedAst, error) {
 	if err := json.Unmarshal(data.Value, &tree); err != nil {
 		return nil, err
 	}
+	if len(tree) == 0 {
+		return nil, errors.Wrap(consts.ErrJSONDataIsAbsent, "TypedAst.FromParameters: empty parameters")
+	}
 
 	if data.Entrypoint != "" {
 		subTree := a.FindByName(data.Entrypoint, true)
@@ -415,7 +422,7 @@ func (a *TypedAst) FindBigMapByPtr() map[int64]*BigMap {
 // GetJSONModel -
 func (a *TypedAst) GetJSONModel(model JSONModel) {
 	if model == nil {
-		model = make(JSONModel)
+		return
 	}
 
 	for i := range a.Nodes {
@@ -434,13 +441,22 @@ func (a *TypedAst) GetJSONModel(model JSONModel) {
 	}
 }
 
-// Unwrap - clear parameters from Left/Right. Tree must be settled.
+// UnwrapAndGetEntrypointName - clear parameters from Left/Right. Tree must be settled.
+// Unnamed entrypoints get the same names as in `GetEntrypoints`.
 func (a *TypedAst) UnwrapAndGetEntrypointName() (Node, string) {
 	if !a.IsSettled() || len(a.Nodes) != 1 {
 		return nil, ""
 	}
 
-	return unwrap(a.Nodes[0], "0")
+	if _, ok := a.Nodes[0].(*Or); !ok {
+		name := a.Nodes[0].GetName()
+		if strings.HasPrefix(name, "@") {
+			name = consts.DefaultEntrypoint
+		}
+		return a.Nodes[0], name
+	}
+
+	return unwrap(a.Nodes[0], 0)
 }
 
 // ParametersForExecution -
@@ -450,7 +466,11 @@ func (a *TypedAst) ParametersForExecution(entrypoint string, data map[string]int
 	}
 
 	if strings.HasPrefix(entrypoint, "entrypoint_") {
-		if params := wrapForExecution(a.Nodes[0], data, entrypoint); params != nil {
+		params, err := wrapForExecution(a.Nodes[0], data, entrypoint)
+		if err != nil {
+			return nil, err
+		}
+		if params != nil {
 			if err := validateForExecution(params.Value); err != nil {
 				return nil, err
 			}
@@ -495,28 +515,30 @@ func settleForExecution(node Node, data map[string]interface{}, entrypoint strin
 	}, nil
 }
 
-func wrapForExecution(node Node, data map[string]interface{}, entrypoint string) *types.Parameters {
+// wrapForExecution - fills unnamed entrypoint `entrypoint_N` and wraps it into Left/Right of the root.
+// Returns nil without error if there is no such entrypoint.
+func wrapForExecution(node Node, data map[string]interface{}, entrypoint string) (*types.Parameters, error) {
 	num, err := strconv.ParseInt(strings.TrimPrefix(entrypoint, "entrypoint_"), 10, 64)
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 
 	var depth int64
 	current := findCustomEntrypoint(node, num, &depth)
 	if current == nil {
-		return nil
+		return nil, nil
 	}
 	if err := current.FromJSONSchema(data); err != nil {
-		return nil
+		return nil, err
 	}
 	params, err := node.ToParameters()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	return &types.Parameters{
 		Entrypoint: consts.DefaultEntrypoint,
 		Value:      params,
-	}
+	}, nil
 }
 
 func findCustomEntrypoint(node Node, num int64, depth *int64) Node {
@@ -540,26 +562,34 @@ func findCustomEntrypoint(node Node, num int64, depth *int64) Node {
 	return nil
 }
 
-func unwrap(node Node, path string) (Node, string) {
+// unwrap - descends into the chosen branches of `or`. `index` is the ordinal number of the first leaf
+// of `node` among all leaves of the root `or`: the same numbering as `GetEntrypoints` and `findCustomEntrypoint` use.
+func unwrap(node Node, index int) (Node, string) {
 	or, ok := node.(*Or)
 	if !ok {
 		name := node.GetName()
 		if strings.HasPrefix(name, "@") {
-			i, err := strconv.ParseInt(path, 2, 64)
-			if err == nil {
-				name = fmt.Sprintf("@entrypoint_%d", i)
-			}
+			name = fmt.Sprintf("entrypoint_%d", index)
 		}
 		return node, name
 	}
 
 	switch or.key {
 	case leftKey:
-		return unwrap(or.LeftType, path+"0")
+		return unwrap(or.LeftType, index)
 	case rightKey:
-		return unwrap(or.RightType, path+"1")
+		return unwrap(or.RightType, index+countLeaves(or.LeftType))
 	}
 	return node, node.GetName()
+}
+
+// countLeaves - number of entrypoints (non-`or` leaves) in the subtree
+func countLeaves(node Node) int {
+	or, ok := node.(*Or)
+	if !ok {
+		return 1
+	}
+	return countLeaves(or.LeftType) + countLeaves(or.RightType)
 }
 
 func marshalJSON(prim string, annots []string, args ...Node) ([]byte, error) {

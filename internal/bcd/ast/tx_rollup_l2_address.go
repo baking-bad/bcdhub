@@ -38,11 +38,14 @@ func (a *TxRollupL2Address) Distinguish(x Distinguishable) (*MiguelNode, error) 
 	if !ok {
 		return nil, nil
 	}
-	if err := a.optimizeStringValue(forge.UnforgeContract); err != nil {
+	return distinguishReadable(&a.Default, &second.Default, forge.UnforgeTxRollupL2Address)
+}
+
+// ToMiguel -
+func (a *TxRollupL2Address) ToMiguel() (*MiguelNode, error) {
+	readable, err := readableDefault(&a.Default, forge.UnforgeTxRollupL2Address)
+	if err != nil {
 		return nil, err
 	}
-	if err := second.optimizeStringValue(forge.UnforgeContract); err != nil {
-		return nil, err
-	}
-	return a.Default.Distinguish(&second.Default)
+	return readable.ToMiguel()
 }

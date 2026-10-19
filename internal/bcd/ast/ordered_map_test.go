@@ -87,3 +87,88 @@ func TestOrderedMap_Add(t *testing.T) {
 		})
 	}
 }
+
+func TestOrderedMap_Remove(t *testing.T) {
+	str := func(value string) Node {
+		return &String{Default: Default{Value: value, Prim: "string"}}
+	}
+
+	tests := []struct {
+		name      string
+		keys      []string
+		remove    string
+		wantOk    bool
+		wantValue string
+		wantKeys  []string
+	}{
+		{
+			name:      "first",
+			keys:      []string{"a", "b", "c"},
+			remove:    "a",
+			wantOk:    true,
+			wantValue: "value_a",
+			wantKeys:  []string{"b", "c"},
+		}, {
+			name:      "middle",
+			keys:      []string{"a", "b", "c"},
+			remove:    "b",
+			wantOk:    true,
+			wantValue: "value_b",
+			wantKeys:  []string{"a", "c"},
+		}, {
+			name:      "last",
+			keys:      []string{"a", "b", "c"},
+			remove:    "c",
+			wantOk:    true,
+			wantValue: "value_c",
+			wantKeys:  []string{"a", "b"},
+		}, {
+			name:      "single",
+			keys:      []string{"a"},
+			remove:    "a",
+			wantOk:    true,
+			wantValue: "value_a",
+			wantKeys:  []string{},
+		}, {
+			name:     "absent",
+			keys:     []string{"a", "b"},
+			remove:   "z",
+			wantOk:   false,
+			wantKeys: []string{"a", "b"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := NewOrderedMap()
+			for _, key := range tt.keys {
+				require.NoError(t, m.Add(str(key), str("value_"+key)))
+			}
+
+			removed, ok := m.Remove(str(tt.remove))
+			require.Equal(t, tt.wantOk, ok)
+			if tt.wantOk {
+				res, err := removed.Compare(str(tt.wantValue))
+				require.NoError(t, err)
+				require.Equal(t, 0, res)
+			}
+
+			require.Equal(t, len(tt.wantKeys), m.Len())
+			require.Len(t, m.values, len(tt.wantKeys))
+
+			for i, key := range tt.wantKeys {
+				res, err := m.keys[i].Compare(str(key))
+				require.NoError(t, err)
+				require.Equal(t, 0, res)
+
+				value, ok := m.Get(str(key))
+				require.True(t, ok, "key %s must remain in map", key)
+				res, err = value.Compare(str("value_" + key))
+				require.NoError(t, err)
+				require.Equal(t, 0, res)
+			}
+
+			_, ok = m.Get(str(tt.remove))
+			require.False(t, ok)
+		})
+	}
+}

@@ -60,6 +60,10 @@ func (set *Set) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
+	if len(node.Args) != 1 {
+		return errors.Wrapf(consts.ErrInvalidArgsCount, "Set.ParseType: expects 1 arg, got %d", len(node.Args))
+	}
+
 	typ, err := typeNode(node.Args[0], set.Depth, id)
 	if err != nil {
 		return err

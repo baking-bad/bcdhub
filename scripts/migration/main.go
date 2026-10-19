@@ -16,6 +16,7 @@ import (
 
 var migrationsList = []migrations.Migration{
 	&migrations.FixManagerContractStorage{},
+	&migrations.UnnamedEntrypoints{},
 }
 
 func main() {

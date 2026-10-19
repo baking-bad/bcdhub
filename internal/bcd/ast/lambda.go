@@ -37,6 +37,10 @@ func (l *Lambda) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
+	if len(node.Args) != 2 {
+		return errors.Wrapf(consts.ErrInvalidArgsCount, "Lambda.ParseType: expects 2 args, got %d", len(node.Args))
+	}
+
 	typ, err := typeNode(node.Args[0], l.Depth, id)
 	if err != nil {
 		return err
@@ -48,6 +52,7 @@ func (l *Lambda) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 	l.ReturnType = retTyp
+
 	return nil
 }
 
@@ -103,7 +108,8 @@ func (l *Lambda) ToMiguel() (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (l *Lambda) FromJSONSchema(data map[string]interface{}) error {
-	key := l.GetTypeName()
+	// the same key as in ToJSONSchema and GetJSONModel
+	key := l.GetName()
 	value, ok := data[key]
 	if !ok {
 		return nil

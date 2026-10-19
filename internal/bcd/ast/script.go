@@ -222,8 +222,11 @@ func (st *SectionType) ParseType(node *base.Node, id *int) error {
 
 // ParseValue -
 func (st *SectionType) ParseValue(node *base.Node) error {
+	if len(node.Args) != len(st.Args) {
+		return errors.Wrapf(consts.ErrTreesAreDifferent, "SectionType.ParseValue: expects %d args, got %d", len(st.Args), len(node.Args))
+	}
 	for i := range node.Args {
-		if err := st.Args[0].ParseValue(node.Args[i]); err != nil {
+		if err := st.Args[i].ParseValue(node.Args[i]); err != nil {
 			return err
 		}
 	}
@@ -235,8 +238,13 @@ func (st *SectionType) EqualType(node Node) bool {
 	if !st.Default.EqualType(node) {
 		return false
 	}
-	second, ok := node.(*Parameter)
-	if !ok {
+	var second *SectionType
+	switch typ := node.(type) {
+	case *SectionType:
+		second = typ
+	case *Parameter:
+		second = typ.SectionType
+	default:
 		return false
 	}
 

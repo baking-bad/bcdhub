@@ -104,8 +104,8 @@ func (m *OrderedMap) Remove(key Comparable) (Comparable, bool) {
 			return nil, false
 		}
 		if res == 0 {
-			m.keys = append(m.keys[:i], m.keys[i+1:]...)
 			delete(m.values, m.keys[i])
+			m.keys = append(m.keys[:i], m.keys[i+1:]...)
 			return val, true
 		}
 	}

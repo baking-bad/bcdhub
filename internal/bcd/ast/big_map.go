@@ -50,7 +50,11 @@ func (m *BigMap) String() string {
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth+1))
 			s.WriteString(key.(Node).String())
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth+1))
-			s.WriteString(val.(Node).String())
+			if val == nil {
+				s.WriteString("<removed>\n")
+			} else {
+				s.WriteString(val.(Node).String())
+			}
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
@@ -367,9 +371,12 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 			node.Children = append(node.Children, child)
 
 		default:
-			child, err := value.(Node).Distinguish(val.(Node))
+			child, err := distinguishNodes(value.(Node), val.(Node))
 			if err != nil {
 				return nil, err
+			}
+			if child == nil {
+				continue
 			}
 
 			child.Name = &name
@@ -377,7 +384,8 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 		}
 	}
 
-	for key, value := range second.Data.All() {
+	// a key removed in `second` and absent in `m` has nothing to show
+	for key, value := range second.Data.AllNotNil() {
 		if _, ok := m.Data.Get(key); ok {
 			continue
 		}
@@ -480,7 +488,7 @@ func (m *BigMap) GetJSONModel(model JSONModel) {
 		return
 	}
 	arr := make([]JSONModel, 0)
-	for key, value := range m.Data.All() {
+	for key, value := range m.Data.AllNotNil() {
 		item := make(JSONModel)
 		key.(Node).GetJSONModel(item)
 		value.(Node).GetJSONModel(item)

@@ -306,9 +306,12 @@ func (m *Map) Distinguish(x Distinguishable) (*MiguelNode, error) {
 			continue
 		}
 
-		child, err := value.(Node).Distinguish(val.(Node))
+		child, err := distinguishNodes(value.(Node), val.(Node))
 		if err != nil {
 			return nil, err
+		}
+		if child == nil {
+			continue
 		}
 		child.Name = &name
 		node.Children = append(node.Children, child)

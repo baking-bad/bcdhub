@@ -77,7 +77,7 @@ func (s *Signature) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	if !ok {
 		return nil, nil
 	}
-	return s.Default.Distinguish(&second.Default)
+	return distinguishReadable(&s.Default, &second.Default, forge.UnforgeSignature)
 }
 
 // FromJSONSchema -

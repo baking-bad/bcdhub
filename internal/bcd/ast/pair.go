@@ -344,10 +344,17 @@ func (p *Pair) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	node.Type = consts.TypeNamedTuple
 	node.Children = make([]*MiguelNode, 0)
 
+	if len(p.Args) != len(second.Args) {
+		return nil, errors.Wrapf(consts.ErrTreesAreDifferent, "Pair.Distinguish: %d args vs %d", len(p.Args), len(second.Args))
+	}
+
 	for i := range p.Args {
-		child, err := p.Args[i].Distinguish(second.Args[i])
+		child, err := distinguishNodes(p.Args[i], second.Args[i])
 		if err != nil {
 			return nil, err
+		}
+		if child == nil {
+			continue
 		}
 		if (child.Prim != p.Prim) || (child.Prim == p.Prim && p.Args[i].IsNamed()) {
 			node.Children = append(node.Children, child)

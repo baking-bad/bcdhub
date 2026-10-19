@@ -84,7 +84,7 @@ func (c *ChainID) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	if !ok {
 		return nil, nil
 	}
-	return c.Default.Distinguish(&second.Default)
+	return distinguishReadable(&c.Default, &second.Default, forge.UnforgeChainID)
 }
 
 // FromJSONSchema -

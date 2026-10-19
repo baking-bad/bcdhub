@@ -61,6 +61,10 @@ func (list *List) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
+	if len(node.Args) != 1 {
+		return errors.Wrapf(consts.ErrInvalidArgsCount, "List.ParseType: expects 1 arg, got %d", len(node.Args))
+	}
+
 	typ, err := typeNode(node.Args[0], list.Depth, id)
 	if err != nil {
 		return err
@@ -332,23 +336,27 @@ func mergeMatrix(d [][]int, i, j int, first, second []Node) ([]*MiguelNode, erro
 			if err != nil {
 				return nil, err
 			}
-			item, err := first[i-1].Distinguish(second[j-1])
+			item, err := distinguishNodes(first[i-1], second[j-1])
 			if err != nil {
 				return nil, err
 			}
-			children = append(children, item)
+			if item != nil {
+				children = append(children, item)
+			}
 		} else {
 			children, err = mergeMatrix(d, i-1, j-1, first, second)
 			if err != nil {
 				return nil, err
 			}
-			item, err := first[i-1].Distinguish(second[j-1])
+			item, err := distinguishNodes(first[i-1], second[j-1])
 			if err != nil {
 				return nil, err
 			}
-			item.setDiffType(MiguelKindUpdate)
-			item.From = fmt.Sprintf("%v", second[j-1].GetValue())
-			children = append(children, item)
+			if item != nil {
+				item.setDiffType(MiguelKindUpdate)
+				item.From = fmt.Sprintf("%v", second[j-1].GetValue())
+				children = append(children, item)
+			}
 		}
 	} else {
 		if left <= upleft && left <= up {
