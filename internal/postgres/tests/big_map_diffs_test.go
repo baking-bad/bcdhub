@@ -77,6 +77,45 @@ func (s *StorageTestSuite) TestBigMapDiffsPrevious() {
 	s.Require().Equal([]byte(`{"prim":"Pair","args":[[{"bytes":"0000eadc0855adb415fa69a76fc10397dc2fb37039a0"}],{"int":"50"}]}`), []byte(diff.Value))
 }
 
+func (s *StorageTestSuite) TestBigMapDiffsPreviousMultiple() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	previous, err := s.bigMapDiffs.Previous(ctx, []bigmapdiff.BigMapDiff{
+		{
+			ID:      1000,
+			Ptr:     4,
+			KeyHash: "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
+		}, {
+			ID:      54,
+			Ptr:     41,
+			KeyHash: "exprurUjYU5axnk1qjE6F2t7uDtqR64bnsxGu3AHfWiVREftRDcRPX",
+		}, {
+			ID:      55,
+			Ptr:     41,
+			KeyHash: "exprurUjYU5axnk1qjE6F2t7uDtqR64bnsxGu3AHfWiVREftRDcRPX",
+		}, {
+			ID:      1000,
+			Ptr:     4,
+			KeyHash: "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().Len(previous, 3)
+	s.Require().EqualValues(1, previous[0].ID)
+	s.Require().EqualValues(54, previous[1].ID)
+	s.Require().EqualValues(1, previous[2].ID)
+}
+
+func (s *StorageTestSuite) TestBigMapDiffsPreviousEmpty() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	previous, err := s.bigMapDiffs.Previous(ctx, nil)
+	s.Require().NoError(err)
+	s.Require().Empty(previous)
+}
+
 func (s *StorageTestSuite) TestBigMapDiffsGetForOperation() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
