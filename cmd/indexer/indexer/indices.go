@@ -35,9 +35,6 @@ func (bi *BlockchainIndexer) createIndices(ctx context.Context) error {
 	if err := bi.Storage.CreateIndex(ctx, "big_map_diff_level_idx", "level", diff); err != nil {
 		return err
 	}
-	if err := bi.Storage.CreateIndex(ctx, "big_map_diff_protocol_idx", "protocol_id", diff); err != nil {
-		return err
-	}
 
 	// Contracts
 	contractModel := (*contract.Contract)(nil)
@@ -72,12 +69,6 @@ func (bi *BlockchainIndexer) createIndices(ctx context.Context) error {
 		return err
 	}
 	if err := bi.Storage.CreateIndex(ctx, "operations_entrypoint_idx", "entrypoint", operation); err != nil {
-		return err
-	}
-	if err := bi.Storage.CreateIndex(ctx, "operations_hash_idx", "hash", operation); err != nil {
-		return err
-	}
-	if err := bi.Storage.CreateIndex(ctx, "operations_opg_with_nonce_idx", "hash, counter, nonce", operation); err != nil {
 		return err
 	}
 	if err := bi.Storage.CreateIndex(ctx, "operations_sort_idx", "level, counter, id", operation); err != nil {
