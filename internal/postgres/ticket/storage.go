@@ -62,7 +62,7 @@ func (storage *Storage) Updates(ctx context.Context, req ticket.UpdatesRequest) 
 	}
 
 	if req.Offset > 0 {
-		query.Offset(int(req.Offset))
+		query.Offset(req.Offset)
 	}
 
 	err = query.Order("id desc").Scan(ctx)
@@ -93,11 +93,11 @@ func (storage *Storage) BalancesForAccount(ctx context.Context, accountId int64,
 		Where("account_id = ?", accountId)
 
 	if req.Offset > 0 {
-		query.Offset(int(req.Offset))
+		query.Offset(req.Offset)
 	}
 
 	if req.Limit > 0 && req.Limit < 100 {
-		query.Limit(int(req.Limit))
+		query.Limit(req.Limit)
 	} else {
 		query.Limit(10)
 	}
@@ -128,11 +128,11 @@ func (storage *Storage) List(ctx context.Context, ticketer string, limit, offset
 		Relation("Ticketer")
 
 	if offset > 0 {
-		query.Offset(int(offset))
+		query.Offset(offset)
 	}
 
 	if limit > 0 && limit < 100 {
-		query.Limit(int(limit))
+		query.Limit(limit)
 	} else {
 		query.Limit(10)
 	}

@@ -25,7 +25,7 @@ const oldUnnamedEntrypointPattern = `@entrypoint\_%`
 // under the same K), so every operation's parameters are re-parsed against the parameter type
 // of the contract script for the operation's protocol.
 type UnnamedEntrypoints struct {
-	bulkCount int
+	bulkCount int64
 	scripts   map[string]*ast.Script
 }
 

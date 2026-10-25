@@ -43,7 +43,7 @@ func (storage *Storage) GetForAddress(ctx context.Context, address string) (resp
 }
 
 // Count -
-func (storage *Storage) Count(ctx context.Context, ptr int64) (int, error) {
+func (storage *Storage) Count(ctx context.Context, ptr int64) (int64, error) {
 	return storage.DB.NewSelect().
 		Model((*bigmapdiff.BigMapState)(nil)).
 		Where("ptr = ?", ptr).
@@ -102,7 +102,7 @@ func (storage *Storage) GetByPtrAndKeyHash(ctx context.Context, ptr int64, keyHa
 
 	if err := query.
 		Limit(limit).
-		Offset(int(offset)).
+		Offset(offset).
 		Scan(ctx); err != nil {
 		return nil, 0, err
 	}
@@ -113,7 +113,7 @@ func (storage *Storage) GetByPtrAndKeyHash(ctx context.Context, ptr int64, keyHa
 		Where("ptr = ?", ptr).
 		Count(ctx)
 
-	return response, int64(count), err
+	return response, count, err
 }
 
 // GetByPtr -
@@ -170,8 +170,8 @@ func (storage *Storage) GetStats(ctx context.Context, ptr int64) (stats bigmapdi
 		}
 	}
 
-	stats.Active = int64(active)
-	stats.Total = int64(total)
+	stats.Active = active
+	stats.Total = total
 
 	return
 }

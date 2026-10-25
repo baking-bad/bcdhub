@@ -333,7 +333,7 @@ func GetBigMapDiffCount() gin.HandlerFunc {
 			handleError(c, ctx.Storage, err, 0)
 			return
 		}
-		c.SecureJSON(http.StatusOK, CountResponse{int64(count)})
+		c.SecureJSON(http.StatusOK, CountResponse{count})
 	}
 }
 

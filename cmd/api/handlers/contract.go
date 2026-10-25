@@ -109,7 +109,7 @@ func GetSameContracts() gin.HandlerFunc {
 			Contracts: make([]ContractWithStats, 0),
 		}
 
-		same, err := ctx.Domains.Same(c.Request.Context(), req.Network, contract, int(page.Size), int(page.Offset), ctx.Config.API.Networks...)
+		same, err := ctx.Domains.Same(c.Request.Context(), req.Network, contract, page.Size, page.Offset, ctx.Config.API.Networks...)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}

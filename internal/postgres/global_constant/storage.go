@@ -129,8 +129,8 @@ func (storage *Storage) ForContract(ctx context.Context, address string, size, o
 		Join("LEFT JOIN global_constants on global_constant_id = global_constants.id").
 		Where("global_constant_id is not null").
 		Where("script_id IN (?)", bun.List(ids)).
-		Limit(int(size)).
-		Offset(int(offset)).
+		Limit(size).
+		Offset(offset).
 		Order("global_constants.id desc").
 		Scan(ctx, &response)
 	return
@@ -173,8 +173,8 @@ func (storage *Storage) ContractList(ctx context.Context, address string, size, 
 		WhereOr("contract.jakarta_id IN (?)", bun.List(scriptIDs)).
 		Join("LEFT JOIN accounts on contract.account_id = accounts.id").
 		Order("contract.id desc").
-		Limit(int(size)).
-		Offset(int(offset)).
+		Limit(size).
+		Offset(offset).
 		Scan(ctx); err != nil {
 		return nil, err
 	}

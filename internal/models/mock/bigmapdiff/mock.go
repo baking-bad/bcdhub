@@ -42,10 +42,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Count mocks base method.
-func (m *MockRepository) Count(ctx context.Context, ptr int64) (int, error) {
+func (m *MockRepository) Count(ctx context.Context, ptr int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Count", ctx, ptr)
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -63,19 +63,19 @@ type MockRepositoryCountCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockRepositoryCountCall) Return(arg0 int, arg1 error) *MockRepositoryCountCall {
+func (c *MockRepositoryCountCall) Return(arg0 int64, arg1 error) *MockRepositoryCountCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockRepositoryCountCall) Do(f func(context.Context, int64) (int, error)) *MockRepositoryCountCall {
+func (c *MockRepositoryCountCall) Do(f func(context.Context, int64) (int64, error)) *MockRepositoryCountCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockRepositoryCountCall) DoAndReturn(f func(context.Context, int64) (int, error)) *MockRepositoryCountCall {
+func (c *MockRepositoryCountCall) DoAndReturn(f func(context.Context, int64) (int64, error)) *MockRepositoryCountCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

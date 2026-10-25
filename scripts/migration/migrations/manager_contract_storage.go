@@ -28,7 +28,7 @@ var babylonActivationTime = time.Date(2019, 10, 18, 8, 18, 28, 0, time.UTC)
 // that were indexed before Alpha.ParseOrigination started handling that case
 // (see internal/parsers/storage/alpha.go) and were left with NULL storage.
 type FixManagerContractStorage struct {
-	bulkCount int
+	bulkCount int64
 }
 
 // Key -

@@ -101,7 +101,7 @@ func New(cfg Config, schemaName, appName string, opts ...PostgresOption) (*Postg
 	postgres.conn.SetMaxIdleConns(maxOpenConns)
 
 	if postgres.hasLogger {
-		postgres.DB.AddQueryHook(&logQueryHook{})
+		postgres.DB = postgres.DB.WithQueryHook(&logQueryHook{})
 	}
 
 	// register many-to-many relationships
