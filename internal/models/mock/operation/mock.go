@@ -41,6 +41,50 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
+// GetByCursors mocks base method.
+func (m *MockRepository) GetByCursors(ctx context.Context, cursors ...operation.Cursor) ([]operation.Operation, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range cursors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetByCursors", varargs...)
+	ret0, _ := ret[0].([]operation.Operation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByCursors indicates an expected call of GetByCursors.
+func (mr *MockRepositoryMockRecorder) GetByCursors(ctx any, cursors ...any) *MockRepositoryGetByCursorsCall {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, cursors...)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByCursors", reflect.TypeOf((*MockRepository)(nil).GetByCursors), varargs...)
+	return &MockRepositoryGetByCursorsCall{Call: call}
+}
+
+// MockRepositoryGetByCursorsCall wrap *gomock.Call
+type MockRepositoryGetByCursorsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockRepositoryGetByCursorsCall) Return(arg0 []operation.Operation, arg1 error) *MockRepositoryGetByCursorsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockRepositoryGetByCursorsCall) Do(f func(context.Context, ...operation.Cursor) ([]operation.Operation, error)) *MockRepositoryGetByCursorsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockRepositoryGetByCursorsCall) DoAndReturn(f func(context.Context, ...operation.Cursor) ([]operation.Operation, error)) *MockRepositoryGetByCursorsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetByHash mocks base method.
 func (m *MockRepository) GetByHash(ctx context.Context, hash []byte) ([]operation.Operation, error) {
 	m.ctrl.T.Helper()

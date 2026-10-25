@@ -304,3 +304,19 @@ func (storage *Storage) Origination(ctx context.Context, accountID int64) (resul
 func addOperationSorting(query *bun.SelectQuery) {
 	query.OrderExpr("operation.level desc, operation.counter desc, operation.id asc")
 }
+
+func (storage *Storage) GetByCursors(ctx context.Context, cursors ...operation.Cursor) (result []operation.Operation, err error) {
+	if len(cursors) == 0 {
+		return
+	}
+
+	err = storage.DB.NewSelect().
+		With("data", storage.DB.NewValues(&cursors)).
+		Model(&result).
+		Table("data").
+		Where("data.id = operation.id").
+		Where("data.timestamp = operation.timestamp").
+		Scan(ctx)
+
+	return
+}

@@ -6,8 +6,10 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 // GetContractTicketUpdates godoc
@@ -171,6 +173,32 @@ func GetTicketBalancesForAccount() gin.HandlerFunc {
 }
 
 func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []ticket.TicketUpdate, hash []byte) ([]TicketUpdate, error) {
+	if len(updates) == 0 {
+		return nil, nil
+	}
+	var (
+		hashSkipped   = len(hash) == 0
+		operationsMap = make(map[int64]string)
+	)
+
+	if hashSkipped {
+		cursors := make([]operation.Cursor, 0, len(updates))
+		for i := range updates {
+			cursors = append(cursors, operation.Cursor{
+				ID:        updates[i].OperationId,
+				Timestamp: updates[i].Timestamp,
+			})
+		}
+
+		operations, err := ctx.Operations.GetByCursors(c, cursors...)
+		if err != nil {
+			return nil, err
+		}
+		for i := range operations {
+			operationsMap[operations[i].ID] = encoding.MustEncodeOperationHash(operations[i].Hash)
+		}
+	}
+
 	response := make([]TicketUpdate, 0, len(updates))
 	for i := range updates {
 		update := NewTicketUpdateFromModel(updates[i])
@@ -181,15 +209,14 @@ func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []tick
 		update.ContentType = ticket.ContentType
 		update.Content = ticket.Content
 
-		if len(hash) == 0 {
-			operation, err := ctx.Operations.GetByID(c, updates[i].OperationId)
-			if err != nil {
-				return nil, err
-			}
-			update.OperationHash = encoding.MustEncodeOperationHash(operation.Hash)
-		}
-		if len(hash) > 0 {
+		if !hashSkipped {
 			update.OperationHash = encoding.MustEncodeOperationHash(hash)
+		} else {
+			ophash, ok := operationsMap[updates[i].OperationId]
+			if !ok {
+				return nil, errors.Errorf("cannot find operation for ticket update: operation_id=%d ticket_id=%d", updates[i].OperationId, updates[i].ID)
+			}
+			update.OperationHash = ophash
 		}
 
 		response = append(response, update)

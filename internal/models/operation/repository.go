@@ -2,6 +2,7 @@ package operation
 
 import (
 	"context"
+	"time"
 )
 
 //go:generate mockgen -source=$GOFILE -destination=../mock/operation/mock.go -package=operation -typed
@@ -13,4 +14,10 @@ type Repository interface {
 	Origination(ctx context.Context, accountID int64) (Operation, error)
 	GetByID(ctx context.Context, id int64) (Operation, error)
 	ListEvents(ctx context.Context, accountID int64, size, offset int64) ([]Operation, error)
+	GetByCursors(ctx context.Context, cursors ...Cursor) ([]Operation, error)
+}
+
+type Cursor struct {
+	ID        int64
+	Timestamp time.Time
 }

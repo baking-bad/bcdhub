@@ -2,8 +2,10 @@ package tests
 
 import (
 	"context"
+	"sort"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
 )
@@ -208,4 +210,43 @@ func (s *StorageTestSuite) TestOperationListEvents() {
 	s.Require().NotEmpty(operation.Payload)
 	s.Require().NotEmpty(operation.PayloadType)
 	s.Require().Equal(testsuite.MustHexDecode("3006fe3748e23bee8499ddd4ef69c3f910b1de0aa04080cc5be242b5123c1207"), operation.Hash)
+}
+
+func (s *StorageTestSuite) TestOperationsGetByCursors() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	operations, err := s.operations.GetByCursors(ctx,
+		operation.Cursor{ID: 67, Timestamp: time.Date(2022, 1, 25, 16, 54, 35, 0, time.UTC)},
+		operation.Cursor{ID: 104, Timestamp: time.Date(2022, 1, 25, 17, 1, 51, 0, time.UTC)},
+	)
+	s.Require().NoError(err)
+	s.Require().Len(operations, 2)
+
+	sort.Slice(operations, func(i, j int) bool { return operations[i].ID < operations[j].ID })
+
+	s.Require().EqualValues(67, operations[0].ID)
+	s.Require().Equal(testsuite.MustHexDecode("a47ce950e17c7f06af8e9e992ae10ad2b7aca0cf8a72c0ce451684f673f20324"), operations[0].Hash)
+	s.Require().EqualValues(104, operations[1].ID)
+	s.Require().Equal(testsuite.MustHexDecode("d5567a8596a08a9cc49e22d7f5d8741161a1146f8369e897242bb8d59a8f6a7a"), operations[1].Hash)
+}
+
+func (s *StorageTestSuite) TestOperationsGetByCursorsWrongTimestamp() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	operations, err := s.operations.GetByCursors(ctx,
+		operation.Cursor{ID: 67, Timestamp: time.Date(2022, 1, 25, 17, 1, 51, 0, time.UTC)},
+	)
+	s.Require().NoError(err)
+	s.Require().Empty(operations)
+}
+
+func (s *StorageTestSuite) TestOperationsGetByCursorsEmpty() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	operations, err := s.operations.GetByCursors(ctx)
+	s.Require().NoError(err)
+	s.Require().Empty(operations)
 }
