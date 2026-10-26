@@ -3,6 +3,8 @@ package operation
 import (
 	"context"
 	"database/sql"
+	"maps"
+	"slices"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -303,4 +305,34 @@ func (storage *Storage) Origination(ctx context.Context, accountID int64) (resul
 
 func addOperationSorting(query *bun.SelectQuery) {
 	query.OrderExpr("operation.level desc, operation.counter desc, operation.id asc")
+}
+
+func (storage *Storage) GetByCursors(ctx context.Context, cursors ...operation.Cursor) (result []operation.Operation, err error) {
+	if len(cursors) == 0 {
+		return
+	}
+
+	var (
+		maxTs = cursors[0].Timestamp
+		minTs = cursors[0].Timestamp
+		ids   = make(map[int64]struct{}, len(cursors))
+	)
+	for i := range cursors {
+		ids[cursors[i].ID] = struct{}{}
+		if maxTs.Before(cursors[i].Timestamp) {
+			maxTs = cursors[i].Timestamp
+		}
+		if minTs.After(cursors[i].Timestamp) {
+			minTs = cursors[i].Timestamp
+		}
+	}
+	deduplicated := slices.Collect(maps.Keys(ids))
+	err = storage.DB.NewSelect().
+		Model(&result).
+		Column("id", "hash").
+		Where("operation.id IN (?)", bun.List(deduplicated)).
+		Where("operation.timestamp BETWEEN ? AND ?", minTs, maxTs).
+		Scan(ctx)
+
+	return
 }

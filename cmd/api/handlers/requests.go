@@ -89,8 +89,8 @@ type opgForAddressRequest struct {
 }
 
 type pageableRequest struct {
-	Offset int64 `binding:"min=0"                 form:"offset"`
-	Size   int64 `binding:"min=0,bcd_max_size=10" form:"size"`
+	Offset int64 `binding:"min=0,max=9223372036854775807" form:"offset"`
+	Size   int64 `binding:"min=0,bcd_max_size=10"         form:"size"`
 }
 
 // OPGRequest -
