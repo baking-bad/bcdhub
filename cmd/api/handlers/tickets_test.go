@@ -101,12 +101,6 @@ func TestPrepareTicketUpdatesWithHash(t *testing.T) {
 		testTicketUpdate(2, 67, testTicketTimestamp1),
 	}
 
-	// the hash is already known, so operations lookup is not required
-	operations.EXPECT().
-		GetByCursors(gomock.Any(), gomock.Any()).
-		Return(nil, nil).
-		MaxTimes(1)
-
 	result, err := prepareTicketUpdates(context.Background(), ctx, updates, testOperationHash1)
 	require.NoError(t, err)
 	require.Len(t, result, 2)
@@ -128,6 +122,7 @@ func TestPrepareTicketUpdatesEmpty(t *testing.T) {
 	result, err := prepareTicketUpdates(context.Background(), ctx, nil, nil)
 	require.NoError(t, err)
 	require.Empty(t, result)
+	require.NotNil(t, result)
 }
 
 func TestPrepareTicketUpdatesMissingOperation(t *testing.T) {

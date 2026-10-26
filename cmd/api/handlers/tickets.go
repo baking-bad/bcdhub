@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
@@ -117,7 +118,7 @@ func GetTicketUpdatesForOperation() gin.HandlerFunc {
 		if err := c.ShouldBindUri(&req); handleError(c, ctx.Storage, err, http.StatusBadRequest) {
 			return
 		}
-		operation, err := ctx.Operations.GetByID(c.Request.Context(), req.ID)
+		op, err := ctx.Operations.GetByID(c.Request.Context(), req.ID)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -125,7 +126,7 @@ func GetTicketUpdatesForOperation() gin.HandlerFunc {
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
-		response, err := prepareTicketUpdates(c.Request.Context(), ctx, updates, operation.Hash)
+		response, err := prepareTicketUpdates(c.Request.Context(), ctx, updates, op.Hash)
 		if handleError(c, ctx.Storage, err, 0) {
 			return
 		}
@@ -174,7 +175,7 @@ func GetTicketBalancesForAccount() gin.HandlerFunc {
 
 func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []ticket.TicketUpdate, hash []byte) ([]TicketUpdate, error) {
 	if len(updates) == 0 {
-		return nil, nil
+		return []TicketUpdate{}, nil
 	}
 	var (
 		hashSkipped   = len(hash) == 0
@@ -214,7 +215,7 @@ func prepareTicketUpdates(c context.Context, ctx *config.Context, updates []tick
 		} else {
 			ophash, ok := operationsMap[updates[i].OperationId]
 			if !ok {
-				return nil, errors.Errorf("cannot find operation for ticket update: operation_id=%d ticket_id=%d", updates[i].OperationId, updates[i].ID)
+				return nil, errors.Wrapf(sql.ErrNoRows, "cannot find operation for ticket update: operation_id=%d ticket_id=%d", updates[i].OperationId, updates[i].ID)
 			}
 			update.OperationHash = ophash
 		}
