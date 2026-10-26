@@ -2,13 +2,13 @@ package bigmapdiff
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
 )
 
 // Storage -
@@ -50,31 +50,40 @@ func (storage *Storage) Count(ctx context.Context, ptr int64) (int64, error) {
 		Count(ctx)
 }
 
-// Previous -
+// Previous - returns the latest diff preceding each of `filters` for the same key and pointer in a single query. Filters without a previous diff are skipped. Result order follows `filters`.
 func (storage *Storage) Previous(ctx context.Context, filters []bigmapdiff.BigMapDiff) ([]bigmapdiff.BigMapDiff, error) {
 	if len(filters) == 0 {
 		return nil, nil
 	}
 
-	response := make([]bigmapdiff.BigMapDiff, 0)
-
+	ids := make([]int64, len(filters))
+	keyHashes := make([]string, len(filters))
+	ptrs := make([]int64, len(filters))
 	for i := range filters {
-		var prev bigmapdiff.BigMapDiff
-		if err := storage.DB.NewSelect().Model(&prev).
-			Where("id < ?", filters[i].ID).
-			Where("key_hash = ?", filters[i].KeyHash).
-			Where("ptr = ? ", filters[i].Ptr).
-			Order("id desc").Limit(1).
-			Scan(ctx); err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-			return nil, err
-		}
-		response = append(response, prev)
+		ids[i] = filters[i].ID
+		keyHashes[i] = filters[i].KeyHash
+		ptrs[i] = filters[i].Ptr
 	}
 
-	return response, nil
+	prev := storage.DB.NewSelect().
+		Model((*bigmapdiff.BigMapDiff)(nil)).
+		Where("big_map_diff.key_hash = f.key_hash").
+		Where("big_map_diff.ptr = f.ptr").
+		Where("big_map_diff.id < f.id").
+		Order("big_map_diff.id desc").
+		Limit(1)
+
+	response := make([]bigmapdiff.BigMapDiff, 0, len(filters))
+	err := storage.DB.NewSelect().
+		TableExpr(
+			"unnest(?::bigint[], ?::text[], ?::bigint[]) with ordinality as f(id, key_hash, ptr, ord)",
+			pgdialect.Array(ids), pgdialect.Array(keyHashes), pgdialect.Array(ptrs),
+		).
+		Join("join lateral (?) as prev on true", prev).
+		ColumnExpr("prev.*").
+		OrderExpr("f.ord").
+		Scan(ctx, &response)
+	return response, err
 }
 
 // GetForOperation -
