@@ -46,7 +46,7 @@ func (storage *Storage) List(ctx context.Context, limit, offset int64, sort stri
 		Limit(storage.GetPageSize(limit))
 
 	if offset > 0 {
-		query.Offset(int(offset))
+		query.Offset(offset)
 	}
 	lowerSort := strings.ToLower(sort)
 	if lowerSort != "asc" && lowerSort != "desc" {

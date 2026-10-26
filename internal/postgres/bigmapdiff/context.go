@@ -28,7 +28,7 @@ func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *bun.SelectQu
 	query.Limit(storage.GetPageSize(ctx.Size))
 
 	if ctx.Offset > 0 {
-		query.Offset(int(ctx.Offset))
+		query.Offset(ctx.Offset)
 	}
 
 	return query.Group("key_hash").Order("id desc")
@@ -56,7 +56,7 @@ func (storage *Storage) buildGetContextForState(ctx bigmapdiff.GetContext) *bun.
 	query.Limit(storage.GetPageSize(ctx.Size))
 
 	if ctx.Offset > 0 {
-		query.Offset(int(ctx.Offset))
+		query.Offset(ctx.Offset)
 	}
 
 	return query.Order("id desc")

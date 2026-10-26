@@ -32,10 +32,10 @@ func (storage *Storage) RecentlyCalledContracts(ctx context.Context, offset, siz
 		Where("type = 1")
 
 	if offset > 0 {
-		query.Offset(int(offset))
+		query.Offset(offset)
 	}
 	if size > 0 {
-		query.Limit(int(size))
+		query.Limit(size)
 	} else {
 		query.Limit(10)
 	}

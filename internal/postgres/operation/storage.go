@@ -223,15 +223,15 @@ func (storage *Storage) OPG(ctx context.Context, address string, size, lastID in
 			return nil, err
 		}
 
-		count := limit - len(result)
-		if count < len(opg) {
+		count := limit - int64(len(result))
+		if count < int64(len(opg)) {
 			opg = opg[:count]
 		}
 
 		result = append(result, opg...)
 		lastAction = lastAction.AddDate(0, -3, 0)
 
-		end = len(result) == limit || lastAction.Before(consts.BeginningOfTime)
+		end = int64(len(result)) == limit || lastAction.Before(consts.BeginningOfTime)
 	}
 
 	return result, nil
@@ -278,10 +278,10 @@ func (storage *Storage) ListEvents(ctx context.Context, accountID int64, size, o
 		Order("id desc")
 
 	if offset > 0 {
-		query.Offset(int(offset))
+		query.Offset(offset)
 	}
 	if size > 0 {
-		query.Limit(int(size))
+		query.Limit(size)
 	} else {
 		query.Limit(10)
 	}

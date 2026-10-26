@@ -9,7 +9,7 @@ type Repository interface {
 	GetByPtr(ctx context.Context, contract string, ptr int64) ([]BigMapState, error)
 	GetByPtrAndKeyHash(ctx context.Context, ptr int64, keyHash string, size int64, offset int64) ([]BigMapDiff, int64, error)
 	GetForAddress(ctx context.Context, address string) ([]BigMapState, error)
-	Count(ctx context.Context, ptr int64) (int, error)
+	Count(ctx context.Context, ptr int64) (int64, error)
 	Current(ctx context.Context, keyHash string, ptr int64) (BigMapState, error)
 	Previous(ctx context.Context, diffs []BigMapDiff) ([]BigMapDiff, error)
 	GetStats(ctx context.Context, ptr int64) (Stats, error)

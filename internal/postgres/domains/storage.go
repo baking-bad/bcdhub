@@ -30,7 +30,7 @@ func (storage *Storage) scriptIDs(schema bun.Safe, hash string) *bun.SelectQuery
 }
 
 // Same -
-func (storage *Storage) Same(ctx context.Context, network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]domains.Same, error) {
+func (storage *Storage) Same(ctx context.Context, network string, c contract.Contract, limit, offset int64, availiableNetworks ...string) ([]domains.Same, error) {
 	if limit < 1 || limit > 10 {
 		limit = 10
 	}

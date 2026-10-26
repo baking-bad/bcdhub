@@ -24,10 +24,10 @@ func (storage *Storage) Get(ctx context.Context, ptr, limit, offset int64) (acti
 		Order("id DESC")
 
 	if limit > 0 {
-		query.Limit(int(limit))
+		query.Limit(limit)
 	}
 	if offset > 0 {
-		query.Offset(int(offset))
+		query.Offset(offset)
 	}
 	err = query.Scan(ctx)
 	return

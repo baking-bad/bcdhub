@@ -43,7 +43,7 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Same mocks base method.
-func (m *MockRepository) Same(ctx context.Context, network string, c contract.Contract, limit, offset int, availiableNetworks ...string) ([]domains.Same, error) {
+func (m *MockRepository) Same(ctx context.Context, network string, c contract.Contract, limit, offset int64, availiableNetworks ...string) ([]domains.Same, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, network, c, limit, offset}
 	for _, a := range availiableNetworks {
@@ -75,13 +75,13 @@ func (c_2 *MockRepositorySameCall) Return(arg0 []domains.Same, arg1 error) *Mock
 }
 
 // Do rewrite *gomock.Call.Do
-func (c_2 *MockRepositorySameCall) Do(f func(context.Context, string, contract.Contract, int, int, ...string) ([]domains.Same, error)) *MockRepositorySameCall {
+func (c_2 *MockRepositorySameCall) Do(f func(context.Context, string, contract.Contract, int64, int64, ...string) ([]domains.Same, error)) *MockRepositorySameCall {
 	c_2.Call = c_2.Call.Do(f)
 	return c_2
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c_2 *MockRepositorySameCall) DoAndReturn(f func(context.Context, string, contract.Contract, int, int, ...string) ([]domains.Same, error)) *MockRepositorySameCall {
+func (c_2 *MockRepositorySameCall) DoAndReturn(f func(context.Context, string, contract.Contract, int64, int64, ...string) ([]domains.Same, error)) *MockRepositorySameCall {
 	c_2.Call = c_2.Call.DoAndReturn(f)
 	return c_2
 }
