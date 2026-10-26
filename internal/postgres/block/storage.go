@@ -32,7 +32,7 @@ func (storage *Storage) Get(ctx context.Context, level int64) (block block.Block
 func (storage *Storage) Last(ctx context.Context) (block block.Block, err error) {
 	err = storage.DB.NewSelect().
 		Model(&block).
-		Order("id desc").
+		OrderExpr("timestamp desc, id desc").
 		Limit(1).
 		Relation("Protocol").
 		Scan(ctx)

@@ -36,14 +36,6 @@ func createBaseIndices(ctx context.Context, db bun.IDB) error {
 		if _, err := db.NewCreateIndex().
 			Model((*bigmapdiff.BigMapDiff)(nil)).
 			IfNotExists().
-			Index("big_map_diff_idx").
-			ColumnExpr("contract, ptr").
-			Exec(ctx); err != nil {
-			return err
-		}
-		if _, err := db.NewCreateIndex().
-			Model((*bigmapdiff.BigMapDiff)(nil)).
-			IfNotExists().
 			Index("big_map_diff_key_hash_id_idx").
 			ColumnExpr("key_hash, ptr, id").
 			Exec(ctx); err != nil {
@@ -126,14 +118,6 @@ func createBaseIndices(ctx context.Context, db bun.IDB) error {
 			IfNotExists().
 			Index("operations_destination_idx").
 			Column("destination_id").
-			Exec(ctx); err != nil {
-			return err
-		}
-		if _, err := db.NewCreateIndex().
-			Model((*operation.Operation)(nil)).
-			IfNotExists().
-			Index("operations_status_idx").
-			Column("status").
 			Exec(ctx); err != nil {
 			return err
 		}
