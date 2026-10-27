@@ -97,14 +97,16 @@ func BakerHashValidator(value string) error {
 // PublicKeyValidator -
 func PublicKeyValidator(value string) error {
 	switch len(value) {
-	case 68, 66:
+	case 68, 66, 98, 2626:
 		if !hexRegex.MatchString(value) {
 			return errors.Wrapf(consts.ErrValidation, "public key '%s' should be hexademical without prefixes", value)
 		}
-	case 55, 54:
+	case 55, 54, 76, 1802:
 		if strings.HasPrefix(value, encoding.PrefixED25519PublicKey) ||
 			strings.HasPrefix(value, encoding.PrefixP256PublicKey) ||
-			strings.HasPrefix(value, encoding.PrefixSecp256k1PublicKey) {
+			strings.HasPrefix(value, encoding.PrefixSecp256k1PublicKey) ||
+			strings.HasPrefix(value, encoding.PrefixBLS12_381PublicKey) ||
+			strings.HasPrefix(value, encoding.PrefixMLDSA44PublicKey) {
 			return nil
 		}
 		return errors.Wrapf(consts.ErrValidation, "invalid public key '%s'", value)

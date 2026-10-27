@@ -26,6 +26,8 @@ func Address(val string, tzOnly bool) ([]byte, error) {
 		address = append([]byte{0, 2}, address...)
 	case encoding.PrefixPublicKeyTZ4:
 		address = append([]byte{0, 3}, address...)
+	case encoding.PrefixPublicKeyTZ5:
+		address = append([]byte{0, 4}, address...)
 	case encoding.PrefixPublicKeyKT1:
 		address = append([]byte{1}, address...)
 		address = append(address, byte(0))
@@ -59,7 +61,9 @@ func UnforgeAddress(str string) (string, error) {
 	case strings.HasPrefix(str, "0002"):
 		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ3))
 	case strings.HasPrefix(str, "0003"):
-		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ3))
+		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ4))
+	case strings.HasPrefix(str, "0004"):
+		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ5))
 	case strings.HasPrefix(str, "01") && strings.HasSuffix(str, "00"):
 		return encoding.EncodeBase58String(str[2:len(str)-2], []byte(encoding.PrefixPublicKeyKT1))
 	case strings.HasPrefix(str, "02") && strings.HasSuffix(str, "00"):
@@ -108,8 +112,11 @@ func UnforgeContract(str string) (string, error) {
 
 // PublicKey -
 func PublicKey(val string) ([]byte, error) {
-	prefix := val[4:]
-	decoded, err := encoding.DecodeBase58String(val)
+	if len(val) < 4 {
+		return nil, errors.Errorf("Invalid public key: %s", val)
+	}
+	prefix := val[:4]
+	decoded, err := encoding.DecodeBase58(val)
 	if err != nil {
 		return nil, err
 	}
@@ -120,26 +127,37 @@ func PublicKey(val string) ([]byte, error) {
 		return append([]byte{1}, decoded...), nil
 	case encoding.PrefixP256PublicKey:
 		return append([]byte{2}, decoded...), nil
+	case encoding.PrefixBLS12_381PublicKey:
+		return append([]byte{3}, decoded...), nil
+	case encoding.PrefixMLDSA44PublicKey:
+		return append([]byte{4}, decoded...), nil
 	default:
 		return nil, errors.Errorf("Invalid public key prefix: %s", prefix)
 	}
 }
 
-// UnforgePublicKey -
+// publicKeyTags - forged public key tag -> base58 prefix and length of hex-encoded key without tag
+var publicKeyTags = map[string]struct {
+	prefix string
+	length int
+}{
+	"00": {encoding.PrefixED25519PublicKey, 64},
+	"01": {encoding.PrefixSecp256k1PublicKey, 66},
+	"02": {encoding.PrefixP256PublicKey, 66},
+	"03": {encoding.PrefixBLS12_381PublicKey, 96},
+	"04": {encoding.PrefixMLDSA44PublicKey, 2624},
+}
+
+// UnforgePublicKey - converts forged public key to base58 form. Keys of unknown type are returned as is (hex).
 func UnforgePublicKey(str string) (string, error) {
-	if len(str) != 68 && len(str) != 66 {
-		return "", errors.Wrapf(consts.ErrInvalidAddress, "UnforgePublicKey: %s", str)
-	}
-	switch {
-	case strings.HasPrefix(str, "00"):
-		return encoding.EncodeBase58String(str[2:], []byte(encoding.PrefixED25519PublicKey))
-	case strings.HasPrefix(str, "01"):
-		return encoding.EncodeBase58String(str[2:], []byte(encoding.PrefixSecp256k1PublicKey))
-	case strings.HasPrefix(str, "02"):
-		return encoding.EncodeBase58String(str[2:], []byte(encoding.PrefixP256PublicKey))
-	default:
+	if len(str) < 2 {
 		return str, nil
 	}
+	tag, ok := publicKeyTags[str[:2]]
+	if !ok || len(str)-2 != tag.length {
+		return str, nil
+	}
+	return encoding.EncodeBase58String(str[2:], []byte(tag.prefix))
 }
 
 // UnforgeChainID -
