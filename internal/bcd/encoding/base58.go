@@ -29,6 +29,7 @@ const (
 	PrefixPublicKeyTZ2                = "tz2"
 	PrefixPublicKeyTZ3                = "tz3"
 	PrefixPublicKeyTZ4                = "tz4"
+	PrefixPublicKeyTZ5                = "tz5"
 	PrefixPublicKeyKT1                = "KT1"
 	PrefixPublicKeyTxr1               = "txr1"
 	PrefixOriginatedSmartRollup       = "sr1"
@@ -45,6 +46,8 @@ const (
 	PrefixP256SecretKey               = "p2sk"
 	PrefixSecp256k1PublicKey          = "sppk"
 	PrefixP256PublicKey               = "p2pk"
+	PrefixBLS12_381PublicKey          = "BLpk"
+	PrefixMLDSA44PublicKey            = "mdpk"
 	PrefixSecp256k1Scalar             = "SSp"
 	PrefixSecp256k1Element            = "GSp"
 	PrefixED25519SecretKey            = "edsk"
@@ -76,6 +79,7 @@ var base58Encodings = []base58Encoding{
 	{[]byte(PrefixPublicKeyTZ2), 36, []byte{6, 161, 161}, 20, "secp256k1 public key hash"},
 	{[]byte(PrefixPublicKeyTZ3), 36, []byte{6, 161, 164}, 20, "p256 public key hash"},
 	{[]byte(PrefixPublicKeyTZ4), 36, []byte{6, 161, 166}, 20, "BLS-MinPk"},
+	{[]byte(PrefixPublicKeyTZ5), 36, []byte{6, 161, 169}, 20, "mldsa44 public key hash"},
 	{[]byte(PrefixPublicKeyKT1), 36, []byte{2, 90, 121}, 20, "Originated address"},
 
 	{[]byte(PrefixPublicKeyTxr1), 37, []byte{1, 128, 120, 31}, 20, "Rollup address"},
@@ -95,6 +99,8 @@ var base58Encodings = []base58Encoding{
 
 	{[]byte(PrefixSecp256k1PublicKey), 55, []byte{3, 254, 226, 86}, 33, "secp256k1 public key"},
 	{[]byte(PrefixP256PublicKey), 55, []byte{3, 178, 139, 127}, 33, "p256 public key"},
+	{[]byte(PrefixBLS12_381PublicKey), 76, []byte{6, 149, 135, 204}, 48, "bls12_381 public key"},
+	{[]byte(PrefixMLDSA44PublicKey), 1802, []byte{13, 7, 237, 67}, 1312, "mldsa44 public key"},
 	{[]byte(PrefixSecp256k1Scalar), 53, []byte{38, 248, 136}, 33, "secp256k1 scalar"},
 	{[]byte(PrefixSecp256k1Element), 53, []byte{5, 92, 0}, 33, "secp256k1 element"},
 
