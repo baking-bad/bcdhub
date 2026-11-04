@@ -37,19 +37,24 @@ func TestConverter_FromFile(t *testing.T) {
 }
 
 // go-peg's EnableAst computed line/column info for every AST node by scanning
-// the input from its start, so parsing was quadratic: 20k instructions took
-// about 5 seconds.
+// the input from its start, so parsing was quadratic: these inputs took about
+// 47 seconds.
 func TestConverter_FromString_LargeInputIsFast(t *testing.T) {
 	c, err := NewConverter()
 	require.NoError(t, err)
 
 	for _, input := range []string{
-		"{" + strings.Repeat(" UNIT ;", 20000) + " UNIT }",
-		"Pair" + strings.Repeat(` "a"`, 20000),
+		"{" + strings.Repeat(" UNIT ;", 60000) + " UNIT }",
+		"Pair" + strings.Repeat(` "a"`, 60000),
 	} {
 		start := time.Now()
 		_, err := c.FromString(input)
 		require.NoError(t, err)
-		require.Less(t, time.Since(start), time.Second)
+		require.Less(t, time.Since(start), perfTestLimit)
 	}
 }
+
+// perfTestLimit bounds performance regression tests. It is generous on
+// purpose: the linear code takes a fraction of it even on a slow runner, while
+// the quadratic code these tests guard against takes tens of seconds.
+const perfTestLimit = 5 * time.Second

@@ -21,7 +21,8 @@ type BigMap struct {
 	Data *OrderedMap
 	Ptr  *int64
 
-	diffs []*types.BigMapDiff
+	diffs  []*types.BigMapDiff
+	budget *nodeBudget
 }
 
 // NewBigMap -
@@ -215,11 +216,17 @@ func (m *BigMap) FromJSONSchema(data map[string]interface{}) error {
 		if !ok {
 			return errors.Wrap(consts.ErrValidation, "BigMap.FromJSONSchema")
 		}
-		keyTree := Copy(m.KeyType)
+		keyTree, err := m.budget.instantiate(m.KeyType)
+		if err != nil {
+			return err
+		}
 		if err := keyTree.FromJSONSchema(item); err != nil {
 			return err
 		}
-		valTree := Copy(m.ValueType)
+		valTree, err := m.budget.instantiate(m.ValueType)
+		if err != nil {
+			return err
+		}
 		if err := valTree.FromJSONSchema(item); err != nil {
 			return err
 		}

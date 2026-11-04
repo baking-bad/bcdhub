@@ -17,6 +17,8 @@ type Set struct {
 
 	Type Node
 	Data []Node
+
+	budget *nodeBudget
 }
 
 // NewSet -
@@ -174,7 +176,10 @@ func (set *Set) FromJSONSchema(data map[string]interface{}) error {
 		if !ok {
 			return errors.Wrap(consts.ErrValidation, "Set.FromJSONSchema")
 		}
-		itemTree := Copy(set.Type)
+		itemTree, err := set.budget.instantiate(set.Type)
+		if err != nil {
+			return err
+		}
 		if err := itemTree.FromJSONSchema(item); err != nil {
 			return err
 		}

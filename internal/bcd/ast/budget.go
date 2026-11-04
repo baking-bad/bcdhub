@@ -5,28 +5,59 @@ import (
 	"github.com/pkg/errors"
 )
 
-// MaxInstantiatedNodes - upper bound for the number of nodes FromJSONSchema
-// may instantiate for a single input.
+// MaxInstantiatedNodes - upper bound for the number of type nodes
+// FromJSONSchema may copy while filling a single input.
 //
 // Collections (list, set, map, big_map) copy their element type once per
-// element, so the work is the element type size multiplied by the element
-// count. Both are attacker-controlled on API endpoints, and an element can be
-// as small as `{}`, so the product is checked before any copying starts.
+// element. Both the element type size and the element count are
+// attacker-controlled on API endpoints, and an element can be as small as
+// `{}`, so the copies are paid from a shared budget. Copying is
+// reflection-based (about a microsecond per node), so the budget also bounds
+// the CPU and memory a rejected request can burn.
 const MaxInstantiatedNodes = 1_000_000
 
-// checkInstantiationBudget estimates, from above, how many nodes filling typ
-// from data would instantiate: every array element in data becomes at most one
-// copy of the largest collection element type in typ.
-func checkInstantiationBudget(typ Node, data any) error {
-	elementSize := maxElementTypeSize(typ)
-	if elementSize == 0 {
-		return nil
+// nodeBudget is shared by all collections of one tree being filled from JSON.
+type nodeBudget struct {
+	left int
+}
+
+func newNodeBudget() *nodeBudget {
+	return &nodeBudget{left: MaxInstantiatedNodes}
+}
+
+// instantiate copies an element type of a collection, paying for it from the
+// budget. Collections inside the copy share the same budget. Without a budget
+// (trees not filled from JSON) it is a plain Copy.
+func (b *nodeBudget) instantiate(typ Node) (Node, error) {
+	if b == nil {
+		return Copy(typ), nil
 	}
-	elements := countArrayElements(data)
-	if elements > 0 && elementSize > MaxInstantiatedNodes/elements {
-		return errors.Wrapf(consts.ErrValidation, "input is too large: %d elements of up to %d nodes each exceed the limit of %d nodes", elements, elementSize, MaxInstantiatedNodes)
+	size := typeSize(typ)
+	if size > b.left {
+		return nil, errors.Wrapf(consts.ErrValidation, "input is too large: it would instantiate more than %d nodes", MaxInstantiatedNodes)
 	}
-	return nil
+	b.left -= size
+	node := Copy(typ)
+	attachBudget(node, b)
+	return node, nil
+}
+
+// attachBudget gives every collection in the type tree the budget to pay for
+// its element copies from.
+func attachBudget(node Node, b *nodeBudget) {
+	switch t := node.(type) {
+	case *List:
+		t.budget = b
+	case *Set:
+		t.budget = b
+	case *Map:
+		t.budget = b
+	case *BigMap:
+		t.budget = b
+	}
+	for _, child := range childTypes(node) {
+		attachBudget(child, b)
+	}
 }
 
 // childTypes returns the type nodes directly nested in node.
@@ -69,47 +100,4 @@ func typeSize(node Node) int {
 		size += typeSize(child)
 	}
 	return size
-}
-
-// maxElementTypeSize returns the size of the largest element type of any
-// collection in the type tree (key and value together for maps).
-func maxElementTypeSize(node Node) int {
-	if node == nil {
-		return 0
-	}
-	var size int
-	switch t := node.(type) {
-	case *List:
-		size = typeSize(t.Type)
-	case *Set:
-		size = typeSize(t.Type)
-	case *Map:
-		size = typeSize(t.KeyType) + typeSize(t.ValueType)
-	case *BigMap:
-		size = typeSize(t.KeyType) + typeSize(t.ValueType)
-	}
-	for _, child := range childTypes(node) {
-		size = max(size, maxElementTypeSize(child))
-	}
-	return size
-}
-
-// countArrayElements counts elements of all JSON arrays nested in data.
-func countArrayElements(data any) int {
-	switch v := data.(type) {
-	case []any:
-		count := len(v)
-		for i := range v {
-			count += countArrayElements(v[i])
-		}
-		return count
-	case map[string]any:
-		var count int
-		for _, item := range v {
-			count += countArrayElements(item)
-		}
-		return count
-	default:
-		return 0
-	}
 }

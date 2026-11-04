@@ -132,12 +132,17 @@ func TestMichelineToMichelson(t *testing.T) {
 // The multi-argument branch rebuilt the whole accumulated expression with
 // fmt.Sprintf for every argument: quadratic in the argument count.
 func TestMichelineToMichelson_WidePrimIsLinear(t *testing.T) {
-	const width = 100000
+	const width = 300000
 	input := `{"prim":"Pair","args":[` + strings.TrimSuffix(strings.Repeat(`{"int":"1"},`, width), ",") + `]}`
 
 	start := time.Now()
 	res, err := MichelineStringToMichelson(input, false, DefLineSize)
 	require.NoError(t, err)
-	require.Less(t, time.Since(start), time.Second)
+	require.Less(t, time.Since(start), perfTestLimit)
 	require.Equal(t, width, strings.Count(res, "1"))
 }
+
+// perfTestLimit bounds performance regression tests. It is generous on
+// purpose: the linear code takes a fraction of it even on a slow runner, while
+// the quadratic code these tests guard against takes tens of seconds.
+const perfTestLimit = 5 * time.Second

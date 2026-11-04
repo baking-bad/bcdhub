@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/stretchr/testify/require"
 )
 
@@ -115,6 +116,24 @@ func TestNode_UnmarshalJSON_Invalid(t *testing.T) {
 	}
 }
 
+func TestNode_UnmarshalJSON_TrailingData(t *testing.T) {
+	var node Node
+	require.ErrorIs(t, node.UnmarshalJSON([]byte(`{"prim":"Unit"}{"prim":"Other"}`)), consts.ErrInvalidJSON)
+	require.ErrorIs(t, node.UnmarshalJSON([]byte(`[{"prim":"Unit"}] 1`)), consts.ErrInvalidJSON)
+	require.NoError(t, node.UnmarshalJSON([]byte(" {\"prim\":\"Unit\"} \n")))
+}
+
+func TestNode_UnmarshalJSON_NullResetsFields(t *testing.T) {
+	var node Node
+	require.NoError(t, json.UnmarshalFromString(`{"int":"1","int":null}`, &node))
+	require.Nil(t, node.IntValue)
+
+	value := "x"
+	node = Node{Prim: "Pair", StringValue: &value, Args: []*Node{{Prim: "Unit"}}, Annots: []string{"%a"}}
+	require.NoError(t, node.UnmarshalJSON([]byte(`{"prim":null,"args":null,"annots":null,"string":null}`)))
+	require.Equal(t, Node{Prim: "Pair"}, node)
+}
+
 func TestNode_UnmarshalJSON_NullFieldsAreAbsent(t *testing.T) {
 	var node Node
 	require.NoError(t, json.UnmarshalFromString(`{"prim":"Unit","args":null,"annots":null,"int":null,"string":null,"bytes":null}`, &node))
@@ -130,5 +149,10 @@ func TestNode_UnmarshalJSON_DeepNestingIsLinear(t *testing.T) {
 	start := time.Now()
 	var node Node
 	require.NoError(t, json.UnmarshalFromString(payload, &node))
-	require.Less(t, time.Since(start), time.Second)
+	require.Less(t, time.Since(start), perfTestLimit)
 }
+
+// perfTestLimit bounds performance regression tests. It is generous on
+// purpose: the linear code takes a fraction of it even on a slow runner, while
+// the quadratic code these tests guard against takes tens of seconds.
+const perfTestLimit = 5 * time.Second

@@ -97,11 +97,14 @@ func collectStrings(node *base.Node, tryUnpack bool, depth int) ([]string, error
 	switch {
 	case node.StringValue != nil && *node.StringValue != "":
 		res = append(res, *node.StringValue)
-	case tryUnpack && node.BytesValue != nil && depth < MaxUnpackDepth:
+	case tryUnpack && node.BytesValue != nil:
 		val := *node.BytesValue
 		decoded := tryDecode(val)
 		if decoded != "" {
 			res = append(res, decoded)
+			return res, nil
+		}
+		if depth >= MaxUnpackDepth {
 			return res, nil
 		}
 

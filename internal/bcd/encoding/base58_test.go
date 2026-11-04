@@ -223,7 +223,7 @@ func TestDecodeBase58_LongInputRejectedFast(t *testing.T) {
 	start := time.Now()
 	_, err := DecodeBase58(data)
 	require.ErrorIs(t, err, ErrInvalidBase58Length)
-	require.Less(t, time.Since(start), time.Second)
+	require.Less(t, time.Since(start), perfTestLimit)
 }
 
 func TestDecodeBase58_NoPanicOnShortInput(t *testing.T) {
@@ -234,3 +234,8 @@ func TestDecodeBase58_NoPanicOnShortInput(t *testing.T) {
 		}, s)
 	}
 }
+
+// perfTestLimit bounds performance regression tests. It is generous on
+// purpose: the linear code takes a fraction of it even on a slow runner, while
+// the quadratic code these tests guard against takes tens of seconds.
+const perfTestLimit = 5 * time.Second

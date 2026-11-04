@@ -18,6 +18,8 @@ type List struct {
 	Type Node
 
 	Data []Node
+
+	budget *nodeBudget
 }
 
 // NewList -
@@ -175,7 +177,10 @@ func (list *List) FromJSONSchema(data map[string]interface{}) error {
 		if !ok {
 			return errors.Wrap(consts.ErrValidation, "List.FromJSONSchema")
 		}
-		itemTree := Copy(list.Type)
+		itemTree, err := list.budget.instantiate(list.Type)
+		if err != nil {
+			return err
+		}
 		if err := itemTree.FromJSONSchema(item); err != nil {
 			return err
 		}

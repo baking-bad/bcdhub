@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -37,6 +38,9 @@ func (node *Node) UnmarshalJSON(data []byte) error {
 	if err := node.decode(iter); err != nil {
 		return err
 	}
+	if iter.Error == nil && iter.WhatIsNext() != jsoniter.InvalidValue {
+		return errors.Wrap(consts.ErrInvalidJSON, "unexpected data after the node")
+	}
 	if iter.Error != nil && iter.Error != io.EOF {
 		return iter.Error
 	}
@@ -52,11 +56,14 @@ func (node *Node) decode(iter *jsoniter.Iterator) error {
 	case jsoniter.ObjectValue:
 		var err error
 		iter.ReadMapCB(func(iter *jsoniter.Iterator, field string) bool {
+			field = strings.ToLower(field)
 			if iter.WhatIsNext() == jsoniter.NilValue {
+				// like encoding/json: null resets pointer and slice fields
+				node.resetField(field)
 				iter.Skip()
 				return true
 			}
-			switch strings.ToLower(field) {
+			switch field {
 			case "prim":
 				node.Prim = iter.ReadString()
 			case "args":
@@ -92,6 +99,21 @@ func (node *Node) decode(iter *jsoniter.Iterator) error {
 		return iter.Error
 	default:
 		return consts.ErrInvalidJSON
+	}
+}
+
+func (node *Node) resetField(field string) {
+	switch field {
+	case "args":
+		node.Args = nil
+	case "annots":
+		node.Annots = nil
+	case "string":
+		node.StringValue = nil
+	case "bytes":
+		node.BytesValue = nil
+	case "int":
+		node.IntValue = nil
 	}
 }
 

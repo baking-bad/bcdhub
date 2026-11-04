@@ -20,6 +20,8 @@ type Map struct {
 	ValueType Node
 
 	Data *OrderedMap
+
+	budget *nodeBudget
 }
 
 // NewMap -
@@ -181,11 +183,17 @@ func (m *Map) FromJSONSchema(data map[string]interface{}) error {
 		if !ok {
 			return errors.Wrap(consts.ErrValidation, "Map.FromJSONSchema")
 		}
-		keyTree := Copy(m.KeyType)
+		keyTree, err := m.budget.instantiate(m.KeyType)
+		if err != nil {
+			return err
+		}
 		if err := keyTree.FromJSONSchema(item); err != nil {
 			return err
 		}
-		valTree := Copy(m.ValueType)
+		valTree, err := m.budget.instantiate(m.ValueType)
+		if err != nil {
+			return err
+		}
 		if err := valTree.FromJSONSchema(item); err != nil {
 			return err
 		}

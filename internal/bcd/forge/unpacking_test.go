@@ -198,6 +198,26 @@ func TestTryUnpackString_DepthIsBounded(t *testing.T) {
 		require.Equal(t, nested(levels - MaxUnpackDepth + 1)[2+2+8:], *tree[0].BytesValue)
 	})
 
+	t.Run("collect strings decodes printable bytes at the depth limit", func(t *testing.T) {
+		wrapped := func(levels int) string {
+			s := hex.EncodeToString([]byte("hello"))
+			for range levels {
+				s = packedBytes(s)
+			}
+			return s
+		}
+
+		node := &base.Node{BytesValue: new(wrapped(MaxUnpackDepth))}
+		res, err := CollectStrings(node, true)
+		require.NoError(t, err)
+		require.Equal(t, []string{"hello"}, res)
+
+		node = &base.Node{BytesValue: new(wrapped(MaxUnpackDepth + 1))}
+		res, err = CollectStrings(node, true)
+		require.NoError(t, err)
+		require.Empty(t, res)
+	})
+
 	t.Run("collect strings stops too", func(t *testing.T) {
 		var node base.Node
 		require.NoError(t, json.UnmarshalFromString(`{"bytes":"`+nested(50)[2+2+8:]+`"}`, &node))
