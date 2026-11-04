@@ -18,7 +18,7 @@ type TicketUpdate struct {
 	Level       int64           `bun:"level"`
 	TicketId    int64           `bun:"ticket_id"`
 	AccountId   int64           `bun:"account_id"`
-	Amount      decimal.Decimal `bun:"amount,type:numeric(200,0)"`
+	Amount      decimal.Decimal `bun:"amount,type:numeric"`
 
 	Account account.Account `bun:"rel:belongs-to"`
 	Ticket  Ticket          `bun:"rel:belongs-to"`

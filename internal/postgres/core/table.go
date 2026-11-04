@@ -2,6 +2,8 @@ package core
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -126,4 +128,36 @@ func (p *Postgres) TablesExist(ctx context.Context) bool {
 		}
 	}
 	return true
+}
+
+// widenTicketAmounts drops the numeric(200,0) limit from ticket amount columns
+// of databases created before it was removed. Ticket amounts are unbounded
+// nats: anyone can mint a ticket with a 201-digit amount, and the insert then
+// failed on every retry, halting the indexer for good. Removing a numeric
+// precision limit does not rewrite the table.
+func widenTicketAmounts(ctx context.Context, db *bun.DB) error {
+	for _, table := range []string{
+		(ticket.Balance{}).TableName(),
+		(ticket.TicketUpdate{}).TableName(),
+	} {
+		var precision sql.NullInt64
+		err := db.NewRaw(
+			`SELECT numeric_precision FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = ? AND column_name = 'amount'`,
+			table,
+		).Scan(ctx, &precision)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			continue
+		case err != nil:
+			return err
+		case !precision.Valid:
+			continue
+		}
+
+		log.Info().Str("table", table).Int64("precision", precision.Int64).Msg("removing precision limit of ticket amounts")
+		if _, err := db.NewRaw(`ALTER TABLE ? ALTER COLUMN amount TYPE numeric`, bun.Ident(table)).Exec(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
 }

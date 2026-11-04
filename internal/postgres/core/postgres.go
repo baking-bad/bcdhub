@@ -148,6 +148,10 @@ func (p *Postgres) InitDatabase(ctx context.Context) error {
 		return err
 	}
 
+	if err := widenTicketAmounts(ctx, p.DB); err != nil {
+		return err
+	}
+
 	if err := createBaseIndices(ctx, p.DB); err != nil {
 		return err
 	}

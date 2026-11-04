@@ -42,6 +42,18 @@ func NewManager(
 
 // Rollback - rollback indexer state to level
 func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState block.Block, toLevel int64) error {
+	// every error path must roll the transaction back, or its connection and
+	// row locks stay held until the process exits
+	committed := false
+	defer func() {
+		if committed {
+			return
+		}
+		if err := rm.rollback.Rollback(); err != nil {
+			log.Err(err).Str("network", network.String()).Msg("failed to rollback")
+		}
+	}()
+
 	if toLevel >= fromState.Level {
 		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
@@ -58,16 +70,13 @@ func (rm Manager) Rollback(ctx context.Context, network types.Network, fromState
 
 		if err := rm.rollbackBlock(ctx, level); err != nil {
 			log.Err(err).Str("network", network.String()).Msg("rollback error")
-			if rollbackErr := rm.rollback.Rollback(); rollbackErr != nil {
-				log.Err(rollbackErr).Str("network", network.String()).Msg("failed to rollback")
-				return errors.Wrapf(err, "tx rollback also failed: %v", rollbackErr)
-			}
 			return err
 		}
 
 		log.Info().Str("network", network.String()).Msgf("rolled back to %d", level)
 	}
 
+	committed = true
 	return rm.rollback.Commit()
 }
 

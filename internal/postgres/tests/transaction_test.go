@@ -2,6 +2,8 @@ package tests
 
 import (
 	"context"
+	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
@@ -15,6 +17,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
 	"github.com/shopspring/decimal"
+	"github.com/uptrace/bun"
 )
 
 func (s *StorageTestSuite) TestSave() {
@@ -455,4 +458,90 @@ func (s *StorageTestSuite) TestBabylonUpdateBigMapDiffs() {
 	err = s.storage.DB.NewSelect().Model(&diffs).Where("ptr = 10000").Scan(ctx)
 	s.Require().NoError(err)
 	s.Require().Len(diffs, 4)
+}
+
+func (s *StorageTestSuite) TestCloseRollsBackUncommitted() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	acc := account.Account{Address: "close_rolled_back", Type: types.AccountTypeContract, Level: 100}
+	s.Require().NoError(tx.Save(ctx, &acc))
+	tx.Close()
+
+	count, err := s.storage.DB.NewSelect().Model((*account.Account)(nil)).Where("address = ?", acc.Address).Count(ctx)
+	s.Require().NoError(err)
+	s.Require().Zero(count)
+}
+
+func (s *StorageTestSuite) TestCloseAfterCommitKeepsData() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+
+	acc := account.Account{Address: "close_after_commit", Type: types.AccountTypeContract, Level: 100}
+	s.Require().NoError(tx.Save(ctx, &acc))
+	s.Require().NoError(tx.Commit())
+	tx.Close()
+
+	count, err := s.storage.DB.NewSelect().Model((*account.Account)(nil)).Where("address = ?", acc.Address).Count(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(1, count)
+}
+
+// Ticket amounts are unbounded nats; numeric(200,0) columns used to reject
+// such inserts and halt the indexer on the block for good.
+func (s *StorageTestSuite) TestTicketAmountsBeyond200Digits() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	huge := decimal.RequireFromString("1" + strings.Repeat("0", 250))
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+	defer tx.Close()
+
+	s.Require().NoError(tx.TicketBalances(ctx, &ticket.Balance{TicketId: 1, AccountId: 105, Amount: huge}))
+	s.Require().NoError(tx.TickerUpdates(ctx, &ticket.TicketUpdate{
+		TicketId:    1,
+		AccountId:   105,
+		OperationId: 1,
+		Level:       100,
+		Timestamp:   time.Now(),
+		Amount:      huge,
+	}))
+	s.Require().NoError(tx.Commit())
+
+	var balance ticket.Balance
+	s.Require().NoError(s.storage.DB.NewSelect().Model(&balance).Where("ticket_id = 1 AND account_id = 105").Scan(ctx))
+	s.Require().True(balance.Amount.Equal(huge.Add(decimal.NewFromInt(42))), balance.Amount.String())
+}
+
+// Databases created before the limit was removed get their columns widened
+// by InitDatabase.
+func (s *StorageTestSuite) TestInitDatabaseWidensTicketAmounts() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	tables := []string{"ticket_balances", "ticket_updates"}
+	for _, table := range tables {
+		_, err := s.storage.DB.NewRaw(`ALTER TABLE ? ALTER COLUMN amount TYPE numeric(200,0)`, bun.Ident(table)).Exec(ctx)
+		s.Require().NoError(err)
+	}
+
+	s.Require().NoError(s.storage.InitDatabase(ctx))
+
+	for _, table := range tables {
+		var precision sql.NullInt64
+		err := s.storage.DB.NewRaw(
+			`SELECT numeric_precision FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = ? AND column_name = 'amount'`,
+			table,
+		).Scan(ctx, &precision)
+		s.Require().NoError(err)
+		s.Require().False(precision.Valid, table)
+	}
 }

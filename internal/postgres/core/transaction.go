@@ -2,6 +2,8 @@ package core
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -15,6 +17,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/rs/zerolog/log"
 	"github.com/uptrace/bun"
 )
 
@@ -37,6 +40,15 @@ func (t Transaction) Commit() error {
 
 func (t Transaction) Rollback() error {
 	return t.tx.Rollback()
+}
+
+// Close rolls the transaction back unless it has been committed. Defer it
+// right after NewTransaction: an early return on error must not leave the
+// transaction open, holding its pooled connection and row locks.
+func (t Transaction) Close() {
+	if err := t.tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+		log.Err(err).Msg("rollback transaction")
+	}
 }
 
 func (t Transaction) Save(ctx context.Context, data any) error {
