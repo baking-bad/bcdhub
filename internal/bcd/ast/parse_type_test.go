@@ -84,10 +84,14 @@ func TestTicket_ParseType_Comparable(t *testing.T) {
 		{name: "ticket list", tree: `{"prim":"ticket","args":[{"prim":"list","args":[{"prim":"nat"}]}]}`, wantErr: true},
 		{name: "ticket big_map", tree: `{"prim":"ticket","args":[{"prim":"big_map","args":[{"prim":"nat"},{"prim":"nat"}]}]}`, wantErr: true},
 		{name: "ticket in pair", tree: `{"prim":"ticket","args":[{"prim":"pair","args":[{"prim":"nat"},{"prim":"ticket","args":[{"prim":"nat"}]}]}]}`, wantErr: true},
+		{name: "ticket null", tree: `{"prim":"ticket","args":[null]}`, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewTypedAstFromString(tt.tree)
+			var err error
+			require.NotPanics(t, func() {
+				_, err = NewTypedAstFromString(tt.tree)
+			})
 			if tt.wantErr {
 				require.ErrorIs(t, err, consts.ErrTypeIsNotComparable)
 				return
@@ -105,4 +109,22 @@ func TestTicket_ParseType_NestedIsRejectedFast(t *testing.T) {
 	}
 	_, err := NewTypedAstFromString(tree)
 	require.ErrorIs(t, err, consts.ErrTypeIsNotComparable)
+}
+
+func TestParseType_NullArgument(t *testing.T) {
+	for _, tree := range []string{
+		`{"prim":"list","args":[null]}`,
+		`{"prim":"option","args":[null]}`,
+		`{"prim":"pair","args":[{"prim":"nat"},null]}`,
+		`{"prim":"map","args":[null,{"prim":"nat"}]}`,
+		`{"prim":"or","args":[{"prim":"nat"},{"prim":"pair","args":[null,{"prim":"unit"}]}]}`,
+	} {
+		t.Run(tree, func(t *testing.T) {
+			var err error
+			require.NotPanics(t, func() {
+				_, err = NewTypedAstFromString(tree)
+			})
+			require.ErrorIs(t, err, consts.ErrInvalidType)
+		})
+	}
 }

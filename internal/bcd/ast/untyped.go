@@ -157,6 +157,9 @@ func (u UntypedAST) Stringify() (string, error) {
 }
 
 func typeNode(node *base.Node, depth int, id *int) (Node, error) {
+	if node == nil {
+		return nil, errors.Wrap(consts.ErrInvalidType, "null type node")
+	}
 	var ast Node
 	switch strings.ToLower(node.Prim) {
 	case consts.UNIT:

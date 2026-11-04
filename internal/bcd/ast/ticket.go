@@ -51,11 +51,15 @@ func (t *Ticket) ParseType(node *base.Node, id *int) error {
 	}
 
 	// Michelson only allows comparable ticket contents.
-	if !node.Args[0].IsComparable() {
-		return errors.Wrapf(consts.ErrTypeIsNotComparable, "ticket content: %s", node.Args[0].Prim)
+	content := node.Args[0]
+	if content == nil {
+		return errors.Wrap(consts.ErrTypeIsNotComparable, "ticket content: null")
+	}
+	if !content.IsComparable() {
+		return errors.Wrapf(consts.ErrTypeIsNotComparable, "ticket content: %s", content.Prim)
 	}
 
-	typ, err := typeNode(node.Args[0], t.depth, id)
+	typ, err := typeNode(content, t.depth, id)
 	if err != nil {
 		return err
 	}

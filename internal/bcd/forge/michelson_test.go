@@ -884,3 +884,25 @@ func TestArray_Unforge_ExactBoundary(t *testing.T) {
 	require.Len(t, m.Nodes, 1)
 	require.Len(t, m.Nodes[0].Args, 2)
 }
+
+func TestMichelson_Unforge_Truncated(t *testing.T) {
+	tests := []struct {
+		name string
+		data string
+	}{
+		{name: "prim without its argument", data: "0500"},
+		{name: "prim without its second argument", data: "07070001"},
+		{name: "int without payload", data: "00"},
+		{name: "unterminated int", data: "0084"},
+		{name: "int cut by the end of a sequence", data: "0200000002" + "0084" + "0e"},
+		{name: "prim argument outside of a sequence", data: "0200000002" + "0500" + "0001"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := hex.DecodeString(tt.data)
+			require.NoError(t, err)
+			_, err = NewMichelson().Unforge(data)
+			require.ErrorIs(t, err, ErrTooFewBytes)
+		})
+	}
+}
