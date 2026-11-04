@@ -7,6 +7,11 @@ import (
 	"github.com/ebellocchia/go-base58"
 )
 
+// Base58Alphabet - characters of base58.AlphabetBitcoin, the alphabet of every
+// Tezos base58check encoding. go-base58 does not export the string itself;
+// TestBase58Alphabet checks the two stay equal.
+const Base58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
 var base58Enc = base58.New(base58.AlphabetBitcoin)
 
 type base58Encoding struct {

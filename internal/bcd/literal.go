@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 )
 
 // IsLiteral -
@@ -44,12 +45,19 @@ func IsSmartRollupAddressLazy(address string) bool {
 	return len(address) == 36 && strings.HasPrefix(address, "sr1")
 }
 
+// base58 matches one character of the alphabet of Tezos base58check encodings.
+const base58 = "[" + encoding.Base58Alphabet + "]"
+
+// The validators below must match the whole input: unanchored, they accepted
+// any string containing an address, and API parameters validated by them reach
+// node RPC URL paths (e.g. `source` of run_operation).
 var (
-	addressRegex     = regexp.MustCompile("(tz|KT|txr|sr)[0-9A-Za-z]{34}")
-	contractRegex    = regexp.MustCompile("(KT1)[0-9A-Za-z]{33}")
-	bakerHashRegex   = regexp.MustCompile("(SG1)[0-9A-Za-z]{33}")
-	operationRegex   = regexp.MustCompile("^o[1-9A-HJ-NP-Za-km-z]{50}$")
-	smartRollupRegex = regexp.MustCompile("(sr)[0-9A-Za-z]{34}")
+	addressRegex      = regexp.MustCompile("^(?:(?:tz[1-5]|KT1|sr1)" + base58 + "{33}|txr1" + base58 + "{33})$")
+	contractRegex     = regexp.MustCompile("^KT1" + base58 + "{33}$")
+	bakerHashRegex    = regexp.MustCompile("^SG1" + base58 + "{33}$")
+	operationRegex    = regexp.MustCompile("^o" + base58 + "{50}$")
+	smartRollupRegex  = regexp.MustCompile("^sr1" + base58 + "{33}$")
+	findContractRegex = regexp.MustCompile("KT1" + base58 + "{33}")
 )
 
 // IsAddress -
@@ -64,7 +72,7 @@ func IsContract(str string) bool {
 
 // FindContract -
 func FindContract(str string) string {
-	return contractRegex.FindString(str)
+	return findContractRegex.FindString(str)
 }
 
 // IsBakerHash -
