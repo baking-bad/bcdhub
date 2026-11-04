@@ -108,32 +108,28 @@ func TestValidators_MatchWholeInput(t *testing.T) {
 		baker    = "SG1jfZeHRzeWAM1T4zrwunEyUpwWc82D4tbv"
 		withZero = "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZS0" // 0 is not in base58
 	)
-	validators := map[string]func(string) bool{
-		"IsAddress":         IsAddress,
-		"IsContract":        IsContract,
-		"IsBakerHash":       IsBakerHash,
-		"IsSmartRollupHash": IsSmartRollupHash,
-	}
-	valid := map[string]string{
-		"IsAddress":         tz1,
-		"IsContract":        kt1,
-		"IsBakerHash":       baker,
-		"IsSmartRollupHash": sr1,
-	}
-	for name, validate := range validators {
-		t.Run(name, func(t *testing.T) {
-			value := valid[name]
-			require.True(t, validate(value))
+	for _, tc := range []struct {
+		name     string
+		validate func(string) bool
+		valid    string
+	}{
+		{"IsAddress", IsAddress, tz1},
+		{"IsContract", IsContract, kt1},
+		{"IsBakerHash", IsBakerHash, baker},
+		{"IsSmartRollupHash", IsSmartRollupHash, sr1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			require.True(t, tc.validate(tc.valid))
 			for _, input := range []string{
-				value + "/../../../chains/main/blocks/head/context/contracts/" + kt1,
-				"../" + value,
-				value + "\nforged log line",
-				value + "?x=1",
-				" " + value,
-				value + "1",
-				value[:len(value)-1],
+				tc.valid + "/../../../chains/main/blocks/head/context/contracts/" + kt1,
+				"../" + tc.valid,
+				tc.valid + "\nforged log line",
+				tc.valid + "?x=1",
+				" " + tc.valid,
+				tc.valid + "1",
+				tc.valid[:len(tc.valid)-1],
 			} {
-				require.False(t, validate(input), input)
+				require.False(t, tc.validate(input), input)
 			}
 		})
 	}

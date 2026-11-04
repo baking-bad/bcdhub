@@ -52,7 +52,7 @@ const base58 = "[" + encoding.Base58Alphabet + "]"
 // any string containing an address, and API parameters validated by them reach
 // node RPC URL paths (e.g. `source` of run_operation).
 var (
-	addressRegex      = regexp.MustCompile("^(?:(?:tz[1-5]|KT1|sr1)" + base58 + "{33}|txr1" + base58 + "{33})$")
+	addressRegex      = regexp.MustCompile("^(?:tz[1-5]|KT1|sr1|txr1)" + base58 + "{33}$")
 	contractRegex     = regexp.MustCompile("^KT1" + base58 + "{33}$")
 	bakerHashRegex    = regexp.MustCompile("^SG1" + base58 + "{33}$")
 	operationRegex    = regexp.MustCompile("^o" + base58 + "{50}$")
