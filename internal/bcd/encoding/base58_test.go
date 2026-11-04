@@ -259,3 +259,11 @@ func TestBase58Encodings_Table(t *testing.T) {
 		})
 	}
 }
+
+func TestBase58Alphabet(t *testing.T) {
+	require.Len(t, Base58Alphabet, 58)
+	for i := range 58 {
+		// a single base58 digit i encodes as the i-th alphabet character
+		require.Equal(t, string(Base58Alphabet[i]), base58Enc.Encode([]byte{byte(i)}), i)
+	}
+}

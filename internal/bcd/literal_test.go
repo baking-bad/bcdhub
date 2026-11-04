@@ -97,3 +97,51 @@ func TestIsBakerHash(t *testing.T) {
 		})
 	}
 }
+
+// Validators used to match a substring, so text around a valid-looking
+// address passed validation and reached node RPC URL paths.
+func TestValidators_MatchWholeInput(t *testing.T) {
+	const (
+		tz1      = "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE"
+		kt1      = "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr"
+		sr1      = "sr1J1ECygUgzE7urU3Ayr5HZaty83hpjbs28"
+		baker    = "SG1jfZeHRzeWAM1T4zrwunEyUpwWc82D4tbv"
+		withZero = "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZS0" // 0 is not in base58
+	)
+	for _, tc := range []struct {
+		name     string
+		validate func(string) bool
+		valid    string
+	}{
+		{"IsAddress", IsAddress, tz1},
+		{"IsContract", IsContract, kt1},
+		{"IsBakerHash", IsBakerHash, baker},
+		{"IsSmartRollupHash", IsSmartRollupHash, sr1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			require.True(t, tc.validate(tc.valid))
+			for _, input := range []string{
+				tc.valid + "/../../../chains/main/blocks/head/context/contracts/" + kt1,
+				"../" + tc.valid,
+				tc.valid + "\nforged log line",
+				tc.valid + "?x=1",
+				" " + tc.valid,
+				tc.valid + "1",
+				tc.valid[:len(tc.valid)-1],
+			} {
+				require.False(t, tc.validate(input), input)
+			}
+		})
+	}
+
+	require.False(t, IsContract(withZero))
+	require.False(t, IsAddress(withZero))
+	require.False(t, IsAddress("tz9dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE"))
+	require.False(t, IsSmartRollupHash("srXJ1ECygUgzE7urU3Ayr5HZaty83hpjbs28"))
+}
+
+func TestFindContract(t *testing.T) {
+	const kt1 = "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr"
+	require.Equal(t, kt1, FindContract("Error in contract "+kt1+": script failed"))
+	require.Empty(t, FindContract("no contract here"))
+}
