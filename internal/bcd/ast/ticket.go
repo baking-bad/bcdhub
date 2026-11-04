@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/pkg/errors"
 )
 
 // Ticket -
@@ -50,13 +49,12 @@ func (t *Ticket) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	// Michelson only allows comparable ticket contents.
 	content := node.Args[0]
 	if content == nil {
-		return errors.Wrap(consts.ErrTypeIsNotComparable, "ticket content: null")
+		return fmt.Errorf("%w: %w: ticket content: null", consts.ErrInvalidType, consts.ErrTypeIsNotComparable)
 	}
 	if !content.IsComparable() {
-		return errors.Wrapf(consts.ErrTypeIsNotComparable, "ticket content: %s", content.Prim)
+		return fmt.Errorf("%w: %w: ticket content: %s", consts.ErrInvalidType, consts.ErrTypeIsNotComparable, content.Prim)
 	}
 
 	typ, err := typeNode(content, t.depth, id)

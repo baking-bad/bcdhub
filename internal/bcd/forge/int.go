@@ -44,14 +44,12 @@ func (val *Int) Unforge(data []byte) (uint32, error) {
 		val.IntValue.Int = val.IntValue.Or(val.IntValue.Int, big.NewInt(num))
 	}
 
-	if len(parts) > 0 {
-		num := int64(parts[0] & 0x3f)
-		val.IntValue.Int = val.IntValue.Lsh(val.IntValue.Int, 6)
-		val.IntValue.Int = val.IntValue.Or(val.IntValue.Int, big.NewInt(num))
+	num := int64(parts[0] & 0x3f)
+	val.IntValue.Int = val.IntValue.Lsh(val.IntValue.Int, 6)
+	val.IntValue.Int = val.IntValue.Or(val.IntValue.Int, big.NewInt(num))
 
-		if parts[0]&0x40 > 0 {
-			val.IntValue.Int = val.IntValue.Neg(val.IntValue.Int)
-		}
+	if parts[0]&0x40 > 0 {
+		val.IntValue.Int = val.IntValue.Neg(val.IntValue.Int)
 	}
 
 	return uint32(buffer.Len()), nil // #nosec G115 -- buffer holds a single forged int, bounded by protocol operation size limits, never close to uint32 max
