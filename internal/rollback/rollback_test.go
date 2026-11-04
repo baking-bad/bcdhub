@@ -405,6 +405,12 @@ func TestManager_Rollback(t *testing.T) {
 		Return(nil).
 		Times(1)
 
+	// deferred after Commit: a no-op that must not fail the rollback
+	rb.EXPECT().
+		Close().
+		Return(nil).
+		Times(1)
+
 	t.Run("Rollback", func(t *testing.T) {
 		state := block.Block{
 			Level: 11,
@@ -434,7 +440,7 @@ func TestManager_Rollback_RollsBackOnError(t *testing.T) {
 	dbErr := errors.New("connection reset")
 	blockRepo.EXPECT().Get(gomock.Any(), int64(11)).Return(block.Block{}, dbErr).Times(1)
 	storage.EXPECT().IsRecordNotFound(dbErr).Return(false).Times(1)
-	rb.EXPECT().Rollback().Return(nil).Times(1)
+	rb.EXPECT().Close().Return(nil).Times(1)
 	rb.EXPECT().Commit().Times(0)
 
 	err := NewManager(storage, blockRepo, rb, statsRepo).
@@ -447,8 +453,30 @@ func TestManager_Rollback_InvalidRangeRollsBack(t *testing.T) {
 	defer ctrl.Finish()
 
 	rb := mock.NewMockRollback(ctrl)
-	rb.EXPECT().Rollback().Return(nil).Times(1)
+	rb.EXPECT().Close().Return(nil).Times(1)
 	err := NewManager(mock.NewMockGeneralRepository(ctrl), mock_block.NewMockRepository(ctrl), rb, mock_stats.NewMockRepository(ctrl)).
 		Rollback(t.Context(), types.Mainnet, block.Block{Level: 10}, 10)
 	require.Error(t, err)
+}
+
+// When rolling the transaction back fails too, the caller still learns about
+// both errors, not only the first one.
+func TestManager_Rollback_ReportsFailedTxRollback(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	storage := mock.NewMockGeneralRepository(ctrl)
+	rb := mock.NewMockRollback(ctrl)
+	blockRepo := mock_block.NewMockRepository(ctrl)
+
+	dbErr := errors.New("connection reset")
+	closeErr := errors.New("connection is closed")
+	blockRepo.EXPECT().Get(gomock.Any(), int64(11)).Return(block.Block{}, dbErr).Times(1)
+	storage.EXPECT().IsRecordNotFound(dbErr).Return(false).Times(1)
+	rb.EXPECT().Close().Return(closeErr).Times(1)
+
+	err := NewManager(storage, blockRepo, rb, mock_stats.NewMockRepository(ctrl)).
+		Rollback(t.Context(), types.Mainnet, block.Block{Level: 11}, 10)
+	require.ErrorIs(t, err, dbErr)
+	require.ErrorContains(t, err, "tx rollback also failed: connection is closed")
 }

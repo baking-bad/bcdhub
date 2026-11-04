@@ -48,6 +48,44 @@ func (m *MockRollback) EXPECT() *MockRollbackMockRecorder {
 	return m.recorder
 }
 
+// Close mocks base method.
+func (m *MockRollback) Close() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockRollbackMockRecorder) Close() *MockRollbackCloseCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockRollback)(nil).Close))
+	return &MockRollbackCloseCall{Call: call}
+}
+
+// MockRollbackCloseCall wrap *gomock.Call
+type MockRollbackCloseCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockRollbackCloseCall) Return(arg0 error) *MockRollbackCloseCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockRollbackCloseCall) Do(f func() error) *MockRollbackCloseCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockRollbackCloseCall) DoAndReturn(f func() error) *MockRollbackCloseCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // Commit mocks base method.
 func (m *MockRollback) Commit() error {
 	m.ctrl.T.Helper()

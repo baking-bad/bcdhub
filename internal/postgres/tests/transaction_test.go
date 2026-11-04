@@ -528,6 +528,14 @@ func (s *StorageTestSuite) TestInitDatabaseWidensTicketAmounts() {
 	defer cancel()
 
 	tables := []string{"ticket_balances", "ticket_updates"}
+	// the schema is shared by the whole suite and SetupTest reloads only the
+	// fixtures: restore the columns even if this test fails before InitDatabase
+	s.T().Cleanup(func() {
+		for _, table := range tables {
+			_, err := s.storage.DB.NewRaw(`ALTER TABLE ? ALTER COLUMN amount TYPE numeric`, bun.Ident(table)).Exec(context.Background())
+			s.Require().NoError(err)
+		}
+	})
 	for _, table := range tables {
 		_, err := s.storage.DB.NewRaw(`ALTER TABLE ? ALTER COLUMN amount TYPE numeric(200,0)`, bun.Ident(table)).Exec(ctx)
 		s.Require().NoError(err)

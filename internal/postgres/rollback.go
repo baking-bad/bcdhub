@@ -14,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
+	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/uptrace/bun"
 )
 
@@ -35,6 +36,11 @@ func (r Rollback) Commit() error {
 
 func (r Rollback) Rollback() error {
 	return r.tx.Rollback()
+}
+
+// Close rolls the transaction back unless it has been committed.
+func (r Rollback) Close() error {
+	return core.RollbackUnlessDone(r.tx)
 }
 
 func (r Rollback) DeleteAll(ctx context.Context, model any, level int64) (int, error) {

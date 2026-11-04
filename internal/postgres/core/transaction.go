@@ -46,9 +46,18 @@ func (t Transaction) Rollback() error {
 // right after NewTransaction: an early return on error must not leave the
 // transaction open, holding its pooled connection and row locks.
 func (t Transaction) Close() {
-	if err := t.tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+	if err := RollbackUnlessDone(t.tx); err != nil {
 		log.Err(err).Msg("rollback transaction")
 	}
+}
+
+// RollbackUnlessDone rolls tx back. It returns nil when tx has already been
+// committed or rolled back, so it can be deferred right after opening tx.
+func RollbackUnlessDone(tx bun.Tx) error {
+	if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+		return err
+	}
+	return nil
 }
 
 func (t Transaction) Save(ctx context.Context, data any) error {
