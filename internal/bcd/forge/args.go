@@ -1,6 +1,9 @@
 package forge
 
-import "github.com/baking-bad/bcdhub/internal/bcd/base"
+import (
+	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/pkg/errors"
+)
 
 type args struct {
 	Args []*base.Node
@@ -27,6 +30,9 @@ func newArgsFromNodes(nodes []*base.Node) *args {
 func (a *args) Unforge(data []byte) (uint32, error) {
 	var length uint32
 	for i := 0; i < a.count; i++ {
+		if len(data) == 0 {
+			return length, errors.Wrapf(ErrTooFewBytes, "args.Unforge: got %d of %d args", i, a.count)
+		}
 		unforger := NewMichelson()
 
 		n, err := unforger.Unforge(data)

@@ -44,19 +44,21 @@ func (a *Array) Unforge(data []byte) (uint32, error) {
 		return 4, errors.Wrap(ErrTooFewBytes, fmt.Sprintf("String.Unforge: %d < %d", len(data), l.Value))
 	}
 
-	var count uint32
-	for count < l.Value {
+	data = data[:l.Value]
+	for len(data) > 0 {
 		unforger := NewMichelson()
-		n, err := unforger.Unforge(data)
+		consumed, err := unforger.Unforge(data)
 		if err != nil {
-			return n, err
+			return consumed, err
 		}
-		count += n
-		data = data[n:]
+		if consumed == 0 || consumed > uint32(len(data)) { // #nosec G115 -- len(data) <= l.Value, a uint32
+			return n, errors.Wrap(ErrTooFewBytes, fmt.Sprintf("Array.Unforge: element overruns sequence (%d > %d)", consumed, len(data)))
+		}
+		data = data[consumed:]
 		a.Args = append(a.Args, unforger.Nodes...)
 	}
 
-	return 4 + l.Value, nil
+	return n + l.Value, nil
 }
 
 // Forge -

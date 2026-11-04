@@ -69,3 +69,40 @@ func TestParseType_ArgsCount(t *testing.T) {
 		})
 	}
 }
+
+func TestTicket_ParseType_Comparable(t *testing.T) {
+	tests := []struct {
+		name    string
+		tree    string
+		wantErr bool
+	}{
+		{name: "ticket nat", tree: `{"prim":"ticket","args":[{"prim":"nat"}]}`},
+		{name: "ticket pair", tree: `{"prim":"ticket","args":[{"prim":"pair","args":[{"prim":"nat"},{"prim":"option","args":[{"prim":"bytes"}]}]}]}`},
+		{name: "ticket or", tree: `{"prim":"ticket","args":[{"prim":"or","args":[{"prim":"string"},{"prim":"address"}]}]}`},
+		{name: "list of tickets", tree: `{"prim":"list","args":[{"prim":"ticket","args":[{"prim":"unit"}]}]}`},
+		{name: "ticket ticket", tree: `{"prim":"ticket","args":[{"prim":"ticket","args":[{"prim":"nat"}]}]}`, wantErr: true},
+		{name: "ticket list", tree: `{"prim":"ticket","args":[{"prim":"list","args":[{"prim":"nat"}]}]}`, wantErr: true},
+		{name: "ticket big_map", tree: `{"prim":"ticket","args":[{"prim":"big_map","args":[{"prim":"nat"},{"prim":"nat"}]}]}`, wantErr: true},
+		{name: "ticket in pair", tree: `{"prim":"ticket","args":[{"prim":"pair","args":[{"prim":"nat"},{"prim":"ticket","args":[{"prim":"nat"}]}]}]}`, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewTypedAstFromString(tt.tree)
+			if tt.wantErr {
+				require.ErrorIs(t, err, consts.ErrTypeIsNotComparable)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+// Deeply nested tickets used to double the type tree at every level.
+func TestTicket_ParseType_NestedIsRejectedFast(t *testing.T) {
+	tree := `{"prim":"nat"}`
+	for range 40 {
+		tree = `{"prim":"ticket","args":[` + tree + `]}`
+	}
+	_, err := NewTypedAstFromString(tree)
+	require.ErrorIs(t, err, consts.ErrTypeIsNotComparable)
+}

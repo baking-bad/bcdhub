@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/pkg/errors"
 )
 
 // Ticket -
@@ -47,6 +48,11 @@ func (t *Ticket) MarshalJSON() ([]byte, error) {
 func (t *Ticket) ParseType(node *base.Node, id *int) error {
 	if err := t.Default.ParseType(node, id); err != nil {
 		return err
+	}
+
+	// Michelson only allows comparable ticket contents.
+	if !node.Args[0].IsComparable() {
+		return errors.Wrapf(consts.ErrTypeIsNotComparable, "ticket content: %s", node.Args[0].Prim)
 	}
 
 	typ, err := typeNode(node.Args[0], t.depth, id)
