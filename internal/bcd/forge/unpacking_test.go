@@ -2,6 +2,7 @@ package forge
 
 import (
 	"encoding/hex"
+	"fmt"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -166,4 +167,61 @@ func TestUnpack(t *testing.T) {
 			require.Equal(t, tt.want, got)
 		})
 	}
+}
+
+// packedBytes wraps hex payload into packed bytes: 05 0a <len> <payload>.
+func packedBytes(payload string) string {
+	return fmt.Sprintf("050a%08x%s", len(payload)/2, payload)
+}
+
+func TestTryUnpackString_DepthIsBounded(t *testing.T) {
+	nested := func(levels int) string {
+		s := "050001" // packed int 1
+		for range levels {
+			s = packedBytes(s)
+		}
+		return s
+	}
+
+	t.Run("shallow nesting is fully unpacked", func(t *testing.T) {
+		tree := TryUnpackString(nested(3))
+		require.Len(t, tree, 1)
+		require.NotNil(t, tree[0].IntValue)
+		require.EqualValues(t, 1, tree[0].IntValue.Int64())
+	})
+
+	t.Run("deep nesting stops at MaxUnpackDepth", func(t *testing.T) {
+		const levels = 50
+		tree := TryUnpackString(nested(levels))
+		require.Len(t, tree, 1)
+		require.NotNil(t, tree[0].BytesValue)
+		require.Equal(t, nested(levels - MaxUnpackDepth + 1)[2+2+8:], *tree[0].BytesValue)
+	})
+
+	t.Run("collect strings decodes printable bytes at the depth limit", func(t *testing.T) {
+		wrapped := func(levels int) string {
+			s := hex.EncodeToString([]byte("hello"))
+			for range levels {
+				s = packedBytes(s)
+			}
+			return s
+		}
+
+		node := &base.Node{BytesValue: new(wrapped(MaxUnpackDepth))}
+		res, err := CollectStrings(node, true)
+		require.NoError(t, err)
+		require.Equal(t, []string{"hello"}, res)
+
+		node = &base.Node{BytesValue: new(wrapped(MaxUnpackDepth + 1))}
+		res, err = CollectStrings(node, true)
+		require.NoError(t, err)
+		require.Empty(t, res)
+	})
+
+	t.Run("collect strings stops too", func(t *testing.T) {
+		var node base.Node
+		require.NoError(t, json.UnmarshalFromString(`{"bytes":"`+nested(50)[2+2+8:]+`"}`, &node))
+		_, err := CollectStrings(&node, true)
+		require.NoError(t, err)
+	})
 }

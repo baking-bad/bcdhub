@@ -210,27 +210,35 @@ func (p *Pair) EnrichBigMap(bmd []*types.BigMapDiff) error {
 // ToParameters -
 func (p *Pair) ToParameters() ([]byte, error) {
 	var builder bytes.Buffer
-	if _, err := builder.WriteString(`{"prim":"Pair","args":[`); err != nil {
-		return nil, err
-	}
-	for i := range p.Args {
-		if i > 0 {
-			if err := builder.WriteByte(','); err != nil {
-				return nil, err
-			}
-		}
-		b, err := p.Args[i].ToParameters()
-		if err != nil {
-			return nil, err
-		}
-		if _, err := builder.Write(b); err != nil {
-			return nil, err
-		}
-	}
-	if _, err := builder.WriteString(`]}`); err != nil {
+	if err := p.writeParameters(&builder); err != nil {
 		return nil, err
 	}
 	return builder.Bytes(), nil
+}
+
+// writeParameters writes nested pairs into one shared buffer. A pair with N
+// arguments is parsed as a right comb N levels deep; returning and copying each
+// level's bytes into its parent made serialization quadratic in N.
+func (p *Pair) writeParameters(builder *bytes.Buffer) error {
+	builder.WriteString(`{"prim":"Pair","args":[`)
+	for i := range p.Args {
+		if i > 0 {
+			builder.WriteByte(',')
+		}
+		if pair, ok := p.Args[i].(*Pair); ok {
+			if err := pair.writeParameters(builder); err != nil {
+				return err
+			}
+			continue
+		}
+		b, err := p.Args[i].ToParameters()
+		if err != nil {
+			return err
+		}
+		builder.Write(b)
+	}
+	builder.WriteString(`]}`)
+	return nil
 }
 
 // FindByName -

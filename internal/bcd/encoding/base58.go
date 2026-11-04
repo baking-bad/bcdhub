@@ -83,10 +83,10 @@ var base58Encodings = []base58Encoding{
 	{[]byte(PrefixPublicKeyKT1), 36, []byte{2, 90, 121}, 20, "Originated address"},
 
 	{[]byte(PrefixPublicKeyTxr1), 37, []byte{1, 128, 120, 31}, 20, "Rollup address"},
-	{[]byte(PrefixOriginatedSmartRollup), 37, []byte{6, 124, 117}, 20, "Smart rollup"},
+	{[]byte(PrefixOriginatedSmartRollup), 36, []byte{6, 124, 117}, 20, "Smart rollup"},
 	{[]byte(PrefixRollupInboxHash), 53, []byte{79, 148, 196}, 32, "Inbox hash"},
-	{[]byte(PrefixRollupMessageHash), 53, []byte{79, 149, 030}, 32, "Message hash"},
-	{[]byte(PrefixRollupCommitmentHash), 53, []byte{79, 148, 017}, 32, "Commitment hash"},
+	{[]byte(PrefixRollupMessageHash), 53, []byte{79, 149, 30}, 32, "Message hash"},
+	{[]byte(PrefixRollupCommitmentHash), 53, []byte{79, 148, 17}, 32, "Commitment hash"},
 	{[]byte(PrefixRollupMessageResultHash), 54, []byte{18, 7, 206, 87}, 32, "Message result hash"},
 	{[]byte(PrefixRollupMessageResultListHash), 53, []byte{79, 146, 82}, 32, "Message result list hash"},
 	{[]byte(PrefixRollupWithdrawListHash), 53, []byte{79, 150, 72}, 32, "Withdraw list hash"},
@@ -101,8 +101,8 @@ var base58Encodings = []base58Encoding{
 	{[]byte(PrefixP256PublicKey), 55, []byte{3, 178, 139, 127}, 33, "p256 public key"},
 	{[]byte(PrefixBLS12_381PublicKey), 76, []byte{6, 149, 135, 204}, 48, "bls12_381 public key"},
 	{[]byte(PrefixMLDSA44PublicKey), 1802, []byte{13, 7, 237, 67}, 1312, "mldsa44 public key"},
-	{[]byte(PrefixSecp256k1Scalar), 53, []byte{38, 248, 136}, 33, "secp256k1 scalar"},
-	{[]byte(PrefixSecp256k1Element), 53, []byte{5, 92, 0}, 33, "secp256k1 element"},
+	{[]byte(PrefixSecp256k1Scalar), 53, []byte{38, 248, 136}, 32, "secp256k1 scalar"},
+	{[]byte(PrefixSecp256k1Element), 54, []byte{5, 92, 0}, 33, "secp256k1 element"},
 
 	{[]byte(PrefixED25519SecretKey), 98, []byte{43, 246, 78, 7}, 64, "ed25519 secret key"},
 	{[]byte(PrefixED25519Signature), 99, []byte{9, 245, 205, 134, 18}, 64, "ed25519 signature"},
@@ -123,6 +123,29 @@ var base58Encodings = []base58Encoding{
 	{[]byte(PrefixSmartRollupState), 54, []byte{17, 165, 235, 240}, 32, "smart rollup state hash"},
 	{[]byte(PrefixSmartRollupInbox), 55, []byte{3, 255, 138, 145, 110}, 32, "smart rollup inbox hash"},
 	{[]byte(PrefixSmartRollupMerkelizedTree), 55, []byte{3, 255, 138, 145, 140}, 32, "smart rollup merkelized tree hash"},
+}
+
+// encodedLengths holds every valid encoded length. Base58 decoding is
+// quadratic in the input length, so input is rejected by length first.
+var encodedLengths = func() map[int]struct{} {
+	m := make(map[int]struct{}, len(base58Encodings))
+	for i := range base58Encodings {
+		m[base58Encodings[i].EncodedLength] = struct{}{}
+	}
+	return m
+}()
+
+// ErrInvalidBase58Length - input length does not match any known base58 encoding
+var ErrInvalidBase58Length = errors.New("invalid base58 length")
+
+// checkDecode rejects inputs of unknown length before decoding them. Besides
+// bounding the work, this keeps very short inputs (decoding to fewer than 4
+// bytes) away from go-base58, which panics on them instead of returning an error.
+func checkDecode(data string) ([]byte, error) {
+	if _, ok := encodedLengths[len(data)]; !ok {
+		return nil, ErrInvalidBase58Length
+	}
+	return base58Enc.CheckDecode(data)
 }
 
 func getBase58EncodingForDecode(data []byte) (base58Encoding, error) {
@@ -165,7 +188,7 @@ func getBase58EncodingForEncode(data, prefix []byte) (base58Encoding, error) {
 
 // DecodeBase58 -
 func DecodeBase58(data string) ([]byte, error) {
-	decoded, err := base58Enc.CheckDecode(data)
+	decoded, err := checkDecode(data)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +202,7 @@ func DecodeBase58(data string) ([]byte, error) {
 
 // DecodeBase58ToString -
 func DecodeBase58ToString(data string) (string, error) {
-	decoded, err := base58Enc.CheckDecode(data)
+	decoded, err := checkDecode(data)
 	if err != nil {
 		return "", err
 	}
@@ -193,7 +216,7 @@ func DecodeBase58ToString(data string) (string, error) {
 
 // MustDecodeBase58 -
 func MustDecodeBase58(data string) []byte {
-	decoded, err := base58Enc.CheckDecode(data)
+	decoded, err := checkDecode(data)
 	if err != nil {
 		panic(err)
 	}
