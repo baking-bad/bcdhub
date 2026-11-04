@@ -117,7 +117,6 @@ func (api *app) makeRouter() {
 	}
 
 	r.Use(gin.Recovery())
-	r.Use(handlers.BodyLimitMiddleware(handlers.MaxRequestBodySize))
 
 	if api.Config.API.SentryEnabled {
 		r.Use(sentrygin.New(sentrygin.Options{
@@ -126,6 +125,7 @@ func (api *app) makeRouter() {
 	}
 
 	r.Use(ginLogger.SetLogger())
+	r.Use(handlers.BodyLimitMiddleware(handlers.MaxRequestBodySize))
 	r.Use(timeout.New(
 		timeout.WithTimeout(30*time.Second),
 		timeout.WithHandler(func(c *gin.Context) {

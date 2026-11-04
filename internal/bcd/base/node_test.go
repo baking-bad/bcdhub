@@ -117,10 +117,46 @@ func TestNode_UnmarshalJSON_Invalid(t *testing.T) {
 }
 
 func TestNode_UnmarshalJSON_TrailingData(t *testing.T) {
+	for _, input := range []string{
+		`{"prim":"Unit"}{"prim":"Other"}`,
+		`[{"prim":"Unit"}] 1`,
+		`{"prim":"Unit"}x`,
+		`{"prim":"Unit"}}`,
+		`[{"prim":"Unit"}]]`,
+		`[{"prim":"Unit"}]garbage`,
+		`{"prim":"Unit"} {`,
+		`{"":1}`,
+	} {
+		var node Node
+		require.Error(t, node.UnmarshalJSON([]byte(input)), input)
+	}
+
 	var node Node
-	require.ErrorIs(t, node.UnmarshalJSON([]byte(`{"prim":"Unit"}{"prim":"Other"}`)), consts.ErrInvalidJSON)
-	require.ErrorIs(t, node.UnmarshalJSON([]byte(`[{"prim":"Unit"}] 1`)), consts.ErrInvalidJSON)
 	require.NoError(t, node.UnmarshalJSON([]byte(" {\"prim\":\"Unit\"} \n")))
+	require.NoError(t, node.UnmarshalJSON([]byte(`[]`)))
+	require.NoError(t, node.UnmarshalJSON([]byte(`{}`)))
+}
+
+func nestedPairs(n int) string {
+	return strings.Repeat(`{"prim":"Pair","args":[{"int":"1"},`, n) + `{"int":"1"}` + strings.Repeat(`]}`, n)
+}
+
+// MaxNodeDepth bounds recursion when UnmarshalJSON is called directly; through
+// json.Unmarshal the outer decoder limits JSON depth first.
+func TestNode_UnmarshalJSON_MaxNodeDepth(t *testing.T) {
+	var node Node
+	require.NoError(t, node.UnmarshalJSON([]byte(nestedPairs(MaxNodeDepth-1))))
+	require.ErrorIs(t, node.UnmarshalJSON([]byte(nestedPairs(MaxNodeDepth))), consts.ErrInvalidJSON)
+
+	deepArrays := strings.Repeat("[", MaxNodeDepth+1) + strings.Repeat("]", MaxNodeDepth+1)
+	require.ErrorIs(t, node.UnmarshalJSON([]byte(deepArrays)), consts.ErrInvalidJSON)
+}
+
+// The decoder must not add a depth limit of its own below the one of the
+// outer decoder: every build accepts what the API accepted before.
+func TestNode_UnmarshalJSON_Depth(t *testing.T) {
+	var node Node
+	require.NoError(t, json.UnmarshalFromString(nestedPairs(4900), &node))
 }
 
 func TestNode_UnmarshalJSON_NullResetsFields(t *testing.T) {

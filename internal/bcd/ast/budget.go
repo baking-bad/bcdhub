@@ -18,7 +18,13 @@ const MaxInstantiatedNodes = 1_000_000
 
 // nodeBudget is shared by all collections of one tree being filled from JSON.
 type nodeBudget struct {
-	left int
+	left  int
+	types map[Node]elementType
+}
+
+type elementType struct {
+	size           int
+	hasCollections bool
 }
 
 func newNodeBudget() *nodeBudget {
@@ -32,14 +38,36 @@ func (b *nodeBudget) instantiate(typ Node) (Node, error) {
 	if b == nil {
 		return Copy(typ), nil
 	}
-	size := typeSize(typ)
-	if size > b.left {
+	info, ok := b.types[typ]
+	if !ok {
+		info = elementType{size: typeSize(typ), hasCollections: hasCollections(typ)}
+		if b.types == nil {
+			b.types = make(map[Node]elementType)
+		}
+		b.types[typ] = info
+	}
+	if info.size > b.left {
 		return nil, errors.Wrapf(consts.ErrValidation, "input is too large: it would instantiate more than %d nodes", MaxInstantiatedNodes)
 	}
-	b.left -= size
+	b.left -= info.size
 	node := Copy(typ)
-	attachBudget(node, b)
+	if info.hasCollections {
+		attachBudget(node, b)
+	}
 	return node, nil
+}
+
+func hasCollections(node Node) bool {
+	switch node.(type) {
+	case *List, *Set, *Map, *BigMap:
+		return true
+	}
+	for _, child := range childTypes(node) {
+		if hasCollections(child) {
+			return true
+		}
+	}
+	return false
 }
 
 // attachBudget gives every collection in the type tree the budget to pay for

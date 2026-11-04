@@ -1,6 +1,7 @@
 package encoding
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 	"time"
@@ -239,3 +240,22 @@ func TestDecodeBase58_NoPanicOnShortInput(t *testing.T) {
 // purpose: the linear code takes a fraction of it even on a slow runner, while
 // the quadratic code these tests guard against takes tens of seconds.
 const perfTestLimit = 5 * time.Second
+
+// The table is used to reject inputs of unknown length before decoding, so
+// every entry must describe what the encoder really produces.
+func TestBase58Encodings_Table(t *testing.T) {
+	for _, e := range base58Encodings {
+		t.Run(e.DataType, func(t *testing.T) {
+			for _, fill := range []byte{0x00, 0xff} {
+				payload := bytes.Repeat([]byte{fill}, e.DecodedLength)
+				encoded := base58Enc.CheckEncode(append(append([]byte{}, e.DecodedPrefix...), payload...))
+				require.Len(t, encoded, e.EncodedLength)
+				require.True(t, strings.HasPrefix(encoded, string(e.EncodedPrefix)), encoded)
+
+				decoded, err := DecodeBase58(encoded)
+				require.NoError(t, err)
+				require.Equal(t, payload, decoded)
+			}
+		})
+	}
+}

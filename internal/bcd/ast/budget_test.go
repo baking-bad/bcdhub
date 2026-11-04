@@ -99,6 +99,7 @@ func TestNodeBudget_Instantiate(t *testing.T) {
 	_, err = b.instantiate(element)
 	require.ErrorIs(t, err, consts.ErrValidation)
 	require.Equal(t, 2, b.left)
+	require.Len(t, b.types, 1, "the element type is measured once")
 
 	// collections inside a copy pay from the same budget
 	inner := first.(*Pair).Args[1].(*List)
@@ -129,3 +130,20 @@ func TestPair_ToParameters_WideCombIsLinear(t *testing.T) {
 // purpose: the linear code takes a fraction of it even on a slow runner, while
 // the quadratic code these tests guard against takes tens of seconds.
 const perfTestLimit = 5 * time.Second
+
+// All root nodes of a TypedAst share one budget: two roots must not get
+// twice the limit.
+func TestFromJSONSchema_InstantiationBudget_SharedByRoots(t *testing.T) {
+	root := func(name string) Node {
+		typ, err := NewTypedAstFromString(`{"prim":"list","annots":["%` + name + `"],"args":[` + pairOfUnits(300) + `]}`)
+		require.NoError(t, err)
+		return typ.Nodes[0]
+	}
+	element := root("x").(*List).Type
+	// each root alone stays within the limit, both together exceed it
+	items := MaxInstantiatedNodes/typeSize(element)/2 + 1
+
+	typ := &TypedAst{Nodes: []Node{root("a"), root("b")}}
+	err := typ.FromJSONSchema(map[string]any{"a": emptyItems(items), "b": emptyItems(items)})
+	require.ErrorIs(t, err, consts.ErrValidation)
+}

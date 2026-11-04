@@ -194,8 +194,9 @@ func (a *TypedAst) ToJSONSchema() (*JSONSchema, error) {
 
 // FromJSONSchema -
 func (a *TypedAst) FromJSONSchema(data map[string]interface{}) error {
+	budget := newNodeBudget()
 	for i := range a.Nodes {
-		attachBudget(a.Nodes[i], newNodeBudget())
+		attachBudget(a.Nodes[i], budget)
 		if err := a.Nodes[i].FromJSONSchema(data); err != nil {
 			return err
 		}

@@ -50,6 +50,12 @@ func handleError(c *gin.Context, repo models.GeneralRepository, err error, code 
 		return false
 	}
 
+	var tooLarge *http.MaxBytesError
+	if errors.As(err, &tooLarge) {
+		c.AbortWithStatusJSON(http.StatusRequestEntityTooLarge, Error{Message: "request body too large"})
+		return true
+	}
+
 	switch code {
 	case http.StatusUnauthorized:
 		err = errors.New("invalid authentication")
