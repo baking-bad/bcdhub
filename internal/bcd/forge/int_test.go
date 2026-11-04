@@ -55,6 +55,18 @@ func TestInt_Unforge(t *testing.T) {
 			data: []byte{0x8b, 0x93, 0x7f, 0x02},
 			want: 3,
 			val:  big.NewInt(1041611),
+		}, {
+			name:    "empty",
+			data:    []byte{},
+			wantErr: true,
+		}, {
+			name:    "unterminated",
+			data:    []byte{0x84},
+			wantErr: true,
+		}, {
+			name:    "unterminated large",
+			data:    []byte{0xba, 0x9a, 0xf7, 0xea},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

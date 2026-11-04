@@ -49,7 +49,15 @@ func (t *Ticket) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	typ, err := typeNode(node.Args[0], t.depth, id)
+	content := node.Args[0]
+	if content == nil {
+		return fmt.Errorf("%w: %w: ticket content: null", consts.ErrInvalidType, consts.ErrTypeIsNotComparable)
+	}
+	if !content.IsComparable() {
+		return fmt.Errorf("%w: %w: ticket content: %s", consts.ErrInvalidType, consts.ErrTypeIsNotComparable, content.Prim)
+	}
+
+	typ, err := typeNode(content, t.depth, id)
 	if err != nil {
 		return err
 	}

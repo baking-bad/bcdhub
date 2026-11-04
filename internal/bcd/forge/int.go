@@ -33,20 +33,23 @@ func (val *Int) Unforge(data []byte) (uint32, error) {
 	}
 
 	parts := buffer.Bytes()
+	// A zarith integer always ends with a byte below 0x80. Without that byte
+	// the input was cut short, e.g. by the end of an enclosing sequence.
+	if len(parts) == 0 || parts[len(parts)-1] >= 128 {
+		return uint32(len(parts)), errors.Wrap(ErrTooFewBytes, "Int.Unforge: unterminated integer") // #nosec G115 -- bounded by the input length, which is bounded by protocol operation size limits
+	}
 	for i := len(parts) - 1; i > 0; i-- {
 		num := int64(parts[i] & 0x7f)
 		val.IntValue.Int = val.IntValue.Lsh(val.IntValue.Int, 7)
 		val.IntValue.Int = val.IntValue.Or(val.IntValue.Int, big.NewInt(num))
 	}
 
-	if len(parts) > 0 {
-		num := int64(parts[0] & 0x3f)
-		val.IntValue.Int = val.IntValue.Lsh(val.IntValue.Int, 6)
-		val.IntValue.Int = val.IntValue.Or(val.IntValue.Int, big.NewInt(num))
+	num := int64(parts[0] & 0x3f)
+	val.IntValue.Int = val.IntValue.Lsh(val.IntValue.Int, 6)
+	val.IntValue.Int = val.IntValue.Or(val.IntValue.Int, big.NewInt(num))
 
-		if parts[0]&0x40 > 0 {
-			val.IntValue.Int = val.IntValue.Neg(val.IntValue.Int)
-		}
+	if parts[0]&0x40 > 0 {
+		val.IntValue.Int = val.IntValue.Neg(val.IntValue.Int)
 	}
 
 	return uint32(buffer.Len()), nil // #nosec G115 -- buffer holds a single forged int, bounded by protocol operation size limits, never close to uint32 max

@@ -69,3 +69,62 @@ func TestParseType_ArgsCount(t *testing.T) {
 		})
 	}
 }
+
+func TestTicket_ParseType_Comparable(t *testing.T) {
+	tests := []struct {
+		name    string
+		tree    string
+		wantErr bool
+	}{
+		{name: "ticket nat", tree: `{"prim":"ticket","args":[{"prim":"nat"}]}`},
+		{name: "ticket pair", tree: `{"prim":"ticket","args":[{"prim":"pair","args":[{"prim":"nat"},{"prim":"option","args":[{"prim":"bytes"}]}]}]}`},
+		{name: "ticket or", tree: `{"prim":"ticket","args":[{"prim":"or","args":[{"prim":"string"},{"prim":"address"}]}]}`},
+		{name: "list of tickets", tree: `{"prim":"list","args":[{"prim":"ticket","args":[{"prim":"unit"}]}]}`},
+		{name: "ticket ticket", tree: `{"prim":"ticket","args":[{"prim":"ticket","args":[{"prim":"nat"}]}]}`, wantErr: true},
+		{name: "ticket list", tree: `{"prim":"ticket","args":[{"prim":"list","args":[{"prim":"nat"}]}]}`, wantErr: true},
+		{name: "ticket big_map", tree: `{"prim":"ticket","args":[{"prim":"big_map","args":[{"prim":"nat"},{"prim":"nat"}]}]}`, wantErr: true},
+		{name: "ticket in pair", tree: `{"prim":"ticket","args":[{"prim":"pair","args":[{"prim":"nat"},{"prim":"ticket","args":[{"prim":"nat"}]}]}]}`, wantErr: true},
+		{name: "ticket null", tree: `{"prim":"ticket","args":[null]}`, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var err error
+			require.NotPanics(t, func() {
+				_, err = NewTypedAstFromString(tt.tree)
+			})
+			if tt.wantErr {
+				require.ErrorIs(t, err, consts.ErrTypeIsNotComparable)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+// Deeply nested tickets used to double the type tree at every level.
+func TestTicket_ParseType_NestedIsRejectedFast(t *testing.T) {
+	tree := `{"prim":"nat"}`
+	for range 40 {
+		tree = `{"prim":"ticket","args":[` + tree + `]}`
+	}
+	_, err := NewTypedAstFromString(tree)
+	require.ErrorIs(t, err, consts.ErrTypeIsNotComparable)
+}
+
+func TestParseType_NullArgument(t *testing.T) {
+	for _, tree := range []string{
+		`{"prim":"list","args":[null]}`,
+		`{"prim":"option","args":[null]}`,
+		`{"prim":"pair","args":[{"prim":"nat"},null]}`,
+		`{"prim":"map","args":[null,{"prim":"nat"}]}`,
+		`{"prim":"or","args":[{"prim":"nat"},{"prim":"pair","args":[null,{"prim":"unit"}]}]}`,
+	} {
+		t.Run(tree, func(t *testing.T) {
+			var err error
+			require.NotPanics(t, func() {
+				_, err = NewTypedAstFromString(tree)
+			})
+			require.ErrorIs(t, err, consts.ErrInvalidType)
+		})
+	}
+}

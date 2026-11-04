@@ -141,3 +141,36 @@ func (node *Node) IsLambda() bool {
 	return 0x58 >= b[0] || 0x6f <= b[0]
 
 }
+
+// IsComparable reports whether the node, read as a Michelson type expression,
+// is a comparable type.
+//
+// Mirrors the protocol: comparability of each type is declared in
+// lib_protocol/script_typed_ir.ml (is_comparable), and the comparable parser
+// is parse_comparable_ty in lib_protocol/script_ir_translator.ml. Additionally:
+//   - tx_rollup_l2_address was comparable in the protocols that had tx rollups;
+//   - unexpanded global constants are accepted: they cannot be checked here.
+func (node *Node) IsComparable() bool {
+	if node == nil {
+		return false
+	}
+	switch strings.ToLower(node.Prim) {
+	case consts.UNIT, consts.NEVER, consts.BOOL, consts.INT, consts.NAT, consts.STRING,
+		consts.CHAINID, consts.BYTES, consts.MUTEZ, consts.KEYHASH, consts.KEY,
+		consts.SIGNATURE, consts.TIMESTAMP, consts.ADDRESS, consts.TXROLLUPL2ADDRESS,
+		consts.CONSTANT:
+		return true
+	case consts.OPTION, consts.OR, consts.PAIR:
+		if len(node.Args) == 0 {
+			return false
+		}
+		for i := range node.Args {
+			if !node.Args[i].IsComparable() {
+				return false
+			}
+		}
+		return true
+	default:
+		return false
+	}
+}

@@ -1,6 +1,7 @@
 package forge
 
 import (
+	"encoding/binary"
 	"encoding/hex"
 	"testing"
 
@@ -844,6 +845,64 @@ func TestMichelson_Forge(t *testing.T) {
 				return
 			}
 			require.Equal(t, tt.want, hex.EncodeToString(got))
+		})
+	}
+}
+
+// nestedOverrun builds B_k = 02 len(7+|B_{k-1}|) 02 00000002 0500 B_{k-1}:
+// an inner sequence that declares 2 bytes but whose element (a prim with one
+// arg) reads B_{k-1} past the boundary. Before the fix the outer sequence then
+// decoded B_{k-1} again, doubling the work at every level.
+func nestedOverrun(k int) []byte {
+	b := []byte{0x00, 0x01}
+	for range k {
+		next := make([]byte, 0, 12+len(b))
+		next = append(next, 0x02, 0, 0, 0, 0, 0x02, 0x00, 0x00, 0x00, 0x02, 0x05, 0x00)
+		binary.BigEndian.PutUint32(next[1:5], uint32(7+len(b))) // #nosec G115 -- test input stays tiny
+		b = append(next, b...)
+	}
+	return b
+}
+
+func TestArray_Unforge_ElementMustStayInsideSequence(t *testing.T) {
+	_, err := NewMichelson().Unforge(nestedOverrun(1))
+	require.ErrorIs(t, err, ErrTooFewBytes)
+
+	_, err = NewMichelson().Unforge(nestedOverrun(40))
+	require.ErrorIs(t, err, ErrTooFewBytes)
+}
+
+func TestArray_Unforge_ExactBoundary(t *testing.T) {
+	// { 1 ; Pair 2 3 } followed by a trailing int that must not be pulled into the sequence
+	data, err := hex.DecodeString("02000000080001070700020003" + "0004")
+	require.NoError(t, err)
+
+	m := NewMichelson()
+	n, err := m.Unforge(data)
+	require.NoError(t, err)
+	require.EqualValues(t, 13, n)
+	require.Len(t, m.Nodes, 1)
+	require.Len(t, m.Nodes[0].Args, 2)
+}
+
+func TestMichelson_Unforge_Truncated(t *testing.T) {
+	tests := []struct {
+		name string
+		data string
+	}{
+		{name: "prim without its argument", data: "0500"},
+		{name: "prim without its second argument", data: "07070001"},
+		{name: "int without payload", data: "00"},
+		{name: "unterminated int", data: "0084"},
+		{name: "int cut by the end of a sequence", data: "0200000002" + "0084" + "0e"},
+		{name: "prim argument outside of a sequence", data: "0200000002" + "0500" + "0001"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := hex.DecodeString(tt.data)
+			require.NoError(t, err)
+			_, err = NewMichelson().Unforge(data)
+			require.ErrorIs(t, err, ErrTooFewBytes)
 		})
 	}
 }
