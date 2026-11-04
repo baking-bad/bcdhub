@@ -3,7 +3,9 @@ package translator
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -31,5 +33,23 @@ func TestConverter_FromFile(t *testing.T) {
 
 			require.JSONEq(t, string(resultBytes), got, "JSON comparing")
 		})
+	}
+}
+
+// go-peg's EnableAst computed line/column info for every AST node by scanning
+// the input from its start, so parsing was quadratic: 20k instructions took
+// about 5 seconds.
+func TestConverter_FromString_LargeInputIsFast(t *testing.T) {
+	c, err := NewConverter()
+	require.NoError(t, err)
+
+	for _, input := range []string{
+		"{" + strings.Repeat(" UNIT ;", 20000) + " UNIT }",
+		"Pair" + strings.Repeat(` "a"`, 20000),
+	} {
+		start := time.Now()
+		_, err := c.FromString(input)
+		require.NoError(t, err)
+		require.Less(t, time.Since(start), time.Second)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
@@ -126,4 +127,17 @@ func TestMichelineToMichelson(t *testing.T) {
 			require.Equal(t, exp, result)
 		})
 	}
+}
+
+// The multi-argument branch rebuilt the whole accumulated expression with
+// fmt.Sprintf for every argument: quadratic in the argument count.
+func TestMichelineToMichelson_WidePrimIsLinear(t *testing.T) {
+	const width = 100000
+	input := `{"prim":"Pair","args":[` + strings.TrimSuffix(strings.Repeat(`{"int":"1"},`, width), ",") + `]}`
+
+	start := time.Now()
+	res, err := MichelineStringToMichelson(input, false, DefLineSize)
+	require.NoError(t, err)
+	require.Less(t, time.Since(start), time.Second)
+	require.Equal(t, width, strings.Count(res, "1"))
 }

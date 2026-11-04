@@ -125,6 +125,29 @@ var base58Encodings = []base58Encoding{
 	{[]byte(PrefixSmartRollupMerkelizedTree), 55, []byte{3, 255, 138, 145, 140}, 32, "smart rollup merkelized tree hash"},
 }
 
+// encodedLengths holds every valid encoded length. Base58 decoding is
+// quadratic in the input length, so input is rejected by length first.
+var encodedLengths = func() map[int]struct{} {
+	m := make(map[int]struct{}, len(base58Encodings))
+	for i := range base58Encodings {
+		m[base58Encodings[i].EncodedLength] = struct{}{}
+	}
+	return m
+}()
+
+// ErrInvalidBase58Length - input length does not match any known base58 encoding
+var ErrInvalidBase58Length = errors.New("invalid base58 length")
+
+// checkDecode rejects inputs of unknown length before decoding them. Besides
+// bounding the work, this keeps very short inputs (decoding to fewer than 4
+// bytes) away from go-base58, which panics on them instead of returning an error.
+func checkDecode(data string) ([]byte, error) {
+	if _, ok := encodedLengths[len(data)]; !ok {
+		return nil, ErrInvalidBase58Length
+	}
+	return base58Enc.CheckDecode(data)
+}
+
 func getBase58EncodingForDecode(data []byte) (base58Encoding, error) {
 	for _, e := range base58Encodings {
 		if len(data) != e.DecodedLength+len(e.DecodedPrefix) {
@@ -165,7 +188,7 @@ func getBase58EncodingForEncode(data, prefix []byte) (base58Encoding, error) {
 
 // DecodeBase58 -
 func DecodeBase58(data string) ([]byte, error) {
-	decoded, err := base58Enc.CheckDecode(data)
+	decoded, err := checkDecode(data)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +202,7 @@ func DecodeBase58(data string) ([]byte, error) {
 
 // DecodeBase58ToString -
 func DecodeBase58ToString(data string) (string, error) {
-	decoded, err := base58Enc.CheckDecode(data)
+	decoded, err := checkDecode(data)
 	if err != nil {
 		return "", err
 	}
@@ -193,7 +216,7 @@ func DecodeBase58ToString(data string) (string, error) {
 
 // MustDecodeBase58 -
 func MustDecodeBase58(data string) []byte {
-	decoded, err := base58Enc.CheckDecode(data)
+	decoded, err := checkDecode(data)
 	if err != nil {
 		panic(err)
 	}

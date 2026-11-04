@@ -195,6 +195,9 @@ func (a *TypedAst) ToJSONSchema() (*JSONSchema, error) {
 // FromJSONSchema -
 func (a *TypedAst) FromJSONSchema(data map[string]interface{}) error {
 	for i := range a.Nodes {
+		if err := checkInstantiationBudget(a.Nodes[i], data); err != nil {
+			return err
+		}
 		if err := a.Nodes[i].FromJSONSchema(data); err != nil {
 			return err
 		}
@@ -499,6 +502,9 @@ func settleForExecution(node Node, data map[string]interface{}, entrypoint strin
 			node.GetName(): data,
 		}
 	}
+	if err := checkInstantiationBudget(node, data); err != nil {
+		return nil, err
+	}
 	if err := node.FromJSONSchema(data); err != nil {
 		return nil, err
 	}
@@ -527,6 +533,9 @@ func wrapForExecution(node Node, data map[string]interface{}, entrypoint string)
 	current := findCustomEntrypoint(node, num, &depth)
 	if current == nil {
 		return nil, nil
+	}
+	if err := checkInstantiationBudget(current, data); err != nil {
+		return nil, err
 	}
 	if err := current.FromJSONSchema(data); err != nil {
 		return nil, err

@@ -35,7 +35,7 @@ func NewConverter(opts ...ConverterOption) (Converter, error) {
 		return c, err
 	}
 
-	if err := parser.EnableAst(); err != nil {
+	if err := enableAst(parser); err != nil {
 		return c, err
 	}
 	c.parser = parser

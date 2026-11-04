@@ -32,22 +32,35 @@ func UnpackString(str string) ([]*base.Node, error) {
 	return Unpack(data)
 }
 
+// MaxUnpackDepth - how many levels of packed bytes nested in packed bytes are
+// unpacked automatically. Every level re-decodes and re-encodes nearly the
+// whole remaining payload, so unbounded nesting is quadratic in its size.
+// Deeper bytes are kept as bytes.
+const MaxUnpackDepth = 8
+
 // TryUnpackString - try unpack `str` to tree. If try failed returns `nil`
 func TryUnpackString(str string) []*base.Node {
+	return tryUnpackString(str, 1)
+}
+
+func tryUnpackString(str string, depth int) []*base.Node {
 	tree, err := UnpackString(str)
 	if err == nil {
 		for i := range tree {
-			tree[i] = tryUnpackNode(tree[i])
+			tree[i] = tryUnpackNode(tree[i], depth)
 		}
 		return tree
 	}
 	return nil
 }
 
-func tryUnpackNode(node *base.Node) *base.Node {
+func tryUnpackNode(node *base.Node, depth int) *base.Node {
+	if node == nil {
+		return nil
+	}
 	if node.BytesValue == nil {
 		for i := range node.Args {
-			node.Args[i] = tryUnpackNode(node.Args[i])
+			node.Args[i] = tryUnpackNode(node.Args[i], depth)
 		}
 		return node
 	}
@@ -60,7 +73,10 @@ func tryUnpackNode(node *base.Node) *base.Node {
 		return node
 	}
 
-	unpacked := TryUnpackString(value)
+	if depth >= MaxUnpackDepth {
+		return node
+	}
+	unpacked := tryUnpackString(value, depth+1)
 	if len(unpacked) > 0 {
 		node = unpacked[0]
 	}
@@ -69,12 +85,19 @@ func tryUnpackNode(node *base.Node) *base.Node {
 
 // CollectStrings - returns strings contained in tree. If `tryUnpack` is true, it tries to unpack bytes value.
 func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
+	return collectStrings(node, tryUnpack, 0)
+}
+
+func collectStrings(node *base.Node, tryUnpack bool, depth int) ([]string, error) {
 	res := make([]string, 0)
+	if node == nil {
+		return res, nil
+	}
 
 	switch {
 	case node.StringValue != nil && *node.StringValue != "":
 		res = append(res, *node.StringValue)
-	case tryUnpack && node.BytesValue != nil:
+	case tryUnpack && node.BytesValue != nil && depth < MaxUnpackDepth:
 		val := *node.BytesValue
 		decoded := tryDecode(val)
 		if decoded != "" {
@@ -91,7 +114,7 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 			return res, nil
 		}
 		for i := range tree {
-			resArg, err := CollectStrings(tree[i], tryUnpack)
+			resArg, err := collectStrings(tree[i], tryUnpack, depth+1)
 			if err != nil {
 				return res, nil
 			}
@@ -99,7 +122,7 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 		}
 	case len(node.Args) > 0:
 		for i := range node.Args {
-			argRes, err := CollectStrings(node.Args[i], tryUnpack)
+			argRes, err := collectStrings(node.Args[i], tryUnpack, depth)
 			if err != nil {
 				return nil, err
 			}

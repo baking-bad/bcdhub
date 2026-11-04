@@ -52,3 +52,23 @@ func ContextsMiddleware(ctxs config.Contexts) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// MaxRequestBodySize - upper bound for request bodies. Contract scripts are
+// limited by the protocol to tens of kilobytes, so this leaves ample room for
+// their Micheline JSON while capping the input to the decoders, whose work
+// grows faster than linearly on adversarial input.
+const MaxRequestBodySize = 1 << 20
+
+// BodyLimitMiddleware - rejects request bodies larger than limit bytes
+func BodyLimitMiddleware(limit int64) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request.ContentLength > limit {
+			c.AbortWithStatusJSON(http.StatusRequestEntityTooLarge, Error{Message: "request body too large"})
+			return
+		}
+		if c.Request.Body != nil {
+			c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, limit)
+		}
+		c.Next()
+	}
+}

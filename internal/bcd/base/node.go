@@ -3,6 +3,7 @@ package base
 import (
 	"encoding/hex"
 	"fmt"
+	"io"
 	"regexp"
 	"strings"
 
@@ -25,22 +26,95 @@ type Node struct {
 }
 
 // UnmarshalJSON -
+//
+// The whole tree is decoded in a single pass over data. Delegating nested
+// nodes back to json.Unmarshal made the decoder re-scan and copy each subtree
+// once per nesting level, which is quadratic on deeply nested input.
 func (node *Node) UnmarshalJSON(data []byte) error {
-	if len(data) == 0 {
-		return consts.ErrInvalidJSON
-	}
+	iter := json.BorrowIterator(data)
+	defer json.ReturnIterator(iter)
 
-	switch data[0] {
-	case '[':
+	if err := node.decode(iter); err != nil {
+		return err
+	}
+	if iter.Error != nil && iter.Error != io.EOF {
+		return iter.Error
+	}
+	return nil
+}
+
+func (node *Node) decode(iter *jsoniter.Iterator) error {
+	switch iter.WhatIsNext() {
+	case jsoniter.ArrayValue:
 		node.Prim = consts.PrimArray
 		node.Args = make([]*Node, 0)
-		return json.Unmarshal(data, &node.Args)
-	case '{':
-		type buf Node
-		return json.Unmarshal(data, (*buf)(node))
+		return decodeNodes(iter, &node.Args)
+	case jsoniter.ObjectValue:
+		var err error
+		iter.ReadMapCB(func(iter *jsoniter.Iterator, field string) bool {
+			if iter.WhatIsNext() == jsoniter.NilValue {
+				iter.Skip()
+				return true
+			}
+			switch strings.ToLower(field) {
+			case "prim":
+				node.Prim = iter.ReadString()
+			case "args":
+				if iter.WhatIsNext() != jsoniter.ArrayValue {
+					err = consts.ErrInvalidJSON
+					return false
+				}
+				node.Args = make([]*Node, 0)
+				err = decodeNodes(iter, &node.Args)
+			case "annots":
+				node.Annots = make([]string, 0)
+				iter.ReadArrayCB(func(iter *jsoniter.Iterator) bool {
+					node.Annots = append(node.Annots, iter.ReadString())
+					return iter.Error == nil
+				})
+			case "string":
+				value := iter.ReadString()
+				node.StringValue = &value
+			case "bytes":
+				value := iter.ReadString()
+				node.BytesValue = &value
+			case "int":
+				node.IntValue = new(types.BigInt)
+				err = node.IntValue.UnmarshalJSON(iter.SkipAndReturnBytes())
+			default:
+				iter.Skip()
+			}
+			return err == nil && iter.Error == nil
+		})
+		if err != nil {
+			return err
+		}
+		return iter.Error
 	default:
 		return consts.ErrInvalidJSON
 	}
+}
+
+func decodeNodes(iter *jsoniter.Iterator, nodes *[]*Node) error {
+	var err error
+	iter.ReadArrayCB(func(iter *jsoniter.Iterator) bool {
+		// null elements are meaningful: e.g. the value of a removed big_map key
+		if iter.WhatIsNext() == jsoniter.NilValue {
+			iter.Skip()
+			*nodes = append(*nodes, nil)
+			return iter.Error == nil
+		}
+		child := new(Node)
+		if err = child.decode(iter); err != nil {
+			return false
+		}
+		*nodes = append(*nodes, child)
+		return iter.Error == nil
+	})
+	if err != nil {
+		return err
+	}
+	return iter.Error
 }
 
 // MarshalJSON -

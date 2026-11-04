@@ -1,7 +1,9 @@
 package base
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -74,4 +76,59 @@ func TestNode_IsComparable(t *testing.T) {
 
 	var nilNode *Node
 	require.False(t, nilNode.IsComparable())
+}
+
+func TestNode_UnmarshalJSON_RoundTrip(t *testing.T) {
+	tests := []string{
+		`{"prim":"Pair","args":[{"int":"-42"},{"string":"hello"}]}`,
+		`{"prim":"pair","args":[{"prim":"nat","annots":["%a"]},{"prim":"bytes","annots":[":b","%c"]}]}`,
+		`[{"bytes":"0a0b"},[],[{"prim":"Unit"}]]`,
+		`[{"prim":"Elt","args":[{"string":"key"},null]}]`,
+		`{"int":"123456789012345678901234567890"}`,
+		`[]`,
+	}
+	for _, tt := range tests {
+		t.Run(tt, func(t *testing.T) {
+			var node Node
+			require.NoError(t, json.UnmarshalFromString(tt, &node))
+			got, err := json.MarshalToString(&node)
+			require.NoError(t, err)
+			require.JSONEq(t, tt, got)
+		})
+	}
+}
+
+func TestNode_UnmarshalJSON_Invalid(t *testing.T) {
+	for _, tt := range []string{
+		`"string"`,
+		`42`,
+		`null`,
+		`{"prim":"Pair","args":{"int":"1"}}`,
+		`{"prim":"Pair","args":[42]}`,
+		`{"int":"abc"}`,
+		`{"prim":"Pair","args":[{"int":"1"}`,
+	} {
+		t.Run(tt, func(t *testing.T) {
+			var node Node
+			require.Error(t, json.UnmarshalFromString(tt, &node))
+		})
+	}
+}
+
+func TestNode_UnmarshalJSON_NullFieldsAreAbsent(t *testing.T) {
+	var node Node
+	require.NoError(t, json.UnmarshalFromString(`{"prim":"Unit","args":null,"annots":null,"int":null,"string":null,"bytes":null}`, &node))
+	require.Equal(t, Node{Prim: "Unit"}, node)
+}
+
+// Each nesting level used to re-decode its whole subtree, so a deep tree with
+// a large leaf was quadratic: 9000 levels around ~1MB took seconds.
+func TestNode_UnmarshalJSON_DeepNestingIsLinear(t *testing.T) {
+	const depth = 9000
+	payload := `[` + strings.Repeat(`[`, depth) + `{"string":"` + strings.Repeat("a", 1<<20) + `"}` + strings.Repeat(`]`, depth) + `]`
+
+	start := time.Now()
+	var node Node
+	require.NoError(t, json.UnmarshalFromString(payload, &node))
+	require.Less(t, time.Since(start), time.Second)
 }

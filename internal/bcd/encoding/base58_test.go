@@ -1,7 +1,9 @@
 package encoding
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -56,6 +58,18 @@ func TestDecodeBase58String(t *testing.T) {
 			name: "operation",
 			data: "opMhUv6wNFN1k5DofyPonyts1mSo4cTjCsk19i4Li7reT1oAQ1K",
 			want: "e1e56182ae0a8738f804ac7edfd199a6ce617a6ee6751a0c69a4ad972098ebc7",
+		}, {
+			name:    "too short: go-base58 used to panic on it",
+			data:    "2",
+			wantErr: true,
+		}, {
+			name:    "empty",
+			data:    "",
+			wantErr: true,
+		}, {
+			name:    "unknown length",
+			data:    "tz1LFEVYR7YRCxT6Nm3Zfjdnfj77xZqhbR5UU",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -201,5 +215,22 @@ func TestEncodeBase58String(t *testing.T) {
 			}
 			require.Equal(t, tt.want, got)
 		})
+	}
+}
+
+func TestDecodeBase58_LongInputRejectedFast(t *testing.T) {
+	data := strings.Repeat("z", 1<<20)
+	start := time.Now()
+	_, err := DecodeBase58(data)
+	require.ErrorIs(t, err, ErrInvalidBase58Length)
+	require.Less(t, time.Since(start), time.Second)
+}
+
+func TestDecodeBase58_NoPanicOnShortInput(t *testing.T) {
+	for _, s := range []string{"", "1", "2", "zz", "zzz", "zzzz"} {
+		require.NotPanics(t, func() {
+			_, _ = DecodeBase58(s)
+			_, _ = DecodeBase58ToString(s)
+		}, s)
 	}
 }

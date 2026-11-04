@@ -195,19 +195,26 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 		argIndent := indent + "  "
 		altIndent := indent + strings.Repeat(" ", len(expr)+2)
 
+		// Appending through fmt.Sprintf copied the whole accumulated
+		// expression once per argument: quadratic in the argument count.
+		var builder strings.Builder
+		builder.WriteString(expr)
 		for _, arg := range args {
 			item, err := formatNode(arg, argIndent, inline, false, false, lineSize)
 			if err != nil {
 				return "", err
 			}
-			length := len(indent) + len(expr) + len(item) + 1
+			length := len(indent) + builder.Len() + len(item) + 1
 			if inline || IsInline(node) || length < lineSize {
 				argIndent = altIndent
-				expr = fmt.Sprintf("%v %v", expr, item)
+				builder.WriteByte(' ')
 			} else {
-				expr = fmt.Sprintf("%v\n%v%v", expr, argIndent, item)
+				builder.WriteByte('\n')
+				builder.WriteString(argIndent)
 			}
+			builder.WriteString(item)
 		}
+		expr = builder.String()
 	}
 
 	if IsFramed(node) && !isRoot && !wrapped {

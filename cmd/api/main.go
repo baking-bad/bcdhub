@@ -117,6 +117,7 @@ func (api *app) makeRouter() {
 	}
 
 	r.Use(gin.Recovery())
+	r.Use(handlers.BodyLimitMiddleware(handlers.MaxRequestBodySize))
 
 	if api.Config.API.SentryEnabled {
 		r.Use(sentrygin.New(sentrygin.Options{
