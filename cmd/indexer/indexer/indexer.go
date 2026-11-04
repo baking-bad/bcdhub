@@ -142,6 +142,7 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 		if err != nil {
 			return err
 		}
+		defer tx.Close()
 		if err := tx.Protocol(ctx, &currentProtocol); err != nil {
 			return err
 		}
@@ -436,6 +437,7 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header) e
 	if err != nil {
 		return errors.Wrap(err, "create postgres transaction")
 	}
+	defer tx.Close()
 
 	migraton := protocols.NewMigration(bi.Network, bi.Context)
 	newProto, err := migraton.Do(ctx, tx, bi.currentProtocol, head)
@@ -443,12 +445,12 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header) e
 		return errors.Wrap(err, "migration.Do")
 	}
 
-	bi.currentProtocol = newProto
-	bi.blockTime.Store(newProto.TimeBetweenBlocks * int64(time.Second))
-
 	if err := tx.Commit(); err != nil {
 		return err
 	}
+
+	bi.currentProtocol = newProto
+	bi.blockTime.Store(newProto.TimeBetweenBlocks * int64(time.Second))
 
 	bi.setUpdateTicker(0)
 	log.Info().

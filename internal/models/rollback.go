@@ -42,4 +42,5 @@ type Rollback interface {
 
 	Commit() error
 	Rollback() error
+	Close() error
 }

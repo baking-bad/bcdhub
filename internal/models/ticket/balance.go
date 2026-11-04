@@ -13,7 +13,7 @@ type Balance struct {
 
 	TicketId  int64           `bun:"ticket_id,pk,notnull"`
 	AccountId int64           `bun:"account_id,pk,notnull"`
-	Amount    decimal.Decimal `bun:"amount,type:numeric(200,0)"`
+	Amount    decimal.Decimal `bun:"amount,type:numeric"`
 
 	Ticket  Ticket          `bun:"rel:belongs-to"`
 	Account account.Account `bun:"rel:belongs-to"`

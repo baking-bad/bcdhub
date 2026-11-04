@@ -29,6 +29,7 @@ func (store *Store) Save(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	defer tx.Close()
 
 	if err := tx.Block(ctx, store.Block); err != nil {
 		return errors.Wrap(err, "saving block")
