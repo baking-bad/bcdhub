@@ -34,6 +34,7 @@ var errorCodes = []errorCode{
 	{consts.ErrValidation, http.StatusBadRequest},
 	{consts.ErrJSONDataIsAbsent, http.StatusBadRequest},
 	{consts.ErrInvalidType, http.StatusBadRequest},
+	{consts.ErrInvalidArgsCount, http.StatusBadRequest},
 	{errNoViews, http.StatusNotFound},
 	{errEmptyImplementation, http.StatusBadRequest},
 	{errEmptyOffChainView, http.StatusBadRequest},

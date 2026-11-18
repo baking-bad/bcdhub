@@ -7,6 +7,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/go-playground/validator/v10"
@@ -71,19 +72,19 @@ func Register(v *validator.Validate, cfg config.APIConfig) error {
 
 func addressValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
-		return bcd.IsAddress(fl.Field().String())
+		return isBase58Check(fl.Field().String(), bcd.IsAddress)
 	}
 }
 
 func smartRollupValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
-		return bcd.IsSmartRollupHash(fl.Field().String())
+		return isBase58Check(fl.Field().String(), bcd.IsSmartRollupHash)
 	}
 }
 
 func contractValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
-		return bcd.IsContract(fl.Field().String())
+		return isBase58Check(fl.Field().String(), bcd.IsContract)
 	}
 }
 
@@ -198,4 +199,15 @@ func constantAddressValidator() validator.Func {
 		_, _, err := base58.CheckDecode(address)
 		return err == nil
 	}
+}
+
+// isBase58Check checks the shape of value with isValid and then its
+// base58check checksum, so a mistyped hash is rejected as invalid input
+// instead of turning into a database lookup that finds nothing.
+func isBase58Check(value string, isValid func(string) bool) bool {
+	if !isValid(value) {
+		return false
+	}
+	_, err := encoding.DecodeBase58(value)
+	return err == nil
 }

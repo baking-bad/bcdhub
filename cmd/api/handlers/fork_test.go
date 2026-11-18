@@ -30,3 +30,23 @@ func TestForkScript_NonComparableTicketIsBadRequest(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, getErrorCode(err, repo), storage)
 	}
 }
+
+// A user script whose type has the wrong number of arguments is a client
+// error too.
+func TestForkScript_InvalidArgsCountIsBadRequest(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	repo := mock.NewMockGeneralRepository(ctrl)
+	repo.EXPECT().IsRecordNotFound(gomock.Any()).Return(false).AnyTimes()
+
+	for _, storage := range []string{
+		`{"prim":"option"}`,
+		`{"prim":"or","args":[{"prim":"nat"}]}`,
+	} {
+		script, err := ast.NewScript([]byte(`[{"prim":"parameter","args":[{"prim":"unit"}]},{"prim":"storage","args":[` + storage + `]},{"prim":"code","args":[[{"prim":"FAILWITH"}]]}]`))
+		require.NoError(t, err)
+
+		_, err = script.StorageType()
+		require.ErrorIs(t, err, consts.ErrInvalidArgsCount)
+		require.Equal(t, http.StatusBadRequest, getErrorCode(err, repo), storage)
+	}
+}
