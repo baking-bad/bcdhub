@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 #  The first stage container, for building the application
 # ---------------------------------------------------------------------
-FROM golang:1.27.3-alpine AS builder
+FROM golang:1.27.4-alpine AS builder
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on
@@ -9,6 +9,10 @@ ENV GOOS=linux
 
 RUN apk --no-cache add ca-certificates
 RUN apk add --update git
+
+# scratch has no adduser: prepare a minimal passwd/group for the non-root user
+RUN echo 'bcd:x:10001:10001::/nonexistent:/sbin/nologin' > /etc/passwd.scratch \
+ && echo 'bcd:x:10001:' > /etc/group.scratch
 
 RUN mkdir -p $GOPATH/src/github.com/baking-bad/bcdhub/
 
@@ -33,9 +37,9 @@ RUN cd nginx && go build -o /go/bin/seo .
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
-FROM alpine:3.24
+FROM scratch
 
-ENV PATH="/go/bin/:$PATH"
+ENV PATH="/go/bin"
 
 WORKDIR /app/api
 
@@ -47,7 +51,8 @@ COPY --from=builder /go/bin/bcdctl /go/bin/bcdctl
 COPY --from=builder /go/bin/migration /go/bin/migration
 COPY --from=builder /go/bin/seo /go/bin/seo
 
-RUN addgroup -g 10001 -S bcd && adduser -u 10001 -S -D -G bcd bcd
+COPY --from=builder /etc/passwd.scratch /etc/passwd
+COPY --from=builder /etc/group.scratch /etc/group
 USER 10001:10001
 
 ENTRYPOINT ["/go/bin/api"]
