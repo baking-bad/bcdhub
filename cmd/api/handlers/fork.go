@@ -105,17 +105,17 @@ func CodeFromMichelson() gin.HandlerFunc {
 		}
 
 		script, err := ast.NewScript(response.Script)
-		if handleError(c, ctx.Any().Storage, err, http.StatusInternalServerError) {
+		if handleError(c, ctx.Any().Storage, err, 0) {
 			return
 		}
 
 		storageType, err := script.StorageType()
-		if handleError(c, ctx.Any().Storage, err, http.StatusInternalServerError) {
+		if handleError(c, ctx.Any().Storage, err, 0) {
 			return
 		}
 
 		schema, err := storageType.ToJSONSchema()
-		if handleError(c, ctx.Any().Storage, err, http.StatusInternalServerError) {
+		if handleError(c, ctx.Any().Storage, err, 0) {
 			return
 		}
 		response.Storage.Schema = schema

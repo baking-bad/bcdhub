@@ -89,3 +89,14 @@ func IsOperationHash(str string) bool {
 func IsSmartRollupHash(str string) bool {
 	return smartRollupRegex.MatchString(str)
 }
+
+// IsBase58Check checks the shape of str with isValid (one of the Is*
+// validators above) and then its base58check checksum, so a mistyped hash is
+// rejected as invalid input instead of passing the regex.
+func IsBase58Check(str string, isValid func(string) bool) bool {
+	if !isValid(str) {
+		return false
+	}
+	_, err := encoding.DecodeBase58(str)
+	return err == nil
+}

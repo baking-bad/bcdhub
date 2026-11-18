@@ -33,7 +33,7 @@ func AddressValidator(value string) error {
 		if !bcd.IsAddressLazy(value) {
 			return errors.Wrapf(consts.ErrValidation, "invalid address '%s'", value)
 		}
-		if !bcd.IsAddress(value) {
+		if !bcd.IsBase58Check(value, bcd.IsAddress) {
 			return errors.Wrapf(consts.ErrValidation, "invalid address '%s'", value)
 		}
 	default:
@@ -54,7 +54,7 @@ func ContractValidator(value string) error {
 		if !bcd.IsContractLazy(value) {
 			return errors.Wrapf(consts.ErrValidation, "invalid contract address '%s'", value)
 		}
-		if !bcd.IsContract(value) {
+		if !bcd.IsBase58Check(value, bcd.IsContract) {
 			return errors.Wrapf(consts.ErrValidation, "invalid contract address '%s'", value)
 		}
 	default:
@@ -68,7 +68,7 @@ func ContractValidator(value string) error {
 		if !bcd.IsContractLazy(address) {
 			return errors.Wrapf(consts.ErrValidation, "invalid contract address '%s'", address)
 		}
-		if !bcd.IsContract(address) {
+		if !bcd.IsBase58Check(address, bcd.IsContract) {
 			return errors.Wrapf(consts.ErrValidation, "invalid contract address '%s'", address)
 		}
 	}
@@ -84,7 +84,7 @@ func BakerHashValidator(value string) error {
 			return errors.Wrapf(consts.ErrValidation, "baker hash '%s' should be hexademical without prefixes", value)
 		}
 	case 36:
-		if !bcd.IsBakerHash(value) {
+		if !bcd.IsBase58Check(value, bcd.IsBakerHash) {
 			return errors.Wrapf(consts.ErrValidation, "invalid baker hash '%s'", value)
 		}
 	default:
