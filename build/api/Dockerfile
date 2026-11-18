@@ -33,7 +33,7 @@ RUN cd nginx && go build -o /go/bin/seo .
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
-FROM alpine:3.25
+FROM alpine:3.24
 
 ENV PATH="/go/bin/:$PATH"
 
