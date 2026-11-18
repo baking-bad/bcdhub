@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 #  The first stage container, for building the application
 # ---------------------------------------------------------------------
-FROM golang:1.27.3-alpine AS builder
+FROM golang:1.27.4-alpine AS builder
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on
@@ -33,7 +33,7 @@ RUN cd nginx && go build -o /go/bin/seo .
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
-FROM alpine:3.24
+FROM alpine:3.25
 
 ENV PATH="/go/bin/:$PATH"
 

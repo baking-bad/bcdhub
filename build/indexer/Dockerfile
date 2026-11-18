@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 #  The first stage container, for building the application
 # ---------------------------------------------------------------------
-FROM golang:1.27.3-alpine AS builder
+FROM golang:1.27.4-alpine AS builder
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on
@@ -25,7 +25,7 @@ RUN go build -tags=jsoniter_sloppy -o /go/bin/indexer .
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
-FROM alpine:3.24
+FROM alpine:3.25
 
 WORKDIR /app/indexer
 
