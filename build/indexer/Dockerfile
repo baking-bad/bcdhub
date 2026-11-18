@@ -10,6 +10,10 @@ ENV GOOS=linux
 RUN apk --no-cache add ca-certificates
 RUN apk add --update git
 
+# scratch has no adduser: prepare a minimal passwd/group for the non-root user
+RUN echo 'bcd:x:10001:10001::/nonexistent:/sbin/nologin' > /etc/passwd.scratch \
+ && echo 'bcd:x:10001:' > /etc/group.scratch
+
 RUN mkdir -p $GOPATH/src/github.com/baking-bad/bcdhub/
 
 COPY ./go.* $GOPATH/src/github.com/baking-bad/bcdhub/
@@ -25,7 +29,7 @@ RUN go build -tags=jsoniter_sloppy -o /go/bin/indexer .
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
-FROM alpine:3.24
+FROM scratch
 
 WORKDIR /app/indexer
 
@@ -33,7 +37,8 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/indexer /go/bin/indexer
 COPY configs/*.yml /app/indexer/
 
-RUN addgroup -g 10001 -S bcd && adduser -u 10001 -S -D -G bcd bcd
+COPY --from=builder /etc/passwd.scratch /etc/passwd
+COPY --from=builder /etc/group.scratch /etc/group
 USER 10001:10001
 
 ENTRYPOINT ["/go/bin/indexer"]
