@@ -2,11 +2,16 @@ package handlers
 
 import (
 	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/mock"
+	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -28,5 +33,55 @@ func TestForkScript_NonComparableTicketIsBadRequest(t *testing.T) {
 		_, err = script.StorageType()
 		require.ErrorIs(t, err, consts.ErrTypeIsNotComparable)
 		require.Equal(t, http.StatusBadRequest, getErrorCode(err, repo), storage)
+	}
+}
+
+// A user script whose type has the wrong number of arguments is a client
+// error too.
+func TestForkScript_InvalidArgsCountIsBadRequest(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	repo := mock.NewMockGeneralRepository(ctrl)
+	repo.EXPECT().IsRecordNotFound(gomock.Any()).Return(false).AnyTimes()
+
+	for _, storage := range []string{
+		`{"prim":"option"}`,
+		`{"prim":"or","args":[{"prim":"nat"}]}`,
+	} {
+		script, err := ast.NewScript([]byte(`[{"prim":"parameter","args":[{"prim":"unit"}]},{"prim":"storage","args":[` + storage + `]},{"prim":"code","args":[[{"prim":"FAILWITH"}]]}]`))
+		require.NoError(t, err)
+
+		_, err = script.StorageType()
+		require.ErrorIs(t, err, consts.ErrInvalidArgsCount)
+		require.Equal(t, http.StatusBadRequest, getErrorCode(err, repo), storage)
+	}
+}
+
+// /v1/michelson parses a user script as well: an invalid storage type must be
+// a 400 there too, not a blanket 500.
+func TestCodeFromMichelson_InvalidStorageTypeIsBadRequest(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	for _, code := range []string{
+		"parameter unit; storage (option); code { FAILWITH };",
+		"parameter unit; storage (or nat); code { FAILWITH };",
+	} {
+		t.Run(code, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			repo := mock.NewMockGeneralRepository(ctrl)
+			repo.EXPECT().IsRecordNotFound(gomock.Any()).Return(false).AnyTimes()
+
+			contexts := config.Contexts{types.Mainnet: &config.Context{Storage: repo}}
+
+			router := gin.New()
+			router.POST("/v1/michelson", func(c *gin.Context) {
+				c.Set("contexts", contexts)
+			}, CodeFromMichelson())
+
+			request := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/michelson", strings.NewReader(code))
+			recorder := httptest.NewRecorder()
+			router.ServeHTTP(recorder, request)
+
+			require.Equal(t, http.StatusBadRequest, recorder.Code, recorder.Body.String())
+		})
 	}
 }

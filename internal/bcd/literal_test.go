@@ -145,3 +145,31 @@ func TestFindContract(t *testing.T) {
 	require.Equal(t, kt1, FindContract("Error in contract "+kt1+": script failed"))
 	require.Empty(t, FindContract("no contract here"))
 }
+
+func TestIsBase58Check(t *testing.T) {
+	tests := []struct {
+		value   string
+		isValid func(string) bool
+		want    bool
+	}{
+		{"tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE", IsAddress, true},
+		{"KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU", IsContract, true},
+		{"KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU", IsAddress, true},
+		{"sr16gW4duQ14BRJ1Yj4HzGxgxUsZXhU8j2S2", IsSmartRollupHash, true},
+		{"sr16gW4duQ14BRJ1Yj4HzGxgxUsZXhU8j2S2", IsAddress, true},
+		{"txr1NCAPrvMm88qqNdjSYXXNv842XiuZ1wPQQ", IsAddress, true},
+		{"SG1d1wsgMKvSstzZQ8L4WoskCesdWGzVt5k4", IsBakerHash, true},
+		// the last character changed: the shape is right, the checksum is not
+		{"tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTF", IsAddress, false},
+		{"KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoV", IsContract, false},
+		{"sr16gW4duQ14BRJ1Yj4HzGxgxUsZXhU8j2S3", IsSmartRollupHash, false},
+		{"txr1NCAPrvMm88qqNdjSYXXNv842XiuZ1wPQR", IsAddress, false},
+		// the right checksum, the wrong shape
+		{"KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU", IsSmartRollupHash, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.value, func(t *testing.T) {
+			require.Equal(t, tt.want, IsBase58Check(tt.value, tt.isValid))
+		})
+	}
+}

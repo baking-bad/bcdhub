@@ -71,19 +71,19 @@ func Register(v *validator.Validate, cfg config.APIConfig) error {
 
 func addressValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
-		return bcd.IsAddress(fl.Field().String())
+		return bcd.IsBase58Check(fl.Field().String(), bcd.IsAddress)
 	}
 }
 
 func smartRollupValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
-		return bcd.IsSmartRollupHash(fl.Field().String())
+		return bcd.IsBase58Check(fl.Field().String(), bcd.IsSmartRollupHash)
 	}
 }
 
 func contractValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
-		return bcd.IsContract(fl.Field().String())
+		return bcd.IsBase58Check(fl.Field().String(), bcd.IsContract)
 	}
 }
 

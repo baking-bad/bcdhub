@@ -3,6 +3,7 @@ package ast
 import (
 	"testing"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/stretchr/testify/require"
 )
 
@@ -222,6 +223,29 @@ func TestContractValidator(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := ContractValidator(tt.value)
 			require.Equal(t, tt.wantErr, err != nil)
+		})
+	}
+}
+
+// A value of the right shape with a wrong base58check checksum (the last
+// character changed) is a validation error, so the API answers 400 instead of
+// failing later in forge with 500.
+func TestValidators_RejectBadChecksum(t *testing.T) {
+	tests := []struct {
+		name      string
+		validator Validator[string]
+		value     string
+	}{
+		{"address tz1", AddressValidator, "tz1KfEsrtDaA1sX7vdM4qmEPWuSytuqCDp5k"},
+		{"address KT1", AddressValidator, "KT1JdufSdfg3WyxWJcCRNsBFV9V3x9TQBkJ3"},
+		{"address sr1", AddressValidator, "sr18wx6ezkeRjt1SZSeZ2UQzQN3Uc3YLMLqh"},
+		{"contract", ContractValidator, "KT1JdufSdfg3WyxWJcCRNsBFV9V3x9TQBkJ3"},
+		{"contract with entrypoint", ContractValidator, "KT1Nh9wK8W3j3CXeTVm5DTTaiU5RE8CxLWZ5%726563656976655f62756e6e795f62616c616e6365"},
+		{"baker hash", BakerHashValidator, "SG1d1wsgMKvSstzZQ8L4WoskCesdWGzVt5k5"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.ErrorIs(t, tt.validator(tt.value), consts.ErrValidation)
 		})
 	}
 }
