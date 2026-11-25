@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres"
+	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
 	"github.com/shopspring/decimal"
 )
@@ -205,6 +206,96 @@ func (s *StorageTestSuite) TestProtocols() {
 	s.Require().NoError(err)
 	s.Require().EqualValues(0, proto.EndLevel)
 	s.Require().EqualValues("Ps9mPmXaRzmzk35gbAYNCAw6UXdE2qoABTHbN2oEEc1qM7CwT9P", proto.Hash)
+}
+
+// TestProtocolsRemigrationAfterRollback rolls back the activation block of the
+// second protocol and migrates to the same protocol again, as the indexer does
+// when the activation block is reorged: the reloaded state must point to the
+// first protocol so the migration is not skipped, and after it both protocol
+// rows and the new block must be consistent.
+func (s *StorageTestSuite) TestProtocolsRemigrationAfterRollback() {
+	const (
+		activationLevel = 2
+		p1Hash          = "Ps9mPmXaRzmzk35gbAYNCAw6UXdE2qoABTHbN2oEEc1qM7CwT9P"
+		p2Hash          = "PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx"
+	)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	head, err := s.blocks.Last(ctx)
+	s.Require().NoError(err)
+	s.Require().Greater(head.Level, int64(activationLevel))
+
+	saver, err := postgres.NewRollback(s.storage.DB)
+	s.Require().NoError(err)
+	for level := head.Level; level >= activationLevel; level-- {
+		_, err := saver.DeleteAll(ctx, (*block.Block)(nil), level)
+		s.Require().NoError(err)
+		s.Require().NoError(saver.Protocols(ctx, level))
+	}
+	s.Require().NoError(saver.Commit())
+
+	// the indexer reloads its state and protocol after the rollback
+	state, err := s.blocks.Last(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(activationLevel-1, state.Level)
+
+	current, err := s.protocols.Get(ctx, "", state.Level)
+	s.Require().NoError(err)
+	s.Require().Equal(p1Hash, current.Hash)
+	s.Require().EqualValues(0, current.EndLevel)
+
+	_, err = s.protocols.Get(ctx, p2Hash, -1)
+	s.Require().Error(err, "the second protocol must be deleted by the rollback")
+	s.Require().True(s.storage.IsRecordNotFound(err))
+
+	// the new activation block brings the same protocol: migrate again
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+	defer tx.Close()
+
+	current.EndLevel = activationLevel - 1
+	s.Require().NoError(tx.Protocol(ctx, &current))
+
+	newProto := protocol.Protocol{
+		Hash:       p2Hash,
+		StartLevel: activationLevel,
+		SymLink:    "babylon",
+		Alias:      "PtHangz2",
+		ChainID:    current.ChainID,
+		Constants:  &protocol.Constants{TimeBetweenBlocks: 15},
+	}
+	s.Require().NoError(tx.Protocol(ctx, &newProto))
+	s.Require().NotZero(newProto.ID)
+
+	newBlock := block.Block{
+		Hash:       "BLnewActivationBlock",
+		Level:      activationLevel,
+		Timestamp:  time.Date(2022, 1, 25, 15, 10, 11, 0, time.UTC),
+		ProtocolID: newProto.ID,
+	}
+	s.Require().NoError(tx.Block(ctx, &newBlock))
+	s.Require().NoError(tx.Commit())
+
+	p1, err := s.protocols.Get(ctx, p1Hash, -1)
+	s.Require().NoError(err)
+	s.Require().EqualValues(activationLevel-1, p1.EndLevel)
+
+	p2, err := s.protocols.Get(ctx, p2Hash, -1)
+	s.Require().NoError(err)
+	s.Require().Equal(newProto.ID, p2.ID)
+	s.Require().EqualValues(activationLevel, p2.StartLevel)
+	s.Require().EqualValues(0, p2.EndLevel)
+
+	last, err := s.blocks.Last(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(activationLevel, last.Level)
+	s.Require().Equal(p2.ID, last.ProtocolID)
+
+	byID, err := s.protocols.GetByID(ctx, last.ProtocolID)
+	s.Require().NoError(err)
+	s.Require().Equal(p2Hash, byID.Hash)
 }
 
 func (s *StorageTestSuite) TestRollbackUpdateStats() {
