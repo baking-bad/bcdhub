@@ -32,11 +32,20 @@ import (
 var errBcdQuit = errors.New("bcd-quit")
 var errSameLevel = errors.New("Same level")
 
+// protocolReloadDelay is the pause between attempts to reload the current
+// protocol after a rollback.
+var protocolReloadDelay = time.Second
+
 // BlockchainIndexer -
 type BlockchainIndexer struct {
 	*config.Context
 
-	receiver        *Receiver
+	receiver *Receiver
+
+	// mx serializes block processing in indexBlock with the rollback that
+	// process() starts when the node is behind, and guards state,
+	// currentProtocol and blocks between them.
+	mx              sync.Mutex
 	state           block.Block
 	currentProtocol protocol.Protocol
 	blocks          map[int64]*Block
@@ -118,50 +127,17 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 	bi.state = currentState
 	log.Info().Str("network", bi.Network.String()).Msgf("Current indexer state: %d", currentState.Level)
 
-	currentProtocol, err := bi.Protocols.Get(ctx, "", currentState.Level)
-	if err != nil {
+	if err := bi.refreshProtocol(ctx, currentState.Level); err != nil {
 		if !bi.Storage.IsRecordNotFound(err) {
 			return err
 		}
-
-		header, err := bi.RPC.GetHeader(ctx, helpers.Max(bi.startLevel, currentState.Level))
+		proto, err := bi.createInitialProtocol(ctx, currentState.Level)
 		if err != nil {
 			return err
 		}
-
-		log.Info().
-			Str("network", bi.Network.String()).
-			Msgf("Creating new protocol %s starting at %d", header.Protocol, header.Level)
-
-		currentProtocol, err = protocols.Create(ctx, bi.RPC, header)
-		if err != nil {
-			return err
-		}
-
-		tx, err := core.NewTransaction(ctx, bi.StorageDB.DB)
-		if err != nil {
-			return err
-		}
-		defer tx.Close()
-		if err := tx.Protocol(ctx, &currentProtocol); err != nil {
-			return err
-		}
-		if err := tx.UpdateStats(ctx, stats.Stats{}); err != nil {
-			return err
-		}
-		if err := tx.Commit(); err != nil {
-			return err
-		}
-
-		if currentState.Level == 0 && bi.startLevel > 1 {
-			if err := bi.bootstrapImplicitContracts(ctx, header, currentProtocol); err != nil {
-				return err
-			}
-		}
+		bi.setCurrentProtocol(proto)
 	}
-
-	bi.setCurrentProtocol(currentProtocol)
-	log.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", currentProtocol.Hash)
+	log.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", bi.currentProtocol.Hash)
 
 	for {
 		if _, err := bi.RPC.GetLevel(ctx); err == nil {
@@ -172,6 +148,46 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 	}
 
 	return nil
+}
+
+// createInitialProtocol creates the protocol of the first indexed block when
+// the database has none yet.
+func (bi *BlockchainIndexer) createInitialProtocol(ctx context.Context, stateLevel int64) (protocol.Protocol, error) {
+	header, err := bi.RPC.GetHeader(ctx, helpers.Max(bi.startLevel, stateLevel))
+	if err != nil {
+		return protocol.Protocol{}, err
+	}
+
+	log.Info().
+		Str("network", bi.Network.String()).
+		Msgf("Creating new protocol %s starting at %d", header.Protocol, header.Level)
+
+	currentProtocol, err := protocols.Create(ctx, bi.RPC, header)
+	if err != nil {
+		return protocol.Protocol{}, err
+	}
+
+	tx, err := core.NewTransaction(ctx, bi.StorageDB.DB)
+	if err != nil {
+		return protocol.Protocol{}, err
+	}
+	defer tx.Close()
+	if err := tx.Protocol(ctx, &currentProtocol); err != nil {
+		return protocol.Protocol{}, err
+	}
+	if err := tx.UpdateStats(ctx, stats.Stats{}); err != nil {
+		return protocol.Protocol{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return protocol.Protocol{}, err
+	}
+
+	if stateLevel == 0 && bi.startLevel > 1 {
+		if err := bi.bootstrapImplicitContracts(ctx, header, currentProtocol); err != nil {
+			return protocol.Protocol{}, err
+		}
+	}
+	return currentProtocol, nil
 }
 
 func (bi *BlockchainIndexer) bootstrapImplicitContracts(ctx context.Context, head noderpc.Header, currentProtocol protocol.Protocol) error {
@@ -319,44 +335,62 @@ func (bi *BlockchainIndexer) indexBlock(ctx context.Context) {
 			return
 
 		case newBlock := <-bi.receiver.Blocks():
-			bi.blocks[newBlock.Header.Level] = newBlock
-
-			nextLevel := helpers.Max(bi.state.Level+1, bi.startLevel)
-			block, ok := bi.blocks[nextLevel]
-			for ok {
-				if bi.state.Level > 0 && block.Header.Predecessor != bi.state.Hash {
-					if err := bi.Rollback(ctx); err != nil {
-						log.Err(err).Str("network", bi.Network.String()).Msg("rollback")
-						if errors.Is(err, errDeepReorg) {
-							helpers.LocalCatchErrorSentry(bi.hub, err)
-							select {
-							case bi.fatal <- err:
-							default:
-							}
-							return
-						}
-					}
-				} else {
-					if err := bi.handleBlock(ctx, block); err != nil {
-						log.Err(err).
-							Str("network", bi.Network.String()).
-							Int64("block", block.Header.Level).
-							Stack().
-							Msg("handleBlock")
-					}
-				}
-
-				delete(bi.blocks, block.Header.Level)
-				nextLevel = helpers.Max(bi.state.Level+1, bi.startLevel)
-				block, ok = bi.blocks[nextLevel]
+			if !bi.processBlocks(ctx, newBlock) {
+				return
 			}
 		}
 	}
 }
 
+// processBlocks stores a received block and indexes all consecutive blocks
+// that are ready, rolling back when a block does not extend the current state.
+// It returns false when indexing must stop.
+func (bi *BlockchainIndexer) processBlocks(ctx context.Context, newBlock *Block) bool {
+	bi.mx.Lock()
+	defer bi.mx.Unlock()
+
+	bi.blocks[newBlock.Header.Level] = newBlock
+
+	nextLevel := helpers.Max(bi.state.Level+1, bi.startLevel)
+	block, ok := bi.blocks[nextLevel]
+	for ok {
+		if bi.state.Level > 0 && block.Header.Predecessor != bi.state.Hash {
+			if err := bi.rollback(ctx); err != nil {
+				log.Err(err).Str("network", bi.Network.String()).Msg("rollback")
+				if errors.Is(err, errDeepReorg) {
+					helpers.LocalCatchErrorSentry(bi.hub, err)
+					select {
+					case bi.fatal <- err:
+					default:
+					}
+					return false
+				}
+				// the in-memory state may not match the database after a failed
+				// rollback: index nothing else until the next attempt
+				delete(bi.blocks, block.Header.Level)
+				return true
+			}
+		} else {
+			if err := bi.handleBlock(ctx, block); err != nil {
+				log.Err(err).
+					Str("network", bi.Network.String()).
+					Int64("block", block.Header.Level).
+					Stack().
+					Msg("handleBlock")
+			}
+		}
+
+		delete(bi.blocks, block.Header.Level)
+		nextLevel = helpers.Max(bi.state.Level+1, bi.startLevel)
+		block, ok = bi.blocks[nextLevel]
+	}
+	return true
+}
+
 // Index -
 func (bi *BlockchainIndexer) Index(ctx context.Context, head noderpc.Header) error {
-	for level := helpers.Max(bi.state.Level+1, bi.startLevel); level <= head.Level; level++ {
+	fromLevel := helpers.Max(bi.currentState().Level+1, bi.startLevel)
+	for level := fromLevel; level <= head.Level; level++ {
 		helpers.SetTagSentry("block", fmt.Sprintf("%d", level))
 
 		select {
@@ -437,6 +471,25 @@ func (bi *BlockchainIndexer) refreshProtocol(ctx context.Context, level int64) e
 	return nil
 }
 
+// reloadProtocol refreshes the current protocol after a rollback, retrying
+// until it succeeds or ctx is done. Indexing cannot go on without it: the
+// cached protocol may be a row the rollback has just deleted.
+func (bi *BlockchainIndexer) reloadProtocol(ctx context.Context, level int64) error {
+	for {
+		err := bi.refreshProtocol(ctx, level)
+		if err == nil {
+			return nil
+		}
+		log.Err(err).Str("network", bi.Network.String()).Msg("reload protocol after rollback, retrying")
+
+		select {
+		case <-ctx.Done():
+			return errors.Wrap(ctx.Err(), "reload protocol after rollback")
+		case <-time.After(protocolReloadDelay):
+		}
+	}
+}
+
 // needsMigration reports whether header starts a protocol other than the current one.
 func (bi *BlockchainIndexer) needsMigration(header noderpc.Header) bool {
 	return header.Protocol != bi.currentProtocol.Hash || header.Level <= 1
@@ -481,8 +534,34 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header) e
 	return nil
 }
 
+// currentState returns a copy of the indexer state safe to read from any goroutine.
+func (bi *BlockchainIndexer) currentState() block.Block {
+	bi.mx.Lock()
+	defer bi.mx.Unlock()
+	return bi.state
+}
+
 // Rollback -
 func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
+	bi.mx.Lock()
+	defer bi.mx.Unlock()
+	return bi.rollback(ctx)
+}
+
+// rollbackIfAhead rolls back if the indexer is still ahead of the node at headLevel.
+// The check and the rollback run under one lock, so a rollback that indexBlock
+// has just finished is not repeated.
+func (bi *BlockchainIndexer) rollbackIfAhead(ctx context.Context, headLevel int64) error {
+	bi.mx.Lock()
+	defer bi.mx.Unlock()
+	if headLevel >= bi.state.Level {
+		return nil
+	}
+	return bi.rollback(ctx)
+}
+
+// rollback must be called with bi.mx held.
+func (bi *BlockchainIndexer) rollback(ctx context.Context) error {
 	log.Warn().Str("network", bi.Network.String()).Msgf("Rollback from %8d", bi.state.Level)
 
 	lastLevel, err := bi.getLastRollbackBlock(ctx)
@@ -503,11 +582,14 @@ func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	// the rollback is committed: the state must follow it even if reloading
+	// the protocol fails below
+	bi.state = newState
+
 	previousBlockTime := bi.blockTime.Load()
-	if err := bi.refreshProtocol(ctx, newState.Level); err != nil {
+	if err := bi.reloadProtocol(ctx, newState.Level); err != nil {
 		return err
 	}
-	bi.state = newState
 	if bi.blockTime.Load() != previousBlockTime {
 		bi.setUpdateTicker(0)
 	}
@@ -557,14 +639,15 @@ func (bi *BlockchainIndexer) process(ctx context.Context) error {
 		return err
 	}
 
-	if !bi.state.Protocol.ValidateChainID(head.ChainID) {
-		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.Protocol.ChainID, head.ChainID)
+	state := bi.currentState()
+	if !state.Protocol.ValidateChainID(head.ChainID) {
+		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", state.Protocol.ChainID, head.ChainID)
 	}
 
-	log.Info().Str("network", bi.Network.String()).Int64("node", head.Level).Int64("indexer", bi.state.Level).Msg("current state")
+	log.Info().Str("network", bi.Network.String()).Int64("node", head.Level).Int64("indexer", state.Level).Msg("current state")
 
 	switch {
-	case head.Level > bi.state.Level:
+	case head.Level > state.Level:
 		if err := bi.Index(ctx, head); err != nil {
 			if errors.Is(err, errBcdQuit) {
 				return nil
@@ -574,8 +657,8 @@ func (bi *BlockchainIndexer) process(ctx context.Context) error {
 
 		log.Info().Str("network", bi.Network.String()).Msg("Synced")
 		return nil
-	case head.Level < bi.state.Level:
-		return bi.Rollback(ctx)
+	case head.Level < state.Level:
+		return bi.rollbackIfAhead(ctx, head.Level)
 	default:
 		return errSameLevel
 	}

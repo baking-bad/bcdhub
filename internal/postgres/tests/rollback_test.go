@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/account"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -11,10 +12,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/stats"
 	"github.com/baking-bad/bcdhub/internal/models/ticket"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers/protocols"
 	"github.com/baking-bad/bcdhub/internal/postgres"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/baking-bad/bcdhub/internal/rollback"
 	"github.com/baking-bad/bcdhub/internal/testsuite"
 	"github.com/shopspring/decimal"
+	"go.uber.org/mock/gomock"
 )
 
 func (s *StorageTestSuite) TestDeleteAll() {
@@ -208,94 +213,111 @@ func (s *StorageTestSuite) TestProtocols() {
 	s.Require().EqualValues("Ps9mPmXaRzmzk35gbAYNCAw6UXdE2qoABTHbN2oEEc1qM7CwT9P", proto.Hash)
 }
 
-// TestProtocolsRemigrationAfterRollback rolls back the activation block of the
-// second protocol and migrates to the same protocol again, as the indexer does
-// when the activation block is reorged: the reloaded state must point to the
-// first protocol so the migration is not skipped, and after it both protocol
-// rows and the new block must be consistent.
+// TestProtocolsRemigrationAfterRollback reproduces a reorg on a protocol
+// activation block with the real migration and rollback code: migrate to a new
+// protocol, roll the activation block back, reload the current protocol as the
+// indexer does, and migrate to the same protocol again on the new activation
+// block.
 func (s *StorageTestSuite) TestProtocolsRemigrationAfterRollback() {
 	const (
-		activationLevel = 2
-		p1Hash          = "Ps9mPmXaRzmzk35gbAYNCAw6UXdE2qoABTHbN2oEEc1qM7CwT9P"
-		p2Hash          = "PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx"
+		prevHash = "PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx"
+		// same sym link as prevHash: no contract migrations, which need more RPC data
+		nextHash = "Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A"
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	ctrl := gomock.NewController(s.T())
+	rpc := noderpc.NewMockINode(ctrl)
+	blockDelay := int64(15)
+	rpc.EXPECT().GetNetworkConstants(gomock.Any(), gomock.Any()).
+		Return(noderpc.Constants{MinimalBlockDelay: &blockDelay}, nil).
+		Times(2)
+	migration := protocols.NewMigration(types.Mainnet, &config.Context{RPC: rpc})
 
 	head, err := s.blocks.Last(ctx)
 	s.Require().NoError(err)
-	s.Require().Greater(head.Level, int64(activationLevel))
+	activationLevel := head.Level + 1
+
+	current, err := s.protocols.Get(ctx, "", head.Level)
+	s.Require().NoError(err)
+	s.Require().Equal(prevHash, current.Hash)
+	s.Require().EqualValues(0, current.EndLevel)
+
+	// migrate applies an activation block the way the indexer does: the
+	// migration and the block itself are written in one transaction
+	migrate := func(current protocol.Protocol, blockHash string) protocol.Protocol {
+		header := noderpc.Header{
+			Level:     activationLevel,
+			Hash:      blockHash,
+			Protocol:  nextHash,
+			ChainID:   current.ChainID,
+			Timestamp: head.Timestamp.Add(time.Minute),
+		}
+
+		tx, err := core.NewTransaction(ctx, s.storage.DB)
+		s.Require().NoError(err)
+		defer tx.Close()
+
+		newProto, err := migration.Do(ctx, tx, current, header)
+		s.Require().NoError(err)
+		s.Require().NoError(tx.Block(ctx, &block.Block{
+			Hash:       header.Hash,
+			Level:      header.Level,
+			Timestamp:  header.Timestamp,
+			ProtocolID: newProto.ID,
+		}))
+		s.Require().NoError(tx.Commit())
+		return newProto
+	}
+
+	orphanProto := migrate(current, "BLorphanActivationBlock")
+
+	// reorg: roll the activation block back
+	orphanState, err := s.blocks.Last(ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(activationLevel, orphanState.Level)
 
 	saver, err := postgres.NewRollback(s.storage.DB)
 	s.Require().NoError(err)
-	for level := head.Level; level >= activationLevel; level-- {
-		_, err := saver.DeleteAll(ctx, (*block.Block)(nil), level)
-		s.Require().NoError(err)
-		s.Require().NoError(saver.Protocols(ctx, level))
-	}
-	s.Require().NoError(saver.Commit())
+	s.Require().NoError(
+		rollback.NewManager(s.storage, s.blocks, saver, s.stats).
+			Rollback(ctx, types.Mainnet, orphanState, head.Level),
+	)
 
-	// the indexer reloads its state and protocol after the rollback
+	_, err = s.protocols.GetByID(ctx, orphanProto.ID)
+	s.Require().True(s.storage.IsRecordNotFound(err), "the rollback must delete the orphaned protocol")
+
+	// the indexer reloads the protocol of the new state: the previous one,
+	// so the new activation block is not skipped as already migrated
 	state, err := s.blocks.Last(ctx)
 	s.Require().NoError(err)
-	s.Require().EqualValues(activationLevel-1, state.Level)
+	s.Require().Equal(head.Level, state.Level)
 
-	current, err := s.protocols.Get(ctx, "", state.Level)
+	reloaded, err := s.protocols.Get(ctx, "", state.Level)
 	s.Require().NoError(err)
-	s.Require().Equal(p1Hash, current.Hash)
-	s.Require().EqualValues(0, current.EndLevel)
+	s.Require().Equal(prevHash, reloaded.Hash)
+	s.Require().EqualValues(0, reloaded.EndLevel)
 
-	_, err = s.protocols.Get(ctx, p2Hash, -1)
-	s.Require().Error(err, "the second protocol must be deleted by the rollback")
-	s.Require().True(s.storage.IsRecordNotFound(err))
+	newProto := migrate(reloaded, "BLnewActivationBlock")
+	s.Require().NotEqual(orphanProto.ID, newProto.ID)
 
-	// the new activation block brings the same protocol: migrate again
-	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	prev, err := s.protocols.Get(ctx, prevHash, -1)
 	s.Require().NoError(err)
-	defer tx.Close()
+	s.Require().Equal(activationLevel-1, prev.EndLevel)
 
-	current.EndLevel = activationLevel - 1
-	s.Require().NoError(tx.Protocol(ctx, &current))
-
-	newProto := protocol.Protocol{
-		Hash:       p2Hash,
-		StartLevel: activationLevel,
-		SymLink:    "babylon",
-		Alias:      "PtHangz2",
-		ChainID:    current.ChainID,
-		Constants:  &protocol.Constants{TimeBetweenBlocks: 15},
-	}
-	s.Require().NoError(tx.Protocol(ctx, &newProto))
-	s.Require().NotZero(newProto.ID)
-
-	newBlock := block.Block{
-		Hash:       "BLnewActivationBlock",
-		Level:      activationLevel,
-		Timestamp:  time.Date(2022, 1, 25, 15, 10, 11, 0, time.UTC),
-		ProtocolID: newProto.ID,
-	}
-	s.Require().NoError(tx.Block(ctx, &newBlock))
-	s.Require().NoError(tx.Commit())
-
-	p1, err := s.protocols.Get(ctx, p1Hash, -1)
+	next, err := s.protocols.Get(ctx, nextHash, -1)
 	s.Require().NoError(err)
-	s.Require().EqualValues(activationLevel-1, p1.EndLevel)
-
-	p2, err := s.protocols.Get(ctx, p2Hash, -1)
-	s.Require().NoError(err)
-	s.Require().Equal(newProto.ID, p2.ID)
-	s.Require().EqualValues(activationLevel, p2.StartLevel)
-	s.Require().EqualValues(0, p2.EndLevel)
+	s.Require().Equal(newProto.ID, next.ID)
+	s.Require().Equal(activationLevel, next.StartLevel)
+	s.Require().EqualValues(0, next.EndLevel)
+	s.Require().EqualValues(15, next.TimeBetweenBlocks)
 
 	last, err := s.blocks.Last(ctx)
 	s.Require().NoError(err)
-	s.Require().EqualValues(activationLevel, last.Level)
-	s.Require().Equal(p2.ID, last.ProtocolID)
-
-	byID, err := s.protocols.GetByID(ctx, last.ProtocolID)
-	s.Require().NoError(err)
-	s.Require().Equal(p2Hash, byID.Hash)
+	s.Require().Equal("BLnewActivationBlock", last.Hash)
+	s.Require().Equal(next.ID, last.ProtocolID)
 }
 
 func (s *StorageTestSuite) TestRollbackUpdateStats() {
