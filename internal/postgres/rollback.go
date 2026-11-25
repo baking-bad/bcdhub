@@ -70,16 +70,20 @@ func (r Rollback) DeleteBigMapState(ctx context.Context, state bigmapdiff.BigMap
 	return err
 }
 
-func (r Rollback) LastDiff(ctx context.Context, ptr int64, keyHash string, skipRemoved bool) (diff bigmapdiff.BigMapDiff, err error) {
+// LastDiff returns the most recent diff of the key strictly below `level`.
+// Diffs at `level` and above belong to the blocks being rolled back and must
+// not be used to restore the state.
+func (r Rollback) LastDiff(ctx context.Context, ptr int64, keyHash string, level int64, skipRemoved bool) (diff bigmapdiff.BigMapDiff, err error) {
 	query := r.tx.NewSelect().Model(&diff).
 		Where("key_hash = ?", keyHash).
-		Where("ptr = ?", ptr)
+		Where("ptr = ?", ptr).
+		Where("level < ?", level)
 
 	if skipRemoved {
 		query.Where("value is not null")
 	}
 
-	err = query.OrderExpr("timestamp desc, id desc").Limit(1).Scan(ctx)
+	err = query.OrderExpr("level desc, id desc").Limit(1).Scan(ctx)
 	return
 }
 

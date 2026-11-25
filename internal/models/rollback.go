@@ -23,7 +23,7 @@ type Rollback interface {
 	DeleteAll(ctx context.Context, model any, level int64) (int, error)
 	StatesChangedAtLevel(ctx context.Context, level int64) ([]bigmapdiff.BigMapState, error)
 	DeleteBigMapState(ctx context.Context, state bigmapdiff.BigMapState) error
-	LastDiff(ctx context.Context, ptr int64, keyHash string, skipRemoved bool) (bigmapdiff.BigMapDiff, error)
+	LastDiff(ctx context.Context, ptr int64, keyHash string, level int64, skipRemoved bool) (bigmapdiff.BigMapDiff, error)
 	SaveBigMapState(ctx context.Context, state bigmapdiff.BigMapState) error
 	GetOperations(ctx context.Context, level int64) ([]operation.Operation, error)
 	GetMigrations(ctx context.Context, level int64) ([]migration.Migration, error)

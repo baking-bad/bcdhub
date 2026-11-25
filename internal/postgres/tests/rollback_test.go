@@ -60,7 +60,7 @@ func (s *StorageTestSuite) TestLastDiff() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	diff, err := saver.LastDiff(ctx, 41, "exprurUjYU5axnk1qjE6F2t7uDtqR64bnsxGu3AHfWiVREftRDcRPX", true)
+	diff, err := saver.LastDiff(ctx, 41, "exprurUjYU5axnk1qjE6F2t7uDtqR64bnsxGu3AHfWiVREftRDcRPX", 47, true)
 	s.Require().NoError(err)
 
 	s.Require().EqualValues(54, diff.ID)

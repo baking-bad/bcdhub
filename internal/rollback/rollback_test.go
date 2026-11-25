@@ -300,7 +300,7 @@ func TestManager_Rollback(t *testing.T) {
 
 	ptr := int64(10)
 	rb.EXPECT().
-		LastDiff(gomock.Any(), ptr, "key_hash", false).
+		LastDiff(gomock.Any(), ptr, "key_hash", int64(11), false).
 		Return(bigmapdiff.BigMapDiff{
 			ID:          1,
 			Ptr:         ptr,
@@ -316,7 +316,7 @@ func TestManager_Rollback(t *testing.T) {
 		Times(1)
 
 	rb.EXPECT().
-		LastDiff(gomock.Any(), ptr, "key_hash_2", false).
+		LastDiff(gomock.Any(), ptr, "key_hash_2", int64(11), false).
 		Return(bigmapdiff.BigMapDiff{}, sql.ErrNoRows).
 		Times(1)
 

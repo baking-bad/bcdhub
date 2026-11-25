@@ -258,6 +258,11 @@ func (b *Babylon) handleBigMapDiffRemove(ctx context.Context, item noderpc.BigMa
 	}
 	for i := range states {
 		states[i].Removed = true
+		// The state is upserted with these values, so they must point at the
+		// removal: otherwise rolling back this level would not find the state
+		// and the keys would stay removed.
+		states[i].LastUpdateLevel = operation.Level
+		states[i].LastUpdateTime = operation.Timestamp
 
 		bmd := states[i].ToDiff()
 		bmd.OperationID = operation.ID
