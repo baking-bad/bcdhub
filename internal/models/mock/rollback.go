@@ -517,18 +517,18 @@ func (c *MockRollbackGlobalConstantsCall) DoAndReturn(f func(context.Context, in
 }
 
 // LastDiff mocks base method.
-func (m *MockRollback) LastDiff(ctx context.Context, ptr int64, keyHash string, skipRemoved bool) (bigmapdiff.BigMapDiff, error) {
+func (m *MockRollback) LastDiff(ctx context.Context, ptr int64, keyHash string, level int64, skipRemoved bool) (bigmapdiff.BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LastDiff", ctx, ptr, keyHash, skipRemoved)
+	ret := m.ctrl.Call(m, "LastDiff", ctx, ptr, keyHash, level, skipRemoved)
 	ret0, _ := ret[0].(bigmapdiff.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LastDiff indicates an expected call of LastDiff.
-func (mr *MockRollbackMockRecorder) LastDiff(ctx, ptr, keyHash, skipRemoved any) *MockRollbackLastDiffCall {
+func (mr *MockRollbackMockRecorder) LastDiff(ctx, ptr, keyHash, level, skipRemoved any) *MockRollbackLastDiffCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastDiff", reflect.TypeOf((*MockRollback)(nil).LastDiff), ctx, ptr, keyHash, skipRemoved)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastDiff", reflect.TypeOf((*MockRollback)(nil).LastDiff), ctx, ptr, keyHash, level, skipRemoved)
 	return &MockRollbackLastDiffCall{Call: call}
 }
 
@@ -544,13 +544,13 @@ func (c *MockRollbackLastDiffCall) Return(arg0 bigmapdiff.BigMapDiff, arg1 error
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockRollbackLastDiffCall) Do(f func(context.Context, int64, string, bool) (bigmapdiff.BigMapDiff, error)) *MockRollbackLastDiffCall {
+func (c *MockRollbackLastDiffCall) Do(f func(context.Context, int64, string, int64, bool) (bigmapdiff.BigMapDiff, error)) *MockRollbackLastDiffCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockRollbackLastDiffCall) DoAndReturn(f func(context.Context, int64, string, bool) (bigmapdiff.BigMapDiff, error)) *MockRollbackLastDiffCall {
+func (c *MockRollbackLastDiffCall) DoAndReturn(f func(context.Context, int64, string, int64, bool) (bigmapdiff.BigMapDiff, error)) *MockRollbackLastDiffCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

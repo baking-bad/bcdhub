@@ -14,7 +14,7 @@ func (rm Manager) rollbackBigMapState(ctx context.Context, level int64) error {
 	}
 
 	for i, state := range states {
-		diff, err := rm.rollback.LastDiff(ctx, state.Ptr, state.KeyHash, false)
+		diff, err := rm.rollback.LastDiff(ctx, state.Ptr, state.KeyHash, level, false)
 		if err != nil {
 			if rm.storage.IsRecordNotFound(err) {
 				if err := rm.rollback.DeleteBigMapState(ctx, states[i]); err != nil {
@@ -33,7 +33,7 @@ func (rm Manager) rollbackBigMapState(ctx context.Context, level int64) error {
 			states[i].Removed = false
 		} else {
 			states[i].Removed = true
-			valuedDiff, err := rm.rollback.LastDiff(ctx, state.Ptr, state.KeyHash, true)
+			valuedDiff, err := rm.rollback.LastDiff(ctx, state.Ptr, state.KeyHash, level, true)
 			if err != nil {
 				if !rm.storage.IsRecordNotFound(err) {
 					return err
