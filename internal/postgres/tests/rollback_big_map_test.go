@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres"
+	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 )
 
@@ -185,6 +186,51 @@ func (s *StorageTestSuite) TestRollbackBigMap_WholeBigMapRemovalIsRestored() {
 	h.requireState(states, "alive_1", 900, `{"int":"1"}`, false)
 	h.requireState(states, "alive_2", 950, `{"int":"22"}`, false)
 	h.requireState(states, "removed_before", 900, `{"int":"3"}`, true)
+}
+
+// Same as above, but the removal goes through the indexer's write path:
+// states are read with GetByPtr and written back with the
+// Transaction.BigMapStates upsert, stamped the way the removal handlers in
+// internal/parsers/storage do it.
+func (s *StorageTestSuite) TestRollbackBigMap_WholeBigMapRemovalThroughUpsert() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	h := s.newBigMapHistory(ctx, 10006)
+	h.diff(ctx, "alive", 900, types.Bytes(`{"int":"1"}`))
+	h.state(ctx, "alive", 900, types.Bytes(`{"int":"1"}`), false)
+	h.diff(ctx, "removed_before", 800, types.Bytes(`{"int":"2"}`))
+	h.diff(ctx, "removed_before", 850, nil)
+	h.state(ctx, "removed_before", 850, types.Bytes(`{"int":"2"}`), true)
+
+	states, err := s.bigMapDiffs.GetByPtr(ctx, rollbackContract, h.ptr)
+	s.Require().NoError(err)
+	s.Require().Len(states, 2)
+
+	removed := make([]*bigmapdiff.BigMapState, len(states))
+	for i := range states {
+		states[i].Removed = true
+		states[i].LastUpdateLevel = rollbackLevel
+		states[i].LastUpdateTime = levelTime(rollbackLevel)
+		removed[i] = &states[i]
+		h.diff(ctx, states[i].KeyHash, rollbackLevel, nil)
+	}
+
+	tx, err := core.NewTransaction(ctx, s.storage.DB)
+	s.Require().NoError(err)
+	s.Require().NoError(tx.BigMapStates(ctx, removed...))
+	s.Require().NoError(tx.Commit())
+
+	afterRemoval := h.states(ctx)
+	h.requireState(afterRemoval, "alive", rollbackLevel, `{"int":"1"}`, true)
+	h.requireState(afterRemoval, "removed_before", rollbackLevel, `{"int":"2"}`, true)
+
+	h.rollback(ctx)
+
+	restored := h.states(ctx)
+	s.Require().Len(restored, 2)
+	h.requireState(restored, "alive", 900, `{"int":"1"}`, false)
+	h.requireState(restored, "removed_before", 850, `{"int":"2"}`, true)
 }
 
 func (s *StorageTestSuite) TestLastDiffIgnoresRolledBackLevel() {

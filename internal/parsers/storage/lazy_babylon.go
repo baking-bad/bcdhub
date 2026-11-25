@@ -272,9 +272,7 @@ func (b *LazyBabylon) handleBigMapDiffRemove(ctx context.Context, diff *noderpc.
 	}
 	for i := range states {
 		states[i].Removed = true
-		// The state is upserted with these values, so they must point at the
-		// removal: otherwise rolling back this level would not find the state
-		// and the keys would stay removed.
+		// Stamp the removal level so rolling it back finds the state.
 		states[i].LastUpdateLevel = operation.Level
 		states[i].LastUpdateTime = operation.Timestamp
 
