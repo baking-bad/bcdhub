@@ -160,8 +160,7 @@ func (bi *BlockchainIndexer) init(ctx context.Context, db *core.Postgres) error 
 		}
 	}
 
-	bi.currentProtocol = currentProtocol
-	bi.blockTime.Store(currentProtocol.TimeBetweenBlocks * int64(time.Second))
+	bi.setCurrentProtocol(currentProtocol)
 	log.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", currentProtocol.Hash)
 
 	for {
@@ -419,8 +418,32 @@ func (bi *BlockchainIndexer) parseAndSaveBlock(ctx context.Context, block *Block
 	return nil
 }
 
+// setCurrentProtocol makes proto the protocol new blocks are written with and
+// derives the block time from it.
+func (bi *BlockchainIndexer) setCurrentProtocol(proto protocol.Protocol) {
+	bi.currentProtocol = proto
+	bi.blockTime.Store(proto.TimeBetweenBlocks * int64(time.Second))
+}
+
+// refreshProtocol reloads the protocol active at level from storage into memory.
+// It must run after a rollback: the rollback may delete the protocol activated
+// in a rolled-back block, and the cached one would then point to a removed row.
+func (bi *BlockchainIndexer) refreshProtocol(ctx context.Context, level int64) error {
+	proto, err := bi.Protocols.Get(ctx, "", level)
+	if err != nil {
+		return errors.Wrapf(err, "get protocol at level %d", level)
+	}
+	bi.setCurrentProtocol(proto)
+	return nil
+}
+
+// needsMigration reports whether header starts a protocol other than the current one.
+func (bi *BlockchainIndexer) needsMigration(header noderpc.Header) bool {
+	return header.Protocol != bi.currentProtocol.Hash || header.Level <= 1
+}
+
 func (bi *BlockchainIndexer) doMigration(ctx context.Context, header noderpc.Header) error {
-	if header.Protocol == bi.currentProtocol.Hash && header.Level > 1 {
+	if !bi.needsMigration(header) {
 		return nil
 	}
 
@@ -449,9 +472,7 @@ func (bi *BlockchainIndexer) migrate(ctx context.Context, head noderpc.Header) e
 		return err
 	}
 
-	bi.currentProtocol = newProto
-	bi.blockTime.Store(newProto.TimeBetweenBlocks * int64(time.Second))
-
+	bi.setCurrentProtocol(newProto)
 	bi.setUpdateTicker(0)
 	log.Info().
 		Str("network", bi.Network.String()).
@@ -482,8 +503,16 @@ func (bi *BlockchainIndexer) Rollback(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	previousBlockTime := bi.blockTime.Load()
+	if err := bi.refreshProtocol(ctx, newState.Level); err != nil {
+		return err
+	}
 	bi.state = newState
+	if bi.blockTime.Load() != previousBlockTime {
+		bi.setUpdateTicker(0)
+	}
 	log.Info().Str("network", bi.Network.String()).Msgf("New indexer state: %8d", bi.state.Level)
+	log.Info().Str("network", bi.Network.String()).Msgf("Current network protocol: %s", bi.currentProtocol.Hash)
 	log.Info().Str("network", bi.Network.String()).Msg("Rollback finished")
 	return nil
 }
