@@ -218,6 +218,7 @@ func (s *StorageTestSuite) TestRollbackBigMap_WholeBigMapRemovalThroughUpsert() 
 
 	tx, err := core.NewTransaction(ctx, s.storage.DB)
 	s.Require().NoError(err)
+	defer tx.Close()
 	s.Require().NoError(tx.BigMapStates(ctx, removed...))
 	s.Require().NoError(tx.Commit())
 
